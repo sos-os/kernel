@@ -4,6 +4,8 @@
 #![feature(no_std, lang_items)]
 #![no_std]
 
+extern crate rlibc;
+
 /// Kernel main loop
 #[no_mangle]
 pub extern fn kernel_main() {}

@@ -16,7 +16,7 @@
 ; limitations under the License.
 
 %define MULTIBOOT_2_MAGIC   0xe85250d6
-%define HEADER_LEN          header_end - header_begin
+%define HEADER_LEN          (header_end - header_begin)
 
 section .multiboot_header
 header_begin:
@@ -25,7 +25,7 @@ header_begin:
     dd HEADER_LEN           ; header length
 
     ; checksum
-    dd -(MULTIBOOT_2_MAGIC + 0 + HEADER_LEN)
+    dd 0x100000000 - (MULTIBOOT_2_MAGIC + 0 + HEADER_LEN)
 
     ; required end tag
     dw 0    ; type
