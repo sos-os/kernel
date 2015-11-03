@@ -15,17 +15,20 @@
 ; See the License for the specific language governing permissions and
 ; limitations under the License.
 
-section .multiboot
-begin:
-    dd 0xe85250d6   ; multiboot 2 magic
-    dd 0            ; arch 0 (i386)
-    dd end - begin  ; header length
+%define MULTIBOOT_2_MAGIC   0xe85250d6
+%define HEADER_LEN          header_end - header_begin
+
+section .multiboot_header
+header_begin:
+    dd MULTIBOOT_2_MAGIC    ; multiboot 2 magic
+    dd 0                    ; arch 0 (i386)
+    dd HEADER_LEN           ; header length
 
     ; checksum
-    dd 0x100000000 - (0xe85250d6 + 0 + (end - begin))
+    dd -(MULTIBOOT_2_MAGIC + 0 + HEADER_LEN)
 
     ; required end tag
     dw 0    ; type
     dw 0    ; flags
     dd 8    ; size
-end:
+header_end:
