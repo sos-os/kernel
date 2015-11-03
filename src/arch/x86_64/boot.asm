@@ -129,6 +129,15 @@ start:
     call create_page_tables
     call set_long_mode
 
+    ; load the 64-bit GDT
+    lgdt [gdt64.ptr]
+
+    ; update selectors
+    mov ax, 16
+    mov ss, ax  ; stack selector
+    mov ds, ax  ; data selector
+    mov es, ax  ; extra selector
+
     ; print `OK` to screen
     mov dword [0xb8000], 0x2f4b2f4f
     hlt
@@ -147,3 +156,14 @@ page_table:                 ; Page Table
 stack_end:
     resb 64
 stack_top:
+
+section .rodata
+gdt64:
+    dq 0 ; zero entry
+.code: equ $ - gdt64 ; new
+    dq (1<<44) | (1<<47) | (1<<41) | (1<<43) | (1<<53) ; code segment
+.data: equ $ - gdt64 ; new
+    dq (1<<44) | (1<<47) | (1<<41) ; data segment
+.ptr:
+    dw $ - gdt64 - 1
+    dq gdt64
