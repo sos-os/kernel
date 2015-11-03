@@ -1,7 +1,21 @@
+#![crate_name = "sos_kernel"]
+#![crate_type = "staticlib"]
 #![feature(asm)]
-#![feature(no_std)]
+#![feature(no_std, lang_items)]
 #![no_std]
 
-#[test]
-fn it_works() {
+/// Kernel main loop
+#[no_mangle]
+pub extern fn kernel_main() {}
+
+/// Required for Rust stack unwinding
+#[lang = "eh_personality"]
+extern fn eh_personality() {
+    // TODO: add support for stack unwinding
+}
+
+#[lang = "panic_fmt"]
+extern fn panic_fmt() -> ! {
+    // TODO: actually format panics (waiting for robust VGA support)
+    loop{}
 }
