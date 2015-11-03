@@ -28,7 +28,7 @@ $(iso): $(kernel) $(grub_cfg)
 	@rm -r build/isofiles
 
 $(kernel): $(assembly_object_files) $(linker_script)
-	@ld -n -T $(linker_script) -o $(kernel) $(assembly_object_files)
+	@x86_64-elf-ld -n -T $(linker_script) -o $(kernel) $(assembly_object_files)
 
 # compile assembly files
 build/arch/$(arch)/%.o: src/arch/$(arch)/%.asm
