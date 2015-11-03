@@ -1,0 +1,14 @@
+[package]
+name = "sos-kernel"
+version = "0.1.0"
+authors = [ # hacked around by
+            "Hawk Weisman <hi@hawkweisman.me>"
+          , # based on code by
+            "Philipp Oppermann <dev@phil-opp.com>"
+]
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+rlibc = "*"
