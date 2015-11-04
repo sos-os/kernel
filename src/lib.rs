@@ -2,9 +2,12 @@
 #![crate_type = "staticlib"]
 #![feature(asm)]
 #![feature(no_std, lang_items)]
+#![feature(const_fn, unique)]
 #![no_std]
 
 extern crate rlibc;
+
+pub mod arch;
 
 /// Kernel main loop
 #[no_mangle]
