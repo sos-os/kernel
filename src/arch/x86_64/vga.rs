@@ -22,8 +22,6 @@ pub enum Color {
 
 #[derive(Eq, PartialEq, Ord, PartialOrd, Copy, Clone)]
 pub struct Palette(u8);
-#[derive(Eq, PartialEq, Ord, PartialOrd, Copy, Clone)]
-pub struct Ascii(u8);
 
 impl Palette {
     pub const fn new(fg: Color, bg: Color) -> Self {
@@ -34,11 +32,11 @@ impl Palette {
 /// A colored VGA character.
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct Char { pub code: Ascii
+pub struct Char { pub code: u8
                 , pub colors: Palette
                 }
 
-const COLS: usize = 80;
-const ROWS: usize = 25;
+pub const X_MAX: usize = 80;
+pub const Y_MAX: usize = 25;
 
-type Buffer = [[Char; COLS]; ROWS];
+type Buffer = [[Char; X_MAX]; Y_MAX];
