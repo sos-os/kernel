@@ -34,6 +34,9 @@ is_SSE:
     jmp     error
 
 ; Sets SSE mode
+;
+; This may be a bad (slow) thing, look into setting no-SSE compiler flags
+; instead.
 set_SSE:
     call    is_SSE
     mov     rax, cr0
