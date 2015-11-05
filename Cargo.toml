@@ -12,6 +12,7 @@ crate-type = ["staticlib"]
 
 [dependencies]
 rlibc = "*"
+spin = "*"
 
 [build-dependencies]
 nasm-rs = "^0.0.3"

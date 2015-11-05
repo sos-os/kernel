@@ -2,6 +2,7 @@ use ::arch::vga;
 use core::ptr::Unique;
 use core::mem;
 use core::fmt::{Write, Result};
+use spin::Mutex;
 
 pub struct Terminal { buffer: Unique<vga::Buffer>
                     , x: usize
@@ -43,9 +44,10 @@ impl Terminal {
             self.x = 0;
             self.y += 1;
         } else {
-            let ch = vga::Char { ascii: byte
-                               , color: self.colors };
-            self.buffer()[pos.x][pos.y];
+            // set character at position
+            self.buffer()[pos.x][pos.y]
+                = vga::Char { ascii: byte
+                            , color: self.colors };
             self.x += 1;
 
             // check for line wrapping
@@ -74,3 +76,12 @@ impl Write for Terminal {
     }
 
 }
+
+/// The system's VGA terminal
+pub static CONSOLE: Mutex<Terminal>
+    = Mutex::new(Terminal {
+        colors: vga::Palette::new(Color::LightGreen, Color::Black)
+      , x: 0
+      , y: 0
+      , buffer: unsafe { Unique::new(0xB8000 as *mut _) },
+    });
