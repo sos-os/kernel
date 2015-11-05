@@ -95,25 +95,25 @@ create_page_tables:
 set_long_mode:
 
     ; load PML4 addr to cr3 register
-    mov eax, pml4_table
-    mov cr3, eax
+    mov         eax, pml4_table
+    mov         cr3, eax
 
     ; enable PAE-flag in cr4 (Physical Address Extension)
-    mov eax, cr4
-    or eax, 1 << 5
-    mov cr4, eax
+    mov         eax, cr4
+    or          eax, 1 << 5
+    mov         cr4, eax
 
     ; set the long mode bit in the EFER MSR (model specific register)
-    mov ecx, 0xC0000080
+    mov         ecx, 0xC0000080
     rdmsr
-    or eax, 1 << 8
+    or          eax, 1 << 8
     wrmsr
 
     ; enable paging in the cr0 register
-    mov eax, cr0
-    sor eax, 1 << 31
-    or eax, 1 << 16
-    mov cr0, eax
+    mov         eax, cr0
+    or          eax, 1 << 31
+    or          eax, 1 << 16
+    mov         cr0, eax
 
     ret
 
