@@ -45,7 +45,7 @@ impl Terminal {
             self.y += 1;
         } else {
             // set character at position
-            self.buffer()[self.x][self.y]
+            self.buffer()[self.y][self.x]
                 = vga::Char { ascii: byte
                             , colors: self.colors };
             self.x += 1;
