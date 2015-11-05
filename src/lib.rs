@@ -10,14 +10,16 @@ extern crate spin;
 
 pub mod arch;
 pub mod io;
-use io::term::{ Terminal, CONSOLE };
+use io::term::CONSOLE;
 
 /// Kernel main loop
 #[no_mangle]
 pub extern fn kernel_main() {
     use core::fmt::Write;
-    CONSOLE.lock().clear();
-    CONSOLE.lock().write_str("Hello from the kernel!");
+    CONSOLE.lock()
+           .clear()
+           .write_str("Hello from the kernel!")
+           .unwrap();
     loop { }
 }
 
