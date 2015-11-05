@@ -59,7 +59,7 @@ impl Terminal {
         // check for scrolling
         if self.y >= vga::Y_MAX {
             self.scroll();
-            self.y = vga:Y_MAX- 1;
+            self.y = vga::Y_MAX- 1;
         }
 
     }

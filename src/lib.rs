@@ -9,7 +9,7 @@ extern crate rlibc;
 
 pub mod arch;
 pub mod io;
-use io::term:{ Terminal, CONSOLE };
+use io::term::{ Terminal, CONSOLE };
 
 /// Kernel main loop
 #[no_mangle]
@@ -17,6 +17,7 @@ pub extern fn kernel_main() {
     use core::fmt::Write;
     CONSOLE.lock().clear();
     CONSOLE.lock().write_str("Hello from the kernel!");
+    loop { }
 }
 
 /// Required for Rust stack unwinding
