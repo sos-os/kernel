@@ -6,6 +6,7 @@
 #![no_std]
 
 extern crate rlibc;
+extern crate spin;
 
 pub mod arch;
 pub mod io;
