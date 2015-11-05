@@ -144,7 +144,7 @@ start:
 
 
 section .bss
-align 4092
+align 4096
 pml4_table:                 ; Page-Map Level-4 Table
     resb PAGE_TABLE_SIZE
 pdp_table:                  ; Page Directory Pointer Table
