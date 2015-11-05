@@ -18,7 +18,7 @@
 %define MULTIBOOT_2_MAGIC   0xe85250d6
 %define HEADER_LEN          (header_end - header_begin)
 
-section .multiboot_header
+section .multiboot
 header_begin:
     dd MULTIBOOT_2_MAGIC    ; multiboot 2 magic
     dd 0                    ; arch 0 (i386)
