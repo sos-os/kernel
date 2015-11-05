@@ -52,6 +52,7 @@ set_SSE:
 ; Prints `ERROR: ` and the given error code to screen and hangs.
 ; parameter: error code (in ascii) in al
 error:
+    ; Oh god oh god, we're all gonna die.
     mov     rbx, 0x4f4f4f524f524f45
     mov     [0xb8000], rbx
     mov     rbx, 0x4f204f204f3a4f52

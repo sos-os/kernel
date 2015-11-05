@@ -9,7 +9,6 @@
 
 %endmacro
 
-%define set_eax_nth(n)  or eax, 1 << n
 
 global start
 
@@ -101,19 +100,19 @@ set_long_mode:
 
     ; enable PAE-flag in cr4 (Physical Address Extension)
     mov eax, cr4
-    set_nth(5)
+    or eax, 1 << 5
     mov cr4, eax
 
     ; set the long mode bit in the EFER MSR (model specific register)
     mov ecx, 0xC0000080
     rdmsr
-    set_nth(8)
+    or eax, 1 << 8
     wrmsr
 
     ; enable paging in the cr0 register
     mov eax, cr0
-    set_nth(31)
-    set_nth(16)
+    sor eax, 1 << 31
+    or eax, 1 << 16
     mov cr0, eax
 
     ret
