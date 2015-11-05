@@ -2,7 +2,7 @@ arch ?= x86_64
 kernel := build/kernel-$(arch).bin
 iso := build/os-$(arch).iso
 target ?= $(arch)-unknown-linux-gnu
-rust_os := target/$(target)/debug/libsos-kernel.a
+rust_os := target/$(target)/debug/libsos_kernel.a
 
 linker_script := src/arch/$(arch)/linker.ld
 grub_cfg := src/arch/$(arch)/grub.cfg
