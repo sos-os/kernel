@@ -3,6 +3,7 @@
 #![feature(asm)]
 #![feature(no_std, lang_items)]
 #![feature(const_fn, unique, core_str_ext, core_slice_ext)]
+#![feature(slice_patterns)]
 #![no_std]
 
 extern crate rlibc;
@@ -10,6 +11,8 @@ extern crate spin;
 
 pub mod arch;
 pub mod io;
+pub mod util;
+
 use io::term::CONSOLE;
 
 /// Kernel main loop

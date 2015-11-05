@@ -17,6 +17,13 @@ impl Terminal {
         unsafe { self.buffer.get_mut() }
     }
 
+    pub fn set_colors(&mut self, bg: vga::Color, fg :vga::Color)
+                     -> &mut Self
+    {
+        self.colors = vga::Palette::new(bg,fg);
+        self
+    }
+
     fn scroll(&mut self) {
         let mut rows = self.buffer()
                            .iter_mut();
@@ -34,12 +41,13 @@ impl Terminal {
     }
 
 
-    pub fn clear(&mut self) {
+    pub fn clear(&mut self) -> &mut Self {
         unsafe { *(self.buffer()) = mem::zeroed(); }
+        self
     }
 
 
-    pub fn write_byte(&mut self, byte: u8) {
+    pub fn write_byte(&mut self, byte: u8) -> &mut Self {
         if byte == b'\n' {
             self.x = 0;
             self.y += 1;
@@ -61,7 +69,7 @@ impl Terminal {
             self.scroll();
             self.y = vga::Y_MAX- 1;
         }
-
+        self
     }
 
 }
@@ -70,7 +78,7 @@ impl Write for Terminal {
 
     fn write_str(&mut self, s: &str) -> Result {
         for byte in s.as_bytes() {
-            self.write_byte(*byte)
+            self.write_byte(*byte);
         }
         Ok(())
     }

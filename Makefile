@@ -18,8 +18,8 @@ all: $(kernel)
 clean:
 	@rm -r build
 
-run: $(iso)
-	@qemu-system-x86_64 -hda $(iso)
+run: $(kernel)
+	@qemu-system-x86_64 -kernel $(kernel)
 
 iso: $(iso)
 
