@@ -58,7 +58,7 @@ is_cpuid:
     ret                  ; CPUID is available for use.
 .no_cpuid:
     mov al, "1"
-    jmp error
+    jmp err
 
 ; Prints a boot error code to the VGA buffer
 err:
