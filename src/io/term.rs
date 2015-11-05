@@ -35,7 +35,7 @@ impl Terminal {
 
 
     pub fn clear(&mut self) {
-        unsafe { *(self.buffer) = mem::zeroed(); }
+        unsafe { *(self.buffer()) = mem::zeroed(); }
     }
 
 
@@ -45,9 +45,9 @@ impl Terminal {
             self.y += 1;
         } else {
             // set character at position
-            self.buffer()[pos.x][pos.y]
+            self.buffer()[self.x][self.y]
                 = vga::Char { ascii: byte
-                            , color: self.colors };
+                            , colors: self.colors };
             self.x += 1;
 
             // check for line wrapping
@@ -70,7 +70,7 @@ impl Write for Terminal {
 
     fn write_str(&mut self, s: &str) -> Result {
         for byte in s.as_bytes() {
-            self.write_byte(byte)
+            self.write_byte(*byte)
         }
         Ok(())
     }
@@ -80,7 +80,9 @@ impl Write for Terminal {
 /// The system's VGA terminal
 pub static CONSOLE: Mutex<Terminal>
     = Mutex::new(Terminal {
-        colors: vga::Palette::new(Color::LightGreen, Color::Black)
+        colors: vga::Palette::new( vga::Color::LightGreen
+                                 , vga::Color::Black
+                                 )
       , x: 0
       , y: 0
       , buffer: unsafe { Unique::new(0xB8000 as *mut _) },

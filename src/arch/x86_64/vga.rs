@@ -32,11 +32,11 @@ impl Palette {
 /// A colored VGA character.
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct Char { pub code: u8
+pub struct Char { pub ascii: u8
                 , pub colors: Palette
                 }
 
 pub const X_MAX: usize = 80;
 pub const Y_MAX: usize = 25;
 
-type Buffer = [[Char; X_MAX]; Y_MAX];
+pub type Buffer = [[Char; X_MAX]; Y_MAX];
