@@ -118,30 +118,30 @@ set_long_mode:
     ret
 
 start:
-    mov esp, stack_top
+    mov     esp, stack_top
 
-    call is_multiboot
-    call is_cpuid
-    call is_long_mode
+    call    is_multiboot
+    call    is_cpuid
+    call    is_long_mode
 
     ; if everything is okay, create the page tables and start long mode
-    call create_page_tables
-    call set_long_mode
+    call    create_page_tables
+    call    set_long_mode
 
     ; load the 64-bit GDT
-    lgdt [gdt64.ptr]
+    lgdt    [gdt64.ptr]
 
     ; update selectors
-    mov ax, 16
-    mov ss, ax  ; stack selector
-    mov ds, ax  ; data selector
-    mov es, ax  ; extra selector
+    mov     ax, 16
+    mov     ss, ax  ; stack selector
+    mov     ds, ax  ; data selector
+    mov     es, ax  ; extra selector
 
     ; print `OK` to screen
-    mov dword [0xb8000], 0x2f4b2f4f
-    hlt
+    mov     dword [0xb8000], 0x2f4b2f4f
 
-
+    jmp     gdt64.code:start_64
+    
 section .bss
 align 4096
 pml4_table:                 ; Page-Map Level-4 Table
