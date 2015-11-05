@@ -11,6 +11,7 @@
 
 
 global start
+extern start_64
 
 section .text
 bits 32
@@ -141,7 +142,7 @@ start:
     mov     dword [0xb8000], 0x2f4b2f4f
 
     jmp     gdt64.code:start_64
-    
+
 section .bss
 align 4096
 pml4_table:                 ; Page-Map Level-4 Table
