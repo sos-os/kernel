@@ -1,3 +1,15 @@
+//
+//  SOS: the Stupid Operating System
+//  by Hawk Weisman (hi@hawkweisman.me)
+//
+//  Copyright (c) 2015 Hawk Weisman
+//  Released under the terms of the MIT license. See `LICENSE` in the root
+//  directory of this repository for more information.
+//
+//! 64-bit Interrupt Descriptor Table implementation.
+//!
+//! Refer to section 6.10 of the _Intel® 64 and IA-32 Architectures
+//! Software Developer’s Manual_ for more information.
 use core::mem;
 use spin::Mutex;
 
@@ -15,13 +27,24 @@ type Handler = unsafe extern "C" fn() -> ();
 /// Based on code from the OS Dev Wiki
 /// http://wiki.osdev.org/Interrupt_Descriptor_Table#Structure
 #[repr(C, packed)]
-struct Gate { offset_lower: u16
-            , selector: u16
-            , zero: u8
-            , type_attr: u8
-            , offest_mid: u16
-            , offset_upper: u32
-            , reserved: u32
+struct Gate { /// bits 0 - 15 of the offset
+              offset_lower: u16
+            , /// code segment selector (GDT or LDT)
+              selector: u16
+            , /// always zero
+              zero: u8
+            , /// indicates the gate's type and attributes.
+              /// the second half indicates the type:
+              ///   + `0b1100`: Call gate
+              ///   + `0b1110`: Interrupt gate
+              ///   + `0b1111`: Trap Gate
+              type_attr: u8
+            , /// bits 16 - 31 of the offset
+              offest_mid: u16
+            , /// bits 32 - 63 of the offset
+              offset_upper: u32
+            , /// always zero (according to the spec, this is "reserved")
+              reserved: u32
             }
 
 impl Gate {
@@ -40,9 +63,10 @@ impl Gate {
         }
     }
 
+    /// Creates a new IDT gate pointing at the given handler function.
     fn new(handler: Handler) -> Gate {
-        unsafe {
-            // `mem::transmute()` is glorious black magic
+        unsafe { // trust me on this.
+                 // `mem::transmute()` is glorious black magic
             let (low, mid, high): (u16, u16, u32)
                 = mem::transmute(handler)
 
@@ -62,10 +86,23 @@ impl Gate {
 struct Idt([Gate; IDT_ENTRIES]);
 
 impl Idt {
+    /// Get the IDT pointer struct to pass to `lidt`
     fn get_ptr(&self) -> IdtPtr {
         IdtPtr { limit: mem::size_of::<Gate>() * IDT_ENTRIES
                , base: &self.0[0] as *const Gate
                }
+    }
+
+    /// Enable interrupts
+    unsafe fn enable_interrupts() {
+        asm!("sti" :::: "volatile")
+    }
+
+    /// This is just a wrapper for prettiness reasons.
+    #[inline]
+    unsafe fn load(&self) {
+        self.get_ptr()
+            .load()
     }
 }
 

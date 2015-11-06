@@ -1,3 +1,17 @@
+//
+//  SOS: the Stupid Operating System
+//  by Hawk Weisman (hi@hawkweisman.me)
+//
+//  Copyright (c) 2015 Hawk Weisman
+//  Released under the terms of the MIT license. See `LICENSE` in the root
+//  directory of this repository for more information.
+//
+//! SOS: the Stupid Operating System
+//!
+//! SOS is a simple, tiny toy OS implemented in Rust.
+//!
+//! I'm writing this mostly for fun, to learn more about OS design and kernel //! hacking, so don't expect anything new or exciting out of this project.
+
 #![crate_name = "sos_kernel"]
 #![crate_type = "staticlib"]
 #![feature(asm)]
