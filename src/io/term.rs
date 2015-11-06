@@ -86,7 +86,19 @@ impl Terminal {
     }
 
     fn handle_ansi_escape(&self, escape_code: &str) -> Result {
-        
+        match escape_code[4..].as_bytes() {
+            [b'3', n @ u8, b'm'] => {
+                unsafe { self.colors
+                             .set_foreground(mem::transmute(n - 48)); }
+                Ok(())
+            }
+          , [b'4', n @ u8, b'm'] => {
+                unsafe { self.colors
+                             .set_background(mem::transmute(n - 48)); }
+                Ok(())
+            }
+          , _ => unimplemented!()
+        }
         // let escape_seq: &str = bytes.take_while(|b| b != b'm')
         //                       .collect::<&str>();
         // match escape_seq {
@@ -126,7 +138,7 @@ impl Terminal {
         //       , b => { self.write_byte(b); }
         //     }
         // }
-        unimplemented!()
+
     }
 
 }
