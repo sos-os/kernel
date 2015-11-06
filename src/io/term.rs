@@ -60,7 +60,6 @@ impl Terminal {
         self
     }
 
-
     pub fn write_byte(&mut self, byte: u8) -> &mut Self {
         if byte == b'\n' {
             self.x = 0;
@@ -87,6 +86,7 @@ impl Terminal {
     }
 
     fn handle_ansi_escape(&self, escape_code: &str) -> Result {
+        
         // let escape_seq: &str = bytes.take_while(|b| b != b'm')
         //                       .collect::<&str>();
         // match escape_seq {

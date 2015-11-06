@@ -67,7 +67,6 @@ impl Palette {
     }
 
 }
-
 /// A colored VGA character.
 #[derive(Copy, Clone)]
 #[repr(C)]
