@@ -27,6 +27,7 @@ type Handler = unsafe extern "C" fn() -> ();
 /// Based on code from the OS Dev Wiki
 /// http://wiki.osdev.org/Interrupt_Descriptor_Table#Structure
 #[repr(C, packed)]
+#[derive(Copy,Clone)]
 struct Gate { /// bits 0 - 15 of the offset
               offset_lower: u16
             , /// code segment selector (GDT or LDT)
@@ -40,7 +41,7 @@ struct Gate { /// bits 0 - 15 of the offset
               ///   + `0b1111`: Trap Gate
               type_attr: u8
             , /// bits 16 - 31 of the offset
-              offest_mid: u16
+              offset_mid: u16
             , /// bits 32 - 63 of the offset
               offset_upper: u32
             , /// always zero (according to the spec, this is "reserved")
@@ -68,7 +69,7 @@ impl Gate {
         unsafe { // trust me on this.
                  // `mem::transmute()` is glorious black magic
             let (low, mid, high): (u16, u16, u32)
-                = mem::transmute(handler)
+                = mem::transmute(handler);
 
             Gate { offset_lower: low
                  , selector: gdt64_offset
@@ -88,8 +89,8 @@ struct Idt([Gate; IDT_ENTRIES]);
 impl Idt {
     /// Get the IDT pointer struct to pass to `lidt`
     fn get_ptr(&self) -> IdtPtr {
-        IdtPtr { limit: mem::size_of::<Gate>() * IDT_ENTRIES
-               , base: &self.0[0] as *const Gate
+        IdtPtr { limit: (mem::size_of::<Gate>() * IDT_ENTRIES) as u16
+               , base:  (&self.0[0] as *const Gate) as u64
                }
     }
 

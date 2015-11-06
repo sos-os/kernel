@@ -7,7 +7,6 @@
 //  directory of this repository for more information.
 //
 //! x86_64 architecture-specific implementation.
-//!
 
 pub mod vga;
 pub mod cpu;
