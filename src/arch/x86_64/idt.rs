@@ -3,7 +3,7 @@ use spin::Mutex;
 
 extern {
     /// Offset of the 64-bit GDT main code segment.
-    /// This should be exported by ASM.
+    /// Exported by `boot.asm`
     static gdt64_offset: u16;
 }
 

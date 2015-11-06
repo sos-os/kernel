@@ -11,6 +11,8 @@
 
 
 global start
+global gdt64_offset
+
 extern start_64
 
 section .text
@@ -167,3 +169,7 @@ gdt64:
 .ptr:
     dw $ - gdt64 - 1
     dq gdt64
+
+; GDT offset location exported to Rust kernel
+gdt64_offset:
+    dw gdt64.code
