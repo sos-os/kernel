@@ -12,11 +12,18 @@ use core::mem;
 use core::fmt::{Write, Result};
 use spin::Mutex;
 
+const ANSI_ESCAPE: &'static str = r"\x1b";
+
 pub struct Terminal { buffer: Unique<vga::Buffer>
                     , x: usize
                     , y: usize
                     , colors: vga::Palette
                     }
+
+
+macro_rules! next_ansi_byte {
+    ($b:expr) => { $b.next().expect("Unterminated ANSI escape sequence!") }
+}
 
 impl Terminal {
 
@@ -25,13 +32,12 @@ impl Terminal {
         unsafe { self.buffer.get_mut() }
     }
 
-    pub fn set_colors(&mut self, bg: vga::Color, fg :vga::Color)
+    pub fn set_colors(&mut self, bg: vga::Color, fg: vga::Color)
                      -> &mut Self
     {
         self.colors = vga::Palette::new(bg,fg);
         self
     }
-
     fn scroll(&mut self) {
         let mut rows = self.buffer()
                            .iter_mut();
@@ -80,13 +86,71 @@ impl Terminal {
         self
     }
 
+    fn handle_ansi_escape(&self, escape_code: &str) -> Result {
+        // let escape_seq: &str = bytes.take_while(|b| b != b'm')
+        //                       .collect::<&str>();
+        // match escape_seq {
+        //     [b'3', n] => unsafe {
+        //         self.colors.set_foreground(mem::transmute(n - 48))
+        //     }
+        // }
+        // while let Some(byte) = bytes.next() {
+        //     match *byte {
+        //         // we've recieved an ANSI escape sequence.
+        //         // this basically enters a mediocre FSM for matching ANSI
+        //         // control codes.
+        //         0x1b => match *next_ansi_byte!(bytes) {
+        //             // handle multi-char ANSI escapes
+        //             b'[' => match *next_ansi_byte!(bytes) {
+        //                 // foreground color code
+        //                 fg @ 30 ... 37 => {
+        //                     if !(*next_ansi_byte!(bytes) == b'm') {
+        //                         unsafe {
+        //                             let color: vga::Color
+        //                                 = mem::transmute(fg - 30);
+        //                             self.colors
+        //                                 .set_foreground(color);
+        //                         }
+        //
+        //                     }
+        //                 }
+        //                 // background color code
+        //               , 40 ... 47 => {
+        //
+        //                 }
+        //               , _ => unimplemented!()
+        //             }
+        //           , _    => unimplemented!()
+        //         }
+        //         // otherwise, treat the byte as a normal ASCII char
+        //       , b => { self.write_byte(b); }
+        //     }
+        // }
+        unimplemented!()
+    }
+
 }
+
 
 impl Write for Terminal {
 
     fn write_str(&mut self, s: &str) -> Result {
-        for byte in s.as_bytes() {
-            self.write_byte(*byte);
+        if s.contains(ANSI_ESCAPE) {
+            let escape_idxes = s.match_indices(ANSI_ESCAPE);
+            for (idx, _) in escape_idxes {
+                let (segment, _) = s.split_at(idx);
+                if segment.starts_with(ANSI_ESCAPE) {
+                    try!(self.handle_ansi_escape(segment))
+                } else {
+                    for byte in segment.as_bytes() {
+                        self.write_byte(*byte);
+                    }
+                }
+            }
+        } else {
+            for byte in s.as_bytes() {
+                self.write_byte(*byte);
+            }
         }
         Ok(())
     }
