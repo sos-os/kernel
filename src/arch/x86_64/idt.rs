@@ -61,6 +61,14 @@ impl Gate {
 
 struct Idt([Gate; IDT_ENTRIES]);
 
+impl Idt {
+    fn get_ptr(&self) -> IdtPtr {
+        IdtPtr { limit: mem::size_of::<Gate>() * IDT_ENTRIES
+               , base: &self.0[0] as *const Gate
+               }
+    }
+}
+
 /// This is the format that `lidt` expects for the pointer to the IDT.
 /// ...apparently.
 #[repr(C, packed)]
