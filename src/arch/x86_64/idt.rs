@@ -93,35 +93,18 @@ impl Gate for Gate64 {
 struct Idt64([Gate64; IDT_ENTRIES]);
 
 impl Idt for Idt64 {
-    type Ptr = Idt64Ptr;
+    type Ptr = IdtPtr<Self>;
+
     /// Get the IDT pointer struct to pass to `lidt`
     fn get_ptr(&self) -> Self::Ptr {
-        Idt64Ptr { limit: (mem::size_of::<Gate64>() * IDT_ENTRIES) as u16
-                 , base:  (&self.0[0] as *const Gate64) as u64
-                 }
+        IdtPtr { limit: (mem::size_of::<Gate64>() * IDT_ENTRIES) as u16
+               , base:  self as *const Idt64
+               }
     }
 
-    /// Enable interrupts
-    unsafe fn enable_interrupts() {
-        asm!("sti" :::: "volatile")
-    }
-
-    /// This is just a wrapper for prettiness reasons.
-    #[inline]
-    unsafe fn load(&self) {
-        self.get_ptr()
-            .load()
-    }
 }
 
-/// This is the format that `lidt` expects for the pointer to the IDT.
-/// ...apparently.
-#[repr(C, packed)]
-struct Idt64Ptr { limit: u16
-                , base: u64
-                }
-
-impl IdtPtr for Idt64Ptr {
+impl IdtPtrOps for IdtPtr<Idt64> {
     /// Load the IDT at the given location.
     /// This just calls `lidt`.
     unsafe fn load(&self) {

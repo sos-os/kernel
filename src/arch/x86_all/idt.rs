@@ -15,15 +15,32 @@ pub trait Gate {
     fn new(handler: Handler) -> Self;
 }
 
-pub trait Idt {
-    type Ptr: IdtPtr;
+/// This is the format that `lidt` expects for the pointer to the IDT.
+/// ...apparently.
+#[repr(C, packed)]
+pub struct IdtPtr<I>
+where I: Idt { pub limit: u16
+             , pub base: *const I
+             }
+
+pub trait IdtPtrOps {
+    unsafe fn load(&self);
+}
+
+pub trait Idt: Sized {
+    type Ptr: IdtPtrOps;
 
     fn get_ptr(&self) -> Self::Ptr;
 
-    unsafe fn load(&self);
-    unsafe fn enable_interrupts();
-}
+    /// This is just a wrapper for prettiness reasons.
+    #[inline]
+    unsafe fn load(&self) {
+        self.get_ptr()
+            .load()
+    }
 
-pub trait IdtPtr {
-    unsafe fn load(&self);
+    /// Enable interrupts
+    unsafe fn enable_interrupts() {
+        asm!("sti" :::: "volatile")
+    }
 }
