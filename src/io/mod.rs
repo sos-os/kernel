@@ -8,6 +8,7 @@
 //
 pub mod term;
 use core::ops;
+use core::fmt;
 
 /// This is basically a braindead reimplementation of the standard
 /// library's `Read` trait. Most of the methods available on the
@@ -23,12 +24,14 @@ pub trait Write {
     fn write(&mut self, buf: &[u8])       -> Result<usize, Self::Error>;
 }
 
-impl<'a, 'b, E> ops::Shl<&'a [u8]> for &'b mut Write<Error=E> {
+impl<'a, 'b, E> ops::Shl<&'a [u8]> for &'b mut Write<Error=E>
+where E: fmt::Debug {
     type Output = Self;
 
     /// Fakes the C++ `<<` operator for IOStreams on Write.
     fn shl(self, _rhs: &'a [u8]) -> Self::Output {
-        try!(self.write(_rhs));
+        self.write(_rhs)
+            .unwrap();
         self
     }
 }
