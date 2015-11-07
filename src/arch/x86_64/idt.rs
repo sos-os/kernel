@@ -124,7 +124,7 @@ struct Idt64Ptr { limit: u16
 impl IdtPtr for Idt64Ptr {
     /// Load the IDT at the given location.
     /// This just calls `lidt`.
-    pub unsafe fn load(&self) {
+    unsafe fn load(&self) {
         asm!(  "lidt ($0)"
             :: "{rax}"(self)
             :: "volatile" );
