@@ -6,10 +6,13 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-//! x86_64 architecture-specific implementation.
+//! Code for interacting with the x86 CPU.
+//!
+//! Currently this module contains a quick implementation of CPU port
+//! input and output, and little else.
+//!
 
-#[path = "../x86_all/vga.rs"]
-pub mod vga;
-pub mod cpu;
-pub mod idt;
-pub mod keyboard;
+#[path = "../x86_all/cpu.rs"]
+mod cpu_all;
+
+pub use self::cpu_all::*;

@@ -6,10 +6,9 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-//! 64-bit Interrupt Descriptor Table implementation.
-//!
-//! Refer to section 6.10 of the _Intel® 64 and IA-32 Architectures
-//! Software Developer’s Manual_ for more information.
+//! 32-bit Interrupt Descriptor Table implementation.
+//! This is a WORK IN PROGRESS
+
 use core::mem;
 use spin::Mutex;
 
@@ -19,9 +18,9 @@ mod idt_all;
 pub use self::idt_all::*;
 
 extern {
-    /// Offset of the 64-bit GDT main code segment.
+    /// Offset of the 32-bit GDT main code segment.
     /// Exported by `boot.asm`
-    static gdt64_offset: u16;
+    static gdt32_offset: u16;
 }
 
 
@@ -31,7 +30,7 @@ extern {
 /// http://wiki.osdev.org/Interrupt_Descriptor_Table#Structure
 #[repr(C, packed)]
 #[derive(Copy,Clone)]
-struct Gate64 { /// bits 0 - 15 of the offset
+struct Gate32 { /// bits 0 - 15 of the offset
               offset_lower: u16
             , /// code segment selector (GDT or LDT)
               selector: u16
@@ -44,41 +43,35 @@ struct Gate64 { /// bits 0 - 15 of the offset
               ///   + `0b1111`: Trap Gate
               type_attr: u8
             , /// bits 16 - 31 of the offset
-              offset_mid: u16
-            , /// bits 32 - 63 of the offset
-              offset_upper: u32
-            , /// always zero (according to the spec, this is "reserved")
-              reserved: u32
+              offset_upper: u16
             }
 
-impl Gate64 {
+impl Gate32 {
     /// Creates a new IDT gate marked as `absent`.
     ///
     /// This is basically just for filling the new IDT table
     /// with valid (but useless) gates upon init.
     const fn absent() -> Self {
-        Gate64 { offset_lower: 0
+        Gate32 { offset_lower: 0
                , selector: 0
                , zero: 0
                , type_attr: 0b0000_1110
-               , offset_mid: 0
                , offset_upper: 0
-               , reserved: 0
                }
     }
 }
 
-impl Gate for Gate64 {
+impl Gate for Gate32 {
 
     /// Creates a new IDT gate pointing at the given handler function.
     fn new(handler: Handler) -> Self {
         unsafe { // trust me on this.
                  // `mem::transmute()` is glorious black magic
-            let (low, mid, high): (u16, u16, u32)
+            let (low, mid, high): (u16, u16)
                 = mem::transmute(handler);
 
-            Gate64 { offset_lower: low
-                   , selector: gdt64_offset
+            Gate32 { offset_lower: low
+                   , selector: gdt32_offset
                    , zero: 0
                    , type_attr: 0b1000_1110
                    , offset_mid: mid
@@ -90,14 +83,14 @@ impl Gate for Gate64 {
 }
 
 
-struct Idt64([Gate64; IDT_ENTRIES]);
+struct Idt32([Gate32; IDT_ENTRIES]);
 
-impl Idt for Idt64 {
-    type Ptr = Idt64Ptr;
+impl Idt for Idt32 {
+    type Ptr = Idt32Ptr;
     /// Get the IDT pointer struct to pass to `lidt`
     fn get_ptr(&self) -> Self::Ptr {
-        Idt64Ptr { limit: (mem::size_of::<Gate64>() * IDT_ENTRIES) as u16
-                 , base:  (&self.0[0] as *const Gate64) as u64
+        Idt32Ptr { limit: (mem::size_of::<Gate32>() * IDT_ENTRIES) as u16
+                 , base:  (&self.0[0] as *const Gate32) as u32
                  }
     }
 
@@ -117,21 +110,21 @@ impl Idt for Idt64 {
 /// This is the format that `lidt` expects for the pointer to the IDT.
 /// ...apparently.
 #[repr(C, packed)]
-struct Idt64Ptr { limit: u16
-                , base: u64
+struct Idt32Ptr { limit: u16
+                , base: u32
                 }
 
-impl IdtPtr for Idt64Ptr {
+impl IdtPtr for Idt32Ptr {
     /// Load the IDT at the given location.
     /// This just calls `lidt`.
     pub unsafe fn load(&self) {
         asm!(  "lidt ($0)"
-            :: "{rax}"(self)
+            :: "{eax}"(self)
             :: "volatile" );
     }
 }
 
 /// Global Interrupt Descriptor Table instance
 /// Our global IDT.
-static IDT: Mutex<Idt64>
-    = Mutex::new(Idt64([Gate64::absent(); IDT_ENTRIES]));
+static IDT: Mutex<Idt32>
+    = Mutex::new(Idt32([Gate32::absent(); IDT_ENTRIES]));
