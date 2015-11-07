@@ -75,20 +75,28 @@ impl Port {
 impl io::Read for Port {
     type Error = util::Void;
 
+    /// Reads a single byte into the given buffer
     fn read(&mut self, buf: &mut [u8]) -> Result<usize, Self::Error> {
         unsafe {
             Ok(match &mut *buf {
-                []                  => 0 // no bytes were read
+                // if the length of the buffer is 0, then obviously
+                // no bytes were read
+                []                  => 0
+                // otherwise, read one byte into the head of the buffer
               , [ref mut head, _..] => { *head = self.in8(); 1 }
             })
         }
     }
 
+    /// Reads a new byte into each position in the buffer.
     fn read_all(&mut self, buf: &mut [u8]) -> Result<usize, Self::Error> {
         let mut read_bytes = 0;
         for idx in buf.iter_mut() {
-            unsafe { *idx = self.in8();
-                     read_bytes += 1; }
+            // for each index in the buffer, read another byte from the port
+            unsafe { *idx = self.in8(); }
+            // and increment the number of bytes read (this should be faster
+            // than calling `buf.len()` later; as we only need 1 loop)
+            read_bytes += 1;
         }
         Ok(read_bytes)
     }
