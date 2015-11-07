@@ -10,9 +10,10 @@ use ::arch::vga;
 use core::ptr::Unique;
 use core::mem;
 use core::fmt::{Write, Result};
+use core::str::MatchIndices;
 use spin::Mutex;
 
-const ANSI_ESCAPE: &'static str = r"\x1b";
+const ANSI_ESCAPE: &'static str = "\x1b";
 
 pub struct Terminal { buffer: Unique<vga::Buffer>
                     , x: usize
@@ -143,23 +144,80 @@ impl Terminal {
 
 }
 
+struct AnsiEscapeIter<'a> { string: &'a str
+                          , curr_slice: &'a str
+                          , in_escape: bool
+                          }
+
+impl<'a> AnsiEscapeIter<'a> {
+
+    pub fn new(s: &'a str) -> Self {
+        AnsiEscapeIter { string: s
+                       , curr_slice: s
+                       , in_escape: false
+                       }
+    }
+}
+
+impl<'a> Iterator for AnsiEscapeIter<'a> {
+    type Item = &'a str;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.curr_slice.len() == 0 {
+            // if the remaining string is empty, we just return `None`
+            None
+        } else {
+            // otherwise, find the next index to chunk on.
+            let maybe_idx
+                = if self.in_escape {
+                     // if we're in an escape code, we split the chunk at the
+                     // index of the next 'm' character, adding 1 so that the
+                     // 'm' is in the escape code chunk.
+                    self.curr_slice.find('m')
+                        .map(|idx| idx + 1)
+                } else {
+                    // otherwise, split at the next ANSI escape sequence
+                    self.curr_slice.find(ANSI_ESCAPE)
+                };
+                
+            // if we found another index to chunk on, map over that index;
+            // otherwise, we just yield the rest of the string
+            maybe_idx.map_or(
+                Some(self.curr_slice) // remainder (if no index to chunk on)
+              , |idx| { // otherwise, chunk along that index...
+                    let (chunk, next_slice) = self.curr_slice
+                                                  .split_at(idx);
+                    self.curr_slice = next_slice; // update current chunk
+                    Some(chunk)                   // return the chunk
+                })
+        }
+
+
+    }
+}
 
 impl Write for Terminal {
 
     fn write_str(&mut self, s: &str) -> Result {
+
         if s.contains(ANSI_ESCAPE) {
-            let escape_idxes = s.match_indices(ANSI_ESCAPE);
-            for (idx, _) in escape_idxes {
-                let (segment, _) = s.split_at(idx);
+            // if the segment contains an ANSI escape, construct an iterator
+            // over each chunk containing either an escape sequence or text
+            for segment in AnsiEscapeIter::new(s) {
                 if segment.starts_with(ANSI_ESCAPE) {
+                    // if the current segment is an ANSI escape code,
+                    // try to handle the escape and fail if it is malformed
                     try!(self.handle_ansi_escape(segment))
                 } else {
+                    // otherwise, just write each chunk in the string.
                     for byte in segment.as_bytes() {
                         self.write_byte(*byte);
                     }
                 }
             }
         } else {
+            // otherwise, if there are no ANSI escape codes,
+            // we can just write each byte in the string.
             for byte in s.as_bytes() {
                 self.write_byte(*byte);
             }
