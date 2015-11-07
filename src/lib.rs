@@ -27,22 +27,11 @@ pub mod arch;
 #[macro_use]
 pub mod io;
 pub mod util;
+pub mod panic;
 
 /// Kernel main loop
 #[no_mangle]
 pub extern fn kernel_main() {
     println!("Help, I'm trapped inside a kernel factory!");
     loop { }
-}
-
-/// Required for Rust stack unwinding
-#[lang = "eh_personality"]
-extern fn eh_personality() {
-    // TODO: add support for stack unwinding
-}
-
-#[lang = "panic_fmt"]
-extern fn panic_fmt() -> ! {
-    // TODO: actually format panics (waiting for robust VGA support)
-    loop{}
 }
