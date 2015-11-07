@@ -10,21 +10,26 @@ use ::arch::vga;
 use core::ptr::Unique;
 use core::mem;
 use core::fmt::{Write, Result};
-use core::str::MatchIndices;
 use spin::Mutex;
 
 const ANSI_ESCAPE: &'static str = "\x1b";
+
+/// The system's global VGA terminal
+pub static CONSOLE: Mutex<Terminal>
+    = Mutex::new(Terminal {
+        colors: vga::Palette::new( vga::Color::LightGreen
+                                 , vga::Color::Black
+                                 )
+      , x: 0
+      , y: 0
+      , buffer: unsafe { Unique::new(0xB8000 as *mut _) },
+    });
 
 pub struct Terminal { buffer: Unique<vga::Buffer>
                     , x: usize
                     , y: usize
                     , colors: vga::Palette
                     }
-
-
-macro_rules! next_ansi_byte {
-    ($b:expr) => { $b.next().expect("Unterminated ANSI escape sequence!") }
-}
 
 impl Terminal {
 
@@ -161,16 +166,14 @@ impl Terminal {
 
 }
 
-struct AnsiEscapeIter<'a> { string: &'a str
-                          , curr_slice: &'a str
+struct AnsiEscapeIter<'a> { curr_slice: &'a str
                           , in_escape: bool
                           }
 
 impl<'a> AnsiEscapeIter<'a> {
 
     pub fn new(s: &'a str) -> Self {
-        AnsiEscapeIter { string: s
-                       , curr_slice: s
+        AnsiEscapeIter { curr_slice: s
                        , in_escape: false
                        }
     }
@@ -243,14 +246,3 @@ impl Write for Terminal {
     }
 
 }
-
-/// The system's global VGA terminal
-pub static CONSOLE: Mutex<Terminal>
-    = Mutex::new(Terminal {
-        colors: vga::Palette::new( vga::Color::LightGreen
-                                 , vga::Color::Black
-                                 )
-      , x: 0
-      , y: 0
-      , buffer: unsafe { Unique::new(0xB8000 as *mut _) },
-    });

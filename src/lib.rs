@@ -24,19 +24,14 @@ extern crate rlibc;
 extern crate spin;
 
 pub mod arch;
+#[macro_use]
 pub mod io;
 pub mod util;
-
-use io::term::CONSOLE;
 
 /// Kernel main loop
 #[no_mangle]
 pub extern fn kernel_main() {
-    use core::fmt::Write;
-    CONSOLE.lock()
-           .clear()
-           .write_str("Hello from the kernel!")
-           .unwrap();
+    println!("Help, I'm trapped inside a kernel factory!");
     loop { }
 }
 

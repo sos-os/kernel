@@ -6,7 +6,23 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
+
 pub mod term;
+
+macro_rules! println {
+    ($fmt:expr) => (print!(concat!($fmt, "\n")));
+    ($fmt:expr, $($arg:tt)*) => (print!(concat!($fmt, "\n"), $($arg)*));
+}
+
+macro_rules! print {
+    ($($arg:tt)*) => ({
+            use core::fmt::Write;
+            $crate::io::term::CONSOLE.lock()
+                                     .write_fmt(format_args!($($arg)*))
+                                     .unwrap();
+    });
+}
+
 use core::ops;
 use core::fmt;
 
