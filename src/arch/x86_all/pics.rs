@@ -83,23 +83,28 @@ struct PIC {
 }
 
 impl PIC {
+
     const fn leader() -> PIC {
-        PIC { offset: OFFSET
-            , command_port: Port::new(0x20)
-            , data_port: Port::new(0x21)
-            }
+        unsafe {
+            PIC { offset: OFFSET
+                , command_port: Port::new(0x20)
+                , data_port: Port::new(0x21)
+                }
+        }
     }
 
     const fn follower() -> PIC {
-        PIC { offset: OFFSET + 8
-            , command_port: Port::new(0xA0)
-            , data_port: Port::new(0xA1)
-            }
+        unsafe {
+            PIC { offset: OFFSET + 8
+                , command_port: Port::new(0xA0)
+                , data_port: Port::new(0xA1)
+                }
+        }
     }
 
     #[inline]
     fn is_leader(&self) -> bool {
-        self.offset == 0x20
+        self.offset == OFFSET
     }
 
     #[inline]
@@ -118,13 +123,13 @@ impl PIC {
     #[inline]
     fn read_ISR(&self) -> u8 {
         self.send_command(Command::ReadISR);
-        self.data_port.in8()
+        unsafe { self.data_port.in8() }
     }
 
     #[inline]
     fn read_IRR(&self) -> u8 {
         self.send_command(Command::ReadIRR);
-        self.data_port.in8()
+        unsafe { self.data_port.in8() }
     }
 
 }
@@ -161,7 +166,7 @@ impl PICs {
     fn initialize(&mut self) {
         // Read the default interrupt masks from PIC1 and PIC2
         let (saved_mask1, saved_mask2)
-            = (self.0.data_port.in8(), self.1.data_port.in8());
+            = unsafe { (self.0.data_port.in8(), self.1.data_port.in8()) };
 
         // Send both PICs the 'initialize' command.
         self.0.initialize();
@@ -174,11 +179,12 @@ impl PICs {
                     , Command::Mode8086 as u8 // 3. command for 8086 mode
                     , saved_mask1       // 4. finally, the mask we saved earlier
                     ]);
+
         self.1.data_port
             .write(&[ self.1.offset
                     , 0x02              // PIC2 gets 0x02 to set it as follower
                     , Command::Mode8086 as u8
-                    , saved_mask1
+                    , saved_mask2
                     ]);
     }
 }
@@ -203,7 +209,7 @@ impl IRQHandler for PICs {
 static PICS: Mutex<PICs> = Mutex::new(PICs::new());
 
 /// Initialize the system's Programmable Interrupt Controller
-pub unsafe fn initialize() {
+pub fn initialize() {
     PICS.lock()
         .initialize()
 }

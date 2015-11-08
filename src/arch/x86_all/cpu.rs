@@ -13,7 +13,7 @@ pub struct Port(u16);
 
 impl Port {
 
-    pub const fn new(number: u16) -> Port { Port(number) }
+    pub const unsafe fn new(number: u16) -> Port { Port(number) }
 
     /// Read a byte (8 bits) from this port
     pub unsafe fn in8(&self) -> u8 {
