@@ -65,8 +65,24 @@ pub trait IdtPtrOps {
     unsafe fn load(&self);
 }
 
+pub trait InterruptContext {
+    type Registers;
+
+    fn err_no(&self) -> u32;
+    fn int_id(&self) -> u32;
+    fn registers(&self) -> Self::Registers;
+
+    #[inline]
+    unsafe fn exception(&self) -> &str {
+        EXCEPTIONS[self.int_id() as usize]
+    }
+
+
+}
+
 pub trait Idt: Sized {
     type Ptr: IdtPtrOps;
+    type Ctx: InterruptContext;
 
     fn get_ptr(&self) -> Self::Ptr;
 
@@ -87,4 +103,6 @@ pub trait Idt: Sized {
     }
 
     fn add_gate(&mut self, idx: usize, handler: Handler);
+
+    extern "C" fn handle_exception(state: &Self::Ctx);
 }

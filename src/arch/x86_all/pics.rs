@@ -23,6 +23,7 @@
 use ::io::Write;
 use super::Port;
 use spin::Mutex;
+use core::mem::transmute;
 
 /// Starting offset for PIC1
 const OFFSET: u8 = 0x20;
@@ -212,4 +213,17 @@ static PICS: Mutex<PICs> = Mutex::new(PICs::new());
 pub fn initialize() {
     PICS.lock()
         .initialize()
+}
+
+/// If an interrupt is being handled by the PICs, end that interrupt.
+///
+/// This is called by the interrupt handler at the end of all interrupts.
+/// If the interrupt is not a PIC interrupt, it silently does nothing.
+pub unsafe fn end_pic_interrupt(interrupt_id: u8) {
+    let pics = PICS.lock();
+    let irq: IRQ = transmute(interrupt_id);
+
+    if pics.handles(irq) {
+        pics.end_interrupt(irq)
+    }
 }

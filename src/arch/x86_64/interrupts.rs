@@ -30,21 +30,27 @@ extern {
 /// State stored when handling an interrupt.
 #[allow(dead_code)]
 #[repr(C, packed)]
-struct InterruptContext { /// The state of the callee-saved registers
-                          pub registers: cpu::Registers
-                        , /// The interrupt ID number
-                          pub int_id:  u32
-                        , __pad_1: u32
-                        , /// The error number
-                          pub err_no:  u32
-                        , __pad_2: u32
-                        }
-#[allow(dead_code)]
-fn handle_exception(state: &InterruptContext) {
-    panic!( "EXCEPTION {}: {}"
-          , state.err_no
-          , EXCEPTIONS[state.int_id as usize] );
+struct InterruptCtx64 { registers: cpu::Registers // callee-saved registers
+                       , int_id:  u32             // interrupt ID number
+                       , __pad_1: u32
+                       , err_no:  u32             // error number
+                       , __pad_2: u32
+                       }
+
+impl InterruptContext for InterruptCtx64 {
+    type Registers = cpu::Registers;
+
+    #[inline]
+    fn registers(&self) -> Self::Registers { self.registers }
+
+    #[inline]
+    fn err_no(&self) -> u32 { self.err_no }
+
+    #[inline]
+    fn int_id(&self) -> u32 { self.int_id }
 }
+
+
 
 /// An IDT entry is called a gate.
 ///
@@ -115,6 +121,7 @@ struct Idt64([Gate64; IDT_ENTRIES]);
 
 impl Idt for Idt64 {
     type Ptr = IdtPtr<Self>;
+    type Ctx = InterruptCtx64;
 
     /// Get the IDT pointer struct to pass to `lidt`
     fn get_ptr(&self) -> Self::Ptr {
@@ -128,6 +135,15 @@ impl Idt for Idt64 {
         self.0[index] = Gate64::new(handler)
     }
 
+    extern "C" fn handle_exception(state: &Self::Ctx)  {
+        // TODO: we can handle various types of CPU exception differently
+        // TODO: make some nice debugging dumps
+        unsafe {
+            panic!( "EXCEPTION {:#04x}: {}"
+                  , state.err_no()
+                  , state.exception() );
+              }
+    }
 }
 
 impl IdtPtrOps for IdtPtr<Idt64> {
