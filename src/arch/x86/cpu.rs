@@ -13,7 +13,6 @@
 //!
 
 #[path = "../x86_all/cpu.rs"] mod cpu_all;
-#[path = "../x86_all/pic.rs"] mod pic;
+#[path = "../x86_all/pics.rs"] pub mod pics;
 
 pub use self::cpu_all::*;
-pub use self::pic::{IRQ, PICS};
