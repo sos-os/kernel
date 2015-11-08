@@ -12,7 +12,8 @@
 //! input and output, and little else.
 //!
 
-#[path = "../x86_all/cpu.rs"]
-mod cpu_all;
+#[path = "../x86_all/cpu.rs"] mod cpu_all;
+#[path = "../x86_all/pic.rs"] mod pic;
 
 pub use self::cpu_all::*;
+pub use self::pic::{IRQ, PICS};

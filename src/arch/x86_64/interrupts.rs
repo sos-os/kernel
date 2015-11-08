@@ -13,10 +13,8 @@
 use core::mem;
 use spin::Mutex;
 
-#[path = "../x86_all/interrupts.rs"]
-mod interrupts_all;
-
-pub use self::idt_all::*;
+#[path = "../x86_all/interrupts.rs"] mod interrupts_all;
+pub use self::interrupts_all::*;
 
 extern {
     /// Offset of the 64-bit GDT main code segment.

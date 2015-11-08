@@ -12,9 +12,7 @@
 use core::mem;
 use spin::Mutex;
 
-#[path = "../x86_all/interrupts.rs"]
-mod interrupts_all;
-
+#[path = "../x86_all/interrupts.rs"] mod interrupts_all;
 pub use self::interrupts_all::*;
 
 extern {
