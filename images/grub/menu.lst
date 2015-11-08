@@ -1,0 +1,6 @@
+timeout 0
+
+title  SOS
+root   (cd)
+kernel /boot/kernel.bin
+boot
