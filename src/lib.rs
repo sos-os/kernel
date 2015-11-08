@@ -33,7 +33,7 @@ pub mod panic;
 #[no_mangle]
 pub extern fn kernel_main() {
     println!("Hello from the kernel!");
-    println!("Intializing interrupts...")
+    println!("Intializing interrupts...");
     arch::interrupts::initialize();
     loop { }
 }
