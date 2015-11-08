@@ -166,8 +166,8 @@ pub fn initialize() {
     // TODO: load interrupts into IDT
 
     unsafe {
-        idt.get_ptr().load();    // Load the IDT pointer
-        pics::initialize();      // initialize the PICs
-        idt.enable_interrupts(); // enable interrupts
+        idt.get_ptr().load();       // Load the IDT pointer
+        pics::initialize();         // initialize the PICs
+        Idt64::enable_interrupts(); // enable interrupts
     }
 }
