@@ -10,14 +10,14 @@
 
 
 use core::fmt;
-use core::fmt::Write;
+use core::fmt::{Arguments, Write};
 use super::io::term;
 
 #[lang = "panic_fmt"]
 #[no_mangle] #[inline(never)] #[cold]
-pub extern fn panic_fmt( args: fmt::Arguments
-                   , file: &'static str
-                   , line: usize ) -> !
+pub extern fn panic_fmt( args: Arguments
+                       , file: &'static str
+                       , line: usize ) -> !
 {
     write!( term::CONSOLE.lock()
           , "{}: {} {}"
@@ -33,7 +33,7 @@ pub extern fn eh_personality() {
     // TODO: add support for stack unwinding
 }
 
-#[lang="stack_exhausted"]
+#[lang = "stack_exhausted"]
 #[no_mangle] #[inline(never)] #[cold]
 pub extern "C" fn __morestack() -> ! {
     loop { }
@@ -44,3 +44,9 @@ pub extern "C" fn __morestack() -> ! {
 pub extern "C" fn _Unwind_Resume() -> ! {
     loop { }
 }
+
+#[lang = "begin_unwind"]
+#[no_mangle] #[inline(never)] #[cold]
+pub fn begin_unwind<M: Send>(msg: M
+                            , file_line: &(&'static str, usize))  -> !
+{ loop { } }
