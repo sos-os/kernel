@@ -55,8 +55,9 @@ impl Registers {
 }
 
 fn handle_exception(r: &Registers) {
-    panic!( "ERROR {}: {}", err_code
-          , EXCEPTIONS[regs.int_id as usize] );
+    panic!( "ERROR {}: {}"
+          , r.err_no
+          , EXCEPTIONS[r.int_id as usize] );
 }
 
 /// An IDT entry is called a gate.
