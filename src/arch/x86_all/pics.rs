@@ -32,9 +32,9 @@ const OFFSET: u8 = 0x20;
 #[derive(Eq, PartialEq, Ord, PartialOrd, Copy, Clone)]
 enum Command { Mode8086 = 0x01
              , Init     = 0x11
-             , End_IRQ  = 0x20
-             , Read_IRR = 0x0a
-             , Read_ISR = 0x0b
+             , EndIRQ   = 0x20
+             , ReadIRR  = 0x0a
+             , ReadISR  = 0x0b
              }
 
 /// List of IRQs on the x86.
@@ -103,27 +103,28 @@ impl PIC {
     }
 
     #[inline]
-    unsafe fn initialize(&self) {
-        self.command_port
-            .out8(Command::Init as u8)
+    fn send_command(&self, command: Command) {
+        unsafe {
+            self.command_port
+                .out8(command as u8)
+            }
+    }
+
+    #[inline]
+    fn initialize(&self) {
+        self.send_command(Command::Init)
     }
 
     #[inline]
     fn read_ISR(&self) -> u8 {
-        unsafe {
-            self.command_port
-                .out8(Command::Read_ISR as u8);
-            self.data_port.in8()
-        }
+        self.send_command(Command::ReadISR);
+        self.data_port.in8()
     }
 
     #[inline]
     fn read_IRR(&self) -> u8 {
-        unsafe {
-            self.command_port
-                .out8(Command::Read_IRR as u8);
-            self.data_port.in8()
-        }
+        self.send_command(Command::ReadIRR);
+        self.data_port.in8()
     }
 
 }
@@ -142,8 +143,7 @@ impl IRQHandler for PIC {
     }
 
     fn end_interrupt(&self, irq: IRQ) {
-        self.command_port
-            .out8(Command::End_IRQ as u8)
+        self.send_command(Command::EndIRQ)
     }
 }
 
@@ -158,7 +158,7 @@ impl PICs {
     }
 
     /// Initialize the system's PICs.
-    unsafe fn initialize(&mut self) {
+    fn initialize(&mut self) {
         // Read the default interrupt masks from PIC1 and PIC2
         let (saved_mask1, saved_mask2)
             = (self.0.data_port.in8(), self.1.data_port.in8());
@@ -169,17 +169,17 @@ impl PICs {
 
         // Each PIC then expects us to send it the following:
         self.0.data_port
-            .write([ self.0.offset     // 1. the PIC's new vector offset
-                   , 0x04              // 2. number to configure PIC cascading
-                   , Command::Mode8086 // 3. command for 8086 mode
-                   , saved_mask1       // 4. finally, the mask we saved earlier
-                   ]);
+            .write(&[ self.0.offset     // 1. the PIC's new vector offset
+                    , 0x04              // 2. number to configure PIC cascading
+                    , Command::Mode8086 as u8 // 3. command for 8086 mode
+                    , saved_mask1       // 4. finally, the mask we saved earlier
+                    ]);
         self.1.data_port
-            .write([ self.1.offset
-                   , 0x02              // PIC2 gets 0x02 to set it as follower
-                   , Command::Mode8086
-                   , saved_mask1
-                   ]);
+            .write(&[ self.1.offset
+                    , 0x02              // PIC2 gets 0x02 to set it as follower
+                    , Command::Mode8086 as u8
+                    , saved_mask1
+                    ]);
     }
 }
 
