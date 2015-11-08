@@ -12,10 +12,10 @@
 use core::mem;
 use spin::Mutex;
 
-#[path = "../x86_all/idt.rs"]
-mod idt_all;
+#[path = "../x86_all/interrupts.rs"]
+mod interrupts_all;
 
-pub use self::idt_all::*;
+pub use self::interrupts_all::*;
 
 extern {
     /// Offset of the 32-bit GDT main code segment.
@@ -105,6 +105,8 @@ impl Idt for Idt32 {
         self.get_ptr()
             .load()
     }
+
+
 }
 
 /// This is the format that `lidt` expects for the pointer to the IDT.

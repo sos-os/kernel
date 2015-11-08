@@ -13,8 +13,8 @@
 use core::mem;
 use spin::Mutex;
 
-#[path = "../x86_all/idt.rs"]
-mod idt_all;
+#[path = "../x86_all/interrupts.rs"]
+mod interrupts_all;
 
 pub use self::idt_all::*;
 
@@ -22,8 +22,44 @@ extern {
     /// Offset of the 64-bit GDT main code segment.
     /// Exported by `boot.asm`
     static gdt64_offset: u16;
+
+    /// Array of interrupt handlers from ASM
+    static int_handlers: [Option<unsafe extern "C" fn()>; IDT_ENTRIES];
 }
 
+/// Registers pushed to the stack when handling an interrupt.
+#[repr(C, packed)]
+struct Registers { rsi: u64
+                 , rdi: u64
+                 , r11: u64
+                 , r10: u64
+                 , r9:  u64
+                 , r8:  u64
+                 , rdx: u64
+                 , rcx: u64
+                 , rax: u64
+                 , int_id:  u32
+                 , __pad_1: u32
+                 , err_no:  u32
+                 , __pad_2: u32
+                 }
+
+impl Registers {
+    // Transform this struct into an array of u64s
+    // (if you would ever want to do this)
+    pub unsafe fn to_array(&self) -> [u64; 11] {
+        [ self.rsi, self.rdi, self.r11, self.r10, self.r9
+        , self.r8,  self.rdx, self.rcx, self.rax
+        , mem::transmute([self.__pad_1, self.int_id])
+        , mem::transmute([self.__pad_2, self.err_no])
+        ]
+    }
+}
+
+fn handle_exception(r: &Registers) {
+    panic!( "ERROR {}: {}", err_code
+          , EXCEPTIONS[regs.int_id as usize] );
+}
 
 /// An IDT entry is called a gate.
 ///
@@ -100,6 +136,11 @@ impl Idt for Idt64 {
         IdtPtr { limit: (mem::size_of::<Gate64>() * IDT_ENTRIES) as u16
                , base:  self as *const Idt64
                }
+    }
+
+    /// Add an entry for the given handler at the given index
+    fn add_gate(&mut self, index: usize, handler: Handler) {
+        self.0[index] = Gate64::new(handler)
     }
 
 }
