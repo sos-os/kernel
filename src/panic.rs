@@ -8,16 +8,14 @@
 //
 //! Panic handling and stack unwinding
 
-
-use core::fmt;
 use core::fmt::{Arguments, Write};
 use super::io::term;
 
 #[lang = "panic_fmt"]
 #[no_mangle] #[inline(never)] #[cold]
-pub extern fn panic_fmt( args: Arguments
-                       , file: &'static str
-                       , line: usize ) -> !
+pub extern fn rust_begin_unwind( args: Arguments
+                               , file: &'static str
+                               , line: usize ) -> !
 {
     write!( term::CONSOLE.lock()
           , "{}: {} {}"
@@ -45,8 +43,8 @@ pub extern "C" fn _Unwind_Resume() -> ! {
     loop { }
 }
 
-#[lang = "begin_unwind"]
-#[no_mangle] #[inline(never)] #[cold]
-pub fn begin_unwind<M: Send>(msg: M
-                            , file_line: &(&'static str, usize))  -> !
-{ loop { } }
+// #[lang = "begin_unwind"]
+// #[no_mangle] #[inline(never)] #[cold]
+// pub fn begin_unwind<M: Send>(msg: M
+//                             , file_line: &(&'static str, usize))  -> !
+// { loop { } }
