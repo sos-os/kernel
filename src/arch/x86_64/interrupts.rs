@@ -12,6 +12,7 @@
 //! Software Developer’s Manual_ for more information.
 use core::mem;
 use spin::Mutex;
+use super::cpu;
 use super::cpu::pics;
 
 #[path = "../x86_all/interrupts.rs"] mod interrupts_all;
@@ -26,39 +27,23 @@ extern {
     static int_handlers: [Option<unsafe extern "C" fn()>; IDT_ENTRIES];
 }
 
-/// Registers pushed to the stack when handling an interrupt.
+/// State stored when handling an interrupt.
+#[allow(dead_code)]
 #[repr(C, packed)]
-struct Registers { rsi: u64
-                 , rdi: u64
-                 , r11: u64
-                 , r10: u64
-                 , r9:  u64
-                 , r8:  u64
-                 , rdx: u64
-                 , rcx: u64
-                 , rax: u64
-                 , int_id:  u32
-                 , __pad_1: u32
-                 , err_no:  u32
-                 , __pad_2: u32
-                 }
-
-impl Registers {
-    // Transform this struct into an array of u64s
-    // (if you would ever want to do this)
-    pub unsafe fn to_array(&self) -> [u64; 11] {
-        [ self.rsi, self.rdi, self.r11, self.r10, self.r9
-        , self.r8,  self.rdx, self.rcx, self.rax
-        , mem::transmute([self.__pad_1, self.int_id])
-        , mem::transmute([self.__pad_2, self.err_no])
-        ]
-    }
-}
-
-fn handle_exception(r: &Registers) {
-    panic!( "ERROR {}: {}"
-          , r.err_no
-          , EXCEPTIONS[r.int_id as usize] );
+struct InterruptContext { /// The state of the callee-saved registers
+                          pub registers: cpu::Registers
+                        , /// The interrupt ID number
+                          pub int_id:  u32
+                        , __pad_1: u32
+                        , /// The error number
+                          pub err_no:  u32
+                        , __pad_2: u32
+                        }
+#[allow(dead_code)]
+fn handle_exception(state: &InterruptContext) {
+    panic!( "EXCEPTION {}: {}"
+          , state.err_no
+          , EXCEPTIONS[state.int_id as usize] );
 }
 
 /// An IDT entry is called a gate.
