@@ -33,6 +33,8 @@ const OFFSET: u8 = 0x20;
 enum Command { Mode8086 = 0x01
              , Init     = 0x11
              , End_IRQ  = 0x20
+             , Read_IRR = 0x0a
+             , Read_ISR = 0x0b
              }
 
 /// List of IRQs on the x86.
@@ -103,7 +105,25 @@ impl PIC {
     #[inline]
     unsafe fn initialize(&self) {
         self.command_port
-            .out8(Command::Init)
+            .out8(Command::Init as u8)
+    }
+
+    #[inline]
+    fn read_ISR(&self) -> u8 {
+        unsafe {
+            self.command_port
+                .out8(Command::Read_ISR as u8);
+            self.data_port.in8()
+        }
+    }
+
+    #[inline]
+    fn read_IRR(&self) -> u8 {
+        unsafe {
+            self.command_port
+                .out8(Command::Read_IRR as u8);
+            self.data_port.in8()
+        }
     }
 
 }
@@ -123,7 +143,7 @@ impl IRQHandler for PIC {
 
     fn end_interrupt(&self, irq: IRQ) {
         self.command_port
-            .out8(Command::End_IRQ)
+            .out8(Command::End_IRQ as u8)
     }
 }
 

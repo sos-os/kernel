@@ -12,7 +12,7 @@ use ::{io,util};
 pub struct Port(u16);
 
 impl Port {
-    
+
     pub const fn new(number: u16) -> Port { Port(number) }
 
     /// Read a byte (8 bits) from this port
@@ -101,4 +101,19 @@ impl io::Read for Port {
         Ok(read_bytes)
     }
 
+}
+
+impl io::Write for Port {
+    type Error = util::Void;
+    fn write(&mut self, buf: &[u8]) -> Result<usize, Self::Error> {
+        let mut written_bytes = 0;
+        for byte in buf {
+            // write each byte in the buffer to the port
+            unsafe { self.out8(*byte); }
+            // and increment the number of bytes written (this should be faster
+            // than calling `buf.len()` later; as we only need 1 loop)
+            written_bytes += 1;
+        }
+        Ok(written_bytes)
+    }
 }
