@@ -37,10 +37,12 @@ pub struct Registers { pub rsi: u64
      // Transform this struct into an array of u64s
      // (if you would ever want to do this)
      pub unsafe fn to_array(&self) -> [u64; 9] {
-         [ self.rsi, self.rdi, self.r11
-         , self.r10, self.r9, self.r8
-         , self.rdx, self.rcx, self.rax
-         ]
+        //  [ self.rsi, self.rdi, self.r11
+        //  , self.r10, self.r9, self.r8
+        //  , self.rdx, self.rcx, self.rax
+        //  ]
+        // using transmute is probably faster and we're already unsafe...
+        mem::transmute(*self)
      }
 
      /// Create a new empty set of Registers
