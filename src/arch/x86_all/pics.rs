@@ -180,7 +180,7 @@ impl IRQHandler for PICs {
 }
 
 /// Global PIC instance and mutex
-pub static PICS: Mutex<PICs> = Mutex::new(PICs::new());
+static PICS: Mutex<PICs> = Mutex::new(PICs::new());
 
 /// Initialize the system's Programmable Interrupt Controller
 pub unsafe fn initialize() {

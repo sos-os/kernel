@@ -32,6 +32,8 @@ pub mod panic;
 /// Kernel main loop
 #[no_mangle]
 pub extern fn kernel_main() {
-    println!("Help, I'm trapped inside a kernel factory!");
+    println!("Hello from the kernel!");
+    println!("Intializing interrupts...")
+    arch::interrupts::initialize();
     loop { }
 }

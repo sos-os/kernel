@@ -12,6 +12,7 @@
 //! Software Developer’s Manual_ for more information.
 use core::mem;
 use spin::Mutex;
+use super::cpu::pics;
 
 #[path = "../x86_all/interrupts.rs"] mod interrupts_all;
 pub use self::interrupts_all::*;
@@ -158,3 +159,15 @@ impl IdtPtrOps for IdtPtr<Idt64> {
 /// Our global IDT.
 static IDT: Mutex<Idt64>
     = Mutex::new(Idt64([Gate64::absent(); IDT_ENTRIES]));
+
+pub fn initialize() {
+    let mut idt = IDT.lock();
+
+    // TODO: load interrupts into IDT
+
+    unsafe {
+        idt.get_ptr().load();    // Load the IDT pointer
+        pics::initialize();      // initialize the PICs
+        idt.enable_interrupts(); // enable interrupts
+    }
+}
