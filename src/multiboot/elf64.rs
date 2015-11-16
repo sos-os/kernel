@@ -19,6 +19,7 @@ impl SectionsTag {
     }
 }
 
+/// Represents an ELF-64 section
 #[derive(Debug)]
 #[repr(C)]
 pub struct Section { name: u32
@@ -32,6 +33,7 @@ pub struct Section { name: u32
                    , entry_length: u64
                    }
 
+/// Iterator over ELF64 sections
 #[derive(Clone,Debug)]
 pub struct Sections { curr: &'static Section
                     , remaining: u32

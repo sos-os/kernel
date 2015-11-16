@@ -75,11 +75,13 @@ impl Info {
 /// Its start is 8-bytes aligned. Fixed part is as following:
 ///
 ///<rawtext>
+///
 ///             +-------------------+
 ///     u32     | total_size        |
 ///     u32     | reserved          |
 ///             +-------------------+
 ///</rawtext>
+///
 /// `total_size` contains the total size of boot information including this
 /// field and terminating tag in bytes.
 /// `reserved` is always set to zero and must be ignored by OS image.
