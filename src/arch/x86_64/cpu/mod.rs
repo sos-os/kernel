@@ -8,12 +8,11 @@
 //
 //! Code for interacting with the x86_64 CPU.
 //!
-//! Currently this module contains a quick implementation of CPU port
-//! input and output, and little else.
+//! This module contains code for interrupts, paging, context switches,
+//! CPU I/O (from `x86_all`), and reading/writing the x86 control registers.
 //!
 
 #[path = "../../x86_all/cpu.rs"] mod cpu_all;
-#[path = "../../x86_all/pics.rs"] pub mod pics;
 
 pub mod interrupts;
 pub mod paging;

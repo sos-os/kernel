@@ -1,3 +1,16 @@
+//
+//  SOS: the Stupid Operating System
+//  by Hawk Weisman (hi@hawkweisman.me)
+//
+//  Copyright (c) 2015 Hawk Weisman
+//  Released under the terms of the MIT license. See `LICENSE` in the root
+//  directory of this repository for more information.
+//
+//! x86_64 execution contexts.
+//!
+//! This is inteded to be general-purpose and composable, so that the same
+//! code can be reused for interrupts and for multithreading.
+
 use core::mem;
 
 /// Registers pushed to the stack when handling an interrupt or context switch.
@@ -15,8 +28,8 @@ pub struct Registers { pub rsi: u64
                      }
 
  impl Registers {
-     // Transform this struct into an array of u64s
-     // (if you would ever want to do this)
+     /// Transform this struct into an array of `u64`s
+     /// (if you would ever want to do this)
      pub unsafe fn to_array(&self) -> [u64; 9] {
         //  [ self.rsi, self.rdi, self.r11
         //  , self.r10, self.r9, self.r8

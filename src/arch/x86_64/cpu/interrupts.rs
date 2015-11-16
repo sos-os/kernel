@@ -12,9 +12,10 @@
 //! Software Developer’s Manual_ for more information.
 use core::mem;
 use spin::Mutex;
-use super::{pics, Registers, DTable};
+use super::{Registers, DTable};
 
 #[path = "../../x86_all/interrupts.rs"] mod interrupts_all;
+#[path = "../../x86_all/pics.rs"] pub mod pics;
 pub use self::interrupts_all::*;
 
 extern {
