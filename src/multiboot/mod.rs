@@ -12,7 +12,7 @@ use core::mem::transmute;
 
 #[macro_use]
 macro_rules! ptr {
-    ($it:expr) => { $it as *const _ }
+    ($it:expr) => { &$it as *const _ }
 }
 
 pub mod elf;
