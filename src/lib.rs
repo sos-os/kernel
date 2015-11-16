@@ -50,16 +50,19 @@ pub extern fn kernel_main(multiboot_addr: usize) {
 
     println!("Detected memory areas:");
     for a in mmap_tag.entries() {
-        println!("\tstart: 0x{:x}\t\tend: 0x{:x}", a.base, a.length);
+        println!( "\tstart: 0x{:x}\t\tend: 0x{:x}"
+                , a.base, a.length );
     }
 
-    let elf_sections_tag = boot_info.elf_sections_tag()
+    let elf_sections_tag = boot_info.elf64_sections()
                                     .expect("Elf-sections tag required!");
 
     println!("Detected kernel sections:");
     for section in elf_sections_tag.sections() {
-    println!("\taddr: 0x{:x} \tsize: 0x{:x} \tflags: 0x{:x}",
-        section.addr, section.size, section.flags);
+    println!( "\taddr: 0x{:x} \tsize: 0x{:x} \tflags: 0x{:x}"
+            , section.address
+            , section.length
+            , section.flags );
     }
 
     println!("Intializing interrupts...");

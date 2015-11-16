@@ -3,7 +3,7 @@
 /// Refer to Figure 1-10: "Section Types, sh_type" in Section 1 of the
 /// [ELF standard](http://www.sco.com/developers/gabi/latest/ch4.sheader.html)
 /// for more information.
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq, Ord, PartialOrd)]
 #[repr(u32)]
 pub enum SectionType {
     /// Section type 0: `SHT_NULL`

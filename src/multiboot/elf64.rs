@@ -11,8 +11,8 @@ pub struct SectionsTag { tag: Tag
                         }
 
 impl SectionsTag {
-    fn sections(&self) -> Sections {
-        Sections { curr: self.first_section
+    pub fn sections(&'static self) -> Sections {
+        Sections { curr: &self.first_section
                  , remaining: self.n_sections - 1
                  , size: self.section_size
                  }
@@ -46,15 +46,14 @@ impl Iterator for Sections {
         } else {
             let current = self.curr;
             self.curr = &unsafe {
-                *((ptr!(current) as u32 + self.size) as *const Section);
+                *((ptr!(current) as u32 + self.size) as *const Section)
             };
             self.remaining -= 1;
-            if current.type == elf::SectionType::Null {
+            if current.ty == elf::SectionType::Null {
                 self.next()
             } else {
                 Some(current)
             }
-
         }
     }
 }

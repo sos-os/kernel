@@ -49,9 +49,9 @@ impl Info {
     }
 
     #[inline]
-    pub fn elf64_sections(&self) -> Option<&'static MemMapTag> {
-        self.get_tag(TagType::ElfSections)
-            .map(|tag| unsafe { &*(ptr!(tag) as *const MemMapTag) })
+    pub fn elf64_sections(&self) -> Option<&'static elf64::SectionsTag> {
+        self.get_tag(TagType::ELFSections)
+            .map(|tag| unsafe { &*(ptr!(tag) as *const elf64::SectionsTag) })
     }
 
     #[inline]
@@ -99,37 +99,36 @@ impl Info {
 /// and size `8`.
 #[repr(C)]
 #[derive(Debug)]
-struct Tag { ty: TagType
-           , length: u32
-           }
+pub struct Tag { ty: TagType
+               , length: u32
+               }
 
 /// Types of Multiboot tags
 ///
 /// Refer to Chapter 3 of the Multiboot 2 spec
 #[repr(u32)]
 #[derive(Debug, Eq, PartialEq)]
-enum TagType { /// Tag that indicates the end of multiboot tags
-               End              = 0
-             , /// Command line passed to the bootloader
-               CommandLine      = 1
-             , BootloaderName   = 2
-             , Modules          = 3
-             , BasicMemInfo     = 4
-             , BIOSBootDev      = 5
-             , MemoryMap        = 6
-             , VBEInfo          = 7
-             , FramebufferInfo  = 8
-             , ELFSections      = 9
-             , APMTable         = 10
-             }
+pub enum TagType { /// Tag that indicates the end of multiboot tags
+                   End              = 0
+                 , /// Command line passed to the bootloader
+                   CommandLine      = 1
+                 , BootloaderName   = 2
+                 , Modules          = 3
+                 , BasicMemInfo     = 4
+                 , BIOSBootDev      = 5
+                 , MemoryMap        = 6
+                 , VBEInfo          = 7
+                 , FramebufferInfo  = 8
+                 , ELFSections      = 9
+                 , APMTable         = 10
+                 }
 
 struct Tags(*const Tag);
 
 impl Tags {
     #[inline] fn advance(&mut self, size: u32) {
-        let mut next_addr = self.0 as usize + size as usize;
-        next_addr = ((next_addr-1) & !0x7) + 0x8; //align at 8 byte
-        self.0 = ptr!(next_addr);
+        let next_addr = self.0 as usize + size as usize;
+        self.0 = (((next_addr-1) & !0x7) + 0x8) as *const _;
     }
 }
 
@@ -139,7 +138,7 @@ impl Iterator for Tags {
     fn next(&mut self) -> Option<Self::Item> {
         match unsafe { &*self.0 } {
             &Tag{ ty: TagType::End, length: END_TAG_LEN } => None
-          , tag @ &Tag { ty: _, length: l } => { self.advance(l); Some(tag) }
+          , tag => { self.advance(tag.length); Some(tag) }
         }
     }
 }
@@ -154,7 +153,7 @@ impl MemMapTag {
     pub fn entries(&self) -> Entries {
         Entries { curr: (&self.first_entry) as *const MemArea
                 , last: ((self as *const MemMapTag as u32)
-                            + self.size
+                            + self.tag.length
                             - self.entry_size) as *const MemArea
                 , size: self.entry_size
                 }
@@ -162,6 +161,7 @@ impl MemMapTag {
 }
 
 #[repr(u32)]
+#[derive(Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum MemAreaType { Available = 1
                      , ACPI      = 3
                      , Preserve  = 4
@@ -185,12 +185,12 @@ impl Iterator for Entries {
         if self.curr > self.last {
             None
         } else {
-            let current = self.curr;
+            let current = unsafe { *self.curr };
             self.curr = (self.curr as u32 + self.size) as *const MemArea;
-            if current.type == MemAreaType::Available {
-                Some(current)
+            if current.ty == MemAreaType::Available {
+                Some(&current)
             } else {
-                self.next();
+                self.next()
             }
         }
     }
