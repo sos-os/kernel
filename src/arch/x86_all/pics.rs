@@ -21,7 +21,7 @@
 //! PIC1 starts at 32 and PIC2 at 40.
 
 use ::io::Write;
-use super::Port;
+use super::super::Port;
 use spin::Mutex;
 use core::mem::transmute;
 
