@@ -9,8 +9,8 @@ rust_os := target/$(target)/debug/libsos_kernel.a
 linker_script := src/arch/$(arch)/linker.ld
 grub_cfg := src/arch/$(arch)/grub.cfg
 images_dir := images
-assembly_source_files := $(wildcard src/arch/$(arch)/*.asm)
-assembly_object_files := $(patsubst src/arch/$(arch)/%.asm, \
+assembly_source_files := $(wildcard src/arch/$(arch)/boot/*.asm)
+assembly_object_files := $(patsubst src/arch/$(arch)/boot/%.asm, \
 	build/arch/$(arch)/%.o, $(assembly_source_files))
 
 
