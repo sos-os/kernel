@@ -185,10 +185,10 @@ impl Iterator for Entries {
         if self.curr > self.last {
             None
         } else {
-            let current = unsafe { *self.curr };
+            let current = unsafe { &*self.curr };
             self.curr = (self.curr as u32 + self.size) as *const MemArea;
             if current.ty == MemAreaType::Available {
-                Some(&current)
+                Some(current)
             } else {
                 self.next()
             }
