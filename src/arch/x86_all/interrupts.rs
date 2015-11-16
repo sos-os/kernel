@@ -8,6 +8,9 @@
 //
 //! Common functionality for the x86 and x86_64 Interrupt Descriptor Table.
 
+use super::super::{DTablePtr, DTable};
+use core::mem::size_of;
+
 pub type Handler = unsafe extern "C" fn() -> ();
 pub const IDT_ENTRIES: usize = 256;
 
@@ -16,9 +19,10 @@ pub const IDT_ENTRIES: usize = 256;
 /// Bit-and this with the attribute half-byte to produce the
 /// `type_attr` field for a `Gate`
 #[repr(u8)]
-pub enum GateType { Interrupt = 0b0000_1110
-                  , Call      = 0b0000_1100
-                  , Trap      = 0b0000_1111
+pub enum GateType { Absent    = 0b0000_0000
+                  , Interrupt = 0b1000_1110
+                  , Call      = 0b1000_1100
+                  , Trap      = 0b1000_1111
                   }
 
 /// x86 exceptions.
@@ -53,17 +57,17 @@ pub trait Gate {
     fn new(handler: Handler) -> Self;
 }
 
-/// This is the format that `lidt` expects for the pointer to the IDT.
-/// ...apparently.
-#[repr(C, packed)]
-pub struct IdtPtr<I>
-where I: Idt { pub limit: u16
-             , pub base: *const I
-             }
-
-pub trait IdtPtrOps {
-    unsafe fn load(&self);
-}
+// /// This is the format that `lidt` expects for the pointer to the IDT.
+// /// ...apparently.
+// #[repr(C, packed)]
+// pub struct IdtPtr<I>
+// where I: Idt { pub limit: u16
+//              , pub base: *const I
+//              }
+//
+// pub trait IdtPtrOps {
+//     unsafe fn load(&self);
+// }
 
 pub trait InterruptContext {
     type Registers;
@@ -81,17 +85,22 @@ pub trait InterruptContext {
 }
 
 pub trait Idt: Sized {
-    type Ptr: IdtPtrOps;
     type Ctx: InterruptContext;
+    type GateSize: Gate;
 
-    fn get_ptr(&self) -> Self::Ptr;
-
-    /// This is just a wrapper for prettiness reasons.
-    #[inline]
-    unsafe fn load(&self) {
-        self.get_ptr()
-            .load()
+    /// Get the IDT pointer struct to pass to `lidt`
+    fn get_ptr(&self) -> DTablePtr<Self> {
+        DTablePtr { limit: (size_of::<Self::GateSize>() * IDT_ENTRIES) as u16
+                  , base: self as *const Self
+                  }
     }
+    //
+    // /// This is just a wrapper for prettiness reasons.
+    // #[inline]
+    // unsafe fn load(&self) {
+    //     self.get_ptr()
+    //         .load()
+    // }
 
     /// Enable interrupts
     unsafe fn enable_interrupts() {
