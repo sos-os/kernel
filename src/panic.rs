@@ -18,10 +18,8 @@ pub extern fn rust_begin_unwind( args: Arguments
                                , file: &'static str
                                , line: usize ) -> !
 {
-    let console
-        = term::CONSOLE.lock()
-                       .set_colors(Color::White, Color::Red);
-    write!(console
+    write!(term::CONSOLE.lock()
+                        .set_colors(Color::White, Color::Red)
           , "\nKERNEL PANIC in {}:{}\n\t{}"
           , file, line, args
           );
