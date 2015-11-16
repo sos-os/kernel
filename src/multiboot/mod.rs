@@ -62,7 +62,7 @@ impl Info {
             = (self as *const _) as usize +
               (self.length - END_TAG_LEN) as usize;
         let end_tag = unsafe {&*(end_tag_addr as *const Tag)};
-        end_tag.ty == TagType::End && end_tag.size == 8
+        end_tag.ty == TagType::End && end_tag.length == 8
     }
 }
 
@@ -153,10 +153,10 @@ pub struct MemMapTag { tag: Tag
 impl MemMapTag {
     pub fn entries(&self) -> Entries {
         Entries { curr: (&self.first_entry) as *const MemArea
-                , last: ((self as *const MemoryMapTag as u32)
+                , last: ((self as *const MemMapTag as u32)
                             + self.size
                             - self.entry_size) as *const MemArea
-                , tag: self
+                , size: self.entry_size
                 }
     }
 }
@@ -176,18 +176,17 @@ pub struct MemArea { pub base: u64
 
 pub struct Entries { curr: *const MemArea
                    , last: *const MemArea
-                   , tag: &MemMapTag
+                   , size: u32
                    }
 
 impl Iterator for Entries {
     type Item = &'static MemArea;
-    fn next(&mut self) -> Option<&'static MemoryArea> {
+    fn next(&mut self) -> Option<&'static MemArea> {
         if self.curr > self.last {
             None
         } else {
             let current = self.curr;
-            self.curr = (self.curr as u32 + self.tag.entry_size)
-                        as *const MemArea;
+            self.curr = (self.curr as u32 + self.size) as *const MemArea;
             if current.type == MemAreaType::Available {
                 Some(current)
             } else {

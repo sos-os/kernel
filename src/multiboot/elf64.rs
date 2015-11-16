@@ -1,4 +1,4 @@
-use super::elf;
+use super::{elf,Tag};
 use core::mem;
 
 #[derive(Debug)]
@@ -40,7 +40,7 @@ pub struct Sections { curr: &'static Section
 
 impl Iterator for Sections {
     type Item = &'static Section;
-    fn next(&mut self) -> Option<&'static ElfSection> {
+    fn next(&mut self) -> Option<&'static Section> {
         if self.remaining == 0 {
             None
         } else {
