@@ -19,6 +19,60 @@ pub use self::cpu_all::*;
 
 use core::mem;
 
+pub mod control_regs {
+    pub unsafe fn cr0_read() -> u64 {
+        let result: u64;
+        asm!(   "mov $0, cr0"
+            :   "=r"(result)
+            ::: "intel" );
+        result
+    }
+    pub unsafe fn cr0_write(value: u64) {
+        asm!(  "mov cr0, $0"
+            :: "r"(value)
+            :: "intel");
+    }
+
+    pub unsafe fn cr2_read() -> u64 {
+        let result: u64;
+        asm!(   "mov $0, cr2"
+            :   "=r"(result)
+            ::: "intel" );
+        result
+    }
+    pub unsafe fn cr2_write(value: u64) {
+        asm!(  "mov cr2, $0"
+            :: "r"(value)
+            :: "intel");
+    }
+    pub unsafe fn cr3_read() -> u64 {
+        let result: u64;
+        asm!(   "mov $0, cr3"
+            :   "=r"(result)
+            ::: "intel" );
+        result
+    }
+    pub unsafe fn cr3_write(value: u64) {
+        asm!(  "mov cr3, $0"
+            :: "r"(value)
+            :: "intel");
+    }
+
+    pub unsafe fn cr4_read() -> u64 {
+        let result: u64;
+        asm!(   "mov $0, cr4"
+            :   "=r"(result)
+            ::: "intel" );
+        result
+    }
+    pub unsafe fn cr4_write(value: u64) {
+        asm!(  "mov cr4, $0"
+            :: "r"(value)
+            :: "intel");
+    }
+}
+
+
 /// Registers pushed to the stack when handling an interrupt or context switch.
 #[repr(C, packed)]
 #[derive(Copy, Clone)]
