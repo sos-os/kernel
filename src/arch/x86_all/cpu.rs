@@ -118,3 +118,14 @@ impl io::Write for Port {
         Ok(written_bytes)
     }
 }
+
+/// A pointer to a descriptor table (IDT or GDT)
+#[repr(C, packed)]
+pub struct DTablePtr<T> { pub limit: u16
+                        , pub base: *const T
+                        }
+
+/// A descriptor table (IDT or GDT)
+pub trait DTable {
+    unsafe fn load(&self);
+}

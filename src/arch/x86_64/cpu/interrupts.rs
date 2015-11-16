@@ -12,7 +12,7 @@
 //! Software Developer’s Manual_ for more information.
 use core::mem;
 use spin::Mutex;
-use super::pics;
+use super::{pics, Registers, DTable};
 
 #[path = "../../x86_all/interrupts.rs"] mod interrupts_all;
 pub use self::interrupts_all::*;
@@ -29,24 +29,23 @@ extern {
 /// State stored when handling an interrupt.
 #[allow(dead_code)]
 #[repr(C, packed)]
-struct InterruptCtx64 { registers: cpu::Registers // callee-saved registers
-                       , int_id:  u32             // interrupt ID number
+struct InterruptCtx64 {  /// callee-saved registers
+                         registers: Registers
+                       , /// interrupt ID number
+                         int_id:  u32
                        , __pad_1: u32
-                       , err_no:  u32             // error number
+                       , /// error number
+                         err_no:  u32
                        , __pad_2: u32
                        }
 
 impl InterruptContext for InterruptCtx64 {
-    type Registers = cpu::Registers;
-
-    #[inline]
-    fn registers(&self) -> Self::Registers { self.registers }
-
-    #[inline]
-    fn err_no(&self) -> u32 { self.err_no }
-
-    #[inline]
-    fn int_id(&self) -> u32 { self.int_id }
+    type Registers = Registers;
+    // All these inline functions are basically just faking
+    // object orientation in a way the Rust compiler understands
+    #[inline] fn registers(&self) -> Self::Registers { self.registers }
+    #[inline] fn err_no(&self) -> u32 { self.err_no }
+    #[inline] fn int_id(&self) -> u32 { self.int_id }
 }
 
 
@@ -90,7 +89,7 @@ impl Gate64 {
         Gate64 { offset_lower: 0
                , selector: 0
                , zero: 0
-               , type_attr: 0b0000_1110
+               , type_attr: GateType::Absent as u8
                , offset_mid: 0
                , offset_upper: 0
                , reserved: 0
@@ -115,7 +114,7 @@ impl Gate for Gate64 {
                    , zero: 0
                    // Bit 7 is the present bit
                    // Bits 4-0 indicate this is an interrupt gate
-                   , type_attr: 0b1000_1110
+                   , type_attr: GateType::Interrupt as u8
                    , offset_mid: mid
                    , offset_upper: high
                    , reserved: 0
@@ -128,15 +127,16 @@ impl Gate for Gate64 {
 struct Idt64([Gate64; IDT_ENTRIES]);
 
 impl Idt for Idt64 {
-    type Ptr = IdtPtr<Self>;
+    // type Ptr = IdtPtr<Self>;
     type Ctx = InterruptCtx64;
+    type GateSize = Gate64;
 
     /// Get the IDT pointer struct to pass to `lidt`
-    fn get_ptr(&self) -> Self::Ptr {
-        IdtPtr { limit: (mem::size_of::<Gate64>() * IDT_ENTRIES) as u16
-               , base:  self as *const Idt64
-               }
-    }
+    // fn get_ptr(&self) -> DTablePtr<Self> {
+    //     IdtPtr { limit: (mem::size_of::<Gate64>() * IDT_ENTRIES) as u16
+    //            , base:  self as *const Idt64
+    //            }
+    // }
 
     /// Add an entry for the given handler at the given index
     fn add_gate(&mut self, index: usize, handler: Handler) {
@@ -154,15 +154,23 @@ impl Idt for Idt64 {
     }
 }
 
-impl IdtPtrOps for IdtPtr<Idt64> {
-    /// Load the IDT at the given location.
-    /// This just calls `lidt`.
-    unsafe fn load(&self) {
-        asm!(  "lidt ($0)"
-            :: "{rax}"(self)
-            :: "volatile" );
+impl DTable for Idt64 {
+    #[inline] unsafe fn load(&self) {
+        asm!(  "lidt [$0]"
+            :: "A"(self.get_ptr())
+            :: "intel" );
     }
 }
+
+// impl IdtPtrOps for IdtPtr<Idt64> {
+//     /// Load the IDT at the given location.
+//     /// This just calls `lidt`.
+//     unsafe fn load(&self) {
+//         asm!(  "lidt ($0)"
+//             :: "{rax}"(self)
+//             :: "volatile" );
+//     }
+// }
 
 /// Global Interrupt Descriptor Table instance
 /// Our global IDT.
@@ -175,7 +183,7 @@ pub fn initialize() {
     // TODO: load interrupts into IDT
 
     unsafe {
-        idt.get_ptr().load();       // Load the IDT pointer
+        idt.load();       // Load the IDT pointer
         pics::initialize();         // initialize the PICs
         Idt64::enable_interrupts(); // enable interrupts
     }

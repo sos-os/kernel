@@ -29,11 +29,13 @@ pub mod io;
 pub mod util;
 pub mod panic;
 
+use arch::cpu;
+
 /// Kernel main loop
 #[no_mangle]
 pub extern fn kernel_main() {
     println!("Hello from the kernel!");
     println!("Intializing interrupts...");
-    arch::interrupts::initialize();
+    cpu::interrupts::initialize();
     loop { }
 }

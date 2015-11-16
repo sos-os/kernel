@@ -1,4 +1,4 @@
-use super::cpu::Port;
+use super::super::cpu::Port;
 
 struct Keyboard { port: Port
 }
