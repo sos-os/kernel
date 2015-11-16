@@ -12,10 +12,9 @@
 //! Software Developer’s Manual_ for more information.
 use core::mem;
 use spin::Mutex;
-use super::cpu;
-use super::cpu::pics;
+use super::pics;
 
-#[path = "../x86_all/interrupts.rs"] mod interrupts_all;
+#[path = "../../x86_all/interrupts.rs"] mod interrupts_all;
 pub use self::interrupts_all::*;
 
 extern {
@@ -56,27 +55,31 @@ impl InterruptContext for InterruptCtx64 {
 ///
 /// Based on code from the OS Dev Wiki
 /// http://wiki.osdev.org/Interrupt_Descriptor_Table#Structure
+///
+/// Refer also to "6.14.1 64-Bit Mode IDT"  and "Table 3-2. System-Segment and
+/// Gate-Descriptor Types" in the _Intel® 64 and IA-32 Architectures
+/// Software Developer’s Manual_
 #[repr(C, packed)]
 #[derive(Copy,Clone)]
 struct Gate64 { /// bits 0 - 15 of the offset
-              offset_lower: u16
-            , /// code segment selector (GDT or LDT)
-              selector: u16
-            , /// always zero
-              zero: u8
-            , /// indicates the gate's type and attributes.
-              /// the second half indicates the type:
-              ///   + `0b1100`: Call gate
-              ///   + `0b1110`: Interrupt gate
-              ///   + `0b1111`: Trap Gate
-              type_attr: u8
-            , /// bits 16 - 31 of the offset
-              offset_mid: u16
-            , /// bits 32 - 63 of the offset
-              offset_upper: u32
-            , /// always zero (according to the spec, this is "reserved")
-              reserved: u32
-            }
+                offset_lower: u16
+              , /// code segment selector (GDT or LDT)
+                selector: u16
+              , /// always zero
+                zero: u8
+              , /// indicates the gate's type and attributes.
+                /// the second half indicates the type:
+                ///   + `0b1100`: Call gate
+                ///   + `0b1110`: Interrupt gate
+                ///   + `0b1111`: Trap Gate
+                type_attr: u8
+              , /// bits 16 - 31 of the offset
+                offset_mid: u16
+              , /// bits 32 - 63 of the offset
+                offset_upper: u32
+              , /// always zero (according to the spec, this is "reserved")
+                reserved: u32
+              }
 
 impl Gate64 {
     /// Creates a new IDT gate marked as `absent`.
@@ -98,6 +101,9 @@ impl Gate64 {
 impl Gate for Gate64 {
 
     /// Creates a new IDT gate pointing at the given handler function.
+    ///
+    /// The `handler` function must have been created with valid interrupt
+    /// calling conventions.
     fn new(handler: Handler) -> Self {
         unsafe { // trust me on this.
                  // `mem::transmute()` is glorious black magic
@@ -107,6 +113,8 @@ impl Gate for Gate64 {
             Gate64 { offset_lower: low
                    , selector: gdt64_offset
                    , zero: 0
+                   // Bit 7 is the present bit
+                   // Bits 4-0 indicate this is an interrupt gate
                    , type_attr: 0b1000_1110
                    , offset_mid: mid
                    , offset_upper: high

@@ -1,0 +1,1 @@
+In order to cross-compile SOS on some platforms, we need to build our own version of `libcore` with the correct `target.json` file. Therefore, we include the `rust-lang/rust` repository as a submodule.

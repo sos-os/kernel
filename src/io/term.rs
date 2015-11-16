@@ -6,7 +6,7 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-use ::arch::vga;
+use ::arch::drivers::vga;
 use core::ptr::Unique;
 use core::mem;
 use core::fmt::{Write, Result};

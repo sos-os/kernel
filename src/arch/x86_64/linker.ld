@@ -7,6 +7,10 @@
 ENTRY(start)
 
 SECTIONS {
+    . = 0xb8000;
+    vga_buffer = .;
+    . += 80 * 24 * 2;
+
     /* Load the kernel reasonably high in memory to avoid special addresses. */
     . = 1M;
 

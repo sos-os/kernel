@@ -28,7 +28,7 @@ run: $(iso)
 iso: $(iso)
 
 cargo:
-	@cargo rustc --target $(target) -- -L /usr/local/rustlib -Z no-landing-pads
+	@cargo rustc --target $(target) -- -L /lib/rust/src/libcore -Z no-landing-pads
 
 # Make the RustDoc documentation
 doc:

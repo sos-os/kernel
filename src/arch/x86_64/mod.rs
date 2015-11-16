@@ -8,7 +8,6 @@
 //
 //! x86_64 architecture-specific implementation.
 
-#[path = "../x86_all/vga.rs"] pub mod vga;
+
 pub mod cpu;
-pub mod interrupts;
-pub mod keyboard;
+pub mod drivers;
