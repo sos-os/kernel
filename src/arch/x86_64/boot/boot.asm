@@ -122,6 +122,7 @@ set_long_mode:
 
 start:
     mov     esp, stack_top
+    mov     edi, ebx       ; Move Multiboot info pointer to edi
 
     call    is_multiboot
     call    is_cpuid
@@ -156,7 +157,7 @@ pd_table:                   ; Page-Directory Table
 page_table:                 ; Page Table
     resb    PAGE_TABLE_SIZE
 stack_end:
-    resb 64
+    resb    4096
 stack_top:
 
 section .rodata

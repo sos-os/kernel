@@ -28,13 +28,40 @@ pub mod arch;
 pub mod io;
 pub mod util;
 pub mod panic;
+pub mod multiboot;
 
 use arch::cpu;
 
 /// Kernel main loop
+///
+/// The kernel main loop expects to be passed the address of a valid
+/// Multiboot 2 info struct. It's the bootloader's responsibility to ensure
+/// that this is passed in the correct register as expected by the calling
+/// convention (`edi` on x86). If this isn't there, you can expect to have a
+/// bad problem and not go to space today.
 #[no_mangle]
-pub extern fn kernel_main() {
+pub extern fn kernel_main(multiboot_addr: usize) {
+
     println!("Hello from the kernel!");
+
+    // Unpack multiboot tag
+    let boot_info = unsafe { multiboot::Info::from(multiboot_addr) };
+    let mmap_tag = boot_info.mem_map().expect("Memory map tag required!");
+
+    println!("Detected memory areas:");
+    for a in mmap_tag.entries() {
+        println!("\tstart: 0x{:x}\t\tend: 0x{:x}", a.base, a.length);
+    }
+
+    let elf_sections_tag = boot_info.elf_sections_tag()
+                                    .expect("Elf-sections tag required!");
+
+    println!("Detected kernel sections:");
+    for section in elf_sections_tag.sections() {
+    println!("\taddr: 0x{:x} \tsize: 0x{:x} \tflags: 0x{:x}",
+        section.addr, section.size, section.flags);
+    }
+
     println!("Intializing interrupts...");
     cpu::interrupts::initialize();
     loop { }

@@ -1,0 +1,198 @@
+//
+//  SOS: the Stupid Operating System
+//  by Hawk Weisman (hi@hawkweisman.me)
+//
+//  Copyright (c) 2015 Hawk Weisman
+//  Released under the terms of the MIT license. See `LICENSE` in the root
+//  directory of this repository for more information.
+//
+const END_TAG_LEN: u32 = 8;
+
+use core::mem::transmute;
+
+#[macro_use]
+macro_rules! ptr {
+    ($it:expr) => { $it as *const _ }
+}
+
+pub mod elf;
+pub mod elf64;
+
+
+#[repr(C)]
+pub struct Info { pub length: u32
+                , _pad: u32
+                , tag_start: Tag
+                }
+
+impl Info {
+
+    pub unsafe fn from(addr: usize) -> &'static Self {
+        let info = &*(addr as *const Info);
+        assert!(info.has_end());
+        info
+    }
+
+    /// Finds the tag with the given tag type.
+    ///
+    /// This is actually safe since the tag types are constrained by The
+    /// `TagType` enum
+    pub fn get_tag(&self, tag_type: TagType) -> Option<&'static Tag> {
+        self.tags()
+            .find(|t| t.ty == tag_type)
+    }
+
+    #[inline]
+    pub fn mem_map(&self) -> Option<&'static MemMapTag> {
+        self.get_tag(TagType::MemoryMap)
+            .map(|tag| unsafe { &*(ptr!(tag) as *const MemMapTag) })
+    }
+
+    #[inline]
+    pub fn elf64_sections(&self) -> Option<&'static MemMapTag> {
+        self.get_tag(TagType::ElfSections)
+            .map(|tag| unsafe { &*(ptr!(tag) as *const MemMapTag) })
+    }
+
+    #[inline]
+    fn tags(&self) -> Tags { Tags(ptr!(self.tag_start)) }
+
+    fn has_end(&self) -> bool {
+        let end_tag_addr
+            = (self as *const _) as usize +
+              (self.length - END_TAG_LEN) as usize;
+        let end_tag = unsafe {&*(end_tag_addr as *const Tag)};
+        end_tag.ty == TagType::End && end_tag.size == 8
+    }
+}
+
+
+/// A Multiboot tag.
+///
+/// From the specification:
+///
+/// Boot information consists of a fixed part and a series of tags.
+/// Its start is 8-bytes aligned. Fixed part is as following:
+///
+///<rawtext>
+///             +-------------------+
+///     u32     | total_size        |
+///     u32     | reserved          |
+///             +-------------------+
+///</rawtext>
+/// `total_size` contains the total size of boot information including this
+/// field and terminating tag in bytes.
+/// `reserved` is always set to zero and must be ignored by OS image.
+///
+///  Every tag begins with following fields:
+///<rawtext>
+///
+///             +-------------------+
+///     u32     | type              |
+///     u32     | size              |
+///             +-------------------+
+///</rawtext>
+/// `type` contains an identifier of contents of the rest of the tag. `size`
+/// contains the size of tag including header fields but not including padding.
+/// Tags follow one another padded when necessary in order for each tag to
+/// start at 8-bytes aligned address. Tags are terminated by a tag of type `0`
+/// and size `8`.
+#[repr(C)]
+#[derive(Debug)]
+struct Tag { ty: TagType
+           , length: u32
+           }
+
+/// Types of Multiboot tags
+///
+/// Refer to Chapter 3 of the Multiboot 2 spec
+#[repr(u32)]
+#[derive(Debug, Eq, PartialEq)]
+enum TagType { /// Tag that indicates the end of multiboot tags
+               End              = 0
+             , /// Command line passed to the bootloader
+               CommandLine      = 1
+             , BootloaderName   = 2
+             , Modules          = 3
+             , BasicMemInfo     = 4
+             , BIOSBootDev      = 5
+             , MemoryMap        = 6
+             , VBEInfo          = 7
+             , FramebufferInfo  = 8
+             , ELFSections      = 9
+             , APMTable         = 10
+             }
+
+struct Tags(*const Tag);
+
+impl Tags {
+    #[inline] fn advance(&mut self, size: u32) {
+        let mut next_addr = self.0 as usize + size as usize;
+        next_addr = ((next_addr-1) & !0x7) + 0x8; //align at 8 byte
+        self.0 = ptr!(next_addr);
+    }
+}
+
+impl Iterator for Tags {
+    type Item = &'static Tag;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match unsafe { &*self.0 } {
+            &Tag{ ty: TagType::End, length: END_TAG_LEN } => None
+          , tag @ &Tag { ty: _, length: l } => { self.advance(l); Some(tag) }
+        }
+    }
+}
+
+#[repr(C)]
+pub struct MemMapTag { tag: Tag
+                     , entry_size: u32
+                     , entry_version: u32
+                     , first_entry: MemArea
+                     }
+impl MemMapTag {
+    pub fn entries(&self) -> Entries {
+        Entries { curr: (&self.first_entry) as *const MemArea
+                , last: ((self as *const MemoryMapTag as u32)
+                            + self.size
+                            - self.entry_size) as *const MemArea
+                , tag: self
+                }
+    }
+}
+
+#[repr(u32)]
+pub enum MemAreaType { Available = 1
+                     , ACPI      = 3
+                     , Preserve  = 4
+                     }
+
+#[repr(C)]
+pub struct MemArea { pub base: u64
+                   , pub length: u64
+                   , ty: MemAreaType
+                   , _pad: u32
+                   }
+
+pub struct Entries { curr: *const MemArea
+                   , last: *const MemArea
+                   , tag: &MemMapTag
+                   }
+
+impl Iterator for Entries {
+    type Item = &'static MemArea;
+    fn next(&mut self) -> Option<&'static MemoryArea> {
+        if self.curr > self.last {
+            None
+        } else {
+            let current = self.curr;
+            self.curr = (self.curr as u32 + self.tag.entry_size)
+                        as *const MemArea;
+            if current.type == MemAreaType::Available {
+                Some(current)
+            } else {
+                self.next();
+            }
+        }
+    }
+}
