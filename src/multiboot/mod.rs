@@ -153,7 +153,6 @@ pub struct MemMapTag { tag: Tag
                      }
 impl MemMapTag {
     pub fn entries(&self) -> Entries {
-        let p =
         Entries { curr: (&self.first_entry) as *const MemArea
                 , last: ((self as *const MemMapTag as u32) +
                         (self.tag.length - self.entry_size))
