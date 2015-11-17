@@ -48,7 +48,8 @@ impl Iterator for Sections {
         } else {
             let current = self.curr;
             self.curr = unsafe {
-                &*((ptr!(current) as u32 + self.size) as *const Section)
+                &*(((self.curr as *const Section) as u32 + self.size)
+                    as *const Section)
             };
             self.remaining -= 1;
             if current.ty == elf::SectionType::Null {
