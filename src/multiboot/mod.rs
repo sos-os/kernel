@@ -99,7 +99,7 @@ impl Info {
 /// Tags follow one another padded when necessary in order for each tag to
 /// start at 8-bytes aligned address. Tags are terminated by a tag of type `0`
 /// and size `8`.
-#[repr(C, packed)]
+#[repr(C)]
 #[derive(Debug)]
 pub struct Tag { ty: TagType
                , length: u32
@@ -145,7 +145,7 @@ impl Iterator for Tags {
     }
 }
 
-#[repr(C,packed)]
+#[repr(C)]
 pub struct MemMapTag { tag: Tag
                      , entry_size: u32
                      , entry_version: u32
