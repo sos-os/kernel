@@ -41,12 +41,14 @@ use arch::cpu;
 /// bad problem and not go to space today.
 #[no_mangle]
 pub extern fn kernel_main(multiboot_addr: usize) {
-    term::CONSOLE.lock().clear();
+    io::term::CONSOLE.lock().clear();
+
     println!("Hello from the kernel!");
 
     // Unpack multiboot tag
     let boot_info = unsafe { multiboot::Info::from(multiboot_addr) };
-    let mmap_tag = boot_info.mem_map().expect("Memory map tag required!");
+    let mmap_tag = boot_info.mem_map()
+                            .expect("Memory map tag required!");
 
     println!("Detected memory areas:");
     for a in mmap_tag.entries() {
