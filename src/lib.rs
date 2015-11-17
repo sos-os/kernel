@@ -41,7 +41,7 @@ use arch::cpu;
 /// bad problem and not go to space today.
 #[no_mangle]
 pub extern fn kernel_main(multiboot_addr: usize) {
-
+    term::CONSOLE.lock().clear();
     println!("Hello from the kernel!");
 
     // Unpack multiboot tag

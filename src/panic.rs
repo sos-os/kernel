@@ -20,6 +20,7 @@ pub extern fn rust_begin_unwind( args: Arguments
 {
     write!(term::CONSOLE.lock()
                         .set_colors(Color::White, Color::Red)
+                        .clear()
           , "\nKERNEL PANIC in {}:{}\n\t{}"
           , file, line, args
           );
