@@ -8,8 +8,6 @@
 //
 const END_TAG_LEN: u32 = 8;
 
-use core::mem::transmute;
-
 #[macro_use]
 macro_rules! ptr {
     ($it:expr) => { &$it as *const _ }
@@ -146,7 +144,8 @@ impl Iterator for Tags {
 }
 
 #[repr(C)]
-pub struct MemMapTag { tag: Tag
+pub struct MemMapTag { ty: TagType
+                     , length: u32
                      , entry_size: u32
                      , entry_version: u32
                      , first_entry: MemArea
@@ -155,7 +154,7 @@ impl MemMapTag {
     pub fn entries(&self) -> Entries {
         Entries { curr: (&self.first_entry) as *const MemArea
                 , last: ((self as *const MemMapTag as u32) +
-                        (self.tag.length - self.entry_size))
+                        (self.length - self.entry_size))
                         as *const MemArea
                 , size: self.entry_size
                 }
