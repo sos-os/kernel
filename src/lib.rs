@@ -18,7 +18,7 @@
 #![feature(no_std, lang_items)]
 #![feature(const_fn, unique, core_str_ext, core_slice_ext)]
 #![feature(slice_patterns)]
-#![feature(iter_cmp)]
+// #![feature(iter_cmp)]
 #![no_std]
 
 extern crate rlibc;
@@ -89,8 +89,8 @@ pub extern fn kernel_main(multiboot_addr: usize) {
     println!( "Multiboot info begins at {:#x} and ends at {:#x}."
              , multiboot_addr, multiboot_end);
 
-    println!("Intializing interrupts...");
-    cpu::interrupts::initialize();
+    // println!("Intializing interrupts...");
+    // cpu::interrupts::initialize();
 
 
     loop { }
