@@ -7,12 +7,6 @@
 //  directory of this repository for more information.
 //
 const END_TAG_LEN: u32 = 8;
-
-#[macro_use]
-macro_rules! ptr {
-    ($it:expr) => { &$it as *const _ }
-}
-
 pub mod elf;
 pub mod elf64;
 
@@ -55,7 +49,7 @@ impl Info {
     }
 
     #[inline]
-    fn tags(&self) -> Tags { Tags(ptr!(self.tag_start)) }
+    fn tags(&self) -> Tags { Tags(&self.tag_start as *const Tag) }
 
     fn has_end(&self) -> bool {
         let end_tag_addr
