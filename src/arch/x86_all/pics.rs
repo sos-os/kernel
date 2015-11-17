@@ -179,14 +179,14 @@ impl PICs {
                     , 0x04              // 2. number to configure PIC cascading
                     , Command::Mode8086 as u8 // 3. command for 8086 mode
                     , saved_mask1       // 4. finally, the mask we saved earlier
-                    ]);
+                    ]).expect("Could not write to PIC 0 data port!");
 
         self.1.data_port
             .write(&[ self.1.offset
                     , 0x02              // PIC2 gets 0x02 to set it as follower
                     , Command::Mode8086 as u8
                     , saved_mask2
-                    ]);
+                    ]).expect("Could not write to PIC 1 data port!");
     }
 }
 
