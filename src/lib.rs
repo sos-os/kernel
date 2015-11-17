@@ -54,7 +54,7 @@ pub extern fn kernel_main(multiboot_addr: usize) {
 
     println!("Detected memory areas:");
     for a in mmap_tag.entries() {
-        println!("     start: 0x{:x}     end: 0x{:x}"
+        println!("     start: {:#08x}, end: {:#08x}"
                 , a.base, a.length );
     }
 
@@ -64,7 +64,7 @@ pub extern fn kernel_main(multiboot_addr: usize) {
 
     println!("Detected kernel sections:");
     for section in elf_sections_tag.sections() {
-    println!( "     addr: 0x{:x}     size: 0x{:x}     flags: 0x{:x}"
+    println!( "     address: {:#08x}, size: {:#08x}, flags: {:#08x}"
             , section.address
             , section.length
             , section.flags );
@@ -81,12 +81,12 @@ pub extern fn kernel_main(multiboot_addr: usize) {
                         .expect("Could not find kernel end section!\
                                 \nSomething is deeply wrong.");
 
-    println!( "Kernel begins at 0x{:x} and ends at 0x{:x}"
+    println!( "Kernel begins at {:#x} and ends at {:#x}."
              , kernel_begin, kernel_end );
 
     let multiboot_end = multiboot_addr + boot_info.length as usize;
 
-    println!( "Multiboot info begins at 0x{:x} and ends at 0x{:x}"
+    println!( "Multiboot info begins at {:#x} and ends at {:#x}."
              , multiboot_addr, multiboot_end);
 
     println!("Intializing interrupts...");
