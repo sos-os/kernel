@@ -144,8 +144,7 @@ impl Iterator for Tags {
 }
 
 #[repr(C)]
-pub struct MemMapTag { ty: TagType
-                     , length: u32
+pub struct MemMapTag { tag: Tag
                      , entry_size: u32
                      , entry_version: u32
                      , first_entry: MemArea
