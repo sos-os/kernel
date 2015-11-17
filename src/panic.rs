@@ -23,7 +23,7 @@ pub extern fn rust_begin_unwind( args: Arguments
                         .clear()
           , "KERNEL PANIC \
             \nSomething has gone horribly wrong in {} at line {} \
-            \n\t{}"
+            \n     {}"
           , file, line, args
           );
     loop { }

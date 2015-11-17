@@ -52,7 +52,7 @@ pub extern fn kernel_main(multiboot_addr: usize) {
 
     println!("Detected memory areas:");
     for a in mmap_tag.entries() {
-        println!( "\tstart: 0x{:x}\t\tend: 0x{:x}"
+        println!("     start: 0x{:x}     end: 0x{:x}"
                 , a.base, a.length );
     }
 
@@ -61,7 +61,7 @@ pub extern fn kernel_main(multiboot_addr: usize) {
 
     println!("Detected kernel sections:");
     for section in elf_sections_tag.sections() {
-    println!( "\taddr: 0x{:x} \tsize: 0x{:x} \tflags: 0x{:x}"
+    println!( "     addr: 0x{:x}     size: 0x{:x}     flags: 0x{:x}"
             , section.address
             , section.length
             , section.flags );
