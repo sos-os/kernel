@@ -21,10 +21,10 @@ pub extern fn rust_begin_unwind( args: Arguments
     write!(term::CONSOLE.lock()
                         .set_colors(Color::White, Color::Red)
                         .clear()
-          , "KERNEL PANIC \
-            \nSomething has gone horribly wrong in {} at line {} \
-            \n     {}"
-          , file, line, args
+          , "KERNEL PANIC: {} \
+            \nSomething has gone horribly wrong in {} at line {}."
+          , args
+          , file, line
           );
     loop { }
 }
