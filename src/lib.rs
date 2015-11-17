@@ -18,6 +18,7 @@
 #![feature(no_std, lang_items)]
 #![feature(const_fn, unique, core_str_ext, core_slice_ext)]
 #![feature(slice_patterns)]
+#![feature(iter_cmp)]
 #![no_std]
 
 extern crate rlibc;
@@ -47,8 +48,9 @@ pub extern fn kernel_main(multiboot_addr: usize) {
 
     // Unpack multiboot tag
     let boot_info = unsafe { multiboot::Info::from(multiboot_addr) };
-    let mmap_tag = boot_info.mem_map()
-                            .expect("Memory map tag required!");
+    let mmap_tag // Extract the memory map tag from the multiboot info
+        = boot_info.mem_map()
+                   .expect("Memory map tag required!");
 
     println!("Detected memory areas:");
     for a in mmap_tag.entries() {
@@ -56,8 +58,9 @@ pub extern fn kernel_main(multiboot_addr: usize) {
                 , a.base, a.length );
     }
 
-    let elf_sections_tag = boot_info.elf64_sections()
-                                    .expect("Elf-sections tag required!");
+    let elf_sections_tag // Extract ELF sections tag from the multiboot info
+        = boot_info.elf64_sections()
+                   .expect("Elf-sections tag required!");
 
     println!("Detected kernel sections:");
     for section in elf_sections_tag.sections() {
@@ -67,7 +70,28 @@ pub extern fn kernel_main(multiboot_addr: usize) {
             , section.flags );
     }
 
+    let kernel_begin
+        = elf_sections_tag.sections()
+                          .map(|s| s.address).min()
+                          .expect("Could not find kernel start section!\
+                                   \nSomething is deeply wrong.");
+    let kernel_end
+        = elf_sections_tag.sections()
+                        .map(|s| s.address).max()
+                        .expect("Could not find kernel end section!\
+                                \nSomething is deeply wrong.");
+
+    println!( "Kernel begins at 0x{:x} and ends at 0x{:x}"
+             , kernel_begin, kernel_end );
+
+    let multiboot_end = multiboot_addr + boot_info.length as usize;
+
+    println!( "Multiboot info begins at 0x{:x} and ends at 0x{:x}"
+             , multiboot_addr, multiboot_end);
+
     println!("Intializing interrupts...");
     cpu::interrupts::initialize();
+
+
     loop { }
 }
