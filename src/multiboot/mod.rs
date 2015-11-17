@@ -43,13 +43,15 @@ impl Info {
     #[inline]
     pub fn mem_map(&self) -> Option<&'static MemMapTag> {
         self.get_tag(TagType::MemoryMap)
-            .map(|tag| unsafe { &*(ptr!(tag) as *const MemMapTag) })
+            .map(|tag| unsafe { &*((tag as *const Tag) as *const MemMapTag) })
     }
 
     #[inline]
     pub fn elf64_sections(&self) -> Option<&'static elf64::SectionsTag> {
         self.get_tag(TagType::ELFSections)
-            .map(|tag| unsafe { &*(ptr!(tag) as *const elf64::SectionsTag) })
+            .map(|tag| unsafe {
+                &*((tag as *const Tag) as *const elf64::SectionsTag)
+            })
     }
 
     #[inline]
