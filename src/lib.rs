@@ -18,7 +18,7 @@
 #![feature(no_std, lang_items)]
 #![feature(const_fn, unique, core_str_ext, core_slice_ext)]
 #![feature(slice_patterns)]
-// #![feature(iter_cmp)]
+#![feature(iter_cmp)]
 #![no_std]
 
 extern crate rlibc;
@@ -30,8 +30,10 @@ pub mod io;
 pub mod util;
 pub mod panic;
 pub mod multiboot;
+pub mod memory;
 
 use arch::cpu;
+use memory::{Allocator, AreaAllocator};
 
 /// Kernel main loop
 ///
@@ -53,7 +55,7 @@ pub extern fn kernel_main(multiboot_addr: usize) {
                    .expect("Memory map tag required!");
 
     println!("Detected memory areas:");
-    for a in mmap_tag.entries() {
+    for a in mmap_tag.areas() {
         println!("     start: {:#08x}, end: {:#08x}"
                 , a.base, a.length );
     }
@@ -89,6 +91,17 @@ pub extern fn kernel_main(multiboot_addr: usize) {
     println!( "Multiboot info begins at {:#x} and ends at {:#x}."
              , multiboot_addr, multiboot_end);
 
+    let mut alloc
+        = AreaAllocator::new( kernel_begin as usize, kernel_end as usize
+                            , multiboot_addr, multiboot_end
+                            , mmap_tag.areas());
+
+    for i in 0.. {
+        if let None = alloc.allocate() {
+            println!("Allocated {} frames", i);
+            break;
+        }
+    }
     // println!("Intializing interrupts...");
     // cpu::interrupts::initialize();
 

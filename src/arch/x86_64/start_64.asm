@@ -1,5 +1,7 @@
 global start_64
 
+extern  kernel_main
+
 section .text
 bits 64
 start_64:
@@ -8,7 +10,6 @@ start_64:
     call    set_SSE
 
     ; call into kernel main function
-    extern  kernel_main
     call    kernel_main
 
 .os_returned:
