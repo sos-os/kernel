@@ -146,13 +146,13 @@ pub struct MemMapTag { tag: Tag
                      , first_entry: MemArea
                      }
 impl MemMapTag {
-    pub fn entries(&self) -> Entries {
-        Entries { curr: (&self.first_entry) as *const MemArea
-                , last: ((self as *const MemMapTag as u32) +
-                        self.tag.length - self.entry_size)
-                        as *const MemArea
-                , size: self.entry_size
-                }
+    pub fn entries(&self) -> MemAreas {
+        MemAreas { curr: (&self.first_entry) as *const MemArea
+                 , last: ((self as *const MemMapTag as u32) +
+                         self.tag.length - self.entry_size)
+                         as *const MemArea
+                 , size: self.entry_size
+                 }
     }
 }
 
@@ -170,12 +170,20 @@ pub struct MemArea { pub base: u64
                    , _pad: u32
                    }
 
-pub struct Entries { curr: *const MemArea
-                   , last: *const MemArea
-                   , size: u32
-                   }
+impl MemArea {
+    #[inline] pub fn address(&self) -> usize {
+        (self.base + self.length - 1) as usize
+    }
+}
 
-impl Iterator for Entries {
+#[allow(raw_pointer_derive)]
+#[derive(Clone)]
+pub struct MemAreas { curr: *const MemArea
+                    , last: *const MemArea
+                    , size: u32
+                    }
+
+impl Iterator for MemAreas {
     type Item = &'static MemArea;
     fn next(&mut self) -> Option<&'static MemArea> {
         if self.curr > self.last {
