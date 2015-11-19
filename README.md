@@ -14,3 +14,5 @@ The Makefile currently expects that you're using cross-compiled GNU `binutils`, 
  + **POSIX compliance is not a goal** (though it would be cool)
  + **Hybrid/loosely microkernel** (i.e., move code to user space *when convenient/practical*)
  + Possibly provide the Rust stdlib at the OS level.
+ + JVM-style memory allocation?
+ + Possibly experiment with a [Plan 9-esque](https://en.wikipedia.org/wiki/9P_(protocol)) networking stack eventually?
