@@ -113,7 +113,15 @@ impl PIC {
         unsafe {
             self.command_port
                 .out8(command as u8)
-            }
+        }
+    }
+
+    #[inline]
+    fn send_data(&self, data: u8) {
+        unsafe {
+            self.data_port
+                .out8(data)
+        }
     }
 
     #[inline]
@@ -165,28 +173,41 @@ impl PICs {
 
     /// Initialize the system's PICs.
     fn initialize(&mut self) {
+        let mut wait_port = unsafe { Port::new(0x80) };
+        let mut wait = || unsafe { wait_port.out8(0); };
+        // helper macro to avoid writing repetitive code
+        macro_rules! send {
+            (pic0 => $data:expr) => {
+                self.0.send_data($data)
+                wait();
+            };
+            (pic1 => $data:expr) => {
+                self.1.send_data($data)
+                wait();
+            };
+        }
+
         // Read the default interrupt masks from PIC1 and PIC2
         let (saved_mask1, saved_mask2)
             = unsafe { (self.0.data_port.in8(), self.1.data_port.in8()) };
 
         // Send both PICs the 'initialize' command.
-        self.0.initialize();
-        self.1.initialize();
+        self.0.initialize(); wait();
+        self.1.initialize(); wait();
 
         // Each PIC then expects us to send it the following:
-        self.0.data_port
-            .write(&[ self.0.offset     // 1. the PIC's new vector offset
-                    , 0x04              // 2. number to configure PIC cascading
-                    , Command::Mode8086 as u8 // 3. command for 8086 mode
-                    , saved_mask1       // 4. finally, the mask we saved earlier
-                    ]).expect("Could not write to PIC 0 data port!");
-
-        self.1.data_port
-            .write(&[ self.1.offset
-                    , 0x02              // PIC2 gets 0x02 to set it as follower
-                    , Command::Mode8086 as u8
-                    , saved_mask2
-                    ]).expect("Could not write to PIC 1 data port!");
+        // 1. the PIC's new vector offset
+        send!(pic0 => self.0.offset);
+        send!(pic1 => self.1.offset);
+        // 2. number to configure PIC cascading
+        send!(pic0 => 0x04);
+        send!(pic1 => 0x02);
+        // 3. command for 8086 mode
+        send!(pic0 => Command::Mode8086 as u8);
+        send!(pic1 => Command::Mode8086 as u8);
+        // 4. finally, the mask we saved earlier
+        send!(pic0 => saved_mask1);
+        send!(pic1 => saved_mask2);
     }
 }
 
