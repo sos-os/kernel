@@ -144,7 +144,7 @@ impl Idt for Idt64 {
         self.0[index] = Gate64::new(handler)
     }
 
-    extern "C" fn handle_exception(state: &Self::Ctx)  {
+    fn handle_cpu_exception(state: &Self::Ctx)  {
         // TODO: we can handle various types of CPU exception differently
         // TODO: make some nice debugging dumps
         unsafe {
@@ -152,6 +152,20 @@ impl Idt for Idt64 {
                   , state.err_no()
                   , state.exception() );
               }
+    }
+
+    extern "C" fn handle_interrupt(state: &Self::Ctx) {
+        let id = state.int_id();
+        match id {
+            // interrupts 0 - 16 are CPU exceptions
+            0x00...0x0f => Self::handle_cpu_exception(state)
+            // System timer
+          , 0x20 => { /* TODO: make this work */ }
+            // Keyboard
+          , 0x21 => { /* TODO: make this work */ }
+          , _ => panic!("Unknown interrupt: #{} Sorry!", id)
+        }
+        unsafe { pics::end_pic_interrupt(id as u8); }
     }
 }
 

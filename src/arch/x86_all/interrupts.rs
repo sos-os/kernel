@@ -113,5 +113,6 @@ pub trait Idt: Sized {
 
     fn add_gate(&mut self, idx: usize, handler: Handler);
 
-    extern "C" fn handle_exception(state: &Self::Ctx);
+    fn handle_cpu_exception(state: &Self::Ctx);
+    extern "C" fn handle_interrupt(state: &Self::Ctx);
 }
