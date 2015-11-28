@@ -164,11 +164,11 @@ impl IRQHandler for PIC {
 /// A pair of PICs in cascade mode.
 ///
 /// This is the standard configuration on all modern x86 systems.
-struct PICs (PIC, PIC);
+struct BothPICs (PIC, PIC);
 
-impl PICs {
+impl BothPICs {
     const fn new() -> Self {
-        PICs (PIC::leader(), PIC::follower())
+        BothPICs (PIC::leader(), PIC::follower())
     }
 
     /// Initialize the system's PICs.
@@ -211,7 +211,7 @@ impl PICs {
     }
 }
 
-impl IRQHandler for PICs {
+impl IRQHandler for BothPICs {
 
     fn handles(&self, irq: IRQ) -> bool {
         self.0.handles(irq) ||
@@ -228,7 +228,8 @@ impl IRQHandler for PICs {
 }
 
 /// Global PIC instance and mutex
-static PICS: Mutex<PICs> = Mutex::new(PICs::new());
+static PICS: Mutex<BothPICs>
+    = Mutex::new(BothPICs::new());
 
 /// Initialize the system's Programmable Interrupt Controller
 pub fn initialize() {

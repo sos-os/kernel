@@ -10,6 +10,7 @@
 
 use super::super::{DTablePtr, DTable};
 use core::mem::size_of;
+use core::fmt;
 
 pub type Handler = unsafe extern "C" fn() -> ();
 pub const IDT_ENTRIES: usize = 256;
@@ -19,11 +20,29 @@ pub const IDT_ENTRIES: usize = 256;
 /// Bit-and this with the attribute half-byte to produce the
 /// `type_attr` field for a `Gate`
 #[repr(u8)]
+#[derive(Debug)]
 pub enum GateType { Absent    = 0b0000_0000
                   , Interrupt = 0b1000_1110
                   , Call      = 0b1000_1100
                   , Trap      = 0b1000_1111
                   }
+
+impl fmt::Display for GateType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self { &Absent    => write!(f, "Absent")
+                   , &Interrupt => write!(f, "Interrupt")
+                   , &Call      => write!(f, "Call")
+                   , &Trap      => write!(f, "Trap")
+                   }
+    }
+}
+
+#[derive(Debug)]
+pub struct ExceptionDescr { pub description: &'static str
+                          , pub mnemonic: &'static str
+                          ,
+}
+
 
 /// x86 exceptions.
 ///
@@ -54,7 +73,7 @@ pub static EXCEPTIONS: &'static [&'static str] = &[
 ];
 
 pub trait Gate {
-    fn new(handler: Handler) -> Self;
+    fn from_handler(handler: Handler) -> Self;
 }
 
 // /// This is the format that `lidt` expects for the pointer to the IDT.
@@ -113,6 +132,15 @@ pub trait Idt: Sized {
 
     fn add_gate(&mut self, idx: usize, handler: Handler);
 
-    fn handle_cpu_exception(state: &Self::Ctx);
+    fn handle_cpu_exception(state: &Self::Ctx)  {
+        // TODO: we can handle various types of CPU exception differently
+        // TODO: make some nice debugging dumps
+        unsafe {
+            panic!( "CPU EXCEPTION {:#04x}: {}"
+                  , state.err_no()
+                  , state.exception() );
+              }
+    }
+
     extern "C" fn handle_interrupt(state: &Self::Ctx);
 }

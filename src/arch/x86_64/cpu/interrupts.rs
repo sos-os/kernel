@@ -18,13 +18,15 @@ use super::{Registers, DTable};
 #[path = "../../x86_all/pics.rs"] pub mod pics;
 pub use self::interrupts_all::*;
 
+//==------------------------------------------------------------------------==
+// Interface into ASM interrupt handling
 extern {
     /// Offset of the 64-bit GDT main code segment.
     /// Exported by `boot.asm`
     static gdt64_offset: u16;
 
     /// Array of interrupt handlers from ASM
-    static int_handlers: [Option<unsafe extern "C" fn()>; IDT_ENTRIES];
+    static int_handlers: [Option<Handler>; IDT_ENTRIES];
 }
 
 /// State stored when handling an interrupt.
@@ -50,6 +52,8 @@ impl InterruptContext for InterruptCtx64 {
 }
 
 
+//==------------------------------------------------------------------------==
+// 64-bit implementation of the IDT gate trait
 
 /// An IDT entry is called a gate.
 ///
@@ -86,6 +90,10 @@ impl Gate64 {
     ///
     /// This is basically just for filling the new IDT table
     /// with valid (but useless) gates upon init.
+    ///
+    /// This would be in the `Gate` trait, but this has to be a `const fn` so
+    /// that it can be used in static initializers, and trait functions cannot
+    /// be `const`.
     const fn absent() -> Self {
         Gate64 { offset_lower: 0
                , selector: 0
@@ -104,7 +112,7 @@ impl Gate for Gate64 {
     ///
     /// The `handler` function must have been created with valid interrupt
     /// calling conventions.
-    fn new(handler: Handler) -> Self {
+    fn from_handler(handler: Handler) -> Self {
         unsafe { // trust me on this.
                  // `mem::transmute()` is glorious black magic
             let (low, mid, high): (u16, u16, u32)
@@ -124,7 +132,8 @@ impl Gate for Gate64 {
     }
 }
 
-
+//==------------------------------------------------------------------------==
+// 64-bit implementation of the IDT trait
 struct Idt64([Gate64; IDT_ENTRIES]);
 
 impl Idt for Idt64 {
@@ -141,19 +150,10 @@ impl Idt for Idt64 {
 
     /// Add an entry for the given handler at the given index
     fn add_gate(&mut self, index: usize, handler: Handler) {
-        self.0[index] = Gate64::new(handler)
+        self.0[index] = Gate64::from_handler(handler)
     }
 
-    fn handle_cpu_exception(state: &Self::Ctx)  {
-        // TODO: we can handle various types of CPU exception differently
-        // TODO: make some nice debugging dumps
-        unsafe {
-            panic!( "EXCEPTION {:#04x}: {}"
-                  , state.err_no()
-                  , state.exception() );
-              }
-    }
-
+    /// Assembly interrupt handlers call into this
     extern "C" fn handle_interrupt(state: &Self::Ctx) {
         let id = state.int_id();
         match id {
@@ -165,6 +165,7 @@ impl Idt for Idt64 {
           , 0x21 => { /* TODO: make this work */ }
           , _ => panic!("Unknown interrupt: #{} Sorry!", id)
         }
+        // send the PICs the end interrupt signal
         unsafe { pics::end_pic_interrupt(id as u8); }
     }
 }
@@ -198,7 +199,7 @@ pub fn initialize() {
     // TODO: load interrupts into IDT
 
     unsafe {
-        idt.load();       // Load the IDT pointer
+        idt.load();                 // Load the IDT pointer
         pics::initialize();         // initialize the PICs
         Idt64::enable_interrupts(); // enable interrupts
     }

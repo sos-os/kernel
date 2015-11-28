@@ -96,6 +96,8 @@ pub extern fn kernel_main(multiboot_addr: usize) {
                             , multiboot_addr, multiboot_end
                             , mmap_tag.areas());
 
+    println!( "Created initial allocator." );
+    
     for i in 0.. {
         if let None = alloc.allocate() {
             println!("Allocated {} frames", i);

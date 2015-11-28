@@ -2,6 +2,7 @@ use multiboot::{MemArea, MemAreas};
 
 pub const PAGE_SIZE: usize = 4096;
 
+
 /// A `Frame` is just a newtype around a `usize` containing the frame number.
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Copy, Clone)]
 pub struct Frame(usize);
