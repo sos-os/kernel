@@ -29,10 +29,10 @@ pub enum GateType { Absent    = 0b0000_0000
 
 impl fmt::Display for GateType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self { &Absent    => write!(f, "Absent")
-                   , &Interrupt => write!(f, "Interrupt")
-                   , &Call      => write!(f, "Call")
-                   , &Trap      => write!(f, "Trap")
+        match self { &GateType::Absent    => write!(f, "Absent")
+                   , &GateType::Interrupt => write!(f, "Interrupt")
+                   , &GateType::Call      => write!(f, "Call")
+                   , &GateType::Trap      => write!(f, "Trap")
                    }
     }
 }
@@ -40,7 +40,7 @@ impl fmt::Display for GateType {
 #[derive(Debug)]
 pub struct ExceptionDescr { pub description: &'static str
                           , pub mnemonic: &'static str
-                          ,
+                        //   , pub
 }
 
 
