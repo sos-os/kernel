@@ -62,27 +62,35 @@ pub extern fn kernel_main(multiboot_addr: usize) {
 
     let elf_sections_tag // Extract ELF sections tag from the multiboot info
         = boot_info.elf64_sections()
-                   .expect("Elf-sections tag required!");
+                   .expect("ELF sections tag required!");
 
-    println!("Detected kernel sections:");
-    for section in elf_sections_tag.sections() {
-    println!( "     address: {:#08x}, size: {:#08x}, flags: {:#08x}"
-            , section.address
-            , section.length
-            , section.flags );
-    }
+    println!("Detecting kernel ELF sections:");
+    // for section in elf_sections_tag.sections() {
+    //
+    // }
 
     let kernel_begin
         = elf_sections_tag.sections()
-                          .map(|s| s.address).min()
-                          .expect("Could not find kernel start section!\
-                                   \nSomething is deeply wrong.");
+            .map(|s| {
+                println!("     address: {:#08x}, size: {:#08x}, flags: {:#08x}"
+                        , s.address
+                        , s.length
+                        , s.flags );
+                s.address })
+            .min()
+            .expect("Could not find kernel start section!\
+                    \nSomething is deeply wrong.");
+
+    let mut n_elf_sections = 0;
     let kernel_end
         = elf_sections_tag.sections()
-                        .map(|s| s.address).max()
-                        .expect("Could not find kernel end section!\
-                                \nSomething is deeply wrong.");
+            .map(|s| { n_elf_sections += 1;
+                     s.address })
+            .max()
+            .expect("Could not find kernel end section!\
+                    \nSomething is deeply wrong.");
 
+    println!( "Detected {} kernel ELF sections.", n_elf_sections);
     println!( "Kernel begins at {:#x} and ends at {:#x}."
              , kernel_begin, kernel_end );
 
@@ -97,13 +105,13 @@ pub extern fn kernel_main(multiboot_addr: usize) {
                             , mmap_tag.areas());
 
     println!( "Created initial allocator." );
-    
-    for i in 0.. {
-        if let None = alloc.allocate() {
-            println!("Allocated {} frames", i);
-            break;
-        }
-    }
+
+    // for i in 0.. {
+    //     if let None = alloc.allocate() {
+    //         println!("Allocated {} frames", i);
+    //         break;
+    //     }
+    // }
     // println!("Intializing interrupts...");
     // cpu::interrupts::initialize();
 
