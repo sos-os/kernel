@@ -36,7 +36,7 @@ $(iso): $(kernel) $(grub_cfg)
 
 $(kernel): cargo $(assembly_object_files) $(linker_script)
 	@echo LD $(kernelvv)
-	@x86_64-elf-ld -n --gc-sections -T $(linker_script) -o $(kernel) \
+	@ld -n --gc-sections -T $(linker_script) -o $(kernel) \
 		$(assembly_object_files) $(rust_os)
 
 # compile assembly files
