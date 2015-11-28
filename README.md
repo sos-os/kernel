@@ -18,14 +18,23 @@ The Makefile currently expects that you're using cross-compiled GNU `binutils`, 
  + Possibly experiment with a [Plan 9-esque](https://en.wikipedia.org/wiki/9P_(protocol)) networking stack eventually?
 
 
-### Using Vagrant
+### Building & Running
 
-For development on Mac OS, I'm using a Vagrant config written by @ashleygwilliams (see her repo [here](https://github.com/ashleygwilliams/x86-kernel)).
+
++ **Setting up**
+    + You only need to run these steps once
+    + `$ multirust default nightly-2015-11-08` this version of Rust is known to work with our patched version of `libcore`
+    + `$ make runtime` compiles the patched `libcore`
++ **Running the OS**
+    + `$ make run` compiles the kernel, makes the ISO, and boots QEMU from the ISO
+
+#### Using Vagrant
+
+To avoid tooling and dependency hell (especially on Macs), I'm using a Vagrant config written by @ashleygwilliams (see her repo [here](https://github.com/ashleygwilliams/x86-kernel)).
 
 To run using vagrant (from the repo root directory):
 
  + `$ vagrant up`
  + `$ vagrant ssh -- -Y`
- + `$ multirust default nightly-2015-11-19`
  + `$ cd /vagrant`
- + `$ make run`
+ + Follow the instructions from above
