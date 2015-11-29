@@ -28,8 +28,34 @@
 
 #![feature(ptr_as_ref)]
 
+/// Trait for something that is like a frame.
+///
+/// Various allocation strategies use different data structures for
+/// representing frames. For example, frames may be stored as frame numbers or
+/// as nodes in a linked list. To be `Framesque`, an object need only provide
+/// a function to convert the frame data to a pointer to the frame in memory.
+pub trait Framesque {
+    /// Return a pointer to the frame in memory.
+    fn to_ptr(&self) -> *mut u8;
+}
 
-pub mod rawlink;
+/// An `Allocator` implements a particular memory allocation strategy.
+///
+/// `Allocator`s are generally `struct`s that contain any additional
+/// information necessary to enact that allocation strategy. Since
+/// different `Allocator`s may use different methods of tracking frames,
+/// each `Allocator` implementation can provide its own frame type, as long as
+/// that frame type is `frameesque` (i.e., it provides some method to resolve
+/// it into a pointer to its memory area).
+pub trait Allocator {
+    type Frame: Framesque;
+
+    fn allocate(&mut self) -> Option<Self::Frame>;
+    fn free(&mut self, frame: Self::Frame);
+}
+
+
+mod rawlink;
 pub use self::rawlink::RawLink;
 
 #[test]
