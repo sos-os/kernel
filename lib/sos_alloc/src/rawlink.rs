@@ -1,3 +1,19 @@
+//
+//  SOS: the Stupid Operating System
+//  by Hawk Weisman (hi@hawkweisman.me)
+//
+//  Copyright (c) 2015 Hawk Weisman
+//  Released under the terms of the MIT license. See `LICENSE` in the root
+//  directory of this repository for more information.
+//
+//! Implementation of the `RawLink` smart-ish pointer.
+//!
+//! A `RawLink` is a zero-cost abstraction that allows a raw pointer to be used
+//! with an `Option`-esque API.
+//!
+//! TODO: implement all monadic operations over `Option`-esque types (i.e.
+//! `map()`, `and_then()`, etc).
+
 use core::ptr;
 use core::fmt;
 use core::mem;
@@ -75,7 +91,17 @@ impl<T> RawLink<T> {
         self.0.as_mut()
     }
 
+    #[inline]
+    pub fn is_some(&self) -> bool { !self.is_none() }
+
+    #[inline]
+    pub fn is_none(&self) -> bool { self.0.is_null() }
+
     /// Returns the `RawLink` and replaces it with `RawLink::none()`.
     #[inline]
     pub fn take(&mut self) -> Self { mem::replace(self, Self::none()) }
+
+    pub unsafe fn map<U, F: FnOnce(T) -> U>(self, f: F) -> RawLink<U> {
+        unimplemented!()
+    }
 }

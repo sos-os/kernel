@@ -13,6 +13,7 @@ crate-type = ["staticlib"]
 [dependencies]
 rlibc = "*"
 spin = "*"
+sos_alloc = { path = "lib/sos_alloc" }
 
-[build-dependencies]
-nasm-rs = "^0.0.3"
+# [build-dependencies]
+# nasm-rs = "^0.0.3"

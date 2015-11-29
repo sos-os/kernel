@@ -39,12 +39,14 @@ pub extern fn eh_personality() {
 #[lang = "stack_exhausted"]
 #[no_mangle] #[inline(never)] #[cold]
 pub extern "C" fn __morestack() -> ! {
+    println!("stack exhausted");
     loop { }
 }
 
 #[allow(non_snake_case)]
 #[no_mangle] #[inline(never)] #[cold]
 pub extern "C" fn _Unwind_Resume() -> ! {
+    println!("UNWIND!");
     loop { }
 }
 

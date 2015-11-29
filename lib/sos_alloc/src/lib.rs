@@ -12,12 +12,25 @@
 //! OS components.
 
 #![crate_name = "sos_alloc"]
-#![crate_type = "staticlib"]
-#![feature(ptr_as_ref)]
+#![crate_type = "lib"]
+
+// The compiler needs to be instructed that this crate is an allocator in order
+// to realize that when this is linked in another allocator like jemalloc
+// should not be linked in
+#![feature(allocator)]
+#![allocator]
+
+// Allocators are not allowed to depend on the standard library which in turn
+// requires an allocator in order to avoid circular dependencies. This crate,
+// however, can use all of libcore.
 #![feature(no_std)]
 #![no_std]
 
-mod rawlink;
+#![feature(ptr_as_ref)]
+
+
+pub mod rawlink;
+pub use self::rawlink::RawLink;
 
 #[test]
 fn it_works() {

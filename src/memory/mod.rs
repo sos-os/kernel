@@ -39,7 +39,7 @@ pub struct AreaAllocator { next_free: Frame
                           }
 impl AreaAllocator {
     fn next_area(&mut self) {
-
+        println!("In next_area");
         self.current_area
             = self.areas.clone()
                   .filter(|a| Frame::containing(a.address()) >= self.next_free)
@@ -72,36 +72,85 @@ impl AreaAllocator {
 
 impl Allocator for AreaAllocator {
     fn allocate(&mut self) -> Option<Frame> {
-        self.current_area    // If current area is None, no free frames remain.
-            .and_then(|area| // Otherwise, try to allocate...
-                match self.next_free {
-                    // all frames in the current memory area are in use
-                    f if f > Frame::containing(area.address()) => {
-                        // so we advance to the next free area
-                        self.next_area();
-                        None
-                    }
-                  , // this frame is in use by the kernel.
-                    f if f >= self.kern_start || f <= self.kern_end => {
-                        // skip ahead to the end of the kernel
-                        self.next_free = self.kern_end.next();
-                        None
-                    }
-                  , // this frame is part of the multiboot info.
-                    f if f >= self.mb_start || f <= self.mb_end => {
-                        // skip ahead to the end of the multiboot info.
-                        self.next_free = self.mb_end.next();
-                        None
-                    }
-                  , // this frame is free.
-                    frame => {
-                        // advance the next free frame and return this frame.
-                        self.next_free = self.next_free.next();
-                        Some(frame)
-                    }
-                })
-            // If we were unable to allocate, try again with the new next frame
-            .or_else(|| self.allocate())
+        println!("In alloc method");
+        if let Some(area) = self.current_area {
+            match self.next_free {
+                // all frames in the current memory area are in use
+                f if f > Frame::containing(area.address()) => {
+                    // so we advance to the next free area
+
+                    println!("All frames in current area in use.");
+                    self.next_area();
+                    println!("...and returning None");
+                }
+              , // this frame is in use by the kernel.
+                f if f >= self.kern_start || f <= self.kern_end => {
+                    // skip ahead to the end of the kernel
+                    println!("In kernel frame, skipping.");
+                    self.next_free = self.kern_end.next();
+                    println!("...and returning None");
+                }
+              , // this frame is part of the multiboot info.
+                f if f >= self.mb_start || f <= self.mb_end => {
+                    // skip ahead to the end of the multiboot info.
+                    println!("In multiboot frame, skipping...");
+                    self.next_free = self.mb_end.next();
+                    println!("...and returning None");
+                }
+              , // this frame is free.
+                frame => {
+                    // advance the next free frame and return this frame.
+                    println!("In free frame, advancing...");
+                    self.next_free = self.next_free.next();
+                    println!("...and returning {:?}", frame);
+                    return Some(frame)
+                }
+            };
+            self.allocate()
+        } else {
+            println!("No free frames remain!");
+            loop { }
+            None
+        }
+        // self.current_area    // If current area is None, no free frames remain.
+        //     .and_then(|area| // Otherwise, try to allocate...
+        //         match self.next_free {
+        //             // all frames in the current memory area are in use
+        //             f if f > Frame::containing(area.address()) => {
+        //                 // so we advance to the next free area
+        //
+        //                 println!("All frames in current area in use.");
+        //                 self.next_area();
+        //                 println!("...and returning None");
+        //                 None
+        //             }
+        //           , // this frame is in use by the kernel.
+        //             f if f >= self.kern_start || f <= self.kern_end => {
+        //                 // skip ahead to the end of the kernel
+        //                 println!("In kernel frame, skipping.");
+        //                 self.next_free = self.kern_end.next();
+        //                 println!("...and returning None");
+        //                 None
+        //             }
+        //           , // this frame is part of the multiboot info.
+        //             f if f >= self.mb_start || f <= self.mb_end => {
+        //                 // skip ahead to the end of the multiboot info.
+        //                 println!("In multiboot frame, skipping...");
+        //                 self.next_free = self.mb_end.next();
+        //                 println!("...and returning None");
+        //                 None
+        //             }
+        //           , // this frame is free.
+        //             frame => {
+        //                 // advance the next free frame and return this frame.
+        //                 println!("In free frame, advancing...");
+        //                 self.next_free = self.next_free.next();
+        //                 println!("...and returning {:?}", frame);
+        //                 Some(frame)
+        //             }
+        //         }
+        //     )
+
     }
 
     fn free(&mut self, frame: Frame) {
