@@ -94,6 +94,14 @@ impl<T> RawLink<T> {
     }
 
     /// Please don't do this.
+    ///
+    /// # Returns
+    ///   - The underlying raw pointer (`*mut T`) behind this `RawLink`
+    ///
+    /// # Unsafe due to
+    ///   - Returning a reference with an arbitrary lifetime
+    ///   - Dereferencing a raw pointer
+    ///   - Please don't do this
     #[inline]
     pub unsafe fn as_raw(&self) -> *mut T { self.0 }
 

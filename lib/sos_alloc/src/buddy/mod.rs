@@ -2,6 +2,8 @@ use super::RawLink;
 
 use core::mem;
 
+mod math;
+
 pub struct Free { next: RawLink<Free> }
 
 pub struct FreeList<'a> {
