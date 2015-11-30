@@ -6,6 +6,13 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
+#![crate_name = "sos_multiboot2"]
+#![feature( no_std
+          , lang_items )]
+#![feature( const_fn
+          , slice_patterns )]
+#![no_std]
+
 const END_TAG_LEN: u32 = 8;
 pub mod elf;
 pub mod elf64;

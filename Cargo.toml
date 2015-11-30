@@ -14,6 +14,7 @@ crate-type = ["staticlib"]
 rlibc = "*"
 spin = "*"
 sos_alloc = { path = "lib/sos_alloc" }
+sos_multiboot2 = { path = "lib/sos_multiboot2" }
 
 # [build-dependencies]
 # nasm-rs = "^0.0.3"

@@ -16,20 +16,23 @@
 #![crate_type = "staticlib"]
 #![feature(asm)]
 #![feature(no_std, lang_items)]
-#![feature(const_fn, unique, core_str_ext, core_slice_ext)]
-#![feature(slice_patterns)]
-#![feature(iter_cmp)]
+#![feature( const_fn
+          , unique
+          , core_str_ext
+          , core_slice_ext
+          , slice_patterns
+          , iter_cmp)]
 #![no_std]
 
 extern crate rlibc;
 extern crate spin;
+extern crate sos_multiboot2 as multiboot;
 
 pub mod arch;
 #[macro_use]
 pub mod io;
 pub mod util;
 pub mod panic;
-pub mod multiboot;
 pub mod memory;
 
 use arch::cpu;
