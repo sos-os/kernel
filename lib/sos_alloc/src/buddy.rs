@@ -56,17 +56,24 @@ impl<'a> FreeList<'a> {
             })
     }
 
-    fn iter<'b: 'a>(&'b self) -> FreeListIter<'b> {
+    fn iter<'b>(&'b self) -> FreeListIter<'b> {
         // FreeListIter { current: self.head.map(|c| c.borrow())
         //                             .as_ref()
         //              }
-        unimplemented!()
+        match self.head {
+            Some(ref head) => FreeListIter { current: Some(head) }
+          , None           => FreeListIter { current: None }
+        }
+        // unimplemented!()
     }
 
 
     fn iter_mut<'b>(&'b mut self) -> FreeListIterMut<'b> {
         // FreeListIterMut { current: self.head.map(|c| *c ).as_mut() }
-        unimplemented!()
+        match self.head {
+            Some(ref mut head) => FreeListIterMut { current: Some(head) }
+          , None               => FreeListIterMut { current: None }
+        }
     }
 }
 
