@@ -1,10 +1,17 @@
-use super::RawLink;
-
-use core::mem;
-
 mod math;
 
+use super::RawLink;
+use self::math::PowersOf2Ext;
+
+use core::mem;
+use core::cmp::{max, min};
+
 pub struct Free { next: RawLink<Free> }
+
+macro_rules! max {
+    ($x:expr) => ($x);
+    ($x:expr, $($xs:expr),+) => (max($x, max!($($xs),+)));
+}
 
 pub struct FreeList<'a> {
     /// A pointer to the head of the free list
@@ -179,5 +186,60 @@ impl<'a> BuddyHeapAllocator<'a> {
                                  };
         // TODO: put first head block on appropriately-sized freelist
         heap
+    }
+
+    /// Computes the size of an allocation request.
+    ///
+    /// # Arguments
+    ///   - `size`: A `usize` containing the size of the request
+    ///   - `align`: A `usize` containing the alignment of the request
+    ///
+    /// # Returns
+    ///   - `None` if the request is invalid
+    ///   - `Some(usize)` containing the size needed if the request is valid
+    pub fn alloc_size(&self, size: usize, align: usize) -> Option<usize> {
+        // Pre-check if this is a valid allocation request:
+        //  - allocations must be aligned on power of 2 boundaries
+        //  - we cannot allocate requests with alignments greater than the
+        //    base alignment of the heap without jumping through a bunch of
+        //    hoops.
+        if !align.is_pow2() || align > ::PAGE_SIZE {
+            None
+        // If the request is valid, compute the size we need to allocate
+        } else {
+            let alloc_size
+                // the allocation size for the request is the next power of 2
+                // after the size of the request, the alignment of the request,
+                // or the minimum block size (whichever is greatest).
+                = max!( size
+                        // we can't allocate less than the minimum block size
+                      , self.min_block_size
+                        // we can't allocate less than the alignment, either
+                      , align )
+                    .next_pow2();
+
+            if alloc_size > self.heap_size {
+                // if the calculated size is greater than the size of the heap,
+                // we (obviously) cannot allocate this request.
+                None
+            } else {
+                // otherwise, return the calculated size.
+                Some(alloc_size)
+            }
+        }
+    }
+
+    /// Computes the order of an allocation request.
+    ///
+    /// The "order" of an allocation refers to the number of times we need to
+    /// double the minimum block size to get a large enough block for that
+    /// allocation.
+    pub fn alloc_order(&self, size: usize, align: usize) -> Option<usize> {
+        self.alloc_size(size, align)
+            .map(|s| // the order of the allocation is the base-2 log of the
+                     // allocation size minus the base-2 log of the minimum
+                     // block size
+                s.log2() - self.min_block_size.log2() // TODO: cache this?
+            )
     }
 }
