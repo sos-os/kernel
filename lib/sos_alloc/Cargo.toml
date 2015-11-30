@@ -3,4 +3,11 @@ name = "sos_alloc"
 version = "0.1.0"
 authors = ["Hawk Weisman <hi@hawkweisman.me>"]
 
+[features]
+default = ["simple", "buddy"]
+simple = ["multiboot"]
+buddy = []
+multiboot = ["sos_multiboot2"]
+
 [dependencies]
+sos_multiboot2 = { path = "../sos_multiboot2", optional = true }

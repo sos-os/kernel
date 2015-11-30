@@ -27,6 +27,7 @@
 extern crate rlibc;
 extern crate spin;
 extern crate sos_multiboot2 as multiboot;
+extern crate sos_alloc as alloc;
 
 pub mod arch;
 #[macro_use]

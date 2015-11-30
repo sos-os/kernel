@@ -28,7 +28,11 @@
 
 #![feature( ptr_as_ref
           , const_fn
-          , core_slice_ext )]
+          , core_slice_ext
+          , iter_cmp )]
+
+#![cfg(feature = "multiboot")]
+extern crate sos_multiboot2 as multiboot;
 
 pub const PAGE_SIZE: usize = 4096;
 
@@ -59,11 +63,12 @@ pub trait Allocator {
 }
 
 
+
 mod rawlink;
 pub use self::rawlink::RawLink;
 
+#[cfg(feature = "buddy")]
 pub mod buddy;
 
-#[test]
-fn it_works() {
-}
+#[cfg(feature = "simple")]
+pub mod simple;
