@@ -143,6 +143,7 @@ impl<'a> BuddyHeapAllocator<'a> {
                                  , heap_size: heap_size
                                  , min_block_size: min_block_size
                                  };
+        // TODO: put first head block on appropriately-sized freelist
         heap
     }
 }
