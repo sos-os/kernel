@@ -56,6 +56,33 @@ impl<'a> FreeList<'a> {
             })
     }
 
+    /// Attempt to remove a block from the free list.
+    ///
+    /// This function searches the free list for the specified block, and
+    /// removes it if it is found, returning whether or not the block was
+    /// removed.
+    ///
+    /// This is quite slow; with a worst-case time complexity of O(log n),
+    /// this function is a major bottleneck in our allocator implementation.
+    /// By maintaining sorted free lists, we could perhaps improve performance
+    /// somewhat.
+    ///
+    /// # Returns
+    ///   - `true` if the block was removed from the free list
+    ///   - `false` if the block was not present in the free list
+    unsafe fn remove(&mut self, target_block: *mut u8) -> bool {
+        let target_ptr = target_block as *mut Free;
+        for block in self.iter_mut() {
+            let block_ptr: *mut Free = block;
+            if block_ptr == target_ptr {
+                *block_ptr = Free { next: block.next.take() };
+                return true;
+            }
+        }
+        false
+    }
+
+    /// Returns an iterator over the blocks in this free list
     fn iter<'b>(&'b self) -> FreeListIter<'b> {
         // FreeListIter { current: self.head.map(|c| c.borrow())
         //                             .as_ref()
@@ -67,7 +94,7 @@ impl<'a> FreeList<'a> {
         // unimplemented!()
     }
 
-
+    /// Returns a mutable iterator over the blocks in this free list.
     fn iter_mut<'b>(&'b mut self) -> FreeListIterMut<'b> {
         // FreeListIterMut { current: self.head.map(|c| *c ).as_mut() }
         match self.head {
