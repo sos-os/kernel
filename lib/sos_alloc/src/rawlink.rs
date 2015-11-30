@@ -54,14 +54,16 @@ impl<T> RawLink<T> {
     /// # Returns
     ///   - A `RawLink<T>` wrapping a null pointer
     #[inline]
-    pub fn none() -> RawLink<T> { RawLink(ptr::null_mut()) }
+    pub const fn none() -> RawLink<T> { RawLink(ptr::null_mut()) }
 
     /// Equivalent of `Option::Some` for a `RawLink`
     ///
     /// # Returns
     ///   - A `RawLink<T>` wrapping a pointer to the specified value
     #[inline]
-    pub fn some(thing: &mut T) -> RawLink<T> { RawLink(thing) }
+    pub const fn some(thing: &mut T) -> RawLink<T> { RawLink(thing) }
+
+    pub const fn from_raw(ptr: *mut T) -> RawLink<T> { RawLink(ptr) }
 
     /// Resolve the `RawLink` to an `Option`
     ///

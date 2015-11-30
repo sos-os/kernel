@@ -26,7 +26,9 @@
 #![feature(no_std)]
 #![no_std]
 
-#![feature(ptr_as_ref)]
+#![feature( ptr_as_ref
+          , const_fn
+          , core_slice_ext )]
 
 /// Trait for something that is like a frame.
 ///
@@ -51,12 +53,14 @@ pub trait Allocator {
     type Frame: Framesque;
 
     fn allocate(&mut self) -> Option<Self::Frame>;
-    fn free(&mut self, frame: Self::Frame);
+    fn deallocate(&mut self, frame: Self::Frame);
 }
 
 
 mod rawlink;
 pub use self::rawlink::RawLink;
+
+pub mod buddy;
 
 #[test]
 fn it_works() {
