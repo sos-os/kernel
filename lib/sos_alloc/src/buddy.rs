@@ -2,8 +2,6 @@ use super::RawLink;
 
 use core::mem;
 
-const MIN_ALIGN: usize = 4096;
-
 pub struct Free { next: RawLink<Free> }
 
 pub struct FreeList<'a> {
@@ -160,7 +158,7 @@ impl<'a> BuddyHeapAllocator<'a> {
                 , "Heap start address cannot be null." );
         assert!( n_free_lists > 0
                , "Allocator must have at least one free list.");
-        assert!( start_addr as usize & (MIN_ALIGN-1) == 0
+        assert!( start_addr as usize & (::PAGE_SIZE-1) == 0
                , "Heap start address must be aligned on a 4k boundary.");
 
         let min_block_size = heap_size >> (n_free_lists - 1);

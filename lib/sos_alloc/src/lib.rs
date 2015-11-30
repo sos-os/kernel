@@ -30,6 +30,8 @@
           , const_fn
           , core_slice_ext )]
 
+pub const PAGE_SIZE: usize = 4096;
+
 /// Trait for something that is like a frame.
 ///
 /// Various allocation strategies use different data structures for
