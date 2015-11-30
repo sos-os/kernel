@@ -37,7 +37,9 @@ pub mod panic;
 pub mod memory;
 
 use arch::cpu;
-use memory::{Allocator, AreaAllocator};
+
+use alloc::Allocator;
+use alloc::simple::SimpleAreaAllocator;
 
 /// Kernel main loop
 ///
@@ -104,9 +106,10 @@ pub extern fn kernel_main(multiboot_addr: usize) {
              , multiboot_addr, multiboot_end);
 
     let mut alloc
-        = AreaAllocator::new( kernel_begin as usize, kernel_end as usize
-                            , multiboot_addr, multiboot_end
-                            , mmap_tag.areas());
+        = SimpleAreaAllocator::new( kernel_begin as usize
+                                  , kernel_end as usize
+                                  , multiboot_addr, multiboot_end
+                                  , mmap_tag.areas());
 
     // alloc.allocate();
 

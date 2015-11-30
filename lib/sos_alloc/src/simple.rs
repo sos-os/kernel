@@ -28,15 +28,15 @@ impl Framesque for FrameNumber {
 /// reallocation of freed frames. The plan is that it will only be used
 /// initially, and after we've allocated everything once, we'll switch over
 /// to a better allocator.
-pub struct AreaAllocator { next_free: FrameNumber
-                         , current_area: Option<&'static MemArea>
-                         , areas: MemAreas
-                         , kern_start: FrameNumber
-                         , kern_end: FrameNumber
-                         , mb_start: FrameNumber
-                         , mb_end: FrameNumber
-                          }
-impl AreaAllocator {
+pub struct SimpleAreaAllocator { next_free: FrameNumber
+                               , current_area: Option<&'static MemArea>
+                               , areas: MemAreas
+                               , kern_start: FrameNumber
+                               , kern_end: FrameNumber
+                               , mb_start: FrameNumber
+                               , mb_end: FrameNumber
+                               }
+impl SimpleAreaAllocator {
     fn next_area(&mut self) {
         // println!("In next_area");
         self.current_area
@@ -56,21 +56,21 @@ impl AreaAllocator {
               , multiboot_start: usize, multiboot_end: usize
               , areas: MemAreas ) -> Self
     {
-        let mut new_allocator
-            = AreaAllocator { next_free: FrameNumber::containing(0x0)
-                            , current_area: None
-                            , areas: areas
-                            , kern_start: FrameNumber::containing(kernel_start)
-                            , kern_end: FrameNumber::containing(kernel_end)
-                            , mb_start: FrameNumber::containing(multiboot_start)
-                            , mb_end: FrameNumber::containing(multiboot_end)
-                            };
+        let mut new_allocator = SimpleAreaAllocator {
+              next_free: FrameNumber::containing(0x0)
+            , current_area: None
+            , areas: areas
+            , kern_start: FrameNumber::containing(kernel_start)
+            , kern_end: FrameNumber::containing(kernel_end)
+            , mb_start: FrameNumber::containing(multiboot_start)
+            , mb_end: FrameNumber::containing(multiboot_end)
+            };
         new_allocator.next_area();
         new_allocator
     }
 }
 
-impl Allocator for AreaAllocator {
+impl Allocator for SimpleAreaAllocator {
     type Frame = FrameNumber;
 
     fn allocate(&mut self) -> Option<Self::Frame> {
@@ -111,7 +111,6 @@ impl Allocator for AreaAllocator {
             self.allocate()
         } else {
             // println!("No free frames remain!");
-            loop { }
             None
         }
         // self.current_area    // If current area is None, no free frames remain.
