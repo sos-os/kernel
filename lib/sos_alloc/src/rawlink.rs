@@ -93,6 +93,10 @@ impl<T> RawLink<T> {
         self.0.as_mut()
     }
 
+    /// Please don't do this.
+    #[inline]
+    pub unsafe fn as_raw(&self) -> *mut T { self.0 }
+
     #[inline]
     pub fn is_some(&self) -> bool { !self.is_none() }
 
