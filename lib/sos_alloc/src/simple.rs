@@ -73,7 +73,7 @@ impl SimpleAreaAllocator {
 impl Allocator for SimpleAreaAllocator {
     type Frame = FrameNumber;
 
-    fn allocate(&mut self) -> Option<Self::Frame> {
+    fn allocate(&mut self, size: usize, align: usize) -> Option<Self::Frame> {
         // // println!("In alloc method");
         if let Some(area) = self.current_area {
             match self.next_free {
@@ -108,7 +108,7 @@ impl Allocator for SimpleAreaAllocator {
                     return Some(frame)
                 }
             };
-            self.allocate()
+            self.allocate(size, align)
         } else {
             // println!("No free frames remain!");
             None
@@ -156,5 +156,11 @@ impl Allocator for SimpleAreaAllocator {
 
     fn deallocate(&mut self, frame: FrameNumber) {
         unimplemented!()
+    }
+
+    fn reallocate( &mut self, frame: FrameNumber
+                 , size: usize, align: usize) -> Option<FrameNumber> {
+        panic!("The simple allocator doesn't support reallocation \
+                (as it is not intended for use as a system allocator).")
     }
 }

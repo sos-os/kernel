@@ -8,6 +8,8 @@ use core::cmp::{max, min};
 
 pub struct Free { next: RawLink<Free> }
 
+// Variadic macro for taking the maximum of n > 2 numbers.
+// because I'm lazy.
 macro_rules! max {
     ($x:expr) => ($x);
     ($x:expr, $($xs:expr),+) => (max($x, max!($($xs),+)));
@@ -158,9 +160,7 @@ pub struct BuddyHeapAllocator<'a> {
 impl<'a> BuddyHeapAllocator<'a> {
     pub unsafe fn new( start_addr: *mut u8
                      , free_lists: &'a mut [FreeList<'a>]
-                     , heap_size: usize)
-                     -> BuddyHeapAllocator<'a>
-    {
+                     , heap_size: usize) -> BuddyHeapAllocator<'a> {
         let n_free_lists = free_lists.len();
 
         assert!( !start_addr.is_null()
@@ -197,6 +197,7 @@ impl<'a> BuddyHeapAllocator<'a> {
     /// # Returns
     ///   - `None` if the request is invalid
     ///   - `Some(usize)` containing the size needed if the request is valid
+    #[inline]
     pub fn alloc_size(&self, size: usize, align: usize) -> Option<usize> {
         // Pre-check if this is a valid allocation request:
         //  - allocations must be aligned on power of 2 boundaries
@@ -234,6 +235,7 @@ impl<'a> BuddyHeapAllocator<'a> {
     /// The "order" of an allocation refers to the number of times we need to
     /// double the minimum block size to get a large enough block for that
     /// allocation.
+    #[inline]
     pub fn alloc_order(&self, size: usize, align: usize) -> Option<usize> {
         self.alloc_size(size, align)
             .map(|s| // the order of the allocation is the base-2 log of the
@@ -242,4 +244,6 @@ impl<'a> BuddyHeapAllocator<'a> {
                 s.log2() - self.min_block_size.log2() // TODO: cache this?
             )
     }
+
+    // pub unsafe fn allocate
 }

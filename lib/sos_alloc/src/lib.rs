@@ -58,8 +58,12 @@ pub trait Framesque {
 pub trait Allocator {
     type Frame: Framesque;
 
-    fn allocate(&mut self) -> Option<Self::Frame>;
-    fn deallocate(&mut self, frame: Self::Frame);
+    fn allocate( &mut self, size: usize, align: usize ) -> Option<Self::Frame>;
+
+    fn deallocate( &mut self, frame: Self::Frame );
+
+    fn reallocate( &mut self, frame: Self::Frame
+                 , size: usize, align: usize ) -> Option<Self::Frame>;
 }
 
 

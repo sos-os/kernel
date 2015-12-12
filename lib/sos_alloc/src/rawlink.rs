@@ -17,6 +17,7 @@
 use core::ptr;
 use core::fmt;
 use core::mem;
+use core::ops;
 
 /// A `RawLink` provides an `Option`-like interface to a raw pointer.
 #[allow(raw_pointer_derive)]
@@ -119,3 +120,9 @@ impl<T> RawLink<T> {
         unimplemented!()
     }
 }
+//
+// impl<T> ops::Deref for RawLink<T> {
+//     type Target = T;
+//
+//     fn deref(&self) -> &Self::Target { unsafe { self.resolve().unwrap() } }
+// }
