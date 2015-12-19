@@ -21,3 +21,25 @@ pub mod control_regs;
 
 pub use self::context::Registers;
 pub use self::cpu_all::*;
+
+pub mod segment {
+
+    bitflags! {
+        flags Selector: u16 { const RING_0 = 0b00
+                            , const RING_1 = 0b01
+                            , const RING_2 = 0b10
+                            , const RING_3 = 0b11
+                            , const GDT    = 0 << 3
+                            , const LDT    = 1 << 3
+                            }
+    }
+
+    impl Selector {
+        pub const fn new(index: u16) -> Self {
+            Selector { bits: index << 3 }
+        }
+        pub const fn from_raw(bits: u16) -> Self {
+            Selector { bits: bits }
+        }
+    }
+}

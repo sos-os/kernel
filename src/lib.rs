@@ -28,10 +28,10 @@ extern crate rlibc;
 extern crate spin;
 extern crate sos_multiboot2 as multiboot;
 extern crate sos_alloc as alloc;
+#[macro_use] extern crate bitflags;
 
 pub mod arch;
-#[macro_use]
-pub mod io;
+#[macro_use] pub mod io;
 pub mod util;
 pub mod panic;
 pub mod memory;

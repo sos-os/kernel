@@ -12,7 +12,7 @@
 //! Software Developer’s Manual_ for more information.
 use core::mem;
 use spin::Mutex;
-use super::{Registers, DTable};
+use super::{Registers, DTable, segment};
 
 #[path = "../../x86_all/interrupts.rs"] mod interrupts_all;
 #[path = "../../x86_all/pics.rs"] pub mod pics;
@@ -68,7 +68,7 @@ impl InterruptContext for InterruptCtx64 {
 struct Gate64 { /// bits 0 - 15 of the offset
                 offset_lower: u16
               , /// code segment selector (GDT or LDT)
-                selector: u16
+                selector: segment::Selector
               , /// always zero
                 zero: u8
               , /// indicates the gate's type and attributes.
@@ -96,7 +96,7 @@ impl Gate64 {
     /// be `const`.
     const fn absent() -> Self {
         Gate64 { offset_lower: 0
-               , selector: 0
+               , selector: segment::Selector::from_raw(0)
                , zero: 0
                , type_attr: GateType::Absent as u8
                , offset_mid: 0
@@ -119,7 +119,7 @@ impl Gate for Gate64 {
                 = mem::transmute(handler);
 
             Gate64 { offset_lower: low
-                   , selector: gdt64_offset
+                   , selector: segment::Selector::new(gdt64_offset)
                    , zero: 0
                    // Bit 7 is the present bit
                    // Bits 4-0 indicate this is an interrupt gate
