@@ -33,6 +33,8 @@
 
 #![cfg(feature = "multiboot")]
 extern crate sos_multiboot2 as multiboot;
+use core::ptr;
+use core::cmp::min;
 
 pub const PAGE_SIZE: usize = 4096;
 
@@ -44,7 +46,7 @@ pub const PAGE_SIZE: usize = 4096;
 /// a function to convert the frame data to a pointer to the frame in memory.
 pub trait Framesque {
     /// Return a pointer to the frame in memory.
-    fn to_ptr(&self) -> *mut u8;
+    fn as_ptr(&self) -> *mut u8;
 }
 
 /// An `Allocator` implements a particular memory allocation strategy.
@@ -58,12 +60,34 @@ pub trait Framesque {
 pub trait Allocator {
     type Frame: Framesque;
 
-    fn allocate( &mut self, size: usize, align: usize ) -> Option<Self::Frame>;
+    fn allocate(&mut self, size: usize, align: usize) -> Option<Self::Frame>;
 
-    fn deallocate( &mut self, frame: Self::Frame );
+    fn deallocate<F: Framesque>(&mut self, frame: F);
 
-    fn reallocate( &mut self, frame: Self::Frame
-                 , size: usize, align: usize ) -> Option<Self::Frame>;
+    /// Reallocate the memory
+    fn reallocate<F: Framesque>( &mut self
+                               , old_frame: F, old_size: usize
+                               , new_size: usize, align: usize )
+                               -> Option<Self::Frame> {
+        // TODO: Optimization: check if the reallocation request fits in
+        // the old frame  and return immediately if it does
+        self.allocate(new_size, align)
+            .map(|new_frame| {
+                unsafe {
+                    ptr::copy( new_frame.as_ptr()
+                             , old_frame.as_ptr()
+                             , min(old_size, new_size)
+                             );
+                }
+                self.deallocate(old_frame);
+                new_frame
+            })
+    }
+
+    fn zero_alloc(&mut self, size: usize, align: usize)
+                 -> Option<Self::Frame> {
+        unimplemented!()
+    }
 }
 
 

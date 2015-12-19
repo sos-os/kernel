@@ -38,7 +38,7 @@ Vagrant.configure(2) do |config|
   # the path on the guest to mount the folder. And the optional third
   # argument is a set of non-required options.
   # config.vm.synced_folder "../data", "/vagrant_data"
-
+  config.vm.synced_folder ".", "/vagrant", type: "rsync", rsync__auto: true
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.
   # Example for VirtualBox:
@@ -72,7 +72,7 @@ Vagrant.configure(2) do |config|
       sudo apt-get install vim -y
       sudo apt-get install -y qemu
       curl -sf https://raw.githubusercontent.com/brson/multirust/master/blastoff.sh | sh -s -- --yes
-      multirust default nightly-2015-11-19 
+      multirust default nightly-2015-11-19
   SHELL
 
   config.ssh.forward_x11 = true

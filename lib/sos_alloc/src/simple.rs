@@ -14,7 +14,7 @@ impl FrameNumber {
 }
 
 impl Framesque for FrameNumber {
-    #[inline] fn to_ptr(&self) -> *mut u8 {
+    #[inline] fn as_ptr(&self) -> *mut u8 {
         self.0 as *mut u8 // HOPEFULLY this is good
     }
 }
@@ -77,7 +77,7 @@ impl Allocator for SimpleAreaAllocator {
     fn allocate(&mut self, size: usize, align: usize) -> Option<Self::Frame> {
         // // println!("In alloc method");
         if let Some(area) = self.current_area {
-            match FrameNumber{ number: self.next_free_frame.number } {
+            match self.next_free {
                 // all frames in the current memory area are in use
                 f if f > FrameNumber::containing(area.address()) => {
                     // so we advance to the next free area
@@ -155,13 +155,13 @@ impl Allocator for SimpleAreaAllocator {
 
     }
 
-    fn deallocate(&mut self, frame: FrameNumber) {
+    fn deallocate<F: Framesque>(&mut self, frame: F) {
         unimplemented!()
     }
 
-    fn reallocate( &mut self, frame: FrameNumber
-                 , size: usize, align: usize) -> Option<FrameNumber> {
-        panic!("The simple allocator doesn't support reallocation \
-                (as it is not intended for use as a system allocator).")
-    }
+    // fn reallocate( &mut self, frame: FrameNumber
+    //              , size: usize, align: usize) -> Option<FrameNumber> {
+    //     panic!("The simple allocator doesn't support reallocation \
+    //             (as it is not intended for use as a system allocator).")
+    // }
 }

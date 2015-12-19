@@ -7,4 +7,4 @@
 //  directory of this repository for more information.
 //
 pub mod addr;
-pub use addr::*;
+pub use self::addr::*;
