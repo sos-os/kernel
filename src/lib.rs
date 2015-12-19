@@ -111,7 +111,7 @@ pub extern fn kernel_main(multiboot_addr: usize) {
                                   , multiboot_addr, multiboot_end
                                   , mmap_tag.areas());
 
-    // alloc.allocate();
+    // alloc.allocate(0,0);
 
     println!( "Created initial allocator." );
 

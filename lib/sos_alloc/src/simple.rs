@@ -40,7 +40,8 @@ impl SimpleAreaAllocator {
     fn next_area(&mut self) {
         // println!("In next_area");
         self.current_area
-            = self.areas.clone()
+            = self.areas
+                  .clone()
                   .filter(|a|
                       FrameNumber::containing(a.address()) >= self.next_free)
                   .min_by(|a| a.base);
@@ -76,7 +77,7 @@ impl Allocator for SimpleAreaAllocator {
     fn allocate(&mut self, size: usize, align: usize) -> Option<Self::Frame> {
         // // println!("In alloc method");
         if let Some(area) = self.current_area {
-            match self.next_free {
+            match FrameNumber{ number: self.next_free_frame.number } {
                 // all frames in the current memory area are in use
                 f if f > FrameNumber::containing(area.address()) => {
                     // so we advance to the next free area
