@@ -37,17 +37,18 @@ use core::ptr;
 use core::cmp::min;
 
 pub const PAGE_SIZE: usize = 4096;
+pub type Frame = *mut u8;
 
-/// Trait for something that is like a frame.
-///
-/// Various allocation strategies use different data structures for
-/// representing frames. For example, frames may be stored as frame numbers or
-/// as nodes in a linked list. To be `Framesque`, an object need only provide
-/// a function to convert the frame data to a pointer to the frame in memory.
-pub trait Framesque {
-    /// Return a pointer to the frame in memory.
-    fn as_ptr(&self) -> *mut u8;
-}
+// /// Trait for something that is like a frame.
+// ///
+// /// Various allocation strategies use different data structures for
+// /// representing frames. For example, frames may be stored as frame numbers or
+// /// as nodes in a linked list. To be `Framesque`, an object need only provide
+// /// a function to convert the frame data to a pointer to the frame in memory.
+// pub trait Framesque {
+//     /// Return a pointer to the frame in memory.
+//     fn as_ptr(&self) -> *mut u8;
+// }
 
 /// An `Allocator` implements a particular memory allocation strategy.
 ///
@@ -58,34 +59,29 @@ pub trait Framesque {
 /// that frame type is `frameesque` (i.e., it provides some method to resolve
 /// it into a pointer to its memory area).
 pub trait Allocator {
-    type Frame: Framesque;
+    // type Frame: Framesque;
 
-    fn allocate(&mut self, size: usize, align: usize) -> Option<Self::Frame>;
+    fn allocate(&mut self, size: usize, align: usize) -> Option<Frame>;
 
-    fn deallocate<F: Framesque>(&mut self, frame: F);
+    fn deallocate(&mut self, frame: Frame);
 
     /// Reallocate the memory
-    fn reallocate<F: Framesque>( &mut self
-                               , old_frame: F, old_size: usize
-                               , new_size: usize, align: usize )
-                               -> Option<Self::Frame> {
+    fn reallocate( &mut self, old_frame: Frame, old_size: usize
+                 , new_size: usize, align: usize )
+                 -> Option<Frame>
+    {
         // TODO: Optimization: check if the reallocation request fits in
         // the old frame  and return immediately if it does
         self.allocate(new_size, align)
             .map(|new_frame| {
-                unsafe {
-                    ptr::copy( new_frame.as_ptr()
-                             , old_frame.as_ptr()
-                             , min(old_size, new_size)
-                             );
-                }
+                let size = min(old_size, new_size);
+                unsafe { ptr::copy(new_frame, old_frame, size); }
                 self.deallocate(old_frame);
                 new_frame
             })
     }
 
-    fn zero_alloc(&mut self, size: usize, align: usize)
-                 -> Option<Self::Frame> {
+    fn zero_alloc(&mut self, size: usize, align: usize) -> Option<Frame> {
         unimplemented!()
     }
 }

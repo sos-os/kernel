@@ -1,12 +1,18 @@
 mod math;
 
-use super::RawLink;
-use self::math::PowersOf2Ext;
+use super::{ RawLink, Framesque, Allocator };
+use self::math::PowersOf2;
 
 use core::mem;
 use core::cmp::{max, min};
 
 pub struct Free { next: RawLink<Free> }
+
+impl Framesque for Free {
+    #[inline] fn as_ptr(&self) -> *mut u8 {
+        unsafe { mem::transmute(self) } // HOPEFULLY this is good
+    }
+}
 
 // Variadic macro for taking the maximum of n > 2 numbers.
 // because I'm lazy.
@@ -38,31 +44,32 @@ impl<'a> FreeList<'a> {
         let block_ptr = block as *mut Free;
         // be nice if rawlink was kinder to pattern-matching but whatever
         *block_ptr = if let Some(head) = self.head.take() {
+            // if the head block is defined, set that block to point to The
+            // head block
             Free { next: RawLink::some(head) }
         } else {
+            // if the head block is not defined, set this block to point to
+            // an empty block
             Free { next: RawLink::none() }
         };
+        // replace the head-block pointer with the pushed block
         self.head = Some(mem::transmute(block_ptr));
+        // the list is now one block longer
         self.length += 1;
     }
     /// Pop the head block off of the free list.
     ///
     /// # Returns
-    ///   - `Some(*mut u8)` if the free list has blocks left
+    ///   - `Some(Free)` if the free list has blocks left
     ///   - `None` if the free list is empty
     ///
     /// # Unsafe due to
     ///   - `mem::transmute()`
     ///   - Dereferencing a raw pointer
-    unsafe fn pop(&mut self) -> Option<*mut u8> {
+    unsafe fn pop(&mut self) -> Option<Free> {
         self.head.take()
-            .map(|head| {
-                let popped_block
-                    = mem::replace(&mut self.head, head.next.resolve_mut());
-                let block_ptr: *mut u8
-                    = mem::transmute(popped_block);
-                block_ptr
-            })
+            .map(|head| mem::replace( &mut self.head
+                                    , head.next.resolve_mut()))
     }
 
     /// Attempt to remove a block from the free list.
@@ -81,9 +88,13 @@ impl<'a> FreeList<'a> {
     ///   - `false` if the block was not present in the free list
     unsafe fn remove(&mut self, target_block: *mut u8) -> bool {
         let target_ptr = target_block as *mut Free;
+        // loop through the free list's iterator to find the target block.
+        // this is gross but hopefully much faster than the much prettier
+        // recursive strategy.
         for block in self.iter_mut() {
             let block_ptr: *mut Free = block;
             if block_ptr == target_ptr {
+                // if we've found the target block, remove it and break
                 *block_ptr = Free { next: block.next.take() };
                 return true;
             }
@@ -110,6 +121,25 @@ impl<'a> FreeList<'a> {
             Some(ref mut head) => FreeListIterMut { current: Some(head) }
           , None               => FreeListIterMut { current: None }
         }
+    }
+
+}
+
+impl<'a> Allocator for BuddyHeapAllocator<'a> {
+    type Frame = Free;
+
+    fn allocate(&mut self, size: usize, align: usize) -> Option<Self::Frame> {
+        self.alloc_order(size, align)
+            .and_then(|min_order| {
+                self.free_lists[min_order..]
+
+
+               None
+            })
+    }
+
+    fn deallocate<F: Framesque>(&mut self, frame: F) {
+        unimplemented!()
     }
 }
 
@@ -245,5 +275,33 @@ impl<'a> BuddyHeapAllocator<'a> {
             )
     }
 
-    // pub unsafe fn allocate
+    /// Computes the size  allocated for a request of the given order.
+    #[inline]
+    fn order_alloc_size(&self, order: usize) -> usize {
+        1 << (self.min_block_size.log2() + order)
+    }
+
+    /// Splits a block
+    unsafe fn split_block( &mut self, block: &mut Free
+                         , order: usize, new_order: usize )
+    {
+        assert!( new_order < order
+               , "Cannot split a block larger than its current order!");
+        assert!( order <= self.free_lists.len()
+               , "Order is too large for this allocator!");
+
+        let mut split_size = self.order_alloc_size(order);
+        let mut curr_order = order;
+        let blk_ptr = block.as_ptr();
+
+        while curr_order > new_order {
+            split_size >>= 1;
+            curr_order -= 1;
+
+            self.free_lists[curr_order]
+                .push(blk_ptr.offset(split_size as isize))
+        }
+
+    }
+
 }

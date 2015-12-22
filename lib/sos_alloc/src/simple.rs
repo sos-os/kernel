@@ -1,5 +1,5 @@
 use multiboot::{MemArea, MemAreas};
-use super::{Framesque, Allocator};
+use super::{Frame, Allocator};
 
 /// A `Frame` is just a newtype around a `usize` containing the frame number.
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Copy, Clone)]
@@ -10,14 +10,16 @@ impl FrameNumber {
         FrameNumber( address / ::PAGE_SIZE )
     }
 
-    #[inline] fn next(&self) -> FrameNumber { FrameNumber(self.0 + 1) }
+    #[inline] fn next(&self) -> FrameNumber { FrameNumber(self.0 + 1) }\    #[inline] fn as_ptr(&self) -> Frame {
+            self.0 as *mut u8 // HOPEFULLY this is good
+        }
 }
 
-impl Framesque for FrameNumber {
-    #[inline] fn as_ptr(&self) -> *mut u8 {
-        self.0 as *mut u8 // HOPEFULLY this is good
-    }
-}
+// impl Framesque for FrameNumber {
+//     #[inline] fn as_ptr(&self) -> *mut u8 {
+//         self.0 as *mut u8 // HOPEFULLY this is good
+//     }
+// }
 
 /// A simple area allocator.
 ///
@@ -72,9 +74,9 @@ impl SimpleAreaAllocator {
 }
 
 impl Allocator for SimpleAreaAllocator {
-    type Frame = FrameNumber;
+    // type Frame = FrameNumber;
 
-    fn allocate(&mut self, size: usize, align: usize) -> Option<Self::Frame> {
+    fn allocate(&mut self, size: usize, align: usize) -> Option<Frame> {
         // // println!("In alloc method");
         if let Some(area) = self.current_area {
             match self.next_free {
@@ -106,7 +108,7 @@ impl Allocator for SimpleAreaAllocator {
                     // println!("In free frame, advancing...");
                     self.next_free = self.next_free.next();
                     // println!("...and returning {:?}", frame);
-                    return Some(frame)
+                    return Some(frame.as_ptr())
                 }
             };
             self.allocate(size, align)
@@ -155,7 +157,7 @@ impl Allocator for SimpleAreaAllocator {
 
     }
 
-    fn deallocate<F: Framesque>(&mut self, frame: F) {
+    fn deallocate(&mut self, frame: Frame) {
         unimplemented!()
     }
 
