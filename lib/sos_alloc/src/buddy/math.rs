@@ -12,13 +12,13 @@ const B: [usize; 6] = [ 0x2, 0xC, 0xF0
 #[cfg(target_arch="x86_64")]
 const S: [usize; 6] = [ 1, 2, 4, 8, 16, 32 ];
 
-pub trait PowersOf2Ext {
+pub trait PowersOf2 {
     fn is_pow2(&self) -> bool;
     fn next_pow2(&self) -> Self;
     fn log2(&self) -> Self;
 }
 
-impl PowersOf2Ext for usize {
+impl PowersOf2 for usize {
     fn is_pow2(&self) -> bool {
         *self != 0 && self & (self - 1) == 0
     }

@@ -1,6 +1,6 @@
 mod math;
 
-use super::{ RawLink, Framesque, Allocator };
+use super::{ RawLink, Frame, Framesque, Allocator };
 use self::math::PowersOf2;
 
 use core::mem;
@@ -40,7 +40,7 @@ impl<'a> FreeList<'a> {
     /// # Unsafe due to
     ///   - `mem::transmute()`
     ///   - Dereferencing a raw pointer
-    unsafe fn push(&mut self, block: *mut u8) {
+    unsafe fn push(&mut self, block: Frame) {
         let block_ptr = block as *mut Free;
         // be nice if rawlink was kinder to pattern-matching but whatever
         *block_ptr = if let Some(head) = self.head.take() {
@@ -60,17 +60,25 @@ impl<'a> FreeList<'a> {
     /// Pop the head block off of the free list.
     ///
     /// # Returns
-    ///   - `Some(Free)` if the free list has blocks left
+    ///   - `Some(*mut u8)` if the free list has blocks left
     ///   - `None` if the free list is empty
     ///
     /// # Unsafe due to
     ///   - `mem::transmute()`
     ///   - Dereferencing a raw pointer
-    unsafe fn pop(&mut self) -> Option<Free> {
+    unsafe fn pop(&mut self) -> Option<Frame> {
         self.head.take()
-            .map(|head| mem::replace( &mut self.head
-                                    , head.next.resolve_mut()))
+            .map(|head| {
+                let popped_block
+                    = mem::replace(&mut self.head, head.next.resolve_mut());
+                let block_ptr: *mut u8
+                    = mem::transmute(popped_block);
+                block_ptr
+            })
     }
+
+    /// Returns true if this `FreeList` has free blocks remaining
+    #[inline] fn has_free_blocks(&self) -> bool { self.head.is_some() }
 
     /// Attempt to remove a block from the free list.
     ///
@@ -86,7 +94,7 @@ impl<'a> FreeList<'a> {
     /// # Returns
     ///   - `true` if the block was removed from the free list
     ///   - `false` if the block was not present in the free list
-    unsafe fn remove(&mut self, target_block: *mut u8) -> bool {
+    unsafe fn remove(&mut self, target_block: Frame) -> bool {
         let target_ptr = target_block as *mut Free;
         // loop through the free list's iterator to find the target block.
         // this is gross but hopefully much faster than the much prettier
@@ -125,24 +133,6 @@ impl<'a> FreeList<'a> {
 
 }
 
-impl<'a> Allocator for BuddyHeapAllocator<'a> {
-    type Frame = Free;
-
-    fn allocate(&mut self, size: usize, align: usize) -> Option<Self::Frame> {
-        self.alloc_order(size, align)
-            .and_then(|min_order| {
-                self.free_lists[min_order..]
-
-
-               None
-            })
-    }
-
-    fn deallocate<F: Framesque>(&mut self, frame: F) {
-        unimplemented!()
-    }
-}
-
 struct FreeListIter<'a> {
     current: Option<&'a Free>
 }
@@ -178,7 +168,7 @@ impl<'a> Iterator for FreeListIterMut<'a> {
 pub struct BuddyHeapAllocator<'a> {
     /// Address of the base of the heap. This must be aligned
     /// on a `MIN_ALIGN` boundary.
-    start_addr: *mut u8
+    start_addr: Frame
   , /// The allocator's free list
     free_lists: &'a mut [FreeList<'a>]
   , /// Number of blocks in the heap (must be a power of 2)
@@ -188,7 +178,7 @@ pub struct BuddyHeapAllocator<'a> {
 }
 
 impl<'a> BuddyHeapAllocator<'a> {
-    pub unsafe fn new( start_addr: *mut u8
+    pub unsafe fn new( start_addr: Frame
                      , free_lists: &'a mut [FreeList<'a>]
                      , heap_size: usize) -> BuddyHeapAllocator<'a> {
         let n_free_lists = free_lists.len();
@@ -282,7 +272,7 @@ impl<'a> BuddyHeapAllocator<'a> {
     }
 
     /// Splits a block
-    unsafe fn split_block( &mut self, block: &mut Free
+    unsafe fn split_block( &mut self, block: Frame
                          , order: usize, new_order: usize )
     {
         assert!( new_order < order
@@ -292,16 +282,59 @@ impl<'a> BuddyHeapAllocator<'a> {
 
         let mut split_size = self.order_alloc_size(order);
         let mut curr_order = order;
-        let blk_ptr = block.as_ptr();
 
         while curr_order > new_order {
             split_size >>= 1;
             curr_order -= 1;
 
             self.free_lists[curr_order]
-                .push(blk_ptr.offset(split_size as isize))
+                .push(block.offset(split_size as isize))
         }
 
     }
+}
 
+
+impl<'a> Allocator for BuddyHeapAllocator<'a> {
+    // type Frame = Free;
+
+    fn allocate(&mut self, size: usize, align: usize) -> Option<Frame> {
+        // First, compute the allocation order for this request
+        self.alloc_order(size, align)
+            // If the allocation order is defined, then we try to allocate
+            // a block of that order. Otherwise, the request is invalid.
+            .and_then(|min_order| {
+                // Starting at the minimum possible order...
+                // TODO: this is ugly and not FP, rewrite.
+                let mut result = None;
+                for order in min_order..self.free_lists.len() {
+                    unsafe {
+                        if let Some(block) = self.free_lists[order].pop() {
+                            if order > min_order {
+                                self.split_block(block, order, min_order);
+                            }
+                            result = Some(block); break;
+                        }
+                    }
+                }
+                result
+                // self.free_lists[min_order..].iter().enumerate()
+                // ...find the first free list that has free blocks left.
+                    // .find(|&(_, ref f)| f.has_free_blocks())
+                    // .and_then(|(order, f)| unsafe {
+                    //     let block = f.pop();
+                    //     if order > min_order {
+                    //         block.map(|b| {
+                    //             self.split_block(b, order, min_order);
+                    //             block
+                    //         });
+                    //     }
+                    //     block
+                    // })
+            })
+    }
+
+    fn deallocate(&mut self, frame: Frame) {
+        unimplemented!()
+    }
 }
