@@ -39,16 +39,16 @@ use core::cmp::min;
 pub const PAGE_SIZE: usize = 4096;
 pub type Frame = *mut u8;
 
-// /// Trait for something that is like a frame.
-// ///
-// /// Various allocation strategies use different data structures for
-// /// representing frames. For example, frames may be stored as frame numbers or
-// /// as nodes in a linked list. To be `Framesque`, an object need only provide
-// /// a function to convert the frame data to a pointer to the frame in memory.
-// pub trait Framesque {
-//     /// Return a pointer to the frame in memory.
-//     fn as_ptr(&self) -> *mut u8;
-// }
+/// Trait for something that is like a frame.
+///
+/// Various allocation strategies use different data structures for
+/// representing frames. For example, frames may be stored as frame numbers or
+/// as nodes in a linked list. To be `Framesque`, an object need only provide
+/// a function to convert the frame data to a pointer to the frame in memory.
+pub trait Framesque {
+    /// Return a pointer to the frame in memory.
+    fn as_ptr(&self) -> Frame;
+}
 
 /// An `Allocator` implements a particular memory allocation strategy.
 ///

@@ -1,5 +1,5 @@
 use multiboot::{MemArea, MemAreas};
-use super::{Frame, Allocator};
+use super::{Frame, Framesque, Allocator};
 
 /// A `Frame` is just a newtype around a `usize` containing the frame number.
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Copy, Clone)]
@@ -10,16 +10,18 @@ impl FrameNumber {
         FrameNumber( address / ::PAGE_SIZE )
     }
 
-    #[inline] fn next(&self) -> FrameNumber { FrameNumber(self.0 + 1) }\    #[inline] fn as_ptr(&self) -> Frame {
-            self.0 as *mut u8 // HOPEFULLY this is good
-        }
+    #[inline] fn next(&self) -> FrameNumber { FrameNumber(self.0 + 1) }
+    
+    // #[inline] fn as_ptr(&self) -> Frame {
+    //         self.0 as *mut u8 // HOPEFULLY this is good
+    //     }
 }
 
-// impl Framesque for FrameNumber {
-//     #[inline] fn as_ptr(&self) -> *mut u8 {
-//         self.0 as *mut u8 // HOPEFULLY this is good
-//     }
-// }
+impl Framesque for FrameNumber {
+    #[inline] fn as_ptr(&self) -> *mut u8 {
+        self.0 as *mut u8 // HOPEFULLY this is good
+    }
+}
 
 /// A simple area allocator.
 ///
