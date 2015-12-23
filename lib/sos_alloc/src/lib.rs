@@ -61,27 +61,35 @@ pub trait Framesque {
 pub trait Allocator {
     // type Frame: Framesque;
 
-    fn allocate(&mut self, size: usize, align: usize) -> Option<Frame>;
+    unsafe fn allocate(&mut self, size: usize, align: usize) -> Option<Frame>;
 
-    fn deallocate(&mut self, frame: Frame);
+    unsafe fn deallocate(&mut self, frame: Frame);
 
     /// Reallocate the memory
-    fn reallocate( &mut self, old_frame: Frame, old_size: usize
-                 , new_size: usize, align: usize )
-                 -> Option<Frame>
+    // TODO: Optimization: check if the reallocation request fits in
+    // the old frame and return immediately if it does
+    unsafe fn reallocate( &mut self, old_frame: Frame, old_size: usize
+                        , new_size: usize, align: usize )
+                        -> Option<Frame>
     {
-        // TODO: Optimization: check if the reallocation request fits in
-        // the old frame  and return immediately if it does
+        // First, attempt to allocate a new frame...
         self.allocate(new_size, align)
             .map(|new_frame| {
-                let size = min(old_size, new_size);
-                unsafe { ptr::copy(new_frame, old_frame, size); }
+                unsafe {
+                // If a new frame was allocated, copy all the data from the
+                // old frame into the new frame.
+                    ptr::copy( new_frame, old_frame
+                             , min(old_size, new_size));
+                }
+                // Then we can deallocate the old frame
                 self.deallocate(old_frame);
                 new_frame
             })
     }
 
-    fn zero_alloc(&mut self, size: usize, align: usize) -> Option<Frame> {
+    unsafe fn zero_alloc(&mut self, size: usize, align: usize)
+                        -> Option<Frame>
+    {
         unimplemented!()
     }
 }

@@ -11,7 +11,7 @@ impl FrameNumber {
     }
 
     #[inline] fn next(&self) -> FrameNumber { FrameNumber(self.0 + 1) }
-    
+
     // #[inline] fn as_ptr(&self) -> Frame {
     //         self.0 as *mut u8 // HOPEFULLY this is good
     //     }
@@ -78,7 +78,7 @@ impl SimpleAreaAllocator {
 impl Allocator for SimpleAreaAllocator {
     // type Frame = FrameNumber;
 
-    fn allocate(&mut self, size: usize, align: usize) -> Option<Frame> {
+    unsafe fn allocate(&mut self, size: usize, align: usize) -> Option<Frame> {
         // // println!("In alloc method");
         if let Some(area) = self.current_area {
             match self.next_free {
@@ -159,7 +159,7 @@ impl Allocator for SimpleAreaAllocator {
 
     }
 
-    fn deallocate(&mut self, frame: Frame) {
+    unsafe fn deallocate(&mut self, frame: Frame) {
         unimplemented!()
     }
 

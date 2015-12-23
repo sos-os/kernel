@@ -298,7 +298,7 @@ impl<'a> BuddyHeapAllocator<'a> {
 impl<'a> Allocator for BuddyHeapAllocator<'a> {
     // type Frame = Free;
 
-    fn allocate(&mut self, size: usize, align: usize) -> Option<Frame> {
+    unsafe fn allocate(&mut self, size: usize, align: usize) -> Option<Frame> {
         // First, compute the allocation order for this request
         self.alloc_order(size, align)
             // If the allocation order is defined, then we try to allocate
@@ -308,13 +308,11 @@ impl<'a> Allocator for BuddyHeapAllocator<'a> {
                 // TODO: this is ugly and not FP, rewrite.
                 let mut result = None;
                 for order in min_order..self.free_lists.len() {
-                    unsafe {
-                        if let Some(block) = self.free_lists[order].pop() {
-                            if order > min_order {
-                                self.split_block(block, order, min_order);
-                            }
-                            result = Some(block); break;
+                    if let Some(block) = self.free_lists[order].pop() {
+                        if order > min_order {
+                            self.split_block(block, order, min_order);
                         }
+                        result = Some(block); break;
                     }
                 }
                 result
@@ -334,7 +332,7 @@ impl<'a> Allocator for BuddyHeapAllocator<'a> {
             })
     }
 
-    fn deallocate(&mut self, frame: Frame) {
+    unsafe fn deallocate(&mut self, frame: Frame) {
         unimplemented!()
     }
 }
