@@ -17,9 +17,9 @@
 // The compiler needs to be instructed that this crate is an allocator in order
 // to realize that when this is linked in another allocator like jemalloc
 // should not be linked in
-#![cfg_attr( feature = "buddy_as_system"
+#![cfg_attr( feature = "as_system"
            , feature(allocator) )]
-#![cfg_attr( feature = "buddy_as_system"
+#![cfg_attr( feature = "as_system"
            , allocator )]
 
 // Allocators are not allowed to depend on the standard library which in turn
