@@ -1,5 +1,5 @@
 mod math;
-#[cfg(feature = "buddy_as_system")] 
+#[cfg(feature = "buddy_as_system")]
 mod system;
 
 use super::{ RawLink, Framesque, Allocator };
@@ -183,6 +183,7 @@ impl<'a> BuddyHeapAllocator<'a> {
     pub unsafe fn new( start_addr: *mut u8
                      , free_lists: &'a mut [FreeList<'a>]
                      , heap_size: usize) -> BuddyHeapAllocator<'a> {
+        // Cache the number of free lists hopefully saving performance.
         let n_free_lists = free_lists.len();
 
         assert!( !start_addr.is_null()
@@ -200,13 +201,27 @@ impl<'a> BuddyHeapAllocator<'a> {
                , "Minimum block size must be large enough to contain \
                   the free block header.");
 
+        // Zero out the free lists in case we were passed existing data.
+        for list in free_lists.iter_mut() {
+            *list = FreeList::new();
+        }
+
         let mut heap
             = BuddyHeapAllocator { start_addr: start_addr
                                  , free_lists: free_lists
                                  , heap_size: heap_size
                                  , min_block_size: min_block_size
                                  };
-        // TODO: put first head block on appropriately-sized freelist
+
+        // the order needed to allocate the entire heap as a single block
+        let root_order
+            = heap.alloc_order(heap_size, 1)
+                  .expect("Couldn't determine heap root allocation order!\n \
+                           This should be (as far as I know) impossible. \
+                           Something is seriously amiss.");
+
+        // Push the entire heap onto the free lists as the first block.
+        heap.free_lists[root_order].push(start_addr);
         heap
     }
 

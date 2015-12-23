@@ -1,4 +1,4 @@
-//! This module integrates the buddy ALLOC allocator into the Rust runtime.
+//! This module integrates the buddy heap allocator into the Rust runtime.
 use spin::Mutex;
 
 use ::Allocator;
