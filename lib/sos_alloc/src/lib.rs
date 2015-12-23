@@ -63,7 +63,7 @@ pub trait Allocator {
 
     unsafe fn allocate(&mut self, size: usize, align: usize) -> Option<Frame>;
 
-    unsafe fn deallocate(&mut self, frame: Frame);
+    unsafe fn deallocate(&mut self, frame: Frame, size: usize, align: usize);
 
     /// Reallocate the memory
     // TODO: Optimization: check if the reallocation request fits in
@@ -75,14 +75,11 @@ pub trait Allocator {
         // First, attempt to allocate a new frame...
         self.allocate(new_size, align)
             .map(|new_frame| {
-                unsafe {
                 // If a new frame was allocated, copy all the data from the
                 // old frame into the new frame.
-                    ptr::copy( new_frame, old_frame
-                             , min(old_size, new_size));
-                }
+                ptr::copy(new_frame, old_frame, min(old_size, new_size));
                 // Then we can deallocate the old frame
-                self.deallocate(old_frame);
+                self.deallocate(old_frame, old_size, align);
                 new_frame
             })
     }

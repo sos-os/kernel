@@ -159,7 +159,9 @@ impl Allocator for SimpleAreaAllocator {
 
     }
 
-    unsafe fn deallocate(&mut self, frame: Frame) {
+    unsafe fn deallocate( &mut self, frame: Frame
+                        , old_size: usize, align: usize )
+    {
         unimplemented!()
     }
 
