@@ -1,6 +1,6 @@
 mod math;
 
-use super::{ RawLink, Frame, Framesque, Allocator };
+use super::{ RawLink, Framesque, Allocator };
 use self::math::PowersOf2;
 
 use core::mem;
@@ -40,7 +40,7 @@ impl<'a> FreeList<'a> {
     /// # Unsafe due to
     ///   - `mem::transmute()`
     ///   - Dereferencing a raw pointer
-    unsafe fn push(&mut self, block: Frame) {
+    unsafe fn push(&mut self, block: *mut u8) {
         let block_ptr = block as *mut Free;
         // be nice if rawlink was kinder to pattern-matching but whatever
         *block_ptr = if let Some(head) = self.head.take() {
@@ -66,7 +66,7 @@ impl<'a> FreeList<'a> {
     /// # Unsafe due to
     ///   - `mem::transmute()`
     ///   - Dereferencing a raw pointer
-    unsafe fn pop(&mut self) -> Option<Frame> {
+    unsafe fn pop(&mut self) -> Option<*mut u8> {
         self.head.take()
             .map(|head| {
                 let popped_block
@@ -94,7 +94,7 @@ impl<'a> FreeList<'a> {
     /// # Returns
     ///   - `true` if the block was removed from the free list
     ///   - `false` if the block was not present in the free list
-    unsafe fn remove(&mut self, target_block: Frame) -> bool {
+    unsafe fn remove(&mut self, target_block: *mut u8) -> bool {
         let target_ptr = target_block as *mut Free;
         // loop through the free list's iterator to find the target block.
         // this is gross but hopefully much faster than the much prettier
@@ -168,7 +168,7 @@ impl<'a> Iterator for FreeListIterMut<'a> {
 pub struct BuddyHeapAllocator<'a> {
     /// Address of the base of the heap. This must be aligned
     /// on a `MIN_ALIGN` boundary.
-    start_addr: Frame
+    start_addr: *mut u8
   , /// The allocator's free list
     free_lists: &'a mut [FreeList<'a>]
   , /// Number of blocks in the heap (must be a power of 2)
@@ -178,7 +178,7 @@ pub struct BuddyHeapAllocator<'a> {
 }
 
 impl<'a> BuddyHeapAllocator<'a> {
-    pub unsafe fn new( start_addr: Frame
+    pub unsafe fn new( start_addr: *mut u8
                      , free_lists: &'a mut [FreeList<'a>]
                      , heap_size: usize) -> BuddyHeapAllocator<'a> {
         let n_free_lists = free_lists.len();
@@ -272,7 +272,7 @@ impl<'a> BuddyHeapAllocator<'a> {
     }
 
     /// Splits a block
-    unsafe fn split_block( &mut self, block: Frame
+    unsafe fn split_block( &mut self, block: *mut u8
                          , order: usize, new_order: usize )
     {
         assert!( new_order < order
@@ -292,13 +292,28 @@ impl<'a> BuddyHeapAllocator<'a> {
         }
 
     }
+
+    pub fn get_buddy(&self, order: usize, block: *mut u8) -> Option<*mut u8> {
+        // Determine the size of the block allocated for the given order
+        let block_size = self.order_alloc_size(order);
+        if block_size < self.heap_size {
+            // In the non-degenerate case, the block is not the same size
+            // as the entire heap.
+
+
+        } else {
+            // If the block is the size of the entire heap, it (obviously)
+            // cannot have a buddy block.
+            None
+        }
+    }
 }
 
 
 impl<'a> Allocator for BuddyHeapAllocator<'a> {
-    // type Frame = Free;
+    // type *mut u8 = Free;
 
-    unsafe fn allocate(&mut self, size: usize, align: usize) -> Option<Frame> {
+    unsafe fn allocate(&mut self, size: usize, align: usize) -> Option<*mut u8> {
         // First, compute the allocation order for this request
         self.alloc_order(size, align)
             // If the allocation order is defined, then we try to allocate
@@ -332,7 +347,17 @@ impl<'a> Allocator for BuddyHeapAllocator<'a> {
             })
     }
 
-    unsafe fn deallocate(&mut self, frame: Frame) {
-        unimplemented!()
+    unsafe fn deallocate( &mut self, block: *mut u8
+                        , old_size: usize, align: usize )
+    {
+        let min_order = self.alloc_order(old_size, align)
+                            .unwrap();
+
+        // Check if the deallocated block's buddy block is also free.
+        // If it is, merge the two blocks.
+        let mut new_block = block;
+        for order in min_order..self.free_lists.len() {
+
+        }
     }
 }

@@ -1,5 +1,5 @@
 use multiboot::{MemArea, MemAreas};
-use super::{Frame, Framesque, Allocator};
+use super::{Framesque, Allocator};
 
 /// A `Frame` is just a newtype around a `usize` containing the frame number.
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Copy, Clone)]
@@ -78,7 +78,7 @@ impl SimpleAreaAllocator {
 impl Allocator for SimpleAreaAllocator {
     // type Frame = FrameNumber;
 
-    unsafe fn allocate(&mut self, size: usize, align: usize) -> Option<Frame> {
+    unsafe fn allocate(&mut self, size: usize, align: usize) -> Option<*mut u8> {
         // // println!("In alloc method");
         if let Some(area) = self.current_area {
             match self.next_free {
@@ -159,7 +159,7 @@ impl Allocator for SimpleAreaAllocator {
 
     }
 
-    unsafe fn deallocate( &mut self, frame: Frame
+    unsafe fn deallocate( &mut self, block: *mut u8
                         , old_size: usize, align: usize )
     {
         unimplemented!()

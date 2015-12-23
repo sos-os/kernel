@@ -37,7 +37,6 @@ use core::ptr;
 use core::cmp::min;
 
 pub const PAGE_SIZE: usize = 4096;
-pub type Frame = *mut u8;
 
 /// Trait for something that is like a frame.
 ///
@@ -47,7 +46,7 @@ pub type Frame = *mut u8;
 /// a function to convert the frame data to a pointer to the frame in memory.
 pub trait Framesque {
     /// Return a pointer to the frame in memory.
-    fn as_ptr(&self) -> Frame;
+    fn as_ptr(&self) - *mut u8;
 }
 
 /// An `Allocator` implements a particular memory allocation strategy.
@@ -61,16 +60,17 @@ pub trait Framesque {
 pub trait Allocator {
     // type Frame: Framesque;
 
-    unsafe fn allocate(&mut self, size: usize, align: usize) -> Option<Frame>;
+    unsafe fn allocate(&mut self, size: usize, align: usize)
+                      -> Option<*mut u8>;
 
-    unsafe fn deallocate(&mut self, frame: Frame, size: usize, align: usize);
+    unsafe fn deallocate(&mut self, frame: *mut u8, size: usize, align: usize);
 
     /// Reallocate the memory
     // TODO: Optimization: check if the reallocation request fits in
     // the old frame and return immediately if it does
-    unsafe fn reallocate( &mut self, old_frame: Frame, old_size: usize
+    unsafe fn reallocate( &mut self, old_frame: *mut u8, old_size: usize
                         , new_size: usize, align: usize )
-                        -> Option<Frame>
+                        -> Option<*mut u8>
     {
         // First, attempt to allocate a new frame...
         self.allocate(new_size, align)
@@ -85,7 +85,7 @@ pub trait Allocator {
     }
 
     unsafe fn zero_alloc(&mut self, size: usize, align: usize)
-                        -> Option<Frame>
+                        -> Option<*mut u8>
     {
         unimplemented!()
     }
