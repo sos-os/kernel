@@ -293,14 +293,17 @@ impl<'a> BuddyHeapAllocator<'a> {
 
     }
 
-    pub fn get_buddy(&self, order: usize, block: *mut u8) -> Option<*mut u8> {
+    pub unsafe fn get_buddy(&self, order: usize, block: *mut u8)
+                           -> Option<*mut u8>
+    {
         // Determine the size of the block allocated for the given order
         let block_size = self.order_alloc_size(order);
         if block_size < self.heap_size {
-            // In the non-degenerate case, the block is not the same size
-            // as the entire heap.
-
-
+            // Determine the block's position in the heap.
+            let block_pos = (block as usize) - (self.start_addr as usize);
+            // Calculate the block's buddy by XORing the block's position
+            // in the heap with its size.
+            Some(self.start_addr.offset((block_pos ^ block_size) as isize))
         } else {
             // If the block is the size of the entire heap, it (obviously)
             // cannot have a buddy block.
@@ -357,7 +360,21 @@ impl<'a> Allocator for BuddyHeapAllocator<'a> {
         // If it is, merge the two blocks.
         let mut new_block = block;
         for order in min_order..self.free_lists.len() {
-
+            // If there is a buddy for this block of the given order...
+            if let Some(buddy) = self.get_buddy(order, block) {
+                // ...and if the buddy was free...
+                if self.free_lists[order].remove(buddy) {
+                    // ...merge the buddy with the new block (just use
+                    // the lower address), and keep going.
+                    new_block = min(new_block, buddy);
+                    continue;
+                }
+            }
+            // Otherwise, if we've run out of free buddies, push the new
+            // merged block onto the free lsit and return.
+            self.free_lists[order]
+                .push(new_block);
+            return;
         }
     }
 }
