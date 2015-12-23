@@ -46,7 +46,7 @@ pub const PAGE_SIZE: usize = 4096;
 /// a function to convert the frame data to a pointer to the frame in memory.
 pub trait Framesque {
     /// Return a pointer to the frame in memory.
-    fn as_ptr(&self) - *mut u8;
+    fn as_ptr(&self) -> *mut u8;
 }
 
 /// An `Allocator` implements a particular memory allocation strategy.
