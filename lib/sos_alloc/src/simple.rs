@@ -59,8 +59,8 @@ impl SimpleAreaAllocator {
 
     pub fn new( kernel_start: usize, kernel_end: usize
               , multiboot_start: usize, multiboot_end: usize
-              , areas: MemAreas ) -> Self
-    {
+              , areas: MemAreas )
+              -> Self {
         let mut new_allocator = SimpleAreaAllocator {
               next_free: FrameNumber::containing(0x0)
             , current_area: None
@@ -78,7 +78,8 @@ impl SimpleAreaAllocator {
 impl Allocator for SimpleAreaAllocator {
     // type Frame = FrameNumber;
 
-    unsafe fn allocate(&mut self, size: usize, align: usize) -> Option<*mut u8> {
+    unsafe fn allocate(&mut self, size: usize, align: usize)
+                       -> Option<*mut u8> {
         // // println!("In alloc method");
         if let Some(area) = self.current_area {
             match self.next_free {
@@ -160,8 +161,7 @@ impl Allocator for SimpleAreaAllocator {
     }
 
     unsafe fn deallocate( &mut self, block: *mut u8
-                        , old_size: usize, align: usize )
-    {
+                        , old_size: usize, align: usize ) {
         unimplemented!()
     }
 

@@ -42,6 +42,7 @@ pub struct Sections { curr: &'static Section
 
 impl Iterator for Sections {
     type Item = &'static Section;
+    
     fn next(&mut self) -> Option<&'static Section> {
         if self.remaining == 0 {
             None

@@ -14,10 +14,9 @@ use super::arch::drivers::vga::Color;
 
 #[lang = "panic_fmt"]
 #[no_mangle] #[inline(never)] #[cold]
-pub extern fn rust_begin_unwind( args: Arguments
-                               , file: &'static str
-                               , line: usize ) -> !
-{
+pub extern fn rust_begin_unwind( args: Arguments, file: &'static str
+                               , line: usize )
+                               -> ! {
     write!(term::CONSOLE.lock()
                         .set_colors(Color::White, Color::Red)
                         .clear()

@@ -10,7 +10,7 @@
 //!
 //! This is in its own crate so it can be used by kernel-space and user-space
 //! OS components.
-
+//
 #![crate_name = "sos_alloc"]
 #![crate_type = "lib"]
 
@@ -100,10 +100,10 @@ pub trait Allocator {
     ///     invalid.
     // TODO: Optimization: check if the reallocation request fits in
     // the old frame and return immediately if it does
-    unsafe fn reallocate( &mut self, old_frame: *mut u8, old_size: usize
-                        , new_size: usize, align: usize )
-                        -> Option<*mut u8>
-    {
+    unsafe fn reallocate( &mut self, old_frame: *mut u8
+                        , old_size: usize, new_size: usize
+                        , align: usize )
+                        -> Option<*mut u8> {
         // First, attempt to allocate a new frame...
         self.allocate(new_size, align)
             .map(|new_frame| {
@@ -117,8 +117,7 @@ pub trait Allocator {
     }
 
     unsafe fn zero_alloc(&mut self, size: usize, align: usize)
-                        -> Option<*mut u8>
-    {
+                        -> Option<*mut u8> {
         unimplemented!()
     }
 }

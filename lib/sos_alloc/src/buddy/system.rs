@@ -10,8 +10,7 @@ static ALLOC: Mutex<Option<BuddyHeapAllocator<'static>>>
 
 pub unsafe fn init_heap( start_addr: *mut u8
                        , free_lists: &'static mut [FreeList<'static>]
-                       , heap_size: usize )
-{
+                       , heap_size: usize ) {
     *(ALLOC.lock())
         = Some(BuddyHeapAllocator::new(start_addr, free_lists, heap_size));
 }
@@ -28,10 +27,8 @@ pub extern "C" fn __rust_allocate(size: usize, align: usize) -> *mut u8 {
 }
 
 #[no_mangle]
-pub extern "C" fn __rust_deallocate( ptr: *mut u8
-                                   , old_size: usize
-                                   , align: usize )
-{
+pub extern "C" fn __rust_deallocate( ptr: *mut u8, old_size: usize
+                                   , align: usize ) {
     unsafe {
         ALLOC.lock().as_mut()
              .expect("Cannot deallocate memory, no system allocator exists!")
@@ -41,12 +38,9 @@ pub extern "C" fn __rust_deallocate( ptr: *mut u8
 
 
 #[no_mangle]
-pub extern "C" fn __rust_reallocate( ptr: *mut u8
-                                   , old_size: usize
-                                   , size: usize
-                                   , align: usize )
-                                   -> *mut u8
-{
+pub extern "C" fn __rust_reallocate( ptr: *mut u8, old_size: usize
+                                   , size: usize, align: usize )
+                                   -> *mut u8 {
     unsafe {
         ALLOC.lock().as_mut()
              .expect("Cannot reallocate memory, no system allocator exists!")
@@ -59,12 +53,9 @@ pub extern "C" fn __rust_reallocate( ptr: *mut u8
 /// This is currently unsupported, so we just silently ignore it
 /// and return the old size.
 #[no_mangle]
-pub extern "C" fn __rust_reallocate_inplace( ptr: *mut u8
-                                           , old_size: usize
-                                           , _size: usize
-                                           , _align: usize )
-                                           -> usize
-{
+pub extern "C" fn __rust_reallocate_inplace( ptr: *mut u8, old_size: usize
+                                           , _size: usize, _align: usize )
+                                           -> usize {
     old_size
 }
 

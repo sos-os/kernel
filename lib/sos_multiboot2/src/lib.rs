@@ -152,7 +152,9 @@ pub struct MemMapTag { tag: Tag
                      , entry_version: u32
                      , first_entry: MemArea
                      }
+
 impl MemMapTag {
+
     pub fn areas(&self) -> MemAreas {
         MemAreas { curr: (&self.first_entry) as *const MemArea
                  , last: ((self as *const MemMapTag as u32) +
@@ -192,6 +194,7 @@ pub struct MemAreas { curr: *const MemArea
 
 impl Iterator for MemAreas {
     type Item = &'static MemArea;
+
     fn next(&mut self) -> Option<&'static MemArea> {
         if self.curr > self.last {
             None

@@ -193,7 +193,8 @@ impl<'a> BuddyHeapAllocator<'a> {
     ///   - A new `BuddyHeapAllocator`, obviously.
     pub unsafe fn new( start_addr: *mut u8
                      , free_lists: &'a mut [FreeList<'a>]
-                     , heap_size: usize) -> BuddyHeapAllocator<'a> {
+                     , heap_size: usize)
+                     -> BuddyHeapAllocator<'a> {
         // Cache the number of free lists hopefully saving performance.
         let n_free_lists = free_lists.len();
 
@@ -301,8 +302,7 @@ impl<'a> BuddyHeapAllocator<'a> {
 
     /// Splits a block
     unsafe fn split_block( &mut self, block: *mut u8
-                         , order: usize, new_order: usize )
-    {
+                         , order: usize, new_order: usize ) {
         assert!( new_order < order
                , "Cannot split a block larger than its current order!");
         assert!( order <= self.free_lists.len()
@@ -322,7 +322,7 @@ impl<'a> BuddyHeapAllocator<'a> {
     }
 
     pub unsafe fn get_buddy(&self, order: usize, block: *mut u8)
-                           -> Option<*mut u8>
+                            -> Option<*mut u8>
     {
         // Determine the size of the block allocated for the given order
         let block_size = self.order_alloc_size(order);
@@ -354,7 +354,8 @@ impl<'a> Allocator for BuddyHeapAllocator<'a> {
     ///   - `Some(*mut u8)` if the request was allocated successfully
     ///   - `None` if the allocator is out of memory or if the request was
     ///     invalid.
-    unsafe fn allocate(&mut self, size: usize, align: usize) -> Option<*mut u8> {
+    unsafe fn allocate(&mut self, size: usize, align: usize)
+                       -> Option<*mut u8> {
         // First, compute the allocation order for this request
         self.alloc_order(size, align)
             // If the allocation order is defined, then we try to allocate
@@ -399,8 +400,7 @@ impl<'a> Allocator for BuddyHeapAllocator<'a> {
     ///   - `size`: the size of the block being deallocated
     ///   - `align`: the alignment of the block being deallocated
     unsafe fn deallocate( &mut self, block: *mut u8
-                        , old_size: usize, align: usize )
-    {
+                        , old_size: usize, align: usize ) {
         let min_order = self.alloc_order(old_size, align)
                             .unwrap();
 

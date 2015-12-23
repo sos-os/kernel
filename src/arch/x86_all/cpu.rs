@@ -106,6 +106,7 @@ impl io::Read for Port {
 
 impl io::Write for Port {
     type Error = util::Void;
+
     fn write(&mut self, buf: &[u8]) -> Result<usize, Self::Error> {
         let mut written_bytes = 0;
         for byte in buf {
