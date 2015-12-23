@@ -1,4 +1,6 @@
 mod math;
+#[cfg(feature = "buddy_as_system")] 
+mod system;
 
 use super::{ RawLink, Framesque, Allocator };
 use self::math::PowersOf2;

@@ -7,7 +7,9 @@ authors = ["Hawk Weisman <hi@hawkweisman.me>"]
 default = ["simple", "buddy"]
 simple = ["multiboot"]
 buddy = []
+buddy_as_system = ["spin"]
 multiboot = ["sos_multiboot2"]
 
 [dependencies]
 sos_multiboot2 = { path = "../sos_multiboot2", optional = true }
+spin = { version = "*", optional = true }

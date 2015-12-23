@@ -13,7 +13,7 @@ crate-type = ["staticlib"]
 [dependencies]
 rlibc = "*"
 spin = "*"
-sos_alloc = { path = "lib/sos_alloc" }
+sos_alloc = { path = "lib/sos_alloc", features = ["buddy_as_system"] }
 sos_multiboot2 = { path = "lib/sos_multiboot2" }
 
 [dependencies.bitflags]

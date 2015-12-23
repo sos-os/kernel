@@ -31,8 +31,9 @@
           , core_slice_ext
           , iter_cmp )]
 
-#![cfg(feature = "multiboot")]
-extern crate sos_multiboot2 as multiboot;
+#[cfg(feature = "multiboot")] extern crate sos_multiboot2 as multiboot;
+#[cfg(feature = "buddy_as_system")] extern crate spin;
+
 use core::ptr;
 use core::cmp::min;
 
