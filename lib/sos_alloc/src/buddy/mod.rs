@@ -180,6 +180,17 @@ pub struct BuddyHeapAllocator<'a> {
 }
 
 impl<'a> BuddyHeapAllocator<'a> {
+    /// Construct a new `BuddyHeapAllocator`.
+    ///
+    /// # Arguments:
+    ///   - `start_addr`: a pointer to the start location of the heap
+    ///   - `free_lists`: an array of `FreeList`s. The cardinality
+    ///     of the `free_lists` array should be equal to the maximum
+    ///     allocateable order.
+    ///   - `heap_size`: the size of the heap (in bytes)
+    ///
+    /// # Returns:
+    ///   - A new `BuddyHeapAllocator`, obviously.
     pub unsafe fn new( start_addr: *mut u8
                      , free_lists: &'a mut [FreeList<'a>]
                      , heap_size: usize) -> BuddyHeapAllocator<'a> {
@@ -332,7 +343,7 @@ impl<'a> BuddyHeapAllocator<'a> {
 
 impl<'a> Allocator for BuddyHeapAllocator<'a> {
     // type *mut u8 = Free;
-    
+
     /// Allocate a new block of size `size` on alignment `align`.
     ///
     /// # Arguments:
