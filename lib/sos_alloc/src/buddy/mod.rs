@@ -332,7 +332,17 @@ impl<'a> BuddyHeapAllocator<'a> {
 
 impl<'a> Allocator for BuddyHeapAllocator<'a> {
     // type *mut u8 = Free;
-
+    
+    /// Allocate a new block of size `size` on alignment `align`.
+    ///
+    /// # Arguments:
+    ///   - `size`: the amount of memory to allocate (in bytes)
+    ///   - `align`: the alignment for the allocation request
+    ///
+    /// # Returns:
+    ///   - `Some(*mut u8)` if the request was allocated successfully
+    ///   - `None` if the allocator is out of memory or if the request was
+    ///     invalid.
     unsafe fn allocate(&mut self, size: usize, align: usize) -> Option<*mut u8> {
         // First, compute the allocation order for this request
         self.alloc_order(size, align)
@@ -367,6 +377,16 @@ impl<'a> Allocator for BuddyHeapAllocator<'a> {
             })
     }
 
+    /// Release an allocated block of memory.
+    ///
+    /// The `size` and `align` parameters _must_ be the same as the original
+    /// size and alignment of the frame being deallocated, otherwise our
+    /// heap will become corrupted.
+    ///
+    /// # Arguments:
+    ///   - `frame`: a pointer to the block of memory to deallocate
+    ///   - `size`: the size of the block being deallocated
+    ///   - `align`: the alignment of the block being deallocated
     unsafe fn deallocate( &mut self, block: *mut u8
                         , old_size: usize, align: usize )
     {
