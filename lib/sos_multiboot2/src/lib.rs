@@ -7,6 +7,7 @@
 //  directory of this repository for more information.
 //
 #![crate_name = "sos_multiboot2"]
+
 #![feature( no_std
           , lang_items )]
 #![feature( const_fn
@@ -16,7 +17,6 @@
 const END_TAG_LEN: u32 = 8;
 pub mod elf;
 pub mod elf64;
-
 
 #[repr(C)]
 pub struct Info { pub length: u32

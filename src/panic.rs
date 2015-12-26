@@ -14,7 +14,7 @@ use vga::Color;
 
 #[lang = "panic_fmt"]
 #[no_mangle] #[inline(never)] #[cold]
-pub extern fn rust_begin_unwind( args: Arguments, file: &'static str
+pub extern "C" fn rust_begin_unwind( args: Arguments, file: &'static str
                                , line: usize )
                                -> ! {
     write!(term::CONSOLE.lock()
@@ -26,13 +26,6 @@ pub extern fn rust_begin_unwind( args: Arguments, file: &'static str
           , file, line, args
           );
     loop { }
-}
-
-/// Required for Rust stack unwinding
-#[lang = "eh_personality"]
-#[no_mangle] #[inline(never)] #[cold]
-pub extern fn eh_personality() {
-    // TODO: add support for stack unwinding
 }
 
 #[lang = "stack_exhausted"]
@@ -48,6 +41,7 @@ pub extern "C" fn _Unwind_Resume() -> ! {
     println!("UNWIND!");
     loop { }
 }
+
 
 // #[lang = "begin_unwind"]
 // #[no_mangle] #[inline(never)] #[cold]

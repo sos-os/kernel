@@ -2,3 +2,9 @@
 name = "sos_vga"
 version = "0.1.0"
 authors = ["Hawk Weisman <hi@hawkweisman.me>"]
+
+[features]
+system_term = ["spin"]
+
+[dependencies]
+spin = { version = "*", optional = true }

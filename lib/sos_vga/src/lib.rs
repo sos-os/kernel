@@ -8,6 +8,7 @@
 //
 //! Code for interacting with the system's VGA buffer.
 #![crate_name = "sos_vga"]
+
 #![feature( no_std
           , const_fn
           , core_slice_ext
@@ -15,11 +16,27 @@
           , slice_patterns
           , unique
           )]
+#![cfg_attr( feature = "system_term"
+           , feature(lang_items) )]
 #![no_std]
+
+#[cfg(feature = "system_term")]
+extern crate spin;
 
 use core::mem;
 use core::fmt::{Write, Result};
 use core::ptr::Unique;
+
+#[cfg(feature = "system_term")]
+use spin::Mutex;
+
+/// The system's global VGA terminal
+#[cfg(feature = "system_term")]
+pub static CONSOLE: Mutex<Terminal>
+    = Mutex::new(unsafe { Terminal::new(
+         Palette::new(Color::LightGreen, Color::Black )
+       , 0xB8000
+    )});
 
 // TODO: support varying VGA screen sizes?
 pub const X_MAX: usize = 80;
@@ -326,4 +343,31 @@ impl Write for Terminal {
         Ok(())
     }
 
+}
+
+#[cfg(feature = "system_term")]
+#[macro_export]
+macro_rules! println {
+    ($fmt:expr) => (print!(concat!($fmt, "\n")));
+    ($fmt:expr, $($arg:tt)*) => (print!(concat!($fmt, "\n"), $($arg)*));
+}
+
+#[cfg(feature = "system_term")]
+#[macro_export]
+macro_rules! print {
+    ($($arg:tt)*) => ({
+            use core::fmt::Write;
+            $crate::CONSOLE.lock()
+                           .write_fmt(format_args!($($arg)*))
+                           .unwrap();
+    });
+}
+
+#[cfg(feature = "system_term")]
+/// Required for Rust stack unwinding
+#[lang = "eh_personality"]
+#[no_mangle] #[inline(never)] #[cold]
+pub extern "C" fn eh_personality() {
+    // TODO: add support for stack unwinding
+    println!("eh")
 }

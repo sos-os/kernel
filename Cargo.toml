@@ -11,18 +11,11 @@ authors = [ # hacked around by
 crate-type = ["staticlib"]
 
 [dependencies]
-rlibc = "*"
-spin = "*"
-
-[dependencies.sos_alloc]
-path = "lib/sos_alloc"
-features = ["buddy_as_system"]
-
-[dependencies.sos_multiboot2]
-path = "lib/sos_multiboot2"
-
-[dependencies.sos_vga]
-path = "lib/sos_vga"
+rlibc = "0.1.4"
+spin = "0.3.4"
+sos_alloc = { path = "lib/sos_alloc", features = ["buddy_as_system"] }
+sos_multiboot2 = { path = "lib/sos_multiboot2" }
+sos_vga = { path = "lib/sos_vga", features = ["system_term"] }
 
 [dependencies.bitflags]
 git = "https://github.com/phil-opp/bitflags.git"

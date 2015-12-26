@@ -12,7 +12,6 @@
 //! OS components.
 //
 #![crate_name = "sos_alloc"]
-#![crate_type = "lib"]
 
 // The compiler needs to be instructed that this crate is an allocator in order
 // to realize that when this is linked in another allocator like jemalloc

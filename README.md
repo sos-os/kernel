@@ -31,7 +31,7 @@ This project includes Git submodules; you will want to clone it using `git clone
 
 + **Setting up**
     + You only need to run these steps once
-    + `$ multirust default nightly-2015-11-08` this version of Rust is known to work with our patched version of `libcore`
+    + `$ multirust override nightly-2015-11-08` this version of Rust is known to work with our patched version of `libcore`
     + `$ make runtime` compiles the patched `libcore`
 + **Running the OS**
     + `$ make run` compiles the kernel, makes the ISO, and boots QEMU from the ISO

@@ -15,20 +15,19 @@
 #![crate_name = "sos_kernel"]
 #![crate_type = "staticlib"]
 #![feature(asm)]
-#![feature(no_std, lang_items)]
+#![feature( no_std
+          , lang_items)]
 #![feature( const_fn
-          , unique
-          , core_str_ext
           , core_slice_ext
           , slice_patterns
-          , iter_cmp)]
+          )]
 #![no_std]
 
 extern crate rlibc;
 extern crate spin;
 extern crate sos_multiboot2 as multiboot;
 extern crate sos_alloc as alloc;
-extern crate sos_vga as vga;
+#[macro_use] extern crate sos_vga as vga;
 #[macro_use] extern crate bitflags;
 
 pub mod arch;
@@ -123,8 +122,8 @@ pub extern fn kernel_main(multiboot_addr: usize) {
     //     }
     // }
     // println!("Intializing interrupts...");
-    // cpu::interrupts::initialize();
-
+    // cpu::interrupts::initialize()
 
     loop { }
+
 }

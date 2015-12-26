@@ -8,6 +8,8 @@
 //
 
 pub mod term;
+use core::ops;
+use core::fmt;
 
 macro_rules! println {
     ($fmt:expr) => (print!(concat!($fmt, "\n")));
@@ -22,9 +24,6 @@ macro_rules! print {
                                      .unwrap();
     });
 }
-
-use core::ops;
-use core::fmt;
 
 /// This is basically a braindead reimplementation of the standard
 /// library's `Read` trait. Most of the methods available on the
