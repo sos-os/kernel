@@ -99,6 +99,23 @@ pub struct Terminal { buffer: Unique<Buffer>
                     }
 impl Terminal {
 
+    /// Constructs a new `Terminal` for abuffer starting at the given address.
+    ///
+    /// # Arguments:
+    ///   - `colors`: the default color palette for the terminal
+    ///   - `buffer_start`: the address of the to the memory location where
+    ///      the terminal's VGA buffer begins
+    ///
+    /// # Unsafe due to:
+    ///   - Casting a raw address to an array
+    pub const unsafe fn new(colors: Palette, buffer_start: usize)
+                            -> Terminal {
+        Terminal { x: 0, y: 0
+                 , colors: colors
+                 , buffer: Unique::new(buffer_start as *mut _)
+                 }
+    }
+
     #[inline]
     fn buffer(&mut self) -> &mut  Buffer {
         unsafe { self.buffer.get_mut() }
