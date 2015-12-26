@@ -10,7 +10,7 @@
 
 use core::fmt::{Arguments, Write};
 use super::io::term;
-use super::arch::drivers::vga::Color;
+use vga::Color;
 
 #[lang = "panic_fmt"]
 #[no_mangle] #[inline(never)] #[cold]
