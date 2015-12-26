@@ -20,6 +20,8 @@ The Makefile currently expects that you're using cross-compiled GNU `binutils`, 
 
 ### Building & Running
 
+This project includes Git submodules; you will want to clone it using `git clone --recursive` or run `git submodule update --init` after cloning.
+
 #### You will need:
 
 + Rust; I strongly recommend installing it using [multirust](https://github.com/brson/multirust)
