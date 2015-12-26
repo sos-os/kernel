@@ -28,6 +28,7 @@ extern crate rlibc;
 extern crate spin;
 extern crate sos_multiboot2 as multiboot;
 extern crate sos_alloc as alloc;
+extern crate sos_vga as vga;
 #[macro_use] extern crate bitflags;
 
 pub mod arch;

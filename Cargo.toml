@@ -13,8 +13,16 @@ crate-type = ["staticlib"]
 [dependencies]
 rlibc = "*"
 spin = "*"
-sos_alloc = { path = "lib/sos_alloc", features = ["buddy_as_system"] }
-sos_multiboot2 = { path = "lib/sos_multiboot2" }
+
+[dependencies.sos_alloc]
+path = "lib/sos_alloc"
+features = ["buddy_as_system"]
+
+[dependencies.sos_multiboot2]
+path = "lib/sos_multiboot2"
+
+[dependencies.sos_vga]
+path = "lib/sos_vga"
 
 [dependencies.bitflags]
 git = "https://github.com/phil-opp/bitflags.git"
