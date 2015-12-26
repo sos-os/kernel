@@ -10,8 +10,6 @@
 //!
 //! This module contains code that is portable between x86 32-bit
 //! protected-mode systems and x86_64 64-bit long mode systems.
-
-#[path = "../x86_all/vga.rs"] pub mod vga;
 pub mod cpu;
 pub mod interrupts;
 // pub mod keyboard;
