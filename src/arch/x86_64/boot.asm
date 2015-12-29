@@ -12,6 +12,8 @@
 
 global start
 global gdt64_offset
+global HEAP_BASE
+global HEAP_TOP
 
 extern start_64
 
@@ -148,17 +150,28 @@ start:
 
 section .bss
 align 4096
-pml4_table:                 ; Page-Map Level-4 Table
+; Page-Map Level-4 Table
+pml4_table:
     resb    PAGE_TABLE_SIZE
-pdp_table:                  ; Page Directory Pointer Table
+; Page Directory Pointer Table
+pdp_table:
     resb    PAGE_TABLE_SIZE
-pd_table:                   ; Page-Directory Table
+; Page-Directory Table
+pd_table:
     resb    PAGE_TABLE_SIZE
-page_table:                 ; Page Table
+ ; Page Table
+page_table:
     resb    PAGE_TABLE_SIZE
+
+; reserve 4M for the kernel stack space
 stack_end:
     resb    4096
 stack_top:
+
+; reserved space for the kernel heap
+HEAP_BASE:
+    resb    4 * 1024 * 1024
+HEAP_TOP:
 
 section .rodata
 gdt64:

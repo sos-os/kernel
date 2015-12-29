@@ -40,31 +40,6 @@ pub mod memory;
 
 use arch::cpu;
 
-use alloc::buddy;
-
-static mut KERN_FREE_LISTS: [buddy::FreeList<'static>; 19]
-    // TODO: I really wish there was a less awful way to do this...
-    = [ buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      ];
-
 /// Kernel main loop
 ///
 /// The kernel main loop expects to be passed the address of a valid
@@ -137,23 +112,21 @@ pub extern fn kernel_main(multiboot_addr: usize) {
 
     // alloc.allocate(0,0);
 
-    let heap_area
-        = mmap_tag.areas()
-                //   .filter(|area| area.base > kernel_end &&
-                //                  area.base > multiboot_end as u64 )
-                  .max_by(|area| area.length )
-                  .expect("Couldn't find a suitable memory area for heap!");
+    // let heap_area
+    //     = mmap_tag.areas()
+    //             //   .filter(|area| area.base > kernel_end &&
+    //             //                  area.base > multiboot_end as u64 )
+    //               .max_by(|area| area.length )
+    //               .expect("Couldn't find a suitable memory area for heap!");
+    //
+    // println!( "Heap begins at {:#x} and ends at {:#x}."
+    //         , heap_area.base
+    //         , heap_area.base + heap_area.length );
 
-    println!( "Heap begins at {:#x} and ends at {:#x}."
-            , heap_area.base
-            , heap_area.base + heap_area.length );
+    unsafe { memory::init_heap() };
+    println!( "Initialized heap.\nHeap begins at {:#x} and ends at {:#x}."
+            , memory::heap_base_addr(), memory::heap_top_addr() );
 
-    unsafe {
-        buddy::system::init_heap( heap_area.base as *mut u8
-                                , &mut KERN_FREE_LISTS
-                                , heap_area.length as usize );
-        println!( "Initialized heap." );
-    }
 
     // println!( "Created initial allocator." );
 

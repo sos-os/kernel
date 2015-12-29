@@ -228,8 +228,8 @@ impl<'a> BuddyHeapAllocator<'a> {
         // the order needed to allocate the entire heap as a single block
         let root_order
             = heap.alloc_order(heap_size, 1)
-                  .expect("Couldn't determine heap root allocation order! \
-                           This should be (as far as I know) impossible. \
+                  .expect("Couldn't determine heap root allocation order!\
+                           This should be (as far as I know) impossible.\
                            Something is seriously amiss.");
 
         // Push the entire heap onto the free lists as the first block.
