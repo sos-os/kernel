@@ -21,7 +21,7 @@ pub extern "C" fn __rust_allocate(size: usize, align: usize) -> *mut u8 {
         ALLOC.lock().as_mut()
              .expect("Cannot allocate memory, no system allocator exists!")
              .allocate(size, align)
-             .expect("Memory could not be allocated; either the allocator is \
+             .expect("Memory could not be allocated; either the allocator is\
                       out of memory, or the allocation request was invalid.")
     }
 }
@@ -45,7 +45,7 @@ pub extern "C" fn __rust_reallocate( ptr: *mut u8, old_size: usize
         ALLOC.lock().as_mut()
              .expect("Cannot reallocate memory, no system allocator exists!")
              .reallocate(ptr, old_size, size, align)
-             .expect("Memory could not be reallocated; either the allocator \
+             .expect("Memory could not be reallocated; either the allocator\
                      is out of memory, or the allocation request was invalid.")
      }
 }
