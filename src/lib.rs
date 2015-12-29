@@ -38,8 +38,10 @@ pub mod memory;
 
 use arch::cpu;
 
-use alloc::Allocator;
-use alloc::simple::SimpleAreaAllocator;
+use alloc::buddy;
+
+static KERN_FREE_LISTS: [buddy::FreeList<'static>; 19]
+    = [buddy::FreeList::new(); 19];
 
 /// Kernel main loop
 ///
@@ -104,16 +106,33 @@ pub extern fn kernel_main(multiboot_addr: usize) {
 
     println!( "Multiboot info begins at {:#x} and ends at {:#x}."
              , multiboot_addr, multiboot_end);
-
-    let mut alloc
-        = SimpleAreaAllocator::new( kernel_begin as usize
-                                  , kernel_end as usize
-                                  , multiboot_addr, multiboot_end
-                                  , mmap_tag.areas());
+    //
+    // let mut alloc
+    //     = SimpleAreaAllocator::new( kernel_begin as usize
+    //                               , kernel_end as usize
+    //                               , multiboot_addr, multiboot_end
+    //                               , mmap_tag.areas());
 
     // alloc.allocate(0,0);
 
-    println!( "Created initial allocator." );
+    let heap_area
+        = mmap_tag.areas()
+                  .filter(|area| area.base > kernel_end &&
+                                 area.base > multiboot_end )
+                  .max_by(|area| area.length );
+
+    println!( "Heap begins at {:#x} and ends at {:#x}."
+            , heap_area.base
+            , heap_area.base + heap_area.length );
+
+    unsafe {
+        buddy::system::init_heap( heap_area.base as *mut u8
+                                , &mut KERN_FREE_LISTS
+                                , heap_area.length );
+        println!( "Initialized heap." );
+    }
+
+    // println!( "Created initial allocator." );
 
     // for i in 0.. {
     //     if let None = alloc.allocate() {

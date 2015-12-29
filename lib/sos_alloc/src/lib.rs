@@ -10,7 +10,6 @@
 //!
 //! This is in its own crate so it can be used by kernel-space and user-space
 //! OS components.
-//
 #![crate_name = "sos_alloc"]
 
 // The compiler needs to be instructed that this crate is an allocator in order
@@ -52,7 +51,6 @@ pub trait Framesque {
 }
 
 /// An `Allocator` implements a particular memory allocation strategy.
-
 pub trait Allocator {
     // type Frame: Framesque;
 
