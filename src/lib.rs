@@ -20,15 +20,17 @@
 #![feature( const_fn
           , core_slice_ext
           , slice_patterns
+          , iter_cmp
           )]
 #![no_std]
 
+#[macro_use] extern crate sos_vga as vga;
+#[macro_use] extern crate bitflags;
 extern crate rlibc;
 extern crate spin;
 extern crate sos_multiboot2 as multiboot;
 extern crate sos_alloc as alloc;
-#[macro_use] extern crate sos_vga as vga;
-#[macro_use] extern crate bitflags;
+
 
 pub mod arch;
 #[macro_use] pub mod io;
@@ -40,8 +42,28 @@ use arch::cpu;
 
 use alloc::buddy;
 
-static KERN_FREE_LISTS: [buddy::FreeList<'static>; 19]
-    = [buddy::FreeList::new(); 19];
+static mut KERN_FREE_LISTS: [buddy::FreeList<'static>; 19]
+    // TODO: I really wish there was a less awful way to do this...
+    = [ buddy::FreeList::new()
+      , buddy::FreeList::new()
+      , buddy::FreeList::new()
+      , buddy::FreeList::new()
+      , buddy::FreeList::new()
+      , buddy::FreeList::new()
+      , buddy::FreeList::new()
+      , buddy::FreeList::new()
+      , buddy::FreeList::new()
+      , buddy::FreeList::new()
+      , buddy::FreeList::new()
+      , buddy::FreeList::new()
+      , buddy::FreeList::new()
+      , buddy::FreeList::new()
+      , buddy::FreeList::new()
+      , buddy::FreeList::new()
+      , buddy::FreeList::new()
+      , buddy::FreeList::new()
+      , buddy::FreeList::new()
+      ];
 
 /// Kernel main loop
 ///
@@ -117,9 +139,10 @@ pub extern fn kernel_main(multiboot_addr: usize) {
 
     let heap_area
         = mmap_tag.areas()
-                  .filter(|area| area.base > kernel_end &&
-                                 area.base > multiboot_end )
-                  .max_by(|area| area.length );
+                //   .filter(|area| area.base > kernel_end &&
+                //                  area.base > multiboot_end as u64 )
+                  .max_by(|area| area.length )
+                  .expect("Couldn't find a suitable memory area for heap!");
 
     println!( "Heap begins at {:#x} and ends at {:#x}."
             , heap_area.base
@@ -128,7 +151,7 @@ pub extern fn kernel_main(multiboot_addr: usize) {
     unsafe {
         buddy::system::init_heap( heap_area.base as *mut u8
                                 , &mut KERN_FREE_LISTS
-                                , heap_area.length );
+                                , heap_area.length as usize );
         println!( "Initialized heap." );
     }
 

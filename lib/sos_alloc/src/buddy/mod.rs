@@ -33,7 +33,7 @@ pub struct FreeList<'a> {
 impl<'a> FreeList<'a> {
 
     /// Create a new empty `FreeList`
-    const fn new() -> FreeList<'a> {
+    pub const fn new() -> FreeList<'a> {
         FreeList { head: None, length: 0 }
     }
 
@@ -228,7 +228,7 @@ impl<'a> BuddyHeapAllocator<'a> {
         // the order needed to allocate the entire heap as a single block
         let root_order
             = heap.alloc_order(heap_size, 1)
-                  .expect("Couldn't determine heap root allocation order!\n \
+                  .expect("Couldn't determine heap root allocation order! \
                            This should be (as far as I know) impossible. \
                            Something is seriously amiss.");
 
