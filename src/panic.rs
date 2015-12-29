@@ -21,7 +21,7 @@ pub extern "C" fn rust_begin_unwind( args: Arguments, file: &'static str
                         .set_colors(Color::White, Color::Red)
                         .clear()
           , "KERNEL PANIC in {} at line {}\
-            \nSomething has gone horribly wrong: {}. \
+            \nSomething has gone horribly wrong:\n {} \
             This is fine."
           , file, line, args
           );
