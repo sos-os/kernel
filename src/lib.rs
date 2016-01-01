@@ -131,7 +131,7 @@ pub extern fn kernel_start(multiboot_addr: usize) {
     // println!( "Heap begins at {:#x} and ends at {:#x}."
     //         , heap_area.base
     //         , heap_area.base + heap_area.length );
-    print!("Intializing heap...");
+    print!("Intializing heap...    ");
     unsafe { memory::init_heap() };
     println!( "[DONE]\nHeap begins at {:#x} and ends at {:#x}."
             , memory::heap_base_addr(), memory::heap_top_addr() );
@@ -154,7 +154,7 @@ pub extern fn kernel_start(multiboot_addr: usize) {
     // }
     println!("Intializing interrupts...");
     unsafe { cpu::interrupts::initialize(); };
-    println!("Intializing interrupts...\t\t\t[DONE]");
+    println!("Intializing interrupts...    [DONE]");
 
     kernel_main()
 }

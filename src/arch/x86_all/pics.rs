@@ -209,7 +209,7 @@ impl BothPICs {
         // 4. finally, the mask we saved earlier
         send!(pic0 => saved_mask1);
         send!(pic1 => saved_mask2);
-        println!("\t\t\t[DONE]");
+        println!("    [DONE]");
     }
 }
 

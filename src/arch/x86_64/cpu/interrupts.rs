@@ -203,17 +203,19 @@ impl DTable for Idt64 {
         asm!(  "lidt ($0)"
             :: "r"(&self.get_ptr())
             :  "memory" );
-        println!("\t\t\t[DONE]");
+        println!("    [DONE]");
     }
 }
 
 impl Idt64 {
     fn add_handlers(&mut self) -> &mut Self {
+        print!("Adding interrupt handlers to IDT...");
         for (i, &h_ptr) in interrupt_handlers.iter()
             .enumerate()
             .filter(|&(_, &h_ptr)| h_ptr != ptr::null() ) {
                 unsafe { self.0[i] = Gate64::from_raw(h_ptr) }
         }
+        println!("    [DONE]");
         self
     }
 }
@@ -240,9 +242,9 @@ pub unsafe fn initialize() {
     IDT.lock()
        .add_handlers()
        .load();                 // Load the IDT pointer
-    println!("Triggering interrupt.");
+    println!("Triggering test interrupt.");
     asm!("int $0" :: "N" (0x80));
-    println!("Interrupt returned!");
+    println!("Test interrupt returned!");
 
     Idt64::enable_interrupts(); // enable interrupts
 }
