@@ -170,6 +170,8 @@ impl Terminal {
     pub fn clear(&mut self) -> &mut Self {
         // to clear the terminal, we just zero out the whole buffer.
         unsafe { *(self.buffer()) = mem::zeroed(); }
+        self.x = 0;
+        self.y = 0;
         self
     }
 
