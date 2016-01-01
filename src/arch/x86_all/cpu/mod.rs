@@ -9,6 +9,8 @@
 //! Common functionality for x86 and x86_64 CPUs
 use ::{io,util};
 
+pub mod control_regs;
+
 pub struct Port(u16);
 
 impl Port {

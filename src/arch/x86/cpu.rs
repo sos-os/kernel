@@ -12,7 +12,7 @@
 //! input and output, and little else.
 //!
 
-#[path = "../x86_all/cpu.rs"] mod cpu_all;
+#[path = "../x86_all/cpu/mod.rs"] mod cpu_all;
 #[path = "../x86_all/pics.rs"] pub mod pics;
 
 pub use self::cpu_all::*;
