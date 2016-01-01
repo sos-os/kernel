@@ -62,8 +62,9 @@ pub extern fn kernel_start(multiboot_addr: usize) {
 
     println!("Hello from the kernel!");
 
-    // Unpack multiboot tag
+    // -- Unpack multiboot tag ------------------------------------------------
     let boot_info = unsafe { multiboot::Info::from(multiboot_addr) };
+
     let mmap_tag // Extract the memory map tag from the multiboot info
         = boot_info.mem_map()
                    .expect("Memory map tag required!");
@@ -79,11 +80,8 @@ pub extern fn kernel_start(multiboot_addr: usize) {
                    .expect("ELF sections tag required!");
 
     println!("Detecting kernel ELF sections:");
-    // for section in elf_sections_tag.sections() {
-    //
-    // }
 
-    let kernel_begin
+    let kernel_begin    // Extract kernel ELF sections from  multiboot info
         = elf_sections_tag.sections()
             .map(|s| {
                 println!("     address: {:#08x}, size: {:#08x}, flags: {:#08x}"
@@ -112,29 +110,22 @@ pub extern fn kernel_start(multiboot_addr: usize) {
 
     println!( "Multiboot info begins at {:#x} and ends at {:#x}."
              , multiboot_addr, multiboot_end);
-    //
-    // let mut alloc
-    //     = SimpleAreaAllocator::new( kernel_begin as usize
-    //                               , kernel_end as usize
-    //                               , multiboot_addr, multiboot_end
-    //                               , mmap_tag.areas());
 
-    // alloc.allocate(0,0);
+    // -- initialize interrupts ----------------------------------------------
+    unsafe {
+        println!("Intializing interrupts...");
+        cpu::interrupts::initialize();
+        println!("Intializing interrupts...    [DONE]" );
+    };
 
-    // let heap_area
-    //     = mmap_tag.areas()
-    //             //   .filter(|area| area.base > kernel_end &&
-    //             //                  area.base > multiboot_end as u64 )
-    //               .max_by(|area| area.length )
-    //               .expect("Couldn't find a suitable memory area for heap!");
-    //
-    // println!( "Heap begins at {:#x} and ends at {:#x}."
-    //         , heap_area.base
-    //         , heap_area.base + heap_area.length );
-    print!("Intializing heap...    ");
-    unsafe { memory::init_heap() };
-    println!( "[DONE]\nHeap begins at {:#x} and ends at {:#x}."
-            , memory::heap_base_addr(), memory::heap_top_addr() );
+    // -- initialize the heap ------------------------------------------------
+    unsafe {
+        print!("Intializing heap...    ");
+        memory::init_heap();
+        println!( "[DONE]\nHeap begins at {:#x} and ends at {:#x}."
+                , memory::heap_base_addr(), memory::heap_top_addr() );
+    };
+
 
     // let mut a_vec = collections::vec::Vec::<usize>::new();
     // println!( "TEST: Created a vector in kernel space! {:?}", a_vec);
@@ -142,19 +133,8 @@ pub extern fn kernel_start(multiboot_addr: usize) {
     // println!( "TEST: pushed to vec: {:?}", a_vec);
     // a_vec.push(2);
     // println!( "TEST: pushed to vec: {:?}", a_vec);
-    //
 
-    // println!( "Created initial allocator." );
-
-    // for i in 0.. {
-    //     if let None = alloc.allocate() {
-    //         println!("Allocated {} frames", i);
-    //         break;
-    //     }
-    // }
-    println!("Intializing interrupts...");
-    unsafe { cpu::interrupts::initialize(); };
-    println!("Intializing interrupts...    [DONE]");
-
+    // -- call into kernel main loop ------------------------------------------
+    // (currently, this does nothing)
     kernel_main()
 }
