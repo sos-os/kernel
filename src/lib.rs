@@ -113,7 +113,6 @@ pub extern fn kernel_start(multiboot_addr: usize) {
 
     // -- initialize interrupts ----------------------------------------------
     unsafe {
-        println!("Intializing interrupts...");
         cpu::interrupts::initialize();
         println!("Intializing interrupts...    [DONE]" );
     };
@@ -126,7 +125,7 @@ pub extern fn kernel_start(multiboot_addr: usize) {
                 , memory::heap_base_addr(), memory::heap_top_addr() );
     };
 
-    // 
+    //
     // let mut a_vec = collections::vec::Vec::<usize>::new();
     // println!( "TEST: Created a vector in kernel space! {:?}", a_vec);
     // a_vec.push(1);
