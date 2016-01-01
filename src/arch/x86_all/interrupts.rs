@@ -8,9 +8,14 @@
 //
 //! Common functionality for the x86 and x86_64 Interrupt Descriptor Table.
 
-use super::super::{DTablePtr, DTable};
-use core::mem::size_of;
 use core::fmt;
+use core::fmt::Write;
+
+use super::super::{DTablePtr, DTable};
+use io::term::CONSOLE;
+
+use vga::Color;
+
 
 pub type Handler = unsafe extern "C" fn() -> ();
 pub const IDT_ENTRIES: usize = 256;
@@ -130,9 +135,13 @@ pub trait Idt: Sized {
     unsafe fn handle_cpu_exception(state: &Self::Ctx) -> ! {
         // TODO: we can handle various types of CPU exception differently
         // TODO: make some nice debugging dumps
-        panic!( "CPU EXCEPTION {:#04x}: {}"
+        write!( CONSOLE.lock()
+                       .set_colors(Color::White, Color::Blue)
+                       .clear()
+              , "CPU EXCEPTION {:#04x}: {}"
               , state.err_no()
-              , state.exception() );
+              , EXCEPTIONS[state.err_no() as usize]);
+
         loop { }
     }
 
