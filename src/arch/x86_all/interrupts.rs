@@ -177,6 +177,7 @@ pub trait Idt: Sized {
     /// Add a new interrupt gate pointing to the given handler
     fn add_gate(&mut self, idx: usize, handler: Handler);
 
+    #[allow(unused_must_use)]
     unsafe fn handle_cpu_exception(state: &Self::Ctx) -> ! {
         let ex_info = state.exception();
         let cr_state = control_regs::dump();
