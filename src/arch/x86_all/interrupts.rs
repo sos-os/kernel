@@ -140,7 +140,7 @@ pub trait Gate {
 // }
 
 pub trait InterruptContext {
-    type Registers;
+    type Registers: fmt::Debug;
 
     fn err_no(&self) -> u32;
     fn int_id(&self) -> u32;
@@ -178,18 +178,25 @@ pub trait Idt: Sized {
     fn add_gate(&mut self, idx: usize, handler: Handler);
 
     unsafe fn handle_cpu_exception(state: &Self::Ctx) -> ! {
-        // TODO: we can handle various types of CPU exception differently
-        // TODO: make some nice debugging dumps
         let ex_info = state.exception();
-        write!( CONSOLE.lock()
-                       .set_colors(Color::White, Color::Blue)
-                       .clear()
+        write!(CONSOLE.lock()
+                      .set_colors(Color::White, Color::Blue)
+                      .clear()
               , "CPU EXCEPTION {}: {}\n\
                  {} on vector {} with error code {:#x}\n\
-                 Source: {}."
+                 Source: {}.\nThis is fine.\n\n"
               , ex_info.mnemonic, ex_info.name
               , ex_info.irq_type, state.int_id(), state.err_no()
               , ex_info.source );
+
+        // TODO: parse error codes
+        match state.int_id() {
+            14 => unimplemented!() //TODO: special handling for page faults
+           , _ => write!(
+               CONSOLE.lock()
+                      .set_colors(Color::White, Color::Blue)
+               , "Registers:\n{:?}", state.registers())
+        };
 
         loop { }
     }

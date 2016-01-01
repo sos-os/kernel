@@ -125,13 +125,13 @@ pub extern fn kernel_start(multiboot_addr: usize) {
                 , memory::heap_base_addr(), memory::heap_top_addr() );
     };
 
-    //
-    // let mut a_vec = collections::vec::Vec::<usize>::new();
-    // println!( "TEST: Created a vector in kernel space! {:?}", a_vec);
-    // a_vec.push(1);
-    // println!( "TEST: pushed to vec: {:?}", a_vec);
-    // a_vec.push(2);
-    // println!( "TEST: pushed to vec: {:?}", a_vec);
+    
+    let mut a_vec = collections::vec::Vec::<usize>::new();
+    println!( "TEST: Created a vector in kernel space! {:?}", a_vec);
+    a_vec.push(1);
+    println!( "TEST: pushed to vec: {:?}", a_vec);
+    a_vec.push(2);
+    println!( "TEST: pushed to vec: {:?}", a_vec);
 
     // -- call into kernel main loop ------------------------------------------
     // (currently, this does nothing)

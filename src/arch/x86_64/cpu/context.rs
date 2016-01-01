@@ -12,6 +12,7 @@
 //! code can be reused for interrupts and for multithreading.
 
 use core::mem;
+use core::fmt;
 
 /// Registers pushed to the stack when handling an interrupt or context switch.
 #[repr(C, packed)]
@@ -45,6 +46,18 @@ pub struct Registers { pub rsi: u64
                    , r10: 0, r9:  0, r8:  0
                    , rdx: 0, rcx: 0, rax: 0
                    }
+     }
+ }
+
+ impl fmt::Debug for Registers {
+     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+         write!( f
+               , "    RSI: {:#018x} RDI: {:#018x} R11: {:#018x}\n    \
+                      R10: {:#018x} R9:  {:#018x} R8:  {:#018x}\n    \
+                      RDX: {:#018x} RCX: {:#018x} RAX: {:#018x}"
+              , self.rsi, self.rdi, self.r11
+              , self.r10, self.r9,  self.r8
+              , self.rdx, self.rcx, self.rax)
      }
  }
 
