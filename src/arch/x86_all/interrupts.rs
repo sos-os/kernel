@@ -74,6 +74,7 @@ pub static EXCEPTIONS: &'static [&'static str]
 
 pub trait Gate {
     fn from_handler(handler: Handler) -> Self;
+    unsafe fn from_raw(handler: *const u8) -> Self;
 }
 
 // /// This is the format that `lidt` expects for the pointer to the IDT.
@@ -106,13 +107,10 @@ pub trait InterruptContext {
 pub trait Idt: Sized {
     type Ctx: InterruptContext;
     type GateSize: Gate;
+    type PtrSize;
 
     /// Get the IDT pointer struct to pass to `lidt`
-    fn get_ptr(&self) -> DTablePtr<Self> {
-        DTablePtr { limit: (size_of::<Self::GateSize>() * IDT_ENTRIES) as u16
-                  , base: self as *const Self
-                  }
-    }
+    fn get_ptr(&self) -> DTablePtr<Self::PtrSize>;
     //
     // /// This is just a wrapper for prettiness reasons.
     // #[inline]
@@ -122,27 +120,21 @@ pub trait Idt: Sized {
     // }
 
     /// Enable interrupts
-    unsafe fn enable_interrupts() {
-        asm!("sti" :::: "volatile")
-    }
-
+    unsafe fn enable_interrupts() { asm!("sti") }
     /// Disable interrupts
-    fn disable_interrupts() {
-        unsafe { asm!("cli" :::: "volatile"); }
-    }
+    unsafe fn disable_interrupts() { asm!("cli") }
 
-    // Add a new interrupt gate pointing to the given handler
+    /// Add a new interrupt gate pointing to the given handler
     fn add_gate(&mut self, idx: usize, handler: Handler);
 
-    fn handle_cpu_exception(state: &Self::Ctx)  {
+    unsafe fn handle_cpu_exception(state: &Self::Ctx) -> ! {
         // TODO: we can handle various types of CPU exception differently
         // TODO: make some nice debugging dumps
-        unsafe {
-            panic!( "CPU EXCEPTION {:#04x}: {}"
-                  , state.err_no()
-                  , state.exception() );
-        }
+        panic!( "CPU EXCEPTION {:#04x}: {}"
+              , state.err_no()
+              , state.exception() );
+        loop { }
     }
 
-    extern "C" fn handle_interrupt(state: &Self::Ctx);
+    unsafe extern "C" fn handle_interrupt(state: &Self::Ctx);
 }

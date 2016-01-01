@@ -172,9 +172,10 @@ impl BothPICs {
     }
 
     /// Initialize the system's PICs.
-    fn initialize(&mut self) {
-        let mut wait_port = unsafe { Port::new(0x80) };
-        let mut wait = || unsafe { wait_port.out8(0); };
+    pub unsafe fn initialize(&mut self) {
+        print!("Initializing PICs...");
+        let mut wait_port = Port::new(0x80);
+        let mut wait = || { wait_port.out8(0); };
         // helper macro to avoid writing repetitive code
         macro_rules! send {
             (pic0 => $data:expr) => {
@@ -189,7 +190,7 @@ impl BothPICs {
 
         // Read the default interrupt masks from PIC1 and PIC2
         let (saved_mask1, saved_mask2)
-            = unsafe { (self.0.data_port.in8(), self.1.data_port.in8()) };
+            = (self.0.data_port.in8(), self.1.data_port.in8());
 
         // Send both PICs the 'initialize' command.
         self.0.initialize(); wait();
@@ -208,6 +209,7 @@ impl BothPICs {
         // 4. finally, the mask we saved earlier
         send!(pic0 => saved_mask1);
         send!(pic1 => saved_mask2);
+        println!("\t\t\t[DONE]");
     }
 }
 
@@ -232,7 +234,7 @@ static PICS: Mutex<BothPICs>
     = Mutex::new(BothPICs::new());
 
 /// Initialize the system's Programmable Interrupt Controller
-pub fn initialize() {
+pub unsafe fn initialize() {
     PICS.lock()
         .initialize()
 }

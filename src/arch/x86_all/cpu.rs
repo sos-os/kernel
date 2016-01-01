@@ -123,7 +123,7 @@ impl io::Write for Port {
 /// A pointer to a descriptor table (IDT or GDT)
 #[repr(C, packed)]
 pub struct DTablePtr<T> { pub limit: u16
-                        , pub base: *const T
+                        , pub base: T
                         }
 
 /// A descriptor table (IDT or GDT)

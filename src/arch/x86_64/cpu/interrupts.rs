@@ -11,8 +11,9 @@
 //! Refer to section 6.10 of the _Intel® 64 and IA-32 Architectures
 //! Software Developer’s Manual_ for more information.
 use core::mem;
+use core::ptr;
 use spin::Mutex;
-use super::{Registers, DTable, segment};
+use super::{Registers, DTable, DTablePtr, segment};
 
 #[path = "../../x86_all/interrupts.rs"] mod interrupts_all;
 #[path = "../../x86_all/pics.rs"] pub mod pics;
@@ -26,7 +27,7 @@ extern {
     static gdt64_offset: u16;
 
     /// Array of interrupt handlers from ASM
-    static int_handlers: [Option<Handler>; IDT_ENTRIES];
+    static interrupt_handlers: [*const u8; IDT_ENTRIES];
 }
 
 /// State stored when handling an interrupt.
@@ -122,7 +123,7 @@ impl Gate for Gate64 {
                 = mem::transmute(handler);
 
             Gate64 { offset_lower: low
-                   , selector: segment::Selector::new(gdt64_offset)
+                   , selector: segment::Selector::from_raw(gdt64_offset)
                    , zero: 0
                    // Bit 7 is the present bit
                    // Bits 4-0 indicate this is an interrupt gate
@@ -132,6 +133,20 @@ impl Gate for Gate64 {
                    , reserved: 0
                    }
         }
+    }
+
+    unsafe fn from_raw(handler: *const u8) -> Self {
+        let (low, mid, high): (u16, u16, u32)
+            = mem::transmute(handler as u64);
+
+        Gate64 { offset_lower: low
+               , selector: segment::Selector::from_raw(gdt64_offset)
+               , zero: 0
+               , type_attr: GateType::Interrupt
+               , offset_mid: mid
+               , offset_upper: high
+               , reserved: 0
+               }
     }
 }
 
@@ -143,6 +158,14 @@ impl Idt for Idt64 {
     // type Ptr = IdtPtr<Self>;
     type Ctx = InterruptCtx64;
     type GateSize = Gate64;
+    type PtrSize = u64;
+
+    fn get_ptr(&self) -> DTablePtr<u64>{
+        DTablePtr { limit: (mem::size_of::<Self::GateSize>() * IDT_ENTRIES)
+                            as u16
+                  , base: &self.0[0] as *const Gate64 as u64
+                  }
+    }
 
     /// Get the IDT pointer struct to pass to `lidt`
     // fn get_ptr(&self) -> DTablePtr<Self> {
@@ -157,7 +180,8 @@ impl Idt for Idt64 {
     }
 
     /// Assembly interrupt handlers call into this
-    extern "C" fn handle_interrupt(state: &Self::Ctx) {
+    #[no_mangle]
+    unsafe extern "C" fn handle_interrupt(state: &Self::Ctx) {
         let id = state.int_id();
         match id {
             // interrupts 0 - 16 are CPU exceptions
@@ -169,15 +193,28 @@ impl Idt for Idt64 {
           , _ => panic!("Unknown interrupt: #{} Sorry!", id)
         }
         // send the PICs the end interrupt signal
-        unsafe { pics::end_pic_interrupt(id as u8); }
+        pics::end_pic_interrupt(id as u8);
     }
 }
 
 impl DTable for Idt64 {
     #[inline] unsafe fn load(&self) {
-        asm!(  "lidt [$0]"
-            :: "A"(self.get_ptr())
-            :: "intel" );
+        print!("Loading IDT...");
+        asm!(  "lidt ($0)"
+            :: "r"(&self.get_ptr())
+            :  "memory" );
+        println!("\t\t\t[DONE]");
+    }
+}
+
+impl Idt64 {
+    fn add_handlers(&mut self) -> &mut Self {
+        for (i, &h_ptr) in interrupt_handlers.iter()
+            .enumerate()
+            .filter(|&(_, &h_ptr)| h_ptr != ptr::null() ) {
+                unsafe { self.0[i] = Gate64::from_raw(h_ptr) }
+        }
+        self
     }
 }
 
@@ -196,14 +233,16 @@ impl DTable for Idt64 {
 static IDT: Mutex<Idt64>
     = Mutex::new(Idt64([Gate64::absent(); IDT_ENTRIES]));
 
-pub fn initialize() {
-    let mut idt = IDT.lock();
 
+pub unsafe fn initialize() {
+    pics::initialize();
     // TODO: load interrupts into IDT
+    IDT.lock()
+       .add_handlers()
+       .load();                 // Load the IDT pointer
+    println!("Triggering interrupt.");
+    asm!("int $0" :: "N" (0x80));
+    println!("Interrupt returned!");
 
-    unsafe {
-        idt.load();                 // Load the IDT pointer
-        pics::initialize();         // initialize the PICs
-        Idt64::enable_interrupts(); // enable interrupts
-    }
+    Idt64::enable_interrupts(); // enable interrupts
 }

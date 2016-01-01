@@ -199,7 +199,7 @@ impl Terminal {
         if self.y >= Y_MAX {
             // if we've reached the bottom of the terminal, scroll.
             self.scroll();
-            self.y = Y_MAX- 1;
+            self.y -= 1;
         }
         self
     }

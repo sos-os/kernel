@@ -131,15 +131,15 @@ pub extern fn kernel_start(multiboot_addr: usize) {
     // println!( "Heap begins at {:#x} and ends at {:#x}."
     //         , heap_area.base
     //         , heap_area.base + heap_area.length );
-
+    print!("Intializing heap...");
     unsafe { memory::init_heap() };
-    println!( "Initialized heap.\nHeap begins at {:#x} and ends at {:#x}."
+    println!( "[DONE]\nHeap begins at {:#x} and ends at {:#x}."
             , memory::heap_base_addr(), memory::heap_top_addr() );
 
-    let mut a_vec = collections::vec::Vec::<usize>::new();
-    println!( "TEST: Created a vector in kernel space! {:?}", a_vec);
-    a_vec.push(1);
-    println!( "TEST: pushed to vec: {:?}", a_vec);
+    // let mut a_vec = collections::vec::Vec::<usize>::new();
+    // println!( "TEST: Created a vector in kernel space! {:?}", a_vec);
+    // a_vec.push(1);
+    // println!( "TEST: pushed to vec: {:?}", a_vec);
     // a_vec.push(2);
     // println!( "TEST: pushed to vec: {:?}", a_vec);
     //
@@ -153,7 +153,8 @@ pub extern fn kernel_start(multiboot_addr: usize) {
     //     }
     // }
     println!("Intializing interrupts...");
-    cpu::interrupts::initialize();
+    unsafe { cpu::interrupts::initialize(); };
+    println!("Intializing interrupts...\t\t\t[DONE]");
 
     kernel_main()
 }
