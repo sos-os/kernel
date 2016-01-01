@@ -190,6 +190,10 @@ impl Idt for Idt64 {
           , 0x20 => { /* TODO: make this work */ }
             // Keyboard
           , 0x21 => { /* TODO: make this work */ }
+            // Loonix syscall vector
+          , 0x80 => { // TODO: currently, we do nothing here, do we want
+                      // our syscalls on this vector as well?
+            }
           , _ => panic!("Unknown interrupt: #{} Sorry!", id)
         }
         // send the PICs the end interrupt signal
@@ -242,9 +246,9 @@ pub unsafe fn initialize() {
     IDT.lock()
        .add_handlers()
        .load();                 // Load the IDT pointer
-    println!("Triggering test interrupt.");
+    print!("Testing interrupt handling...");
     asm!("int $0" :: "N" (0x80));
-    println!("Test interrupt returned!");
+    println!("   [DONE]");
 
     Idt64::enable_interrupts(); // enable interrupts
 }
