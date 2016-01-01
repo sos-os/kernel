@@ -11,7 +11,7 @@
 use core::fmt;
 use core::fmt::Write;
 
-use super::super::{DTablePtr, DTable};
+use super::super::{DTablePtr, DTable, control_regs};
 use io::term::CONSOLE;
 
 use vga::Color;
@@ -179,6 +179,7 @@ pub trait Idt: Sized {
 
     unsafe fn handle_cpu_exception(state: &Self::Ctx) -> ! {
         let ex_info = state.exception();
+        let cr_state = control_regs::dump();
         write!(CONSOLE.lock()
                       .set_colors(Color::White, Color::Blue)
                       .clear()
@@ -192,10 +193,12 @@ pub trait Idt: Sized {
         // TODO: parse error codes
         match state.int_id() {
             14 => unimplemented!() //TODO: special handling for page faults
-           , _ => write!(
-               CONSOLE.lock()
-                      .set_colors(Color::White, Color::Blue)
-               , "Registers:\n{:?}", state.registers())
+           , _ => write!( CONSOLE.lock()
+                                 .set_colors(Color::White, Color::Blue)
+                        , "Registers:\n{:?}\n    {}\n"
+                        , state.registers()
+                        , cr_state
+                        )
         };
 
         loop { }
