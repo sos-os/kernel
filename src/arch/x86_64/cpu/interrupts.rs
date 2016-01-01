@@ -32,15 +32,15 @@ extern {
 /// State stored when handling an interrupt.
 #[allow(dead_code)]
 #[repr(C, packed)]
-struct InterruptCtx64 {  /// callee-saved registers
-                         registers: Registers
-                       , /// interrupt ID number
-                         int_id:  u32
-                       , __pad_1: u32
-                       , /// error number
-                         err_no:  u32
-                       , __pad_2: u32
-                       }
+pub struct InterruptCtx64 { /// callee-saved registers
+                            pub registers: Registers
+                          , /// interrupt ID number
+                            pub int_id:  u32
+                          , __pad_1: u32
+                          , /// error number
+                            pub err_no:  u32
+                          , __pad_2: u32
+                          }
 
 impl InterruptContext for InterruptCtx64 {
     type Registers = Registers;
@@ -65,25 +65,25 @@ impl InterruptContext for InterruptCtx64 {
 /// Software Developer’s Manual_
 #[repr(C, packed)]
 #[derive(Copy,Clone)]
-struct Gate64 { /// bits 0 - 15 of the offset
-                offset_lower: u16
-              , /// code segment selector (GDT or LDT)
-                selector: segment::Selector
-              , /// always zero
-                zero: u8
-              , /// indicates the gate's type and attributes.
-                /// the second half indicates the type:
-                ///   + `0b1100`: Call gate
-                ///   + `0b1110`: Interrupt gate
-                ///   + `0b1111`: Trap Gate
-                type_attr: GateType
-              , /// bits 16 - 31 of the offset
-                offset_mid: u16
-              , /// bits 32 - 63 of the offset
-                offset_upper: u32
-              , /// always zero (according to the spec, this is "reserved")
-                reserved: u32
-              }
+pub struct Gate64 { /// bits 0 - 15 of the offset
+                    pub offset_lower: u16
+                  , /// code segment selector (GDT or LDT)
+                    pub selector: segment::Selector
+                  , /// always zero
+                    zero: u8
+                  , /// indicates the gate's type and attributes.
+                    /// the second half indicates the type:
+                    ///   + `0b1100`: Call gate
+                    ///   + `0b1110`: Interrupt gate
+                    ///   + `0b1111`: Trap Gate
+                    pub type_attr: GateType
+                  , /// bits 16 - 31 of the offset
+                    pub offset_mid: u16
+                  , /// bits 32 - 63 of the offset
+                    pub offset_upper: u32
+                  , /// always zero (according to the spec, this is "reserved")
+                    reserved: u32
+                  }
 
 impl Gate64 {
     /// Creates a new IDT gate marked as `absent`.

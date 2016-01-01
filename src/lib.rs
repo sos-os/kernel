@@ -45,6 +45,11 @@ pub mod memory;
 use arch::cpu;
 
 /// Kernel main loop
+pub fn kernel_main() {
+    loop { }
+}
+
+/// Kernel initialization function called from ASM
 ///
 /// The kernel main loop expects to be passed the address of a valid
 /// Multiboot 2 info struct. It's the bootloader's responsibility to ensure
@@ -52,7 +57,7 @@ use arch::cpu;
 /// convention (`edi` on x86). If this isn't there, you can expect to have a
 /// bad problem and not go to space today.
 #[no_mangle]
-pub extern fn kernel_main(multiboot_addr: usize) {
+pub extern fn kernel_start(multiboot_addr: usize) {
     io::term::CONSOLE.lock().clear();
 
     println!("Hello from the kernel!");
@@ -147,9 +152,8 @@ pub extern fn kernel_main(multiboot_addr: usize) {
     //         break;
     //     }
     // }
-    // println!("Intializing interrupts...");
-    // cpu::interrupts::initialize()
+    println!("Intializing interrupts...");
+    cpu::interrupts::initialize();
 
-    loop { }
-
+    kernel_main()
 }

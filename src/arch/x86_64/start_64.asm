@@ -1,6 +1,6 @@
 global start_64
 
-extern  kernel_main
+extern  kernel_start
 
 section .text
 bits 64
@@ -10,7 +10,7 @@ start_64:
     call    set_SSE
 
     ; call into kernel main function
-    call    kernel_main
+    call    kernel_start
 
 .os_returned:
     ; rust main returned, print `OS returned!`
