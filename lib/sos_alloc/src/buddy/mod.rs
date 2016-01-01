@@ -33,6 +33,7 @@ pub struct FreeList<'a> {
 impl<'a> FreeList<'a> {
 
     /// Create a new empty `FreeList`
+    ///
     pub const fn new() -> FreeList<'a> {
         FreeList { head: None, length: 0 }
     }
@@ -322,8 +323,7 @@ impl<'a> BuddyHeapAllocator<'a> {
     }
 
     pub unsafe fn get_buddy(&self, order: usize, block: *mut u8)
-                            -> Option<*mut u8>
-    {
+                            -> Option<*mut u8> {
         // Determine the size of the block allocated for the given order
         let block_size = self.order_alloc_size(order);
         if block_size < self.heap_size {
@@ -363,6 +363,7 @@ impl<'a> Allocator for BuddyHeapAllocator<'a> {
             .and_then(|min_order| {
                 // Starting at the minimum possible order...
                 // TODO: this is ugly and not FP, rewrite.
+                // println!("TRACE(366): min alloc order is {}", min_order);
                 let mut result = None;
                 for order in min_order..self.free_lists.len() {
                     if let Some(block) = self.free_lists[order].pop() {

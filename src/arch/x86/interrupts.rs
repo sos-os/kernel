@@ -39,7 +39,7 @@ struct Gate32 { /// bits 0 - 15 of the offset
               ///   + `0b1100`: Call gate
               ///   + `0b1110`: Interrupt gate
               ///   + `0b1111`: Trap Gate
-              type_attr: u8
+              type_attr: GateType
             , /// bits 16 - 31 of the offset
               offset_upper: u16
             }
@@ -53,7 +53,7 @@ impl Gate32 {
         Gate32 { offset_lower: 0
                , selector: 0
                , zero: 0
-               , type_attr: 0b0000_1110
+               , type_attr: GateType::Absent
                , offset_upper: 0
                }
     }
@@ -71,7 +71,7 @@ impl Gate for Gate32 {
             Gate32 { offset_lower: low
                    , selector: gdt32_offset
                    , zero: 0
-                   , type_attr: 0b1000_1110
+                   , type_attr: GateType::Interrupt
                    , offset_mid: mid
                    , offset_upper: high
                    , reserved: 0

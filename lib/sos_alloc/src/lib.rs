@@ -33,6 +33,7 @@
 
 #[cfg(feature = "multiboot")] extern crate sos_multiboot2 as multiboot;
 #[cfg(feature = "buddy_as_system")] extern crate spin;
+#[cfg(feature = "trace")] #[macro_use] extern crate sos_vga;
 
 use core::ptr;
 use core::cmp::min;

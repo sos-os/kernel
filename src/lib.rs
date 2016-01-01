@@ -14,23 +14,27 @@
 
 #![crate_name = "sos_kernel"]
 #![crate_type = "staticlib"]
-#![feature(asm)]
 #![feature( no_std
-          , lang_items)]
+          , lang_items
+          , asm )]
 #![feature( const_fn
           , core_slice_ext
           , slice_patterns
           , iter_cmp
           )]
+#![feature(collections)]
+
 #![no_std]
 
-#[macro_use] extern crate sos_vga as vga;
-#[macro_use] extern crate bitflags;
+extern crate collections;
 extern crate rlibc;
 extern crate spin;
+
 extern crate sos_multiboot2 as multiboot;
 extern crate sos_alloc as alloc;
 
+#[macro_use] extern crate sos_vga as vga;
+#[macro_use] extern crate bitflags;
 
 pub mod arch;
 #[macro_use] pub mod io;
@@ -127,6 +131,13 @@ pub extern fn kernel_main(multiboot_addr: usize) {
     println!( "Initialized heap.\nHeap begins at {:#x} and ends at {:#x}."
             , memory::heap_base_addr(), memory::heap_top_addr() );
 
+    let mut a_vec = collections::vec::Vec::<usize>::new();
+    println!( "TEST: Created a vector in kernel space! {:?}", a_vec);
+    a_vec.push(1);
+    println!( "TEST: pushed to vec: {:?}", a_vec);
+    // a_vec.push(2);
+    // println!( "TEST: pushed to vec: {:?}", a_vec);
+    //
 
     // println!( "Created initial allocator." );
 

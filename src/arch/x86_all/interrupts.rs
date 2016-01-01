@@ -20,7 +20,7 @@ pub const IDT_ENTRIES: usize = 256;
 /// Bit-and this with the attribute half-byte to produce the
 /// `type_attr` field for a `Gate`
 #[repr(u8)]
-#[derive(Debug)]
+#[derive(Copy,Clone,Debug)]
 pub enum GateType { Absent    = 0b0000_0000
                   , Interrupt = 0b1000_1110
                   , Call      = 0b1000_1100
@@ -36,12 +36,12 @@ impl fmt::Display for GateType {
                    }
     }
 }
-
-#[derive(Debug)]
-pub struct ExceptionDescr { pub description: &'static str
-                          , pub mnemonic: &'static str
-                        //   , pub
-}
+//
+// #[derive(Debug)]
+// pub struct ExceptionDescr { pub description: &'static str
+//                           , pub mnemonic: &'static str
+//                         //   , pub
+// }
 
 
 /// x86 exceptions.
@@ -126,10 +126,12 @@ pub trait Idt: Sized {
         asm!("sti" :::: "volatile")
     }
 
+    /// Disable interrupts
     fn disable_interrupts() {
         unsafe { asm!("cli" :::: "volatile"); }
     }
 
+    // Add a new interrupt gate pointing to the given handler
     fn add_gate(&mut self, idx: usize, handler: Handler);
 
     fn handle_cpu_exception(state: &Self::Ctx)  {
@@ -139,7 +141,7 @@ pub trait Idt: Sized {
             panic!( "CPU EXCEPTION {:#04x}: {}"
                   , state.err_no()
                   , state.exception() );
-              }
+        }
     }
 
     extern "C" fn handle_interrupt(state: &Self::Ctx);

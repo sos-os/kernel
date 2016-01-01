@@ -76,7 +76,7 @@ struct Gate64 { /// bits 0 - 15 of the offset
                 ///   + `0b1100`: Call gate
                 ///   + `0b1110`: Interrupt gate
                 ///   + `0b1111`: Trap Gate
-                type_attr: u8
+                type_attr: GateType
               , /// bits 16 - 31 of the offset
                 offset_mid: u16
               , /// bits 32 - 63 of the offset
@@ -92,13 +92,16 @@ impl Gate64 {
     /// with valid (but useless) gates upon init.
     ///
     /// This would be in the `Gate` trait, but this has to be a `const fn` so
-    /// that it can be used in static initializers, and trait functions cannot
+    /// that it can be usedm in static initializers, and trait functions cannot
     /// be `const`.
+    ///
+    /// Actually triggering an absent interrupt will send a General Protection
+    /// fault (13).
     const fn absent() -> Self {
         Gate64 { offset_lower: 0
                , selector: segment::Selector::from_raw(0)
                , zero: 0
-               , type_attr: GateType::Absent as u8
+               , type_attr: GateType::Absent
                , offset_mid: 0
                , offset_upper: 0
                , reserved: 0
@@ -123,7 +126,7 @@ impl Gate for Gate64 {
                    , zero: 0
                    // Bit 7 is the present bit
                    // Bits 4-0 indicate this is an interrupt gate
-                   , type_attr: GateType::Interrupt as u8
+                   , type_attr: GateType::Interrupt
                    , offset_mid: mid
                    , offset_upper: high
                    , reserved: 0
