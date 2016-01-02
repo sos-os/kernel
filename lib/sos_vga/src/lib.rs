@@ -146,24 +146,27 @@ impl Terminal {
 
     /// Scrolls the terminal one row.
     fn scroll(&mut self) {
-        // construct an iterator over the whole buffer
-        let mut rows = self.buffer()
-                           .iter_mut();
-
-        // the current row in the buffer
-        let mut current = rows.next()
-                           .unwrap();
-
-        while let Some(next) = rows.next() {
-            // while there are rows remaining in the iterator, swap the
-            // next row with the current one (moving it back by one)
-            mem::swap(current, next);
-            // and advance our pointer to the current row.
-            current = next;
+        // // construct an iterator over the whole buffer
+        // let mut rows = self.buffer()
+        //                    .iter_mut();
+        //
+        // // the current row in the buffer
+        // let mut current = rows.next()
+        //                    .unwrap();
+        //
+        // while let Some(next) = rows.next() {
+        //     // while there are rows remaining in the iterator, swap the
+        //     // next row with the current one (moving it back by one)
+        //     mem::swap(current, next);
+        //     // and advance our pointer to the current row.
+        //     current = next;
+        // }
+        let buffer: &mut _ = self.buffer();
+        for row in 1..Y_MAX {
+            buffer[row - 1] = buffer[row];
         }
-
         // empty the last line in the buffer
-        unsafe { *current = mem::zeroed() }
+        unsafe { buffer[Y_MAX - 1] = mem::zeroed() }
     }
 
     /// Clear the terminal

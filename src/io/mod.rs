@@ -8,6 +8,7 @@
 //
 
 pub mod term;
+pub mod keyboard;
 use core::ops;
 use core::fmt;
 
