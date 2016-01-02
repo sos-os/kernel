@@ -11,7 +11,7 @@
 use core::fmt;
 use core::fmt::Write;
 
-use super::super::{DTablePtr, DTable, control_regs};
+use super::super::{DTablePtr, control_regs};
 use io::term::CONSOLE;
 
 use vga::Color;

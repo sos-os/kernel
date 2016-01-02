@@ -20,7 +20,6 @@
 //! used by CPU exceptions. Therefore, we must remap the PIC vectors so that
 //! PIC1 starts at 32 and PIC2 at 40.
 
-use ::io::Write;
 use super::super::Port;
 use spin::Mutex;
 use core::mem::transmute;
@@ -130,13 +129,13 @@ impl PIC {
     }
 
     #[inline]
-    fn read_ISR(&self) -> u8 {
+    fn read_isr(&self) -> u8 {
         self.send_command(Command::ReadISR);
         unsafe { self.data_port.in8() }
     }
 
     #[inline]
-    fn read_IRR(&self) -> u8 {
+    fn read_irr(&self) -> u8 {
         self.send_command(Command::ReadIRR);
         unsafe { self.data_port.in8() }
     }
@@ -156,6 +155,7 @@ impl IRQHandler for PIC {
         self.offset <= (irq as u8) && (irq as u8) < self.offset + 8
     }
 
+    #[allow(unused_must_use)]
     fn end_interrupt(&self, irq: IRQ) {
         self.send_command(Command::EndIRQ)
     }
@@ -174,8 +174,8 @@ impl BothPICs {
     /// Initialize the system's PICs.
     pub unsafe fn initialize(&mut self) {
         print!("Initializing PICs...");
-        let mut wait_port = Port::new(0x80);
-        let mut wait = || { wait_port.out8(0); };
+        let wait_port = Port::new(0x80);
+        let wait = || { wait_port.out8(0); };
         // helper macro to avoid writing repetitive code
         macro_rules! send {
             (pic0 => $data:expr) => {
