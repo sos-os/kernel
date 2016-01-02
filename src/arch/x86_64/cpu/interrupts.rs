@@ -246,9 +246,9 @@ pub unsafe fn initialize() {
     IDT.lock()
        .add_handlers()
        .load();                 // Load the IDT pointer
-    print!("Testing interrupt handling...");
-    asm!("int $0" :: "N" (0x80));
-    println!("   [DONE]");
+    // print!("Testing interrupt handling...");
+    // asm!("int $0" :: "N" (0x80));
+    // println!("   [DONE]");
 
     Idt64::enable_interrupts(); // enable interrupts
 }
