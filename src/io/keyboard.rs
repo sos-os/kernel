@@ -23,11 +23,39 @@ bitflags! {
 }
 
 impl Modifiers {
+    /// Returns true if either shift key is pressed.
     #[inline] fn is_shifted(&self) -> bool {
         self.intersects(SHIFT)
     }
 
+    /// Returns true if the keyboard's state is currently uppercase.
     #[inline] fn is_uppercase(&self) -> bool {
         self.is_shifted() ^ self.contains(CAPSLOCK)
+    }
+
+    /// Updates the modifiers state from a given scancode.
+    fn update(&mut self, scancode: u8) {
+        match scancode { 0x1D => self.insert(L_CTRL)
+                       , 0x2A => self.insert(L_SHIFT)
+                       , 0x36 => self.insert(R_SHIFT)
+                       , 0x38 => self.insert(L_ALT)
+                         // Caps lock toggles on leading edge
+                       , 0x3A => self.toggle(CAPSLOCK)
+                       , 0x9D => self.remove(L_CTRL)
+                       , 0xAA => self.remove(L_SHIFT)
+                       , 0xB6 => self.remove(R_SHIFT)
+                       , 0xB8 => self.remove(L_ALT)
+                       , _    => {}
+        }
+    }
+
+    /// Apply the keyboard's modifiers to an ASCII scancode.
+    fn apply_to_ascii(&self, ascii: u8) -> u8 {
+        match ascii {
+            b'a' ... b'z' if self.is_uppercase() => ascii - b'a' + b'A'
+          , b'1' ... b'9' if self.is_shifted()   => ascii - b'1' + b'!'
+          , b'0' if self.is_shifted()            => b')'
+          , _ => ascii
+        }
     }
 }
