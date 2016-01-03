@@ -9,3 +9,4 @@
 //! x86_64 architecture-specific implementation.
 pub mod cpu;
 pub mod drivers;
+pub mod memory;

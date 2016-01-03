@@ -6,9 +6,13 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-pub mod addr;
-pub use self::addr::*;
+
 use alloc::buddy;
+pub use arch::memory::PAddr;
+
+/// A virtual address is a machine-sized unsigned integer
+pub type VAddr = usize;
+
 
 extern {
     static mut HEAP_BASE: u8;

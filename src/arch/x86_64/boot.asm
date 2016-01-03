@@ -76,11 +76,16 @@ err:
 ;   - the first PDP entry -> PD
 ;   - each PD entry to its own 2mB page
 create_page_tables:
+    ; recursive map last entry in PML4
+    mov         eax, pml4_table
+    or          eax, 0b11
+    mov         [pml4_table + 511 * 8], eax
+
     page_map    pml4_table, pdp_table   ; map first PML4 entry to PDP table
     page_map    pdp_table,  pd_table    ; map first PDP entry to PD table
 
     ; map each PD table entry to its own 2mB page
-    mov     ecx, 0
+    mov         ecx, 0
 
 .pd_table_map:
     mov     eax, 0x200000   ; 2 mB
