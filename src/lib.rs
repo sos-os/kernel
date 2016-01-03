@@ -18,12 +18,9 @@
           , lang_items
           , asm )]
 #![feature( const_fn
-          , core_slice_ext
           , slice_patterns
-          , iter_cmp
           )]
 #![feature(collections)]
-
 #![no_std]
 
 extern crate collections;
@@ -37,10 +34,11 @@ extern crate sos_alloc as alloc;
 #[macro_use] extern crate bitflags;
 
 pub mod arch;
-#[macro_use] pub mod io;
 pub mod util;
 pub mod panic;
 pub mod memory;
+
+#[macro_use] pub mod io;
 
 use arch::cpu;
 
@@ -124,7 +122,7 @@ pub extern fn kernel_start(multiboot_addr: usize) {
         println!( "[DONE]\nHeap begins at {:#x} and ends at {:#x}."
                 , memory::heap_base_addr(), memory::heap_top_addr() );
     };
-     
+
     // let mut a_vec = collections::vec::Vec::<usize>::new();
     // println!( "TEST: Created a vector in kernel space! {:?}", a_vec);
     // a_vec.push(1);
