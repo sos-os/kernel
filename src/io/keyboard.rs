@@ -19,6 +19,7 @@ bitflags! {
                         , const L_ALT    = 0b0000_0100
                         , const ALT      = L_ALT.bits | R_ALT.bits
                         , const CAPSLOCK = 0b0000_0010
+                        , const NUMLOCK  = 0b0000_0001
                         }
 }
 
@@ -50,7 +51,7 @@ impl Modifiers {
     }
 
     /// Apply the keyboard's modifiers to an ASCII scancode.
-    fn apply_to_ascii(&self, ascii: u8) -> u8 {
+    fn modify(&self, ascii: u8) -> u8 {
         match ascii {
             b'a' ... b'z' if self.is_uppercase() => ascii - b'a' + b'A'
           , b'1' ... b'9' if self.is_shifted()   => ascii - b'1' + b'!'
