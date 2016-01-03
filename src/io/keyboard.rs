@@ -7,6 +7,17 @@
 //  directory of this repository for more information.
 //
 //! PS/2 keyboard driver
+use arch::cpu::Port;
+
+/// A PS/2 keyboard state
+pub struct Keyboard { /// Port for reading data from the keyboard
+                      data_port: Port
+                    , /// Port for sending control signals to the keyboard
+                      control_port: Port
+                    , /// The keyboard's modifier keys
+                      pub state: Modifiers
+                    }
+
 
 bitflags! {
     flags Modifiers: u8 { const L_SHIFT  = 0b1000_0000
