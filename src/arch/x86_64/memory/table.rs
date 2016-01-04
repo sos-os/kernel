@@ -84,8 +84,13 @@ pub struct Entry(u64);
 
 bitflags! {
     flags EntryFlags: u64 {
-        const PRESENT =         1 << 0
-      , const WRITABLE =        1 << 1
+        /// Present flag.
+        /// Must be 1 to map a 2-MByte page or reference a page table.
+        const PRESENT =         1 << 0,
+        /// Writable flag.
+        /// If 0, writes may not be allowed to the 2-MB region controlled
+        /// by this entry
+        const WRITABLE =        1 << 1
       , const USER_ACCESSIBLE = 1 << 2
       , const WRITE_THROUGH =   1 << 3
       , const NO_CACHE =        1 << 4

@@ -79,7 +79,7 @@ impl Modifiers {
 
     /// Returns true if either shift key is pressed.
     #[inline] pub fn is_shifted(&self) -> bool {
-        self.intersects(SHIFT)
+        self.contains(SHIFT)
     }
 
     /// Returns true if the keyboard's state is currently uppercase.

@@ -33,17 +33,17 @@ bitflags! {
                           const RPL_RING_0 = 0b00
                         , const RPL_RING_1 = 0b01
                         , const RPL_RING_2 = 0b10
-                        , const RPL_RING_3 = 0b11
+                        , const RPL_RING_3 = 0b11,
                           /// Requested Prrivelege Level (RPL)
-                        , const RPL = RPL_RING_0.bits
+                          const RPL = RPL_RING_0.bits
                            | RPL_RING_1.bits
                            | RPL_RING_2.bits
-                           | RPL_RING_3.bits
+                           | RPL_RING_3.bits,
 
-                        , /// If the Table Indicator (TI) is 0, use the GDT
-                          const TI_GDT = 0 << 3
+                          /// If the Table Indicator (TI) is 0, use the GDT
+                          const TI_GDT = 0 << 3,
                           /// If the TI is 1, use the LDT
-                        , const TI_LDT = 1 << 3
+                          const TI_LDT = 1 << 3,
                         }
 }
 
@@ -70,39 +70,44 @@ impl Selector {
     pub unsafe fn load_ss(&self) {
         asm!(  "mov ss, $0"
             :: "r"(self.bits)
-            :  "memory", "intel");
+            :  "memory"
+            :  "intel");
     }
 
     /// Load this selector into the data segment register.
     pub unsafe fn load_ds(&self) {
         asm!(  "mov ds, $0"
             :: "r"(self.bits)
-            :  "memory", "intel");
+            :  "memory"
+            :  "intel");
     }
 
     /// Load this selector into the es segment register.
     pub unsafe fn load_es(&self) {
         asm!(  "mov es, $0"
             :: "r"(self.bits)
-            :  "memory", "intel");
+            :  "memory"
+            :  "intel");
     }
 
     /// Load this selector into the fs segment register.
     pub unsafe fn load_fs(&self) {
         asm!(  "mov fs, $0"
             :: "r"(self.bits)
-            :  "memory", "intel");
+            :  "memory"
+            :  "intel");
     }
 
     /// Load this selector into the gs segment register.
     pub unsafe fn load_gs(&self) {
         asm!(  "mov gs, $0"
             :: "r"(self.bits)
-            :  "memory", "intel");
+            :  "memory"
+            :  "intel");
     }
 }
 
-impl fmt::Debug for Selector {
+impl fmt::Display for Selector {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // TODO: this could be much less ugly.
         let ring = if self.contains(RPL_RING_0) { "0" }
