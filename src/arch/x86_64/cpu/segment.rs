@@ -50,8 +50,8 @@ bitflags! {
 impl Selector {
     /// Create a new `Selector`
     ///
-    /// # Arguments
-    ///     - `index`: the index in the GDT or LDT
+    /// # Arguments:
+    ///   - `index`: the index in the GDT or LDT
     pub const fn new(index: u16) -> Self {
         Selector { bits: index << 3 }
     }
