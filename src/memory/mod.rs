@@ -8,9 +8,41 @@
 //
 use alloc::buddy;
 pub use arch::memory::PAddr;
-pub mod vaddr;
-pub use self::vaddr::VAddr;
+pub mod vaddr_impls;
+pub use self::vaddr_impls::*;
 
+/// A virtual address is a machine-sized unsigned integer
+#[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub struct VAddr(usize);
+
+impl VAddr {
+    #[inline] pub const fn from_usize(u: usize) -> Self {
+        VAddr(u)
+    }
+    #[inline] pub const fn as_usize(&self) -> usize {
+        self.0
+    }
+
+    /// Calculate the index in the PML4 table corresponding to this address.
+    #[inline] pub fn pml4_index(&self) -> usize {
+        (self >> 39) & 0b111111111
+    }
+
+    /// Calculate the index in the PDPT table corresponding to this address.
+    #[inline] pub fn pdpt_index(&self) -> usize {
+        (self >> 30) & 0b111111111
+    }
+
+    /// Calculate the index in the PD table corresponding to this address.
+    #[inline] pub fn pd_index(&self) -> usize {
+        (self >> 21) & 0b111111111
+    }
+
+    /// Calculate the index in the PT table corresponding to this address.
+    #[inline] pub fn pt_index(&self) -> usize {
+        (self >> 12) & 0b111111111
+    }
+}
 
 extern {
     static mut HEAP_BASE: u8;

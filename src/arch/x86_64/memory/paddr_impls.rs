@@ -6,23 +6,12 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-//! Type representing physical addresses.
+//! Trait implementations for `PAddr`.
 
 use core::fmt;
 use core::ops;
 
-/// A physical (linear) memory address is a 64-bit unsigned integer
-#[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct PAddr(u64);
-
-impl PAddr {
-    #[inline] pub const fn from_u64(u: u64) -> Self {
-        PAddr(u)
-    }
-    #[inline] pub const fn as_u64(&self) -> u64 {
-        self.0
-    }
-}
+use super::PAddr;
 
 macro_rules! forward_ref_binop {
     (impl $imp:ident, $method:ident for $t:ty, $u:ty) => {

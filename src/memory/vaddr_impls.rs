@@ -6,43 +6,12 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-//! Type representing virtual addresses.
+//! Trait implementations for `VAddr`
 
 use core::fmt;
 use core::ops;
 
-/// A virtual address is a machine-sized unsigned integer
-#[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct VAddr(usize);
-
-impl VAddr {
-    #[inline] pub const fn from_usize(u: usize) -> Self {
-        VAddr(u)
-    }
-    #[inline] pub const fn as_usize(&self) -> usize {
-        self.0
-    }
-
-    /// Calculate the index in the PML4 table corresponding to this address.
-    #[inline] pub fn pml4_index(&self) -> usize {
-        (self >> 39) & 0b111111111
-    }
-
-    /// Calculate the index in the PDPT table corresponding to this address.
-    #[inline] pub fn pdpt_index(&self) -> usize {
-        (self >> 30) & 0b111111111
-    }
-
-    /// Calculate the index in the PD table corresponding to this address.
-    #[inline] pub fn pd_index(&self) -> usize {
-        (self >> 21) & 0b111111111
-    }
-
-    /// Calculate the index in the PT table corresponding to this address.
-    #[inline] pub fn pt_index(&self) -> usize {
-        (self >> 12) & 0b111111111
-    }
-}
+use super::VAddr;
 
 macro_rules! forward_ref_binop {
     (impl $imp:ident, $method:ident for $t:ty, $u:ty) => {

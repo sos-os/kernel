@@ -1,11 +1,24 @@
 use ::memory::VAddr;
 use alloc::PAGE_SIZE;
 
-pub mod paddr;
-pub use self::paddr::PAddr;
+pub mod paddr_impls;
+pub use self::paddr_impls::*;
 
 pub mod table;
 pub use self::table::{Table, PML4};
+
+/// A physical (linear) memory address is a 64-bit unsigned integer
+#[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub struct PAddr(u64);
+
+impl PAddr {
+    #[inline] pub const fn from_u64(u: u64) -> Self {
+        PAddr(u)
+    }
+    #[inline] pub const fn as_u64(&self) -> u64 {
+        self.0
+    }
+}
 
 pub struct Page { pub number: usize }
 
