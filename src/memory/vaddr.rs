@@ -44,35 +44,6 @@ impl VAddr {
     }
 }
 
-impl fmt::Binary for VAddr {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.0.fmt(f)
-    }
-}
-
-impl fmt::Display for VAddr {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.0.fmt(f)
-    }
-}
-
-impl fmt::LowerHex for VAddr {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.0.fmt(f)
-    }
-}
-
-impl fmt::Octal for VAddr {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.0.fmt(f)
-    }
-}
-
-impl fmt::UpperHex for VAddr {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.0.fmt(f)
-    }
-}
 macro_rules! forward_ref_binop {
     (impl $imp:ident, $method:ident for $t:ty, $u:ty) => {
         impl<'a> ops::$imp<$u> for &'a $t {
@@ -128,7 +99,7 @@ macro_rules! impl_ops {
     )*}
 }
 macro_rules! impl_fmt {
-    ($($name:ident),*) => {$(
+    ($(impl $name:ident for VAddr)*) => {$(
         impl fmt::$name for VAddr {
             fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
                 self.0.fmt(f)
@@ -147,6 +118,13 @@ impl_ops! {
     impl Shr, shr, << for VAddr
 }
 
+impl_fmt! {
+    impl Binary for VAddr
+    impl Display for VAddr
+    impl Octal for VAddr
+    impl LowerHex for VAddr
+    impl UpperHex for VAddr
+}
 
 impl ops::BitAnd<usize> for VAddr {
     type Output = usize;
