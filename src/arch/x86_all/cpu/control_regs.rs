@@ -39,6 +39,12 @@ pub fn dump() -> CrState {
 
 }
 
+/// Set the write protect bit in `cr0`.
+pub fn set_write_protect() {
+    let wp_bit = 1 << 16;
+    unsafe { cr0_write(cr0_read() | wp_bit) };
+}
+
 /// `cr0` contains flags that control the CPU's operations
 pub unsafe fn cr0_read() -> usize {
     let result: usize;
