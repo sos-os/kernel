@@ -158,7 +158,6 @@ impl Gate for Gate64 {
 struct Idt64([Gate64; IDT_ENTRIES]);
 
 impl Idt for Idt64 {
-    // type Ptr = IdtPtr<Self>;
     type Ctx = InterruptCtx64;
     type GateSize = Gate64;
     type PtrSize = u64;
@@ -169,13 +168,6 @@ impl Idt for Idt64 {
                   , base: &self.0[0] as *const Gate64 as u64
                   }
     }
-
-    /// Get the IDT pointer struct to pass to `lidt`
-    // fn get_ptr(&self) -> DTablePtr<Self> {
-    //     IdtPtr { limit: (mem::size_of::<Gate64>() * IDT_ENTRIES) as u16
-    //            , base:  self as *const Idt64
-    //            }
-    // }
 
     /// Add an entry for the given handler at the given index
     fn add_gate(&mut self, index: usize, handler: Handler) {
@@ -236,16 +228,6 @@ impl Idt64 {
     }
 }
 
-// impl IdtPtrOps for IdtPtr<Idt64> {
-//     /// Load the IDT at the given location.
-//     /// This just calls `lidt`.
-//     unsafe fn load(&self) {
-//         asm!(  "lidt ($0)"
-//             :: "{rax}"(self)
-//             :: "volatile" );
-//     }
-// }
-
 /// Global Interrupt Descriptor Table instance
 /// Our global IDT.
 static IDT: Mutex<Idt64>
@@ -254,7 +236,6 @@ static IDT: Mutex<Idt64>
 
 pub unsafe fn initialize() {
     pics::initialize();
-    // TODO: load interrupts into IDT
     IDT.lock()
        .add_handlers()
        .load();                 // Load the IDT pointer
