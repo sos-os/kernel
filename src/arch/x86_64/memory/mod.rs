@@ -1,7 +1,8 @@
-use core::fmt;
-
 use ::memory::VAddr;
 use alloc::PAGE_SIZE;
+
+pub mod paddr;
+pub use self::paddr::PAddr;
 
 pub mod table;
 pub use self::table::{Table, PML4};
@@ -19,48 +20,5 @@ impl Page {
     /// Return the start virtual address of this page
     pub fn start_addr(&self) -> VAddr {
         VAddr::from_usize(self.number * PAGE_SIZE)
-    }
-}
-
-/// A physical (linear) memory address is a 64-bit unsigned integer
-#[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct PAddr(u64);
-
-impl PAddr {
-    #[inline] pub const fn from_u64(u: u64) -> Self {
-        PAddr(u)
-    }
-    #[inline] pub const fn as_u64(&self) -> u64 {
-        self.0
-    }
-}
-
-impl fmt::Binary for PAddr {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.0.fmt(f)
-    }
-}
-
-impl fmt::Display for PAddr {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.0.fmt(f)
-    }
-}
-
-impl fmt::LowerHex for PAddr {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.0.fmt(f)
-    }
-}
-
-impl fmt::Octal for PAddr {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.0.fmt(f)
-    }
-}
-
-impl fmt::UpperHex for PAddr {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.0.fmt(f)
     }
 }
