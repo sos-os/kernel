@@ -305,6 +305,8 @@ impl<'a> BuddyHeapAllocator<'a> {
     /// Splits a block
     unsafe fn split_block( &mut self, block: *mut u8
                          , order: usize, new_order: usize ) {
+        trace!("split_block() was called, target order: {}.", new_order);
+
         assert!( new_order < order
                , "Cannot split a block larger than its current order!");
         assert!( order <= self.free_lists.len()
@@ -318,9 +320,11 @@ impl<'a> BuddyHeapAllocator<'a> {
             curr_order -= 1;
 
             self.free_lists[curr_order]
-                .push(block.offset(split_size as isize))
-        }
+                .push(block.offset(split_size as isize));
 
+            trace!( "split block successfully, order: {}, split size: {}"
+                  , curr_order, split_size );
+        }
     }
 
     pub unsafe fn get_buddy(&self, order: usize, block: *mut u8)
@@ -368,11 +372,16 @@ impl<'a> Allocator for BuddyHeapAllocator<'a> {
                 // TODO: this is ugly and not FP, rewrite.
                 let mut result = None;
                 for order in min_order..self.free_lists.len() {
-                    trace!("in allocate(): current order is {}", order);
+                    // trace!("in allocate(): current order is {}", order);
                     if let Some(block) = self.free_lists[order].pop() {
                         trace!( "in allocate(): found block");
                         if order > min_order {
+                            trace!( "in allocate(): order {} is less than \
+                                     minimum ({}), splitting."
+                                  , order, min_order);
                             self.split_block(block, order, min_order);
+                            trace!("in allocate(): split_block() done");
+
                         }
                         result = Some(block); break;
                     }
