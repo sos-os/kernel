@@ -12,8 +12,11 @@
 //! Software Developer’s Manual_ for more information.
 use core::mem;
 use core::ptr;
+
 use spin::Mutex;
+
 use super::{Registers, DTable, DTablePtr, segment};
+use io::keyboard;
 
 #[path = "../../x86_all/interrupts.rs"] mod interrupts_all;
 #[path = "../../x86_all/pics.rs"] pub mod pics;
@@ -189,7 +192,16 @@ impl Idt for Idt64 {
             // System timer
           , 0x20 => { /* TODO: make this work */ }
             // Keyboard
-          , 0x21 => { /* TODO: make this work */ }
+          , 0x21 => {
+              // TODO: dispatch keypress event to subscribers (NYI)
+                if let Some(input) = keyboard::read_char() {
+                    if input == '\r' {
+                        println!("");
+                    } else {
+                        print!("{}", input);
+                    }
+                }
+            }
             // Loonix syscall vector
           , 0x80 => { // TODO: currently, we do nothing here, do we want
                       // our syscalls on this vector as well?
