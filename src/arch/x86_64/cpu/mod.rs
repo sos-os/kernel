@@ -15,7 +15,6 @@
 #[path = "../../x86_all/cpu/mod.rs"] mod cpu_all;
 
 pub mod interrupts;
-pub mod paging;
 pub mod context;
 pub mod segment;
 
