@@ -11,12 +11,14 @@ static ALLOC: Mutex<Option<BuddyHeapAllocator<'static>>>
 pub unsafe fn init_heap( start_addr: *mut u8
                        , free_lists: &'static mut [FreeList<'static>]
                        , heap_size: usize ) {
+    trace!("init_heap() was called.");
     *(ALLOC.lock())
         = Some(BuddyHeapAllocator::new(start_addr, free_lists, heap_size));
 }
 
 #[no_mangle]
 pub extern "C" fn __rust_allocate(size: usize, align: usize) -> *mut u8 {
+    trace!("__rust_allocate() was called.");
     unsafe {
         ALLOC.lock().as_mut()
              .expect("Cannot allocate memory, no system allocator exists!")

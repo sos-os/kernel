@@ -287,12 +287,13 @@ impl<'a> BuddyHeapAllocator<'a> {
     /// allocation.
     #[inline]
     pub fn alloc_order(&self, size: usize, align: usize) -> Option<usize> {
+        trace!("TRACE: alloc_order() called");
         self.alloc_size(size, align)
-            .map(|s| // the order of the allocation is the base-2 log of the
-                     // allocation size minus the base-2 log of the minimum
-                     // block size
-                s.log2() - self.min_block_size.log2() // TODO: cache this?
-            )
+            .map(|s| {
+                trace!("TRACE in alloc_order(): alloc_size() returned {}"
+                        , s);
+                s.log2() - self.min_block_size.log2()
+            })
     }
 
     /// Computes the size  allocated for a request of the given order.
@@ -356,17 +357,20 @@ impl<'a> Allocator for BuddyHeapAllocator<'a> {
     ///     invalid.
     unsafe fn allocate(&mut self, size: usize, align: usize)
                        -> Option<*mut u8> {
+        trace!("allocate() was called!");
         // First, compute the allocation order for this request
         self.alloc_order(size, align)
             // If the allocation order is defined, then we try to allocate
             // a block of that order. Otherwise, the request is invalid.
             .and_then(|min_order| {
+                trace!("in allocate(): min alloc order is {}", min_order);
                 // Starting at the minimum possible order...
                 // TODO: this is ugly and not FP, rewrite.
-                // println!("TRACE(366): min alloc order is {}", min_order);
                 let mut result = None;
                 for order in min_order..self.free_lists.len() {
+                    trace!("in allocate(): current order is {}", order);
                     if let Some(block) = self.free_lists[order].pop() {
+                        trace!( "in allocate(): found block");
                         if order > min_order {
                             self.split_block(block, order, min_order);
                         }

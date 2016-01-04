@@ -6,6 +6,7 @@ authors = ["Hawk Weisman <hi@hawkweisman.me>"]
 [features]
 default = ["simple", "buddy"]
 simple = ["multiboot"]
+trace = ["sos_vga"]
 buddy = []
 as_system = []
 buddy_as_system = ["spin", "as_system"]
@@ -14,3 +15,4 @@ multiboot = ["sos_multiboot2"]
 [dependencies]
 sos_multiboot2 = { path = "../sos_multiboot2", optional = true }
 spin = { version = "*", optional = true }
+sos_vga = { path = "../sos_vga", features = ["system_term"], optional = true }

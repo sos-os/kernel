@@ -35,8 +35,23 @@
 #[cfg(feature = "buddy_as_system")] extern crate spin;
 #[cfg(feature = "trace")] #[macro_use] extern crate sos_vga;
 
+#[cfg(test)] #[macro_use] extern crate std;
+
 use core::ptr;
 use core::cmp::min;
+
+#[cfg(feature = "trace")]
+macro_rules! trace {
+    ($fmt:expr) => (print!(concat!("ALLOC_TRACE: ", $fmt, "\n")));
+    ($fmt:expr, $($arg:tt)*) => (print!(concat!("ALLOC_TRACE: ", $fmt, "\n"), $($arg)*));
+
+}
+
+#[cfg(not(feature = "trace"))]
+macro_rules! trace {
+    ($fmt:expr) => ();
+    ($fmt:expr, $($arg:tt)*) => ();
+}
 
 pub const PAGE_SIZE: usize = 4096;
 
