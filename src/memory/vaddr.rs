@@ -25,22 +25,22 @@ impl VAddr {
 
     /// Calculate the index in the PML4 table corresponding to this address.
     #[inline] pub fn pml4_index(&self) -> usize {
-        (*self >> 39) & 0b111111111
+        (self >> 39) & 0b111111111
     }
 
     /// Calculate the index in the PDPT table corresponding to this address.
     #[inline] pub fn pdpt_index(&self) -> usize {
-        (*self >> 30) & 0b111111111
+        (self >> 30) & 0b111111111
     }
 
     /// Calculate the index in the PD table corresponding to this address.
     #[inline] pub fn pd_index(&self) -> usize {
-        (*self >> 21) & 0b111111111
+        (self >> 21) & 0b111111111
     }
 
     /// Calculate the index in the PT table corresponding to this address.
     #[inline] pub fn pt_index(&self) -> usize {
-        (*self >> 12) & 0b111111111
+        (self >> 12) & 0b111111111
     }
 }
 
@@ -73,86 +73,80 @@ impl fmt::UpperHex for VAddr {
         self.0.fmt(f)
     }
 }
+macro_rules! forward_ref_binop {
+    (impl $imp:ident, $method:ident for $t:ty, $u:ty) => {
+        impl<'a> ops::$imp<$u> for &'a $t {
+            type Output = <$t as ops::$imp<$u>>::Output;
+            #[inline]
+            fn $method(self, other: $u) -> <$t as ops::$imp<$u>>::Output {
+                ops::$imp::$method(*self, other)
+            }
+        }
 
-impl ops::Add<VAddr> for VAddr {
-    type Output = VAddr;
+        impl<'a> ops::$imp<&'a $u> for $t {
+            type Output = <$t as ops::$imp<$u>>::Output;
+            #[inline]
+            fn $method(self, other: &'a $u) -> <$t as ops::$imp<$u>>::Output {
+                ops::$imp::$method(self, *other)
+            }
+        }
 
-    fn add(self, _rhs: VAddr) -> VAddr {
-        VAddr(self.0 + _rhs.0)
+        impl<'a, 'b> ops::$imp<&'a $u> for &'b $t {
+            type Output = <$t as ops::$imp<$u>>::Output;
+
+            #[inline]
+            fn $method(self, other: &'a $u) -> <$t as ops::$imp<$u>>::Output {
+                ops::$imp::$method(*self, *other)
+            }
+        }
     }
 }
+macro_rules! e { ($e:expr) => { $e } }
+macro_rules! impl_ops {
+    ($(impl $name:ident, $fun:ident, $op:tt for VAddr)*) => {$(
+        impl ops::$name<VAddr> for VAddr {
+            type Output = VAddr;
 
-impl ops::Sub<VAddr> for VAddr {
-    type Output = VAddr;
+            #[inline] fn $fun(self, _rhs: VAddr) -> VAddr {
+                VAddr(e!(self.0 $op _rhs.0))
+            }
+        }
+        impl ops::$name<usize> for VAddr {
+            type Output = VAddr;
 
-    fn sub(self, _rhs: VAddr) -> VAddr {
-        VAddr(self.0 - _rhs.0)
-    }
+            #[inline] fn $fun(self, _rhs: usize) -> VAddr {
+                VAddr(e!(self.0 $op _rhs))
+            }
+        }
+
+        forward_ref_binop! {
+            impl $name, $fun for VAddr, VAddr
+        }
+        forward_ref_binop! {
+            impl $name, $fun for VAddr, usize
+        }
+    )*}
+}
+macro_rules! impl_fmt {
+    ($($name:ident),*) => {$(
+        impl fmt::$name for VAddr {
+            fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                self.0.fmt(f)
+            }
+        }
+    )*}
 }
 
-impl ops::Div<VAddr> for VAddr {
-    type Output = VAddr;
 
-    fn div(self, _rhs: VAddr) -> VAddr {
-        VAddr(self.0 / _rhs.0)
-    }
+impl_ops! {
+    impl Add, add, + for VAddr
+    impl Sub, sub, - for VAddr
+    impl Div, div, / for VAddr
+    impl Mul, mul, * for VAddr
+    impl Shl, shl, >> for VAddr
+    impl Shr, shr, << for VAddr
 }
 
-impl ops::Mul<VAddr> for VAddr {
-    type Output = VAddr;
-
-    fn mul(self, _rhs: VAddr) -> VAddr {
-        VAddr(self.0 * _rhs.0)
-    }
-}
-
-impl ops::Add<usize> for VAddr {
-    type Output = VAddr;
-
-    fn add(self, _rhs: usize) -> VAddr {
-        VAddr(self.0 + _rhs)
-    }
-}
-
-impl ops::Sub<usize> for VAddr {
-    type Output = VAddr;
-
-    fn sub(self, _rhs: usize) -> VAddr {
-        VAddr(self.0 - _rhs)
-    }
-}
-
-impl ops::Div<usize> for VAddr {
-    type Output = VAddr;
-
-    fn div(self, _rhs: usize) -> VAddr {
-        VAddr(self.0 / _rhs)
-    }
-}
-
-impl ops::Mul<usize> for VAddr {
-    type Output = VAddr;
-
-    fn mul(self, _rhs: usize) -> VAddr {
-        VAddr(self.0 * _rhs)
-    }
-}
-
-impl ops::Shl<usize> for VAddr {
-    type Output = VAddr;
-
-    fn shl(self, _rhs: usize) -> VAddr {
-        VAddr(self.0 << _rhs)
-    }
-}
-
-impl ops::Shr<usize> for VAddr {
-    type Output = VAddr;
-
-    fn shr(self, _rhs: usize) -> VAddr {
-        VAddr(self.0 >> _rhs)
-    }
-}
 
 impl ops::BitAnd<usize> for VAddr {
     type Output = usize;
