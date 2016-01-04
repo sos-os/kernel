@@ -6,74 +6,10 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-use core::fmt;
-use core::ops;
-
 use alloc::buddy;
 pub use arch::memory::PAddr;
-
-/// A virtual address is a machine-sized unsigned integer
-#[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct VAddr(usize);
-
-impl VAddr {
-    #[inline] pub const fn from_usize(u: usize) -> Self {
-        VAddr(u)
-    }
-    #[inline] pub const fn as_usize(&self) -> usize {
-        self.0
-    }
-
-    /// Calculate the index in the PML4 table corresponding to this address.
-    #[inline] pub fn pml4_index(&self) -> usize {
-        (self.as_usize() >> 39) & 0b111111111
-    }
-
-    /// Calculate the index in the PDPT table corresponding to this address.
-    #[inline] pub fn pdpt_index(&self) -> usize {
-        (self.as_usize() >> 30) & 0b111111111
-    }
-
-    /// Calculate the index in the PD table corresponding to this address.
-    #[inline] pub fn pd_index(&self) -> usize {
-        (self.as_usize() >> 21) & 0b111111111
-    }
-
-    /// Calculate the index in the PT table corresponding to this address.
-    #[inline] pub fn pt_index(&self) -> usize {
-        (self.as_usize() >> 12) & 0b111111111
-    }
-}
-
-impl fmt::Binary for VAddr {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.0.fmt(f)
-    }
-}
-
-impl fmt::Display for VAddr {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.0.fmt(f)
-    }
-}
-
-impl fmt::LowerHex for VAddr {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.0.fmt(f)
-    }
-}
-
-impl fmt::Octal for VAddr {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.0.fmt(f)
-    }
-}
-
-impl fmt::UpperHex for VAddr {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.0.fmt(f)
-    }
-}
+pub mod vaddr;
+pub use self::vaddr::VAddr;
 
 
 extern {

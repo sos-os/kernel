@@ -14,7 +14,7 @@ impl Page {
         assert!( addr.as_usize() < 0x0000_8000_0000_0000 ||
                  addr.as_usize() >= 0xffff_8000_0000_0000
                , "invalid address: 0x{:x}", addr );
-        Page { number: addr.as_usize() / PAGE_SIZE }
+        Page { number: (addr / PAGE_SIZE).as_usize() }
     }
     /// Return the start virtual address of this page
     pub fn start_addr(&self) -> VAddr {
