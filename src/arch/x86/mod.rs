@@ -8,8 +8,9 @@
 //
 //! x86 architecture-specific implementation.
 //!
-//! This module contains code that is portable between x86 32-bit
-//! protected-mode systems and x86_64 64-bit long mode systems.
+//! This module contains code for x86 32-bit
+//! protected-mode systems.
 pub mod cpu;
 pub mod interrupts;
+pub mod memory;
 // pub mod keyboard;
