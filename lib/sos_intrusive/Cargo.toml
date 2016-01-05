@@ -1,4 +1,7 @@
 [package]
-name = "sos_ds"
+name = "sos_intrusive"
 version = "0.1.0"
 authors = ["Hawk Weisman <hi@hawkweisman.me>"]
+
+[features]
+use-std = []
