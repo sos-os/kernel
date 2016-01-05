@@ -11,7 +11,6 @@ use super::rawlink::RawLink;
 
 use core::ops::DerefMut;
 use core::marker::PhantomData;
-
 #[cfg(test)] mod test;
 
 pub unsafe trait OwnedPtr: DerefMut {
@@ -125,5 +124,37 @@ where T: OwnedPtr<Target=N>
             self.tail = RawLink::some(item.deref_mut());
             item.take()
         }
+    }
+}
+//
+// unsafe impl<T> OwnedPtr for Unique<T> where T: Node {
+//
+//     #[inline]
+//     fn take(self) {}
+//
+//     unsafe fn from_raw(ptr: *mut T) -> Self {
+//         Unique::new(ptr)
+//     }
+// }
+
+#[cfg(test)]
+unsafe impl<T> OwnedPtr for ::std::boxed::Box<T> where T: Node {
+    // #[inline]
+    // fn get(&self) -> &T {
+    //     &**self
+    // }
+    //
+    // #[inline]
+    // fn get_mut(&mut self) -> &mut T {
+    //     &mut **self
+    // }
+
+    #[inline]
+    unsafe fn take(self) {
+        ::std::boxed::Box::into_raw(self);
+    }
+
+    unsafe fn from_raw(ptr: *mut T) -> Self {
+        ::std::boxed::Box::from_raw(ptr)
     }
 }
