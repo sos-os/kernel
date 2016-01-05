@@ -12,7 +12,15 @@ as_system = []
 buddy_as_system = ["spin", "as_system"]
 multiboot = ["sos_multiboot2"]
 
-[dependencies]
-sos_multiboot2 = { path = "../sos_multiboot2", optional = true }
-spin = { version = "*", optional = true }
-sos_vga = { path = "../sos_vga", features = ["system_term"], optional = true }
+[dependencies.sos_multiboot2]
+path = "../sos_multiboot2"
+optional = true
+
+[dependencies.spin]
+version = "*"
+optional = true
+
+[dependencies.sos_vga]
+path = "../sos_vga"
+features = ["system_term"]
+optional = true 
