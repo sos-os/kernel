@@ -9,13 +9,17 @@
 //! A linked-list implementation using `RawLink`s.
 use super::rawlink::RawLink;
 
-use core::ops::DerefMut;
+use core::ops::{Deref, DerefMut};
 use core::marker::PhantomData;
+use core::intrinsics::forget;
+use core::ptr::Unique;
 #[cfg(test)] mod test;
 
-pub unsafe trait OwnedPtr: DerefMut {
-    unsafe fn from_raw(ptr: *mut Self::Target) -> Self;
+pub unsafe trait OwnedRef<T> {
+    unsafe fn from_raw(ptr: *mut T) -> Self;
     unsafe fn take(self);
+    fn get(&self) -> &T;
+    fn get_mut(&mut self) -> &mut T;
 }
 
 pub trait Node: Sized {
@@ -27,7 +31,7 @@ pub trait Node: Sized {
 }
 
 pub struct ListNode<T, N>
-where T: OwnedPtr<Target=N>
+where T: OwnedRef<N>
     , N: Node {
     head: RawLink<N>
   , tail: RawLink<N>
@@ -35,7 +39,7 @@ where T: OwnedPtr<Target=N>
  }
 
  // impl<T> Node for ListNode<T>
- // where T: OwnedPtr
+ // where T: OwnedRef
  //     , T: Node {
  //
  //    fn next(&self) -> &RawLink<Self> { &self.head }
@@ -45,7 +49,7 @@ where T: OwnedPtr<Target=N>
  //    fn prev_mut(&mut self) -> &mut RawLink<Self> { self.tail }
  // }
 impl<T, N> ListNode<T, N>
-where T: OwnedPtr<Target=N>
+where T: OwnedRef<N>
     , N: Node {
 
     pub const fn new() -> Self {
@@ -81,21 +85,21 @@ where T: OwnedPtr<Target=N>
                     // If this node's head is empty, set the pushed item's
                     // links to None, and make this node's tail point to the
                     // pushed item
-                    *item.next_mut() = RawLink::none();
-                    *item.prev_mut() = RawLink::none();
-                    self.tail = RawLink::some(item.deref_mut());
+                    *item.get_mut().next_mut() = RawLink::none();
+                    *item.get_mut().prev_mut() = RawLink::none();
+                    self.tail = RawLink::some(item.get_mut());
                 }
               , Some(head) => {
                     // If this node is not empty, set the pushed item's tail
                     // to point at the head node, and make the head node's tail
                     // point to the pushed item
-                    *item.next_mut() = RawLink::none();
-                    *item.prev_mut() = RawLink::some(head);
-                    *head.prev_mut() = RawLink::some(item.deref_mut());
+                    *item.get_mut().next_mut() = RawLink::none();
+                    *item.get_mut().prev_mut() = RawLink::some(head);
+                    *head.prev_mut() = RawLink::some(item.get_mut());
                 }
             }
             // then, set this node's head pointer to point to the pushed item
-            self.head = RawLink::some(item.deref_mut());
+            self.head = RawLink::some(item.get_mut());
             item.take()
         }
     }
@@ -107,27 +111,27 @@ where T: OwnedPtr<Target=N>
                     // If this node's tail is empty, set the pushed item's
                     // links to  None, and make this node's head point to the
                     // pushed item
-                    *item.next_mut() = RawLink::none();
-                    *item.prev_mut() = RawLink::none();
-                    self.head = RawLink::some(item.deref_mut());
+                    *item.get_mut().next_mut() = RawLink::none();
+                    *item.get_mut().prev_mut() = RawLink::none();
+                    self.head = RawLink::some(item.get_mut());
                 }
               , Some(tail) => {
                     // If this node is not empty, set the pushed item's head
                     // to point at the tail node, and make the tail node's head
                     // point to the pushed item
-                    *item.next_mut() = RawLink::some(tail);
-                    *item.prev_mut() = RawLink::none();
-                    *tail.next_mut() = RawLink::some(item.deref_mut());
+                    *item.get_mut().next_mut() = RawLink::some(tail);
+                    *item.get_mut().prev_mut() = RawLink::none();
+                    *tail.next_mut() = RawLink::some(item.get_mut());
                 }
             }
             // then, set this node's head pointer to point to the pushed item
-            self.tail = RawLink::some(item.deref_mut());
+            self.tail = RawLink::some(item.get_mut());
             item.take()
         }
     }
 }
 //
-// unsafe impl<T> OwnedPtr for Unique<T> where T: Node {
+// unsafe impl<T> OwnedRef for Unique<T> where T: Node {
 //
 //     #[inline]
 //     fn take(self) {}
@@ -136,21 +140,41 @@ where T: OwnedPtr<Target=N>
 //         Unique::new(ptr)
 //     }
 // }
+//
+// unsafe impl<'a, T> OwnedRef<T> for &'a mut T {
+//     #
+//     #[inline] unsafe fn from_raw(raw: *mut T) -> &'a mut T {
+//         &mut *raw
+//     }
+//
+//     #[inline] unsafe fn take(self) {
+//         forget(self);
+//     }
+// }
+//
 
-#[cfg(test)]
-unsafe impl<T> OwnedPtr for ::std::boxed::Box<T> where T: Node {
-    // #[inline]
-    // fn get(&self) -> &T {
-    //     &**self
-    // }
-    //
-    // #[inline]
-    // fn get_mut(&mut self) -> &mut T {
-    //     &mut **self
-    // }
+unsafe impl<T> OwnedRef<T> for Unique<T>  {
+    #[inline]
+    fn get(&self) -> &T { unsafe { self.get() } }
 
     #[inline]
-    unsafe fn take(self) {
+    fn get_mut(&mut self) -> &mut T { unsafe { self.get_mut() } }
+
+    #[inline]
+    unsafe fn take(self) {}
+
+    unsafe fn from_raw(ptr: *mut T) -> Self {
+        Unique::new(ptr)
+    }
+}
+
+#[cfg(any(test, feature = "use-std"))]
+unsafe impl<T> OwnedRef<T> for ::std::boxed::Box<T> {
+
+    fn get(&self) -> &T { &**self }
+    fn get_mut(&mut self) -> &mut T { &mut **self }
+
+    #[inline] unsafe fn take(self) {
         ::std::boxed::Box::into_raw(self);
     }
 

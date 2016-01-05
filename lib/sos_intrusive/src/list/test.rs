@@ -116,3 +116,78 @@ mod boxed {
     }
 
 }
+
+// mod mut_ptr {
+//     use list::ListNode;
+//     use super::*;
+//
+//     type TestList<'a> = ListNode<&'a mut NumberedNode, NumberedNode>;
+//
+//     #[test]
+//     fn not_empty_after_push() {
+//         let mut list = TestList::new();
+//
+//         assert_eq!(list.front(), None);
+//         assert_eq!(list.back(), None);
+//
+//         assert!(list.is_empty());
+//
+//         list.push_front(&mut NumberedNode::new(1));
+//
+//         assert!(!list.is_empty());
+//     }
+//
+//     #[test]
+//     fn contents_after_first_push() {
+//         let mut list = TestList::new();
+//
+//         list.push_front(&mut NumberedNode::new(1));
+//
+//         assert_eq!(list.front().unwrap().number, 1);
+//     }
+//
+//
+//     #[test]
+//     fn head_tail_same_first_push() {
+//         let mut list = TestList::new();
+//
+//         list.push_front(&mut NumberedNode::new(1));
+//
+//         assert_eq!(list.front().unwrap().number, 1);
+//         assert_eq!(list.back().unwrap().number, 1);
+//         assert_eq!(list.front().unwrap(), list.back().unwrap());
+//     }
+//
+//     #[test]
+//     fn head_tail_not_same_second_push() {
+//         let mut list = TestList::new();
+//
+//         list.push_front(&mut NumberedNode::new(0));
+//         list.push_front(&mut NumberedNode::new(1));
+//
+//         assert!(list.front().unwrap() != list.back().unwrap());
+//     }
+//
+//
+//     #[test]
+//     fn contents_after_pushes() {
+//         let mut list = TestList::new();
+//
+//         list.push_front(&mut NumberedNode::new(0));
+//         list.push_front(&mut NumberedNode::new(1));
+//
+//         assert_eq!(list.back().unwrap().number, 0);
+//         assert_eq!(list.front().unwrap().number, 1);
+//
+//         list.push_back(&mut NumberedNode::new(2));
+//         assert_eq!(list.back().unwrap().number, 2);
+//         assert_eq!(list.front().unwrap().number, 1);
+//
+//         list.push_back(&mut NumberedNode::new(3));
+//         assert_eq!(list.back().unwrap().number, 3);
+//         assert_eq!(list.front().unwrap().number, 1);
+//
+//         assert!(!list.is_empty());
+//     }
+//
+// }

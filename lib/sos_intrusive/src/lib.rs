@@ -9,11 +9,14 @@
 //! SOS intrusive data structures library
 //!
 //! These structures are primarily used by the kernel and memory allocator.
-#![crate_name = "sos_ds"]
+#![crate_name = "sos_intrusive"]
 #![crate_type = "lib"]
-#![feature(const_fn, ptr_as_ref)]
-#![feature(no_std)]
-#![no_std]
+#![feature( const_fn
+          , ptr_as_ref
+          , unique )]
+#![cfg_attr( not(feature = "use-std")
+           , feature( no_std, core_intrinsics ))]
+#![cfg_attr( not(feature = "use-std"), no_std )]
 
 #![cfg_attr(test, feature(box_syntax))]
 
