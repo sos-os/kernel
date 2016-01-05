@@ -11,9 +11,12 @@
 //! These structures are primarily used by the kernel and memory allocator.
 #![crate_name = "sos_ds"]
 #![crate_type = "lib"]
-#![feature(const_fn, ptr_as_ref, unique)]
+#![feature(const_fn, ptr_as_ref)]
 #![feature(no_std)]
 #![no_std]
+
+#![cfg_attr(test, feature(box_syntax))]
+
 
 mod rawlink;
 // use rawlink::RawLink;
