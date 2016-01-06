@@ -166,7 +166,68 @@ where T: OwnedRef<N>
                 })
         }
     }
+
+    pub fn peek_front(&self) -> Option<&N> {
+        unsafe { self.tail.resolve() }
+    }
 }
+
+pub struct ListCursor<'a, T, N>
+where T: OwnedRef<N>
+    , T: 'a
+    , N: Node
+    , N: 'a {
+        list: &'a mut ListNode<T, N>
+      , current: RawLink<N>
+}
+
+impl<'a, T, N> ListCursor<'a, T, N>
+where T: OwnedRef<N>
+    , T: 'a
+    , N: Node
+    , N: 'a {
+
+    pub fn next(&mut self) -> Option<&mut N> {
+        unsafe {
+            match self.current.take().resolve_mut() {
+                None => self.list.head.resolve_mut()
+                            .and_then(|head| {
+                                self.current = RawLink::some(head);
+                                self.current.resolve_mut()
+                            })
+              , Some(thing) => {
+                    self.current = match thing.next_mut().resolve_mut() {
+                        None => RawLink::none()
+                      , Some(other_thing) => RawLink::some(other_thing)
+                    };
+                    self.current.resolve_mut()
+                }
+            }
+        }
+    }
+
+    pub fn peek_next(&mut self) -> Option<&mut N> {
+        unsafe {
+            self.current.resolve_mut()
+                .map_or( self.list.front_mut()
+                       , |next| next.next_mut().resolve_mut())
+        }
+    }
+
+}
+
+// impl<'a, T, N> Iterator for ListCursor<'a, T, N>
+// where T: OwnedRef<N>
+//     , T: 'a
+//     , N: Node
+//     , N: 'a {
+//     type Item = &'a mut N;
+//
+//     fn next<'b: 'a>(&'b mut self) -> Option<&'a mut N> {
+//         self.next()
+//     }
+// }
+
 //
 // unsafe impl<T> OwnedRef for Unique<T> where T: Node {
 //
