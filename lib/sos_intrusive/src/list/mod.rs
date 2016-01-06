@@ -155,10 +155,13 @@ where T: OwnedRef<N>
         unsafe {
             self.tail.take().resolve_mut()
                 .map(|tail| {
-                    mem::swap( &mut self.tail
-                             , tail.prev_mut().resolve_mut()
-                                   .map(|prev| prev.next_mut())
-                                   .unwrap_or(&mut RawLink::none()) );
+                    match tail.prev_mut().resolve_mut() {
+                        None => self.head = RawLink::none()
+                      , Some(prev) => {
+                            *prev.next_mut() = RawLink::none();
+                            self.tail = RawLink::some(prev);
+                        }
+                    }
                     T::from_raw(tail)
                 })
         }
