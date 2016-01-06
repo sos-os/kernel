@@ -115,6 +115,81 @@ mod boxed {
         assert!(!list.is_empty());
     }
 
+    #[test]
+    fn test_pop_front() {
+        let mut list = TestList::new();
+
+        assert_eq!(list.front(), None);
+        assert_eq!(list.back(), None);
+        assert!(list.is_empty());
+
+        list.push_front(Box::new(NumberedNode::new(2)));
+
+        assert!(!list.is_empty());
+        assert_eq!(list.front(), list.back());
+
+        list.push_front(Box::new(NumberedNode::new(1)));
+        list.push_front(Box::new(NumberedNode::new(0)));
+
+        assert_eq!(list.front().unwrap().number, 0);
+        assert_eq!(list.back().unwrap().number, 2);
+
+        list.push_back(Box::new(NumberedNode::new(3)));
+        assert_eq!(list.back().unwrap().number, 3);
+
+        list.push_back(Box::new(NumberedNode::new(4)));
+        assert_eq!(list.back().unwrap().number, 4);
+
+        assert!(!list.is_empty());
+
+        assert_eq!(list.pop_front().unwrap().number, 0);
+        assert_eq!(list.pop_front().unwrap().number, 1);
+        assert_eq!(list.pop_front().unwrap().number, 2);
+        assert_eq!(list.pop_front().unwrap().number, 3);
+        assert_eq!(list.pop_front().unwrap().number, 4);
+
+        assert!(list.is_empty());
+        assert_eq!(list.pop_front(), None);
+    }
+
+    #[test]
+    fn test_pop_back() {
+        let mut list = TestList::new();
+
+        assert_eq!(list.front(), None);
+        assert_eq!(list.back(), None);
+        assert!(list.is_empty());
+
+        list.push_front(Box::new(NumberedNode::new(2)));
+
+        assert!(!list.is_empty());
+        assert_eq!(list.front(), list.back());
+
+        list.push_front(Box::new(NumberedNode::new(1)));
+        list.push_front(Box::new(NumberedNode::new(0)));
+
+        assert_eq!(list.front().unwrap().number, 0);
+        assert_eq!(list.back().unwrap().number, 2);
+
+        list.push_back(Box::new(NumberedNode::new(3)));
+        assert_eq!(list.back().unwrap().number, 3);
+
+        list.push_back(Box::new(NumberedNode::new(4)));
+        assert_eq!(list.back().unwrap().number, 4);
+
+        assert!(!list.is_empty());
+
+        assert_eq!(list.pop_back().unwrap().number, 4);
+        assert_eq!(list.pop_back().unwrap().number, 3);
+        assert_eq!(list.pop_back().unwrap().number, 2);
+        assert_eq!(list.pop_back().unwrap().number, 1);
+        assert_eq!(list.pop_back().unwrap().number, 0);
+
+        assert!(list.is_empty());
+        assert_eq!(list.pop_back(), None);
+    }
+
+
 }
 
 // mod mut_ptr {
