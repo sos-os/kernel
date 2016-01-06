@@ -9,6 +9,7 @@
 //! A linked-list implementation using `RawLink`s.
 use super::rawlink::RawLink;
 
+use core::mem;
 use core::ops::{Deref, DerefMut};
 use core::marker::PhantomData;
 use core::intrinsics::forget;
@@ -93,8 +94,8 @@ where T: OwnedRef<N>
                     // If this node is not empty, set the pushed item's tail
                     // to point at the head node, and make the head node's tail
                     // point to the pushed item
-                    *item.get_mut().next_mut() = RawLink::none();
-                    *item.get_mut().prev_mut() = RawLink::some(head);
+                    *item.get_mut().next_mut() = RawLink::some(head);
+                    *item.get_mut().prev_mut() = RawLink::none();
                     *head.prev_mut() = RawLink::some(item.get_mut());
                 }
             }
@@ -119,14 +120,47 @@ where T: OwnedRef<N>
                     // If this node is not empty, set the pushed item's head
                     // to point at the tail node, and make the tail node's head
                     // point to the pushed item
-                    *item.get_mut().next_mut() = RawLink::some(tail);
-                    *item.get_mut().prev_mut() = RawLink::none();
+                    *item.get_mut().next_mut() = RawLink::none();
+                    *item.get_mut().prev_mut() = RawLink::some(tail);
                     *tail.next_mut() = RawLink::some(item.get_mut());
                 }
             }
             // then, set this node's head pointer to point to the pushed item
             self.tail = RawLink::some(item.get_mut());
             item.take()
+        }
+    }
+
+    pub fn pop_front(&mut self) -> Option<T> {
+        unsafe {
+            self.head.take().resolve_mut()
+                .map(|head| {
+                    // mem::swap( &mut self.head
+                    //          , head.next_mut().resolve_mut()
+                    //                .map(|next| next.prev_mut())
+                    //                .unwrap_or(&mut RawLink::none()) );
+                    match head.next_mut().resolve_mut() {
+                        None => self.tail = RawLink::none()
+                      , Some(next) => {
+                            *next.prev_mut() = RawLink::none();
+                            self.head = RawLink::some(next);
+                        }
+                    }
+                    T::from_raw(head)
+                })
+        }
+    }
+
+    pub fn pop_back(&mut self) -> Option<T> {
+        unsafe {
+            self.tail.take().resolve_mut()
+                .map(|tail| {
+                    mem::swap( &mut self.tail
+                             , tail.prev_mut().resolve_mut()
+                                   .map(|prev| prev.next_mut())
+                                   .unwrap_or(&mut RawLink::none()) );
+                    T::from_raw(tail)
+                })
         }
     }
 }
