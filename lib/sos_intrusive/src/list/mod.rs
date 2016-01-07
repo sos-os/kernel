@@ -9,10 +9,7 @@
 //! A linked-list implementation using `RawLink`s.
 use super::rawlink::RawLink;
 
-use core::mem;
-use core::ops::{Deref, DerefMut};
 use core::marker::PhantomData;
-use core::intrinsics::forget;
 use core::ptr::Unique;
 #[cfg(test)] mod test;
 
