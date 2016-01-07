@@ -31,7 +31,7 @@ pub trait Node: Sized {
     fn prev_mut(&mut self) -> &mut RawLink<Self>;
 }
 
-pub struct ListNode<T, N>
+pub struct List<T, N>
 where T: OwnedRef<N>
     , N: Node {
     head: RawLink<N>
@@ -39,7 +39,7 @@ where T: OwnedRef<N>
   , _ty_marker: PhantomData<T>
  }
 
- // impl<T> Node for ListNode<T>
+ // impl<T> Node for List<T>
  // where T: OwnedRef
  //     , T: Node {
  //
@@ -49,12 +49,12 @@ where T: OwnedRef<N>
  //    fn next_mut(&mut self) -> &mut RawLink<Self> { self.head }
  //    fn prev_mut(&mut self) -> &mut RawLink<Self> { self.tail }
  // }
-impl<T, N> ListNode<T, N>
+impl<T, N> List<T, N>
 where T: OwnedRef<N>
     , N: Node {
 
     pub const fn new() -> Self {
-        ListNode { head: RawLink::none()
+        List { head: RawLink::none()
                  , tail: RawLink::none()
                  , _ty_marker: PhantomData }
     }
@@ -177,7 +177,7 @@ where T: OwnedRef<N>
     , T: 'a
     , N: Node
     , N: 'a {
-        list: &'a mut ListNode<T, N>
+        list: &'a mut List<T, N>
       , current: RawLink<N>
 }
 

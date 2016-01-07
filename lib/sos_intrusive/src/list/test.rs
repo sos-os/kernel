@@ -43,10 +43,10 @@ impl PartialEq for NumberedNode {
 mod boxed {
     use std::boxed::Box;
 
-    use list::ListNode;
+    use list::List;
     use super::*;
 
-    type TestList = ListNode<Box<NumberedNode>, NumberedNode>;
+    type TestList = List<Box<NumberedNode>, NumberedNode>;
 
     #[test]
     fn not_empty_after_push() {
@@ -193,10 +193,10 @@ mod boxed {
 }
 
 // mod mut_ptr {
-//     use list::ListNode;
+//     use list::List;
 //     use super::*;
 //
-//     type TestList<'a> = ListNode<&'a mut NumberedNode, NumberedNode>;
+//     type TestList<'a> = List<&'a mut NumberedNode, NumberedNode>;
 //
 //     #[test]
 //     fn not_empty_after_push() {
