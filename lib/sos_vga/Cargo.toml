@@ -5,6 +5,7 @@ authors = ["Hawk Weisman <hi@hawkweisman.me>"]
 
 [features]
 system_term = ["spin"]
+log = ["system_term"]
 
 [dependencies]
 spin = { version = "*", optional = true }

@@ -31,20 +31,25 @@
           , core_slice_ext
           , iter_cmp )]
 
-#[cfg(feature = "multiboot")] extern crate sos_multiboot2 as multiboot;
-#[cfg(feature = "buddy_as_system")] extern crate spin;
-#[cfg(feature = "trace")] #[macro_use] extern crate sos_vga;
+#[cfg(feature = "buddy")]
+extern crate sos_intrusive as intrusive;
+#[cfg(feature = "multiboot")]
+extern crate sos_multiboot2 as multiboot;
+#[cfg(feature = "buddy_as_system")]
+extern crate spin;
+#[cfg(feature = "trace")] #[macro_use]
+extern crate sos_vga;
 
-#[cfg(test)] #[macro_use] extern crate std;
+#[cfg(test)] #[macro_use]
+extern crate std;
 
 use core::ptr;
 use core::cmp::min;
 
 #[cfg(feature = "trace")]
 macro_rules! trace {
-    ($fmt:expr) => (print!(concat!("ALLOC_TRACE: ", $fmt, "\n")));
-    ($fmt:expr, $($arg:tt)*) => (print!(concat!("ALLOC_TRACE: ", $fmt, "\n"), $($arg)*));
-
+    ($fmt:expr) => (log!(level: "TRACE", $fmt));
+    ($fmt:expr, $($arg:tt)*) => (log!(level: "TRACE", $fmt, $($arg)* ));
 }
 
 #[cfg(not(feature = "trace"))]
@@ -136,9 +141,9 @@ pub trait Allocator {
 }
 
 
-
-mod rawlink;
-pub use self::rawlink::RawLink;
+//
+// mod rawlink;
+// pub use self::rawlink::RawLink;
 
 #[cfg(feature = "buddy")]
 pub mod buddy;

@@ -7,7 +7,7 @@ authors = ["Hawk Weisman <hi@hawkweisman.me>"]
 default = ["simple", "buddy"]
 simple = ["multiboot"]
 trace = ["sos_vga"]
-buddy = []
+buddy = ["sos_intrusive"]
 as_system = []
 buddy_as_system = ["spin", "as_system"]
 multiboot = ["sos_multiboot2"]
@@ -22,5 +22,9 @@ optional = true
 
 [dependencies.sos_vga]
 path = "../sos_vga"
-features = ["system_term"]
-optional = true 
+features = ["log"]
+optional = true
+
+[dependencies.sos_intrusive]
+path = "../sos_intrusive"
+optional = true
