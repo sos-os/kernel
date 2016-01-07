@@ -62,23 +62,23 @@ where T: OwnedRef<N>
         self.length
     }
 
-    pub fn front(&self) -> Option<&N> {
+    #[inline] pub fn front(&self) -> Option<&N> {
         unsafe { self.head.resolve() }
     }
 
-    pub fn back(&self) -> Option<&N> {
+    #[inline] pub fn back(&self) -> Option<&N> {
         unsafe { self.tail.resolve() }
     }
 
-    pub fn front_mut(&mut self) -> Option<&mut N> {
+    #[inline] pub fn front_mut(&mut self) -> Option<&mut N> {
         unsafe { self.head.resolve_mut() }
     }
 
-    pub fn back_mut(&mut self) -> Option<&mut N> {
+    #[inline] pub fn back_mut(&mut self) -> Option<&mut N> {
         unsafe { self.tail.resolve_mut() }
     }
 
-    pub fn is_empty(&self) -> bool {
+    #[inline] pub fn is_empty(&self) -> bool {
         self.head.is_none()
     }
 
@@ -218,6 +218,26 @@ where T: OwnedRef<N>
             self.current.resolve_mut()
                 .map_or( self.list.front_mut()
                        , |next| next.next_mut().resolve_mut())
+        }
+    }
+
+    pub fn remove(&mut self) -> Option<T> {
+        unsafe {
+            match self.current.resolve_mut() {
+                None    => self.list.pop_front()
+              , Some(c) =>
+                    c.next_mut().take().resolve_mut()
+                     .map(|p| {
+                        match p.next_mut().resolve_mut() {
+                            None => self.list.tail = RawLink::some(c)
+                          , Some(n) => {
+                                *n.prev_mut() = RawLink::some(c);
+                                *c.next_mut() = RawLink::some(n);
+                            }
+                        }
+                        T::from_raw(p)
+                    })
+            }
         }
     }
 
