@@ -34,6 +34,7 @@ where T: OwnedRef<N>
     head: RawLink<N>
   , tail: RawLink<N>
   , _ty_marker: PhantomData<T>
+  , length: usize
  }
 
  // impl<T> Node for List<T>
@@ -52,8 +53,13 @@ where T: OwnedRef<N>
 
     pub const fn new() -> Self {
         List { head: RawLink::none()
-                 , tail: RawLink::none()
-                 , _ty_marker: PhantomData }
+             , tail: RawLink::none()
+             , _ty_marker: PhantomData
+             , length: 0 }
+    }
+
+    #[inline] pub fn len(&self) -> usize {
+        self.length
     }
 
     pub fn front(&self) -> Option<&N> {
@@ -98,7 +104,8 @@ where T: OwnedRef<N>
             }
             // then, set this node's head pointer to point to the pushed item
             self.head = RawLink::some(item.get_mut());
-            item.take()
+            item.take();
+            self.length += 1;
         }
     }
 
@@ -124,7 +131,8 @@ where T: OwnedRef<N>
             }
             // then, set this node's head pointer to point to the pushed item
             self.tail = RawLink::some(item.get_mut());
-            item.take()
+            item.take();
+            self.length += 1;
         }
     }
 
@@ -143,6 +151,7 @@ where T: OwnedRef<N>
                             self.head = RawLink::some(next);
                         }
                     }
+                    self.length -= 1;
                     T::from_raw(head)
                 })
         }
@@ -159,6 +168,7 @@ where T: OwnedRef<N>
                             self.tail = RawLink::some(prev);
                         }
                     }
+                    self.length -= 1;
                     T::from_raw(tail)
                 })
         }
