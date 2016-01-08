@@ -9,7 +9,7 @@ static ALLOC: Mutex<Option<BuddyHeapAllocator<'static>>>
     = Mutex::new(None);
 
 pub unsafe fn init_heap( start_addr: *mut u8
-                       , free_lists: &'static mut [FreeList<'static>]
+                       , free_lists: &'static mut [FreeList]
                        , heap_size: usize ) {
     trace!("init_heap() was called.");
     *(ALLOC.lock())

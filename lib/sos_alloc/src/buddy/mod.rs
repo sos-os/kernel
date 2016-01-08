@@ -2,17 +2,42 @@ mod math;
 #[cfg(feature = "buddy_as_system")]
 pub mod system;
 
-use super::{ RawLink, Framesque, Allocator };
+use super::{ Framesque, Allocator };
 use self::math::PowersOf2;
 
 use core::mem;
 use core::cmp::{max, min};
+use core::ptr::Unique;
 
-pub struct Free { next: RawLink<Free> }
+use intrusive::list::{List, Node};
+use intrusive::rawlink::RawLink;
 
-impl Framesque for Free {
+/// A `FreeList` is a list of unique free blocks
+pub type FreeList = List<Unique<FreeBlock>, FreeBlock>;
+
+/// A free block header stores a pointer to
+pub struct FreeBlock { next: RawLink<FreeBlock>
+                     , prev: RawLink<FreeBlock>
+                     }
+
+impl Framesque for FreeBlock {
     #[inline] fn as_ptr(&self) -> *mut u8 {
         unsafe { mem::transmute(self) } // HOPEFULLY this is good
+    }
+}
+
+impl Node for FreeBlock {
+    #[inline] fn prev(&self) -> &RawLink<FreeBlock> {
+        &self.prev
+    }
+    #[inline] fn next(&self) -> &RawLink<FreeBlock> {
+        &self.next
+    }
+    #[inline] fn prev_mut(&mut self) -> &mut RawLink<FreeBlock> {
+        &mut self.prev
+    }
+    #[inline] fn next_mut(&mut self) -> &mut RawLink<FreeBlock> {
+        &mut self.next
     }
 }
 
@@ -23,157 +48,120 @@ macro_rules! max {
     ($x:expr, $($xs:expr),+) => (max($x, max!($($xs),+)));
 }
 
-pub struct FreeList<'a> {
-    /// A pointer to the head of the free list
-    head: Option<&'a mut Free>
-  , /// Number of blocks in the free list
-    pub length: usize
-}
+// impl FreeList {
+//
+//     /// Create a new empty `FreeList`
+//     ///
+//     pub const fn new() -> FreeList{
+//         FreeList { head: RawLink::none(), length: 0 }
+//     }
+//
+//     /// Push a new block onto the free list
+//     ///
+//     /// # Unsafe due to
+//     ///   - `mem::transmute()`
+//     ///   - Dereferencing a raw pointer
+//     unsafe fn push(&mut self, block: *mut u8) {
+//         let block_ptr = block as *mut FreeBlock;
+//         // be nice if rawlink was kinder to pattern-matching but whatever
+//         *block_ptr = if self.head.is_some() {
+//             // if the head block is defined, set that block to point to The
+//             // head block
+//             FreeBlock { next: self.head }
+//         } else {
+//             // if the head block is not defined, set this block to point to
+//             // an empty block
+//             FreeBlock { next: RawLink::none() }
+//         };
+//         // replace the head-block pointer with the pushed block
+//         self.head = RawLink::from_raw(block_ptr);
+//         // the list is now one block longer
+//         self.length += 1;
+//     }
+//
+//     /// Pop the head block off of the free list.
+//     ///
+//     /// # Returns
+//     ///   - `Some(*mut u8)` if the free list has blocks left
+//     ///   - `None` if the free list is empty
+//     ///
+//     /// # Unsafe due to
+//     ///   - `mem::transmute()`
+//     ///   - Dereferencing a raw pointer
+//     unsafe fn pop(&mut self) -> Option<*mut u8> {
+//         if self.head.is_some() {
+//             let popped_block
+//                 = mem::replace(&mut self.head, (*self.head.as_raw()).next);
+//             let block_ptr: *mut u8
+//                 = mem::transmute(popped_block);
+//             Some(block_ptr)
+//         } else {
+//             None
+//         }
+//     }
+    //
+    // /// Returns true if this `FreeList` has free blocks remaining
+    // // #[inline] fn has_free_blocks(&self) -> bool { self.head.is_some() }
+    //
+    // /// Attempt to remove a block from the free list.
+    // ///
+    // /// This function searches the free list for the specified block, and
+    // /// removes it if it is found, returning whether or not the block was
+    // /// removed.
+    // ///
+    // /// This is quite slow; with a worst-case time complexity of O(log n),
+    // /// this function is a major bottleneck in our allocator implementation.
+    // /// By maintaining sorted free lists, we could perhaps improve performance
+    // /// somewhat.
+    // ///
+    // /// # Returns
+    // ///   - `true` if the block was removed from the free list
+    // ///   - `false` if the block was not present in the free list
+    // unsafe fn remove(&mut self, target_block: *mut u8) -> bool {
+    //     let target_ptr = target_block as *mut FreeBlock;
+    //     // loop through the free list's iterator to find the target block.
+    //     // this is gross but hopefully much faster than the much prettier
+    //     // recursive strategy.
+    //     for block in self.iter_mut() {
+    //         let block_ptr: *mut FreeBlock = block;
+    //         if block_ptr == target_ptr {
+    //             // if we've found the target block, remove it and break
+    //             *block_ptr = FreeBlock { next: block.next.take() };
+    //             return true;
+    //         }
+    //     }
+    //     false
+    // }
 
-impl<'a> FreeList<'a> {
+    // /// Returns an iterator over the blocks in this free list
+    // fn iter<'b>(&'b self) -> FreeListIter<'b> {
+    //     // FreeListIter { current: self.head.map(|c| c.borrow())
+    //     //                             .as_ref()
+    //     //              }
+    //     match self.head {
+    //         Some(ref head) => FreeListIter { current: Some(head) }
+    //       , None           => FreeListIter { current: None }
+    //     }
+    //     // unimplemented!()
+    // }
+    //
+    // /// Returns a mutable iterator over the blocks in this free list.
+    // fn iter_mut<'b>(&'b mut self) -> FreeListIterMut<'b> {
+    //     // FreeListIterMut { current: self.head.map(|c| *c ).as_mut() }
+    //     match self.head {
+    //         Some(ref mut head) => FreeListIterMut { current: Some(head) }
+    //       , None               => FreeListIterMut { current: None }
+    //     }
+    // }
 
-    /// Create a new empty `FreeList`
-    ///
-    pub const fn new() -> FreeList<'a> {
-        FreeList { head: None, length: 0 }
-    }
-
-    /// Push a new block onto the free list
-    ///
-    /// # Unsafe due to
-    ///   - `mem::transmute()`
-    ///   - Dereferencing a raw pointer
-    unsafe fn push(&mut self, block: *mut u8) {
-        let block_ptr = block as *mut Free;
-        // be nice if rawlink was kinder to pattern-matching but whatever
-        *block_ptr = if let Some(head) = self.head.take() {
-            // if the head block is defined, set that block to point to The
-            // head block
-            Free { next: RawLink::some(head) }
-        } else {
-            // if the head block is not defined, set this block to point to
-            // an empty block
-            Free { next: RawLink::none() }
-        };
-        // replace the head-block pointer with the pushed block
-        self.head = Some(mem::transmute(block_ptr));
-        // the list is now one block longer
-        self.length += 1;
-    }
-    /// Pop the head block off of the free list.
-    ///
-    /// # Returns
-    ///   - `Some(*mut u8)` if the free list has blocks left
-    ///   - `None` if the free list is empty
-    ///
-    /// # Unsafe due to
-    ///   - `mem::transmute()`
-    ///   - Dereferencing a raw pointer
-    unsafe fn pop(&mut self) -> Option<*mut u8> {
-        self.head.take()
-            .map(|head| {
-                let popped_block
-                    = mem::replace(&mut self.head, head.next.resolve_mut());
-                let block_ptr: *mut u8
-                    = mem::transmute(popped_block);
-                block_ptr
-            })
-    }
-
-    /// Returns true if this `FreeList` has free blocks remaining
-    #[inline] fn has_free_blocks(&self) -> bool { self.head.is_some() }
-
-    /// Attempt to remove a block from the free list.
-    ///
-    /// This function searches the free list for the specified block, and
-    /// removes it if it is found, returning whether or not the block was
-    /// removed.
-    ///
-    /// This is quite slow; with a worst-case time complexity of O(log n),
-    /// this function is a major bottleneck in our allocator implementation.
-    /// By maintaining sorted free lists, we could perhaps improve performance
-    /// somewhat.
-    ///
-    /// # Returns
-    ///   - `true` if the block was removed from the free list
-    ///   - `false` if the block was not present in the free list
-    unsafe fn remove(&mut self, target_block: *mut u8) -> bool {
-        let target_ptr = target_block as *mut Free;
-        // loop through the free list's iterator to find the target block.
-        // this is gross but hopefully much faster than the much prettier
-        // recursive strategy.
-        for block in self.iter_mut() {
-            let block_ptr: *mut Free = block;
-            if block_ptr == target_ptr {
-                // if we've found the target block, remove it and break
-                *block_ptr = Free { next: block.next.take() };
-                return true;
-            }
-        }
-        false
-    }
-
-    /// Returns an iterator over the blocks in this free list
-    fn iter<'b>(&'b self) -> FreeListIter<'b> {
-        // FreeListIter { current: self.head.map(|c| c.borrow())
-        //                             .as_ref()
-        //              }
-        match self.head {
-            Some(ref head) => FreeListIter { current: Some(head) }
-          , None           => FreeListIter { current: None }
-        }
-        // unimplemented!()
-    }
-
-    /// Returns a mutable iterator over the blocks in this free list.
-    fn iter_mut<'b>(&'b mut self) -> FreeListIterMut<'b> {
-        // FreeListIterMut { current: self.head.map(|c| *c ).as_mut() }
-        match self.head {
-            Some(ref mut head) => FreeListIterMut { current: Some(head) }
-          , None               => FreeListIterMut { current: None }
-        }
-    }
-
-}
-
-struct FreeListIter<'a> {
-    current: Option<&'a Free>
-}
-
-impl<'a> Iterator for FreeListIter<'a> {
-    type Item = &'a Free;
-
-    fn next(&mut self) -> Option<&'a Free> {
-        self.current
-            .map(|c| {
-                self.current = unsafe { c.next.resolve() };
-                c
-            })
-    }
-}
-
-struct FreeListIterMut<'a> {
-    current: Option<&'a mut Free>
-}
-
-impl<'a> Iterator for FreeListIterMut<'a> {
-    type Item = &'a mut Free;
-
-    fn next(&mut self) -> Option<&'a mut Free> {
-        self.current.take()
-            .map(|c| {
-                self.current = unsafe { c.next.resolve_mut() };
-                c
-            })
-    }
-}
+// }
 
 pub struct BuddyHeapAllocator<'a> {
     /// Address of the base of the heap. This must be aligned
     /// on a `MIN_ALIGN` boundary.
     start_addr: *mut u8
   , /// The allocator's free list
-    free_lists: &'a mut [FreeList<'a>]
+    free_lists: &'a mut [FreeList]
   , /// Number of blocks in the heap (must be a power of 2)
     heap_size: usize
   , /// Minimum block size
@@ -193,7 +181,7 @@ impl<'a> BuddyHeapAllocator<'a> {
     /// # Returns:
     ///   - A new `BuddyHeapAllocator`, obviously.
     pub unsafe fn new( start_addr: *mut u8
-                     , free_lists: &'a mut [FreeList<'a>]
+                     , free_lists: &'a mut [FreeList]
                      , heap_size: usize)
                      -> BuddyHeapAllocator<'a> {
         // Cache the number of free lists hopefully saving performance.
@@ -210,14 +198,15 @@ impl<'a> BuddyHeapAllocator<'a> {
 
         assert!( heap_size >= min_block_size
                , "Heap must be large enough to contain at least one block.");
-        assert!( min_block_size >= mem::size_of::<Free>()
+        assert!( min_block_size >= mem::size_of::<FreeBlock>()
                , "Minimum block size must be large enough to contain \
                   the free block header.");
 
         // Zero out the free lists in case we were passed existing data.
-        for list in free_lists.iter_mut() {
-            *list = FreeList::new();
-        }
+        // TODO: we still need to do this, but iter_mut() is not a thing yet
+        // for list in free_lists.iter_mut() {
+        //     *list = FreeList::new();
+        // }
 
         let mut heap
             = BuddyHeapAllocator { start_addr: start_addr
@@ -234,7 +223,7 @@ impl<'a> BuddyHeapAllocator<'a> {
                            Something is seriously amiss.");
 
         // Push the entire heap onto the free lists as the first block.
-        heap.free_lists[root_order].push(start_addr);
+        heap.push_block(start_addr, root_order);
         heap
     }
 
@@ -302,6 +291,20 @@ impl<'a> BuddyHeapAllocator<'a> {
         1 << (self.min_block_size.log2() + order)
     }
 
+    #[inline]
+    fn push_block(&mut self, ptr: *mut u8, order: usize) {
+        self.free_lists[order]
+            .push_front(Unique::new(ptr as *mut FreeBlock))
+    }
+
+    #[inline]
+    fn pop_block(&mut self, order: usize) -> Option<*mut u8>{
+        self.free_lists[order]
+            .pop_front()
+            .map(|block| block.get().as_ptr())
+    }
+
+
     /// Splits a block
     unsafe fn split_block( &mut self, block: *mut u8
                          , order: usize, new_order: usize ) {
@@ -319,8 +322,8 @@ impl<'a> BuddyHeapAllocator<'a> {
             split_size >>= 1;
             curr_order -= 1;
 
-            self.free_lists[curr_order]
-                .push(block.offset(split_size as isize));
+            self.push_block( block.offset(split_size as isize)
+                           , curr_order);
 
             trace!( "split block successfully, order: {}, split size: {}"
                   , curr_order, split_size );
@@ -373,7 +376,7 @@ impl<'a> Allocator for BuddyHeapAllocator<'a> {
                 let mut result = None;
                 for order in min_order..self.free_lists.len() {
                     // trace!("in allocate(): current order is {}", order);
-                    if let Some(block) = self.free_lists[order].pop() {
+                    if let Some(block) = self.pop_block(order) {
                         trace!( "in allocate(): found block");
                         if order > min_order {
                             trace!( "in allocate(): order {} is less than \
@@ -434,8 +437,7 @@ impl<'a> Allocator for BuddyHeapAllocator<'a> {
             }
             // Otherwise, if we've run out of free buddies, push the new
             // merged block onto the free lsit and return.
-            self.free_lists[order]
-                .push(new_block);
+            self.push_block(new_block, order);
             return;
         }
     }
