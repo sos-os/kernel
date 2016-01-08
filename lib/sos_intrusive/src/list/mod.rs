@@ -177,6 +177,11 @@ where T: OwnedRef<N>
     pub fn peek_front(&self) -> Option<&N> {
         unsafe { self.tail.resolve() }
     }
+
+    pub fn cursor<'a>(&'a mut self) -> ListCursor<'a, T, N> {
+        ListCursor { list: self
+                   , current: RawLink::none() }
+    }
 }
 
 pub struct ListCursor<'a, T, N>
