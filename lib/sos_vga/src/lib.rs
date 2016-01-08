@@ -372,11 +372,11 @@ macro_rules! print {
 #[macro_export]
 macro_rules! log {
     (level: $level:expr, $fmt:expr, $($arg:tt)*) => ({
-        println!( "[{} {}:{}] {}", level, file!(), line!()
+        println!( "[{} {}:{}] {}", $level, file!(), line!()
                 , format_args!($fmt, $($arg)*));
     });
     (level: $level:expr, $fmt:expr) => ({
-        println!("[{} {}:{}] {}", level, file!(), line!(), $fmt);
+        println!("[{} {}:{}] {}", $level, file!(), line!(), $fmt);
     });
 }
 
