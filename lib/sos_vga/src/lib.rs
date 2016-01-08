@@ -371,13 +371,13 @@ macro_rules! print {
 #[cfg(feature = "log")]
 #[macro_export]
 macro_rules! log {
+    (level: $level:expr, $fmt:expr, $($arg:tt)*) => ({
+        println!( "[{} {}:{}] {}", level, file!(), line!()
+                , format_args!($fmt, $($arg)*));
+    });
     (level: $level:expr, $fmt:expr) => ({
         println!("[{} {}:{}] {}", level, file!(), line!(), $fmt);
     });
-    (level: $level:expr, $fmt:expr, $($arg:tt)*) => ({
-        println!( "[{} {}:{}] {}", level, file!(), line!()
-                , $fmt, $($arg)*);
-    })
 }
 
 /// Required for Rust stack unwinding

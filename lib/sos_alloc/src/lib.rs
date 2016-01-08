@@ -48,8 +48,8 @@ use core::cmp::min;
 
 #[cfg(feature = "trace")]
 macro_rules! trace {
-    ($fmt:expr) => (log!(level: "TRACE", $fmt));
     ($fmt:expr, $($arg:tt)*) => (log!(level: "TRACE", $fmt, $($arg)* ));
+    ($fmt:expr) => (log!(level: "TRACE", $fmt));
 }
 
 #[cfg(not(feature = "trace"))]
