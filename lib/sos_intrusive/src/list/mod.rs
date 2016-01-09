@@ -182,6 +182,7 @@ where T: OwnedRef<N>
         ListCursor { list: self
                    , current: RawLink::none() }
     }
+
 }
 
 pub struct ListCursor<'a, T, N>
@@ -222,7 +223,7 @@ where T: OwnedRef<N>
         unsafe {
             self.current.resolve()
                 .map_or( self.list.front()
-                       , |next| next.next().resolve())
+                       , |curr| curr.next().resolve())
         }
     }
 
@@ -245,6 +246,19 @@ where T: OwnedRef<N>
             }
         }
     }
+
+    pub fn find_and_remove<P>(&mut self, predicate: P) -> Option<T>
+    where P: Fn(&N) -> bool {
+        while self.peek_next().is_some() {
+            if predicate(self.peek_next().unwrap()) == true {
+                return self.remove()
+            } else {
+                self.next();
+            }
+        }
+        None
+    }
+
 
 }
 
