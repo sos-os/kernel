@@ -15,5 +15,8 @@ addons:
     packages:
       - nasm
 
+install:
+  - make runtime
+
 script:
     - make
