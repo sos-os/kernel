@@ -8,6 +8,7 @@
 //
 use core::marker::PhantomData;
 use core::ops::{Index, IndexMut};
+use core::mem;
 
 /// The number of entries in a page table.
 pub const N_ENTRIES: usize = 512;
@@ -62,10 +63,35 @@ impl<L: TableLevel> IndexMut<usize> for Table<L> {
 }
 
 impl<L: TableLevel> Table<L>  {
+
     pub fn zero(&mut self) {
         for entry in self.entries.iter_mut() {
             entry.set_unused()
         }
+    }
+
+}
+
+impl<L: Sublevel> Table<L> {
+
+    fn next_table_addr(&self, index: usize) -> Option<usize> {
+        let flags = self[index].flags();
+        if flags.contains(PRESENT) && !flags.contains(HUGE_PAGE) {
+            Some(((self as *const _ as usize) << 9) | (index << 12))
+        } else {
+            None
+        }
+    }
+
+    pub fn next_table(&self, index: usize) -> Option<&Table<L::NextLevel>> {
+        self.next_table_addr(index)
+            .map(|addr| unsafe { &*(addr as *const _) })
+    }
+
+    pub fn next_table_mut(&self, index: usize)
+                         -> Option<& mut Table<L::NextLevel>> {
+        self.next_table_addr(index)
+            .map(|addr| unsafe { &mut *(addr as *mut _) })
     }
 }
 
@@ -112,4 +138,18 @@ impl Entry {
     #[inline] pub fn flags(&self) -> EntryFlags {
         EntryFlags::from_bits_truncate(self.0)
     }
+
+    pub fn pointed_frame(&self) -> Option<*mut u8> {
+        unsafe {
+            if self.flags().contains(PRESENT) {
+                Some(mem::transmute(self.0 & 0x000fffff_fffff000))
+            } else { None }
+        }
+    }
+
+    pub fn set(&mut self, frame: *mut u8, flags: EntryFlags) {
+        assert!(frame as u64 & !0x000fffff_fffff000 == 0);
+        self.0 = (frame as u64) | flags.bits();
+    }
+
 }
