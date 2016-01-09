@@ -335,7 +335,7 @@ impl<'a> BuddyHeapAllocator<'a> {
             self.push_block(block.offset(split_size as isize), order);
 
             trace!( "split block successfully, order: {}, split size: {}"
-                  , curr_order, split_size );
+                  , order, split_size );
 
         }
         // while curr_order > new_order {
