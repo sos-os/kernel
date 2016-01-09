@@ -292,13 +292,13 @@ impl<'a> BuddyHeapAllocator<'a> {
     }
 
     #[inline]
-    fn push_block(&mut self, ptr: *mut u8, order: usize) {
+    unsafe fn push_block(&mut self, ptr: *mut u8, order: usize) {
         self.free_lists[order]
             .push_front(Unique::new(ptr as *mut FreeBlock))
     }
 
     #[inline]
-    fn pop_block(&mut self, order: usize) -> Option<*mut u8>{
+    unsafe fn pop_block(&mut self, order: usize) -> Option<*mut u8>{
         self.free_lists[order]
             .pop_front()
             .map(|block| block.get().as_ptr())
@@ -345,6 +345,25 @@ impl<'a> BuddyHeapAllocator<'a> {
             // cannot have a buddy block.
             None
         }
+    }
+
+    pub unsafe fn remove_block(&mut self, order: usize, block: *mut u8)
+                              -> bool {
+        // TODO: this could be made much less unattractive
+        let mut cursor = self.free_lists[order].cursor();
+        let mut found = false;
+        loop {
+            match cursor.peek_next() {
+                Some(b) if b as *const FreeBlock as *const u8 == block => {
+                    found = true; break
+                }
+              , Some(_) => {}
+              , None => break
+            }
+            cursor.next();
+        }
+        if found { cursor.remove(); }
+        found
     }
 }
 
@@ -428,7 +447,7 @@ impl<'a> Allocator for BuddyHeapAllocator<'a> {
             // If there is a buddy for this block of the given order...
             if let Some(buddy) = self.get_buddy(order, block) {
                 // ...and if the buddy was free...
-                if self.free_lists[order].remove(buddy) {
+                if self.remove_block(order,buddy) {
                     // ...merge the buddy with the new block (just use
                     // the lower address), and keep going.
                     new_block = min(new_block, buddy);

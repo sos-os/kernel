@@ -57,7 +57,7 @@ extern {
     unsafe { (&mut HEAP_TOP as *mut _) as usize }
 }
 
-static mut KERNEL_FREE_LISTS: [buddy::FreeList<'static>; 19]
+static mut KERNEL_FREE_LISTS: [buddy::FreeList; 19]
     // TODO: I really wish there was a less awful way to do this...
     = [ buddy::FreeList::new()
       , buddy::FreeList::new()

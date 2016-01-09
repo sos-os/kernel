@@ -26,10 +26,12 @@
 #![feature(no_std)]
 #![no_std]
 
-#![feature( ptr_as_ref
-          , const_fn
+#![feature( const_fn
           , core_slice_ext
           , iter_cmp )]
+
+#![cfg_attr( feature = "buddy"
+           , feature(ptr_as_ref, unique))]
 
 #[cfg(feature = "buddy")]
 extern crate sos_intrusive as intrusive;
