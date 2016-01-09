@@ -50,34 +50,28 @@ impl PowersOf2 for usize {
 
     #[cfg(any(target_arch="x86_64", target_arch="x86"))]
     fn log2(&self) -> usize {
-        // // let mut r: usize = 0;
-        // // let mut v = *self;
+        // let mut r: usize = 0;
+        // let mut v = *self;
         // S.iter()
         //  .zip(B.iter()) // this purely-functional implementation may be slower
         //  .fold((0, *self), // but it's cute and I had fun figuring it out
         //     |(r, v), (s, b)| if v & b != 0 { (r | s, v >> s) }
         //                      else { (r, v) })
         //   .0
-        // // for in 0..S.len() {
-        // //     if v & B[i] != 0 {
-        // //         v = v >> S[i];
-        // //         r = r | S[i];
-        // //     }
-        // // }
-        // // r
+        // for i in 0..S.len() {
+        //     if v & B[i] != 0 {
+        //         v >>= S[i];
+        //         r |=  S[i];
+        //     }
+        // }
+        // r
         //
         let mut res = 0;
-        let mut num = *self;
-        loop {
-            num >>= 1;
-
-            if num == 0 {
-                break;
-            }
-
+        let mut num = *self >> 1;
+        while num != 0 {
             res += 1;
+            num >>= 1;
         }
-
         res
     }
 }
