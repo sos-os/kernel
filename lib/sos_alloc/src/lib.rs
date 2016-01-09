@@ -11,6 +11,7 @@
 //! This is in its own crate so it can be used by kernel-space and user-space
 //! OS components.
 #![crate_name = "sos_alloc"]
+#![crate_type = "lib"]
 
 // The compiler needs to be instructed that this crate is an allocator in order
 // to realize that when this is linked in another allocator like jemalloc
@@ -87,7 +88,9 @@ pub trait Allocator {
     ///   - `Some(*mut u8)` if the request was allocated successfully
     ///   - `None` if the allocator is out of memory or if the request was
     ///     invalid.
-    unsafe fn allocate(&mut self, size: usize, align: usize)
+    unsafe fn allocate( &mut self
+                      , size: usize
+                      , align: usize)
                       -> Option<*mut u8>;
 
     /// Release an allocated block of memory.
@@ -100,7 +103,9 @@ pub trait Allocator {
     ///   - `frame`: a pointer to the block of memory to deallocate
     ///   - `size`: the size of the block being deallocated
     ///   - `align`: the alignment of the block being deallocated
-    unsafe fn deallocate(&mut self, frame: *mut u8, size: usize, align: usize);
+    unsafe fn deallocate( &mut self
+                        , frame: *mut u8
+                        , size: usize, align: usize);
 
     /// Reallocate `old_frame` from `old_size` bytes to `new_size` bytes
     ///
@@ -120,8 +125,10 @@ pub trait Allocator {
     ///     invalid.
     // TODO: Optimization: check if the reallocation request fits in
     // the old frame and return immediately if it does
-    unsafe fn reallocate( &mut self, old_frame: *mut u8
-                        , old_size: usize, new_size: usize
+    unsafe fn reallocate( &mut self
+                        , old_frame: *mut u8
+                        , old_size: usize
+                        , new_size: usize
                         , align: usize )
                         -> Option<*mut u8> {
         // First, attempt to allocate a new frame...
@@ -136,7 +143,9 @@ pub trait Allocator {
             })
     }
 
-    unsafe fn zero_alloc(&mut self, size: usize, align: usize)
+    unsafe fn zero_alloc( &mut self
+                        , size: usize
+                        , align: usize)
                         -> Option<*mut u8> {
         unimplemented!()
     }

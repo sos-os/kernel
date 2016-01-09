@@ -125,8 +125,9 @@ impl Terminal {
     ///
     /// # Unsafe due to:
     ///   - Casting a raw address to an array
-    pub const unsafe fn new(colors: Palette, buffer_start: usize)
-                            -> Terminal {
+    pub const unsafe fn new( colors: Palette
+                           , buffer_start: usize)
+                           -> Terminal {
         Terminal { x: 0, y: 0
                  , colors: colors
                  , buffer: Unique::new(buffer_start as *mut _)

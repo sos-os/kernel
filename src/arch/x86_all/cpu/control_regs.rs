@@ -22,7 +22,10 @@ impl fmt::Display for CrState {
 }
 
 pub fn dump() -> CrState {
-    let _cr0: usize; let _cr2: usize; let _cr3: usize; let _cr4: usize;
+    let _cr0: usize;
+    let _cr2: usize;
+    let _cr3: usize;
+    let _cr4: usize;
     unsafe {
         asm!(  "mov $0, cr0
                 mov $1, cr2
