@@ -218,11 +218,11 @@ where T: OwnedRef<N>
         }
     }
 
-    pub fn peek_next(&mut self) -> Option<&mut N> {
+    pub fn peek_next(&self) -> Option<&N> {
         unsafe {
-            self.current.resolve_mut()
-                .map_or( self.list.front_mut()
-                       , |next| next.next_mut().resolve_mut())
+            self.current.resolve()
+                .map_or( self.list.front()
+                       , |next| next.next().resolve())
         }
     }
 
