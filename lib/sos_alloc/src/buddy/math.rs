@@ -87,5 +87,40 @@ mod tests {
         assert_eq!(0usize.next_pow2(), 1);
         assert_eq!(3usize.next_pow2(), 4);
         assert_eq!(5678usize.next_pow2(), 8192);
+        assert_eq!(1,  0.next_pow2());
+        assert_eq!(1,  1.next_pow2());
+        assert_eq!(2,  2.next_pow2());
+        assert_eq!(4,  3.next_pow2());
+        assert_eq!(4,  4.next_pow2());
+        assert_eq!(8,  5.next_pow2());
+        assert_eq!(8,  8.next_pow2());
+        assert_eq!(16, 9.next_pow2());
+        assert_eq!(16, 16.next_pow2());
+        assert_eq!(32, 17.next_pow2());
+        assert_eq!(32, 32.next_pow2());
+        assert_eq!(8388608, 8376263.next_pow2());
+    }
+
+    #[test]
+    fn test_is_pow2() {
+    assert_eq!(false, 0.is_pow2());
+    assert_eq!(true,  1.is_pow2());
+    assert_eq!(true,  2.is_pow2());
+    assert_eq!(false, 3.is_pow2());
+    assert_eq!(true,  4.is_pow2());
+    assert_eq!(false, 255.is_pow2());
+    assert_eq!(true,  256.is_pow2());
+    assert_eq!(false, 257.is_pow2());
+    assert_eq!(false, 4294967295.is_pow2());
+    }
+
+
+    #[test]
+    fn test_log2() {
+    assert_eq!(0, 0.log2());
+    assert_eq!(0, 1.log2());
+    assert_eq!(1, 2.log2());
+    assert_eq!(5, 32.log2());
+    assert_eq!(10, 1024.log2());
     }
 }
