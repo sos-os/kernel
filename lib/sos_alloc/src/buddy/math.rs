@@ -20,24 +20,10 @@ pub trait PowersOf2 {
 
 impl PowersOf2 for usize {
     fn is_pow2(&self) -> bool {
-        *self != 0 && self & (self - 1) == 0
+        *self != 0 && (self & (self - 1)) == 0
     }
 
     /// Returns the next power of 2
-    ///
-    /// # Examples:
-    /// ```
-    /// assert_eq!(1.next_pow2(), 2);
-    /// ```
-    /// ```
-    /// assert_eq!(0.next_pow2(), 1);
-    /// ```
-    /// ```
-    /// assert_eq!(3.next_pow2(), 4);
-    /// ```
-    /// ```
-    /// assert_eq!(5678.next_pow2(), 8192);
-    /// ```
     fn next_pow2(&self) -> usize {
         let mut v = *self;
         if v == 0 {
@@ -93,5 +79,18 @@ impl PowersOf2 for usize {
         }
 
         res
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_next_pow2() {
+        assert_eq!(2usize.next_pow2(), 2);
+        assert_eq!(0usize.next_pow2(), 1);
+        assert_eq!(3usize.next_pow2(), 4);
+        assert_eq!(5678usize.next_pow2(), 8192);
     }
 }
