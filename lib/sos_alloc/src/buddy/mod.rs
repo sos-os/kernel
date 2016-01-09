@@ -12,6 +12,8 @@ use core::ptr::Unique;
 use intrusive::list::{List, Node};
 use intrusive::rawlink::RawLink;
 
+#[cfg(test)] mod test;
+
 /// A `FreeList` is a list of unique free blocks
 pub type FreeList = List<Unique<FreeBlock>, FreeBlock>;
 
@@ -201,6 +203,13 @@ impl<'a> BuddyHeapAllocator<'a> {
         assert!( min_block_size >= mem::size_of::<FreeBlock>()
                , "Minimum block size must be large enough to contain \
                   the free block header.");
+        assert!( heap_size.is_pow2()
+               , "Heap size must be a power of 2.");
+       //
+    //    // We must have one free list per possible heap block size.
+    //    assert_eq!(min_block_size *
+    //               (2u32.pow(free_lists.len() as u32 - 1)) as usize,
+    //               heap_size);
 
         // Zero out the free lists in case we were passed existing data.
         // TODO: we still need to do this, but iter_mut() is not a thing yet
@@ -306,8 +315,10 @@ impl<'a> BuddyHeapAllocator<'a> {
 
 
     /// Splits a block
-    unsafe fn split_block( &mut self, block: *mut u8
-                         , order: usize, new_order: usize ) {
+    unsafe fn split_block( &mut self
+                         , block: *mut u8
+                         , order: usize
+                         , new_order: usize ) {
         trace!("split_block() was called, target order: {}.", new_order);
 
         assert!( new_order < order
@@ -330,7 +341,9 @@ impl<'a> BuddyHeapAllocator<'a> {
         }
     }
 
-    pub unsafe fn get_buddy(&self, order: usize, block: *mut u8)
+    pub unsafe fn get_buddy( &self
+                           , order: usize
+                           , block: *mut u8)
                             -> Option<*mut u8> {
         // Determine the size of the block allocated for the given order
         let block_size = self.order_alloc_size(order);
@@ -347,23 +360,35 @@ impl<'a> BuddyHeapAllocator<'a> {
         }
     }
 
-    pub unsafe fn remove_block(&mut self, order: usize, block: *mut u8)
-                              -> bool {
-        // TODO: this could be made much less unattractive
-        let mut cursor = self.free_lists[order].cursor();
-        let mut found = false;
-        loop {
-            match cursor.peek_next() {
-                Some(b) if b as *const FreeBlock as *const u8 == block => {
-                    found = true; break
-                }
-              , Some(_) => {}
-              , None => break
-            }
-            cursor.next();
-        }
-        if found { cursor.remove(); }
-        found
+    /// Finds and removes the target block from the free list.
+    ///
+    /// # Arguments
+    ///   - `order`: the order of the free list to remove the block from_raw
+    ///   - `block`: a pointer to the block to remove
+    ///
+    /// # Returns
+    ///   - `true` if the block was found and removed from the free List
+    ///   - `false` if the block was not found
+    pub fn remove_block(&mut self, order: usize, block: *mut u8) -> bool {
+        self.free_lists[order]
+            .cursor()
+            .find_and_remove(|b| b as *const FreeBlock as *const u8 == block)
+            .is_some()
+        // this is the way less elegant old version.
+        // let mut cursor = self.free_lists[order].cursor();
+        // let mut found = false;
+        // loop {
+        //     match cursor.peek_next() {
+        //         Some(b) if b as *const FreeBlock as *const u8 == block => {
+        //             found = true; break
+        //         }
+        //       , Some(_) => {}
+        //       , None => break
+        //     }
+        //     cursor.next();
+        // }
+        // if found { cursor.remove(); }
+        // found
     }
 }
 
@@ -381,8 +406,10 @@ impl<'a> Allocator for BuddyHeapAllocator<'a> {
     ///   - `Some(*mut u8)` if the request was allocated successfully
     ///   - `None` if the allocator is out of memory or if the request was
     ///     invalid.
-    unsafe fn allocate(&mut self, size: usize, align: usize)
-                       -> Option<*mut u8> {
+    unsafe fn allocate( &mut self
+                      , size: usize
+                      , align: usize)
+                      -> Option<*mut u8> {
         trace!("allocate() was called!");
         // First, compute the allocation order for this request
         self.alloc_order(size, align)
@@ -392,7 +419,6 @@ impl<'a> Allocator for BuddyHeapAllocator<'a> {
                 trace!("in allocate(): min alloc order is {}", min_order);
                 // Starting at the minimum possible order...
                 // TODO: this is ugly and not FP, rewrite.
-                let mut result = None;
                 for order in min_order..self.free_lists.len() {
                     // trace!("in allocate(): current order is {}", order);
                     if let Some(block) = self.pop_block(order) {
@@ -405,10 +431,10 @@ impl<'a> Allocator for BuddyHeapAllocator<'a> {
                             trace!("in allocate(): split_block() done");
 
                         }
-                        result = Some(block); break;
+                        return Some(block)
                     }
                 }
-                result
+                None
                 // self.free_lists[min_order..].iter().enumerate()
                 // ...find the first free list that has free blocks left.
                     // .find(|&(_, ref f)| f.has_free_blocks())
@@ -435,8 +461,10 @@ impl<'a> Allocator for BuddyHeapAllocator<'a> {
     ///   - `frame`: a pointer to the block of memory to deallocate
     ///   - `size`: the size of the block being deallocated
     ///   - `align`: the alignment of the block being deallocated
-    unsafe fn deallocate( &mut self, block: *mut u8
-                        , old_size: usize, align: usize ) {
+    unsafe fn deallocate( &mut self
+                        , block: *mut u8
+                        , old_size: usize
+                        , align: usize ) {
         let min_order = self.alloc_order(old_size, align)
                             .unwrap();
 
