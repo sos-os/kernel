@@ -431,6 +431,8 @@ impl<'a> Allocator for BuddyHeapAllocator<'a> {
         trace!("allocate() was called!");
         // First, compute the allocation order for this request
         self.alloc_order(size, align)
+            .and_then(|order| if order > self.free_lists.len() - 1 { None }
+                              else {Some(order)} )
             // If the allocation order is defined, then we try to allocate
             // a block of that order. Otherwise, the request is invalid.
             .and_then(|min_order| {
