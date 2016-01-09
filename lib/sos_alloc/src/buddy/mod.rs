@@ -341,6 +341,15 @@ impl<'a> BuddyHeapAllocator<'a> {
         }
     }
 
+    /// Finds the buddy block for a given block.
+    ///
+    /// # Arguments
+    ///   - `order`: the order of the block to find a buddy for
+    ///   - `block`: a pointer to the block to find a buddy for
+    ///
+    /// # Returns
+    ///   - `Some(*mut u8)` pointing to the buddy block if a buddy was found
+    ///   - `None` if the block was the size of the entire heap
     pub unsafe fn get_buddy( &self
                            , order: usize
                            , block: *mut u8)
