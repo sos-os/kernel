@@ -20,11 +20,10 @@
 
 #![cfg_attr(test, feature(box_syntax))]
 
-
-mod rawlink;
-// use rawlink::RawLink;
+pub mod rawlink;
+pub use rawlink::RawLink;
 pub mod list;
-// pub use list::List;
+pub use list::List;
 
 #[cfg(test)]
 extern crate std;

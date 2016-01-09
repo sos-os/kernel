@@ -317,28 +317,37 @@ impl<'a> BuddyHeapAllocator<'a> {
     /// Splits a block
     unsafe fn split_block( &mut self
                          , block: *mut u8
-                         , order: usize
+                         , old_order: usize
                          , new_order: usize ) {
         trace!("split_block() was called, target order: {}.", new_order);
 
-        assert!( new_order < order
+        assert!( new_order < old_order
                , "Cannot split a block larger than its current order!");
-        assert!( order <= self.free_lists.len()
+        assert!( old_order <= self.free_lists.len()
                , "Order is too large for this allocator!");
 
-        let mut split_size = self.order_alloc_size(order);
-        let mut curr_order = order;
-
-        while curr_order > new_order {
+        let mut split_size = self.order_alloc_size(old_order);
+        // let mut curr_order = order;
+        for order in (new_order..old_order).rev() {
             split_size >>= 1;
-            curr_order -= 1;
 
-            self.push_block( block.offset(split_size as isize)
-                           , curr_order);
+            // let split_size = self.order_alloc_size(order);
+            self.push_block(block.offset(split_size as isize), order);
 
             trace!( "split block successfully, order: {}, split size: {}"
                   , curr_order, split_size );
+
         }
+        // while curr_order > new_order {
+        //     split_size >>= 1;
+        //     curr_order -= 1;
+        //
+        //     self.push_block( block.offset(split_size as isize)
+        //                    , curr_order);
+        //
+        //     trace!( "split block successfully, order: {}, split size: {}"
+        //           , curr_order, split_size );
+        // }
     }
 
     /// Finds the buddy block for a given block.
@@ -484,7 +493,7 @@ impl<'a> Allocator for BuddyHeapAllocator<'a> {
             // If there is a buddy for this block of the given order...
             if let Some(buddy) = self.get_buddy(order, block) {
                 // ...and if the buddy was free...
-                if self.remove_block(order,buddy) {
+                if self.remove_block(order, buddy) {
                     // ...merge the buddy with the new block (just use
                     // the lower address), and keep going.
                     new_block = min(new_block, buddy);

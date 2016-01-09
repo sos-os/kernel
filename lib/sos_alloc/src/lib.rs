@@ -32,8 +32,8 @@
           , iter_cmp )]
 
 #![cfg_attr( feature = "buddy"
-           , feature(ptr_as_ref, unique))]
-
+           , feature(unique))]
+           
 #[cfg(feature = "buddy")]
 extern crate sos_intrusive as intrusive;
 #[cfg(feature = "multiboot")]
