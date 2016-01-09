@@ -1,5 +1,6 @@
 //! This module integrates the buddy heap allocator into the Rust runtime.
 use spin::Mutex;
+use core::ptr;
 
 use ::Allocator;
 use super::{BuddyHeapAllocator, FreeList};
@@ -26,8 +27,9 @@ pub extern "C" fn __rust_allocate(size: usize, align: usize) -> *mut u8 {
              .map(|blck| {
                  trace!("__rust_allocate: allocatedd {:?}", blck);
                  blck })
-             .expect("Memory could not be allocated; either the allocator is\
-                      out of memory, or the allocation request was invalid.")
+             .unwrap_or(ptr::null_mut())
+            //  .expect("Memory could not be allocated; either the allocator is\
+            //           out of memory, or the allocation request was invalid.")
     }
 }
 
@@ -50,8 +52,9 @@ pub extern "C" fn __rust_reallocate( ptr: *mut u8, old_size: usize
         ALLOC.lock().as_mut()
              .expect("Cannot reallocate memory, no system allocator exists!")
              .reallocate(ptr, old_size, size, align)
-             .expect("Memory could not be reallocated; either the allocator\
-                     is out of memory, or the allocation request was invalid.")
+             .unwrap_or(ptr::null_mut())
+            //  .expect("Memory could not be reallocated; either the allocator\
+            //          is out of memory, or the allocation request was invalid.")
      }
 }
 
