@@ -6,12 +6,15 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
+use alloc::{Allocator, PAGE_SIZE};
+
 use core::marker::PhantomData;
 use core::ops::{Index, IndexMut};
 use core::mem;
 
 /// The number of entries in a page table.
 pub const N_ENTRIES: usize = 512;
+pub const PAGE_TABLE_SIZE: usize = N_ENTRIES * PAGE_SIZE;
 
 /// PML4 table
 pub const PML4: *mut Table<PML4Level>
@@ -21,8 +24,6 @@ pub struct Table<L>
 where L: TableLevel { entries: [Entry; N_ENTRIES]
                     , level_marker: PhantomData<L>
                     }
-
-
 
 pub trait TableLevel {}
 pub enum PML4Level {}
@@ -92,6 +93,27 @@ impl<L: Sublevel> Table<L> {
                          -> Option<& mut Table<L::NextLevel>> {
         self.next_table_addr(index)
             .map(|addr| unsafe { &mut *(addr as *mut _) })
+    }
+
+
+    pub fn create_next<A>(&mut self, index: usize, alloc: &mut A)
+                         -> &mut Table<L::NextLevel>
+    where A: Allocator {
+        if self.next_table(index).is_none() {
+            assert!( !self.entries[index].flags().contains(HUGE_PAGE)
+                   , "Couldn't create next table: huge pages not \
+                      currently supported.");
+
+            let frame = unsafe {
+                alloc.allocate(PAGE_SIZE, PAGE_SIZE)// I hope that's right
+                     .expect("Couldn't create next table: no \
+                             frames  available!")
+            };
+
+            self.entries[index].set(frame, PRESENT | WRITABLE);
+            self.next_table_mut(index).unwrap().zero();
+        }
+        self.next_table_mut(index).unwrap()
     }
 }
 
