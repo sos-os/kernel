@@ -34,7 +34,7 @@ use spin::Mutex;
 #[cfg(feature = "system_term")]
 pub static CONSOLE: Mutex<Terminal>
     = Mutex::new(unsafe { Terminal::new(
-         Palette::new(Color::LightGreen, Color::Black )
+         Palette::new(Color::LightGrey, Color::Black )
        , 0xB8000
     )});
 
