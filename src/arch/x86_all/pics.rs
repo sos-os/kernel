@@ -173,7 +173,7 @@ impl BothPICs {
 
     /// Initialize the system's PICs.
     pub unsafe fn initialize(&mut self) {
-        print!("Initializing PICs...");
+        print!(" . . Initializing PICs");
         let wait_port = Port::new(0x80);
         let wait = || { wait_port.out8(0); };
         // helper macro to avoid writing repetitive code
@@ -209,7 +209,7 @@ impl BothPICs {
         // 4. finally, the mask we saved earlier
         send!(pic0 => saved_mask1);
         send!(pic1 => saved_mask2);
-        println!("    [DONE]");
+        println!("        [ OK ]");
     }
 }
 
