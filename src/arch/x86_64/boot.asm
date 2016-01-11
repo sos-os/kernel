@@ -14,6 +14,8 @@ global start
 global gdt64_offset
 global HEAP_BASE
 global HEAP_TOP
+global STACK_BASE
+global STACK_TOP
 
 extern start_64
 
@@ -128,7 +130,7 @@ set_long_mode:
     ret
 
 start:
-    mov     esp, stack_top
+    mov     esp, STACK_TOP
     mov     edi, ebx       ; Move Multiboot info pointer to edi
 
     call    is_multiboot
@@ -169,9 +171,9 @@ page_table:
     resb    PAGE_TABLE_SIZE
 
 ; reserve 4M for the kernel stack space
-stack_end:
+STACK_BASE:
     resb    4096
-stack_top:
+STACK_TOP:
 
 ; reserved space for the kernel heap
 HEAP_BASE:

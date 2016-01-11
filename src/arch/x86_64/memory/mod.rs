@@ -9,6 +9,13 @@ pub use self::paddr_impls::*;
 pub mod table;
 use self::table::*;
 
+extern {
+    pub static mut HEAP_BASE: u8;
+    pub static mut HEAP_TOP: u8;
+    pub static mut STACK_BASE: u8;
+    pub static mut STACK_TOP: u8;
+}
+
 /// A physical (linear) memory address is a 64-bit unsigned integer
 #[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct PAddr(u64);

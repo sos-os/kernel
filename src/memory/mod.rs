@@ -8,7 +8,7 @@
 //
 use alloc::buddy;
 
-pub use arch::memory::PAddr;
+pub use arch::memory::{PAddr, HEAP_BASE, HEAP_TOP};
 pub mod vaddr_impls;
 pub use self::vaddr_impls::*;
 
@@ -48,10 +48,7 @@ impl VAddr {
     }
 }
 
-extern {
-    static mut HEAP_BASE: u8;
-    static mut HEAP_TOP: u8;
-}
+
 
 #[inline] pub fn heap_base_addr() -> usize {
     unsafe { (&mut HEAP_BASE as *mut _) as usize }
