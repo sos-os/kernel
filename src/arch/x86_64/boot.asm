@@ -170,9 +170,9 @@ pd_table:
 page_table:
     resb    PAGE_TABLE_SIZE
 
-; reserve 4M for the kernel stack space
+; reserve 8M for the kernel stack space
 STACK_BASE:
-    resb    4096
+    resb    4096 * 2
 STACK_TOP:
 
 ; reserved space for the kernel heap
