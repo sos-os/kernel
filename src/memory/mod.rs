@@ -7,6 +7,7 @@
 //  directory of this repository for more information.
 //
 use alloc::buddy;
+
 pub use arch::memory::PAddr;
 pub mod vaddr_impls;
 pub use self::vaddr_impls::*;
@@ -16,6 +17,9 @@ pub use self::vaddr_impls::*;
 pub struct VAddr(usize);
 
 impl VAddr {
+    #[inline] pub fn from_ptr(ptr: *mut u8) -> Self {
+        VAddr(ptr as usize)
+    }
     #[inline] pub const fn from_usize(u: usize) -> Self {
         VAddr(u)
     }
@@ -57,35 +61,10 @@ extern {
     unsafe { (&mut HEAP_TOP as *mut _) as usize }
 }
 
-static mut KERNEL_FREE_LISTS: [buddy::FreeList; 19]
-    // TODO: I really wish there was a less awful way to do this...
-    = [ buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      , buddy::FreeList::new()
-      ];
-
 pub unsafe fn init_heap() {
     let heap_base_ptr
         = &mut HEAP_BASE as *mut _;
     let heap_size
         = (&mut HEAP_TOP as *mut _) as usize - heap_base_ptr as usize;
-    buddy::system::init_heap( heap_base_ptr
-                            , &mut KERNEL_FREE_LISTS
-                            , heap_size);
+    buddy::system::init_heap( heap_base_ptr, heap_size);
 }
