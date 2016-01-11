@@ -1,12 +1,13 @@
+use core::ptr::Unique;
+
 use ::memory::VAddr;
-use alloc::PAGE_SIZE;
+use alloc::{PAGE_SIZE, Allocator};
 
 pub mod paddr_impls;
 pub use self::paddr_impls::*;
 
 pub mod table;
-pub use self::table::{Table, PML4, Entry};
-use self::table::{HUGE_PAGE};
+use self::table::*;
 
 /// A physical (linear) memory address is a 64-bit unsigned integer
 #[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -18,75 +19,6 @@ impl PAddr {
     }
     #[inline] pub const fn as_u64(&self) -> u64 {
         self.0
-    }
-}
-
-trait Translate {
-    type To;
-    fn translate(&self) -> Option<Self::To>;
-}
-
-impl Translate for VAddr {
-    type To = PAddr;
-
-    fn translate(&self) -> Option<PAddr> {
-        Page::containing_addr(*self)
-            .translate()
-            .map(|frame| {
-                let offset = self.as_usize() % PAGE_SIZE;
-                PAddr::from_u64(frame as u64 + offset as u64)
-            })
-    }
-}
-
-impl Translate for Page {
-    type To = *mut u8;
-
-    fn translate(&self) -> Option<*mut u8> {
-        let pdpt = unsafe { &*table::PML4 }.next_table(self.pml4_index());
-
-        let huge_page = || pdpt.and_then(|pdpt| {
-            let pdpt_entry = &pdpt[self.pdpt_index()];
-
-            if pdpt_entry.flags().contains(HUGE_PAGE) {
-                // If the PDPT entry contains the huge page flag, and the
-                // entry points to the start frame of a page, then the pointed
-                // frame is a 1GB huge page
-                pdpt_entry.pointed_frame()
-                    .map(|start_frame| {
-                        assert!( start_frame as usize % table::N_ENTRIES == 0
-                               , "Start frame must be aligned on a \
-                                  1GB boundary!");
-                        (start_frame as usize + self.pd_index()
-                                              + self.pt_index()) as *mut u8
-                    })
-
-            } else {
-                pdpt.next_table(self.pdpt_index())
-                    .and_then(|pd| {
-                        let pd_entry = &pd[self.pd_index()];
-
-                        if pd_entry.flags().contains(HUGE_PAGE) {
-                            pd_entry.pointed_frame()
-                                .map(|start_frame|{
-                                    assert!( (start_frame as usize %
-                                             table::N_ENTRIES) == 0
-                                         , "Start frame must be aligned!");
-                                    (start_frame as usize + self.pt_index())
-                                        as *mut u8
-                                })
-                        } else {
-                            None
-                        }
-                    })
-            }
-        });
-
-        pdpt.and_then(|pdpt| pdpt.next_table(self.pdpt_index()))
-            .and_then(|pd| pd.next_table(self.pd_index()))
-            .and_then(|pt| pt[self.pt_index()].pointed_frame())
-            .or_else(huge_page)
-
     }
 }
 
@@ -122,5 +54,118 @@ impl Page {
         pt_index >> 0
     }
 
+}
+
+pub struct ActivePML4(Unique<Table<PML4Level>>);
+
+impl ActivePML4 {
+
+    pub unsafe fn new() -> Self {
+        ActivePML4(Unique::new(PML4))
+    }
+
+    fn pml4(&self) -> &Table<PML4Level> {
+        unsafe { self.0.get() }
+    }
+
+    fn pml4_mut(&mut self) -> &mut Table<PML4Level> {
+        unsafe { self.0.get_mut() }
+    }
+
+    fn translate(&self, vaddr: VAddr) -> Option<PAddr> {
+        self.translate_page(Page::containing_addr(vaddr))
+            .map(|frame| {
+                let offset = vaddr.as_usize() % PAGE_SIZE;
+                PAddr::from_u64(frame as u64 + offset as u64)
+            })
+    }
+
+    pub fn translate_page(&self, page: Page) -> Option<*mut u8> {
+        let pdpt = self.pml4().next_table(page.pml4_index());
+
+        let huge_page = || pdpt.and_then(|pdpt| {
+            let pdpt_entry = &pdpt[page.pdpt_index()];
+
+            if pdpt_entry.flags().contains(HUGE_PAGE) {
+                // If the PDPT entry contains the huge page flag, and the
+                // entry points to the start frame of a page, then the pointed
+                // frame is a 1GB huge page
+                pdpt_entry.pointed_frame()
+                    .map(|start_frame| {
+                        assert!( start_frame as usize % table::N_ENTRIES == 0
+                               , "Start frame must be aligned on a \
+                                  1GB boundary!");
+                        (start_frame as usize + page.pd_index()
+                                              + page.pt_index()) as *mut u8
+                    })
+
+            } else {
+                pdpt.next_table(page.pdpt_index())
+                    .and_then(|pd| {
+                        let pd_entry = &pd[page.pd_index()];
+
+                        if pd_entry.flags().contains(HUGE_PAGE) {
+                            pd_entry.pointed_frame()
+                                .map(|start_frame|{
+                                    assert!( (start_frame as usize %
+                                             table::N_ENTRIES) == 0
+                                         , "Start frame must be aligned!");
+                                    (start_frame as usize + page.pt_index())
+                                        as *mut u8
+                                })
+                        } else {
+                            None
+                        }
+                    })
+            }
+        });
+
+        pdpt.and_then(|pdpt| pdpt.next_table(page.pdpt_index()))
+            .and_then(|pd| pd.next_table(page.pd_index()))
+            .and_then(|pt| pt[page.pt_index()].pointed_frame())
+            .or_else(huge_page)
+
+    }
+
+    pub fn identity_map<A: Allocator>( &mut self
+                                     , frame: *mut u8
+                                     , flags: EntryFlags
+                                     , allocator: &mut A) {
+        self.map_to( Page::containing_addr(VAddr::from_ptr(frame))
+                   , frame
+                   , flags
+                   , allocator )
+    }
+
+    pub fn map<A: Allocator>( &mut self
+                            , page: Page
+                            , flags: EntryFlags
+                            , allocator: &mut A) {
+        unsafe {
+            self.map_to( page
+                       , allocator.allocate(PAGE_SIZE, PAGE_SIZE)
+                                  .expect("Couldn't map, out of frames!")
+                       , flags
+                       , allocator );
+        }
+    }
+
+    pub fn map_to<A: Allocator>( &mut self
+                               , page: Page
+                               , frame: *mut u8
+                               , flags: EntryFlags
+                               , allocator: &mut A) {
+        let mut pdpt = self.pml4_mut()
+                           .create_next(page.pml4_index(), allocator);
+        let mut pd   = pdpt.create_next(page.pdpt_index(), allocator);
+        let mut pt   = pd.create_next(page.pd_index(), allocator);
+
+        let idx = page.pt_index();
+
+        assert!(pt[idx].is_unused()
+               , "Could not map frame {:?}, page table entry {} is already \
+                  in use!", frame, idx);
+        pt[idx].set(frame, flags | PRESENT);
+    }
 
 }
