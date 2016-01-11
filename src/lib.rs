@@ -75,9 +75,9 @@ pub extern fn kernel_start(multiboot_addr: usize) {
         = boot_info.mem_map()
                    .expect("Memory map tag required!");
 
-    println!("Detected memory areas:");
+    println!(" . Detected memory areas:");
     for a in mmap_tag.areas() {
-        println!("     start: {:#08x}, end: {:#08x}"
+        println!(" . . start: {:#08x}, end: {:#08x}"
                 , a.base, a.length );
     }
 
@@ -85,12 +85,12 @@ pub extern fn kernel_start(multiboot_addr: usize) {
         = boot_info.elf64_sections()
                    .expect("ELF sections tag required!");
 
-    println!("Detecting kernel ELF sections:");
+    println!(" . Detecting kernel ELF sections:");
 
     let kernel_begin    // Extract kernel ELF sections from  multiboot info
         = elf_sections_tag.sections()
             .map(|s| {
-                println!("     address: {:#08x}, size: {:#08x}, flags: {:#08x}"
+                println!(" . . address: {:#08x}, size: {:#08x}, flags: {:#08x}"
                         , s.address
                         , s.length
                         , s.flags );
@@ -108,26 +108,30 @@ pub extern fn kernel_start(multiboot_addr: usize) {
             .expect("Could not find kernel end section!\
                     \nSomething is deeply wrong.");
 
-    println!( "Detected {} kernel ELF sections.", n_elf_sections);
-    println!( "Kernel begins at {:#x} and ends at {:#x}."
+    println!( " . Detected {} kernel ELF sections.", n_elf_sections);
+    println!( " . . Kernel begins at {:#x} and ends at {:#x}."
              , kernel_begin, kernel_end );
 
     let multiboot_end = multiboot_addr + boot_info.length as usize;
 
-    println!( "Multiboot info begins at {:#x} and ends at {:#x}."
+    println!( " . . Multiboot info begins at {:#x} and ends at {:#x}."
              , multiboot_addr, multiboot_end);
 
     // -- initialize interrupts ----------------------------------------------
     unsafe {
+        println!(" . Enabling interrupts:");
         cpu::interrupts::initialize();
+        println!("{:<38}{:>40}", " . Enabling interrupts", "[ OKAY ]");
     };
 
     // -- initialize the heap ------------------------------------------------
     unsafe {
-        print!(" . Intializing heap");
-        memory::init_heap();
-        println!( "        [ OK ]\nHeap begins at {:#x} and ends at {:#x}."
-                , memory::heap_base_addr(), memory::heap_top_addr() );
+        println!( "{:<38}{:>40}\n \
+                    . . Heap begins at {:#x} and ends at {:#x}"
+                , " . Intializing heap"
+                , memory::init_heap().unwrap_or("[ FAIL ]")
+                , memory::heap_base_addr()
+                , memory::heap_top_addr());
     };
 
     // -- call into kernel main loop ------------------------------------------

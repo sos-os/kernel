@@ -207,23 +207,23 @@ impl Idt for Idt64 {
 
 impl DTable for Idt64 {
     #[inline] unsafe fn load(&self) {
-        print!(" . . Loading IDT        ");
         asm!(  "lidt ($0)"
             :: "r"(&self.get_ptr())
             :  "memory" );
-        println!("    [ OK ]");
+        println!("{:<38}{:>40}", " . . Loading IDT", "[ OKAY ]");
     }
 }
 
 impl Idt64 {
     fn add_handlers(&mut self) -> &mut Self {
-        print!(" . . Adding interrupt handlers to IDT    ");
         for (i, &h_ptr) in interrupt_handlers.iter()
             .enumerate()
             .filter(|&(_, &h_ptr)| h_ptr != ptr::null() ) {
                 unsafe { self.0[i] = Gate64::from_raw(h_ptr) }
         }
-        println!("    [ OK ]");
+
+        println!("{:<38}{:>40}", " . . Adding interrupt handlers to IDT"
+             , "[ OKAY ]");
         self
     }
 }
@@ -235,7 +235,9 @@ static IDT: Mutex<Idt64>
 
 
 pub unsafe fn initialize() {
-    println!(" . Intialising interrupts        [ OK ]" );
+    // println!(" . Enabling interrupts:" );
+    // println!( " . . Initialising PICs {:>40}"
+    //         , pics::initialize().unwrap_or("[ FAIL ]") );
     pics::initialize();
     IDT.lock()
        .add_handlers()
@@ -243,7 +245,6 @@ pub unsafe fn initialize() {
     // print!("Testing interrupt handling...");
     // asm!("int $0" :: "N" (0x80));
     // println!("   [DONE]");
-    print!(" . . Enabling interrupts");
     Idt64::enable_interrupts(); // enable interrupts
-    println!("       [ OK ]");
+
 }

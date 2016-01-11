@@ -58,10 +58,11 @@ impl VAddr {
     unsafe { (&mut HEAP_TOP as *mut _) as usize }
 }
 
-pub unsafe fn init_heap() {
+pub unsafe fn init_heap<'a>() -> Result<&'a str, &'a str> {
     let heap_base_ptr
         = &mut HEAP_BASE as *mut _;
     let heap_size
         = (&mut HEAP_TOP as *mut _) as usize - heap_base_ptr as usize;
     buddy::system::init_heap( heap_base_ptr, heap_size);
+    Ok("[ OKAY ]")
 }
