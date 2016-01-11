@@ -5,7 +5,8 @@ pub mod paddr_impls;
 pub use self::paddr_impls::*;
 
 pub mod table;
-pub use self::table::{Table, PML4};
+pub use self::table::{Table, PML4, Entry};
+use self::table::{HUGE_PAGE};
 
 /// A physical (linear) memory address is a 64-bit unsigned integer
 #[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -44,9 +45,42 @@ impl Translate for Page {
     fn translate(&self) -> Option<*mut u8> {
         let pdpt = unsafe { &*table::PML4 }.next_table(self.pml4_index());
 
-        let huge_page = || {
-            unimplemented!()
-        };
+        let huge_page = || pdpt.and_then(|pdpt| {
+            let pdpt_entry = &pdpt[self.pdpt_index()];
+
+            if pdpt_entry.flags().contains(HUGE_PAGE) {
+                // If the PDPT entry contains the huge page flag, and the
+                // entry points to the start frame of a page, then the pointed
+                // frame is a 1GB huge page
+                pdpt_entry.pointed_frame()
+                    .map(|start_frame| {
+                        assert!( start_frame as usize % table::N_ENTRIES == 0
+                               , "Start frame must be aligned on a \
+                                  1GB boundary!");
+                        (start_frame as usize + self.pd_index()
+                                              + self.pt_index()) as *mut u8
+                    })
+
+            } else {
+                pdpt.next_table(self.pdpt_index())
+                    .and_then(|pd| {
+                        let pd_entry = &pd[self.pd_index()];
+
+                        if pd_entry.flags().contains(HUGE_PAGE) {
+                            pd_entry.pointed_frame()
+                                .map(|start_frame|{
+                                    assert!( (start_frame as usize %
+                                             table::N_ENTRIES) == 0
+                                         , "Start frame must be aligned!");
+                                    (start_frame as usize + self.pt_index())
+                                        as *mut u8
+                                })
+                        } else {
+                            None
+                        }
+                    })
+            }
+        });
 
         pdpt.and_then(|pdpt| pdpt.next_table(self.pdpt_index()))
             .and_then(|pd| pd.next_table(self.pd_index()))
