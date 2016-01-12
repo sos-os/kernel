@@ -17,7 +17,7 @@ path = "../sos_multiboot2"
 optional = true
 
 [dependencies.spin]
-version = "*"
+version = "0.3.4"
 optional = true
 
 [dependencies.sos_vga]

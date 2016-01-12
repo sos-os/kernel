@@ -12,9 +12,7 @@ crate-type = ["staticlib"]
 
 [dependencies]
 rlibc = "0.1.4"
-
-[dependencies.spin]
-version = "0.3.4"
+spin = "0.3.4"
 
 [dependencies.sos_alloc]
 path = "lib/sos_alloc"
