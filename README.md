@@ -27,6 +27,8 @@ This project includes Git submodules; you will want to clone it using `git clone
 + `grub-mkrescue` and possibly `xorriso` depending on whether your system considers it to be part of the `mkrescue` package (ugh)
 + `qemu`, specifically `qemu-system-x86_64`; unless you want to try SOS on bare metal (which I cannot possibly endorse)
 
+Alternatively, if you want to use Vagrant to get a working development environment right out of the box, all you need is Vagrant installed. The Vagrantfile in this repo will take care of automatically provisioning a dev environment with everything you need to build the OS.
+
 + **Setting up**
     + You only need to run these steps once
     + `$ multirust override nightly-2015-11-08` this version of Rust is known to work with our patched version of `libcore`. This step is not necessary if you are using Vagrant, as the Vagrantfile already selects this Rust version when provisioning the VM.
@@ -36,7 +38,7 @@ This project includes Git submodules; you will want to clone it using `git clone
 
 #### Using Vagrant
 
-To avoid tooling and dependency hell (especially on Macs), I'm using a Vagrant config written by @ashleygwilliams (see her repo [here](https://github.com/ashleygwilliams/x86-kernel)).
+To avoid tooling and dependency hell (especially on Macs), I'm using a Vagrant config written by @raphael-enochian based on one by @ashleygwilliams (see her repo [here](https://github.com/ashleygwilliams/x86-kernel)). Vagrant will ensure you have a dev environment with everything necessary to build SOS right out of the box.
 
 To run using vagrant (from the repo root directory):
 
