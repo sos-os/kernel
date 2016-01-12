@@ -17,7 +17,8 @@ path = "../sos_multiboot2"
 optional = true
 
 [dependencies.spin]
-version = "0.3.4"
+git = "https://github.com/mvdnes/spinlock-rs.git"
+rev = "b105b38c64f30f94aa44fc7f116b2adc0759f192"
 optional = true
 
 [dependencies.sos_vga]
