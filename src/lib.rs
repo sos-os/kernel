@@ -10,7 +10,8 @@
 //!
 //! SOS is a simple, tiny toy OS implemented in Rust.
 //!
-//! I'm writing this mostly for fun, to learn more about OS design and kernel //! hacking, so don't expect anything new or exciting out of this project.
+//! I'm writing this mostly for fun, to learn more about OS design and kernel
+//! hacking, so don't expect anything new or exciting out of this project.
 
 #![crate_name = "sos_kernel"]
 #![crate_type = "staticlib"]
