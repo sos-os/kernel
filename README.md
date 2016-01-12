@@ -30,11 +30,11 @@ This project includes Git submodules; you will want to clone it using `git clone
 Alternatively, if you want to use Vagrant to get a working development environment right out of the box, all you need is Vagrant installed. The Vagrantfile in this repo will take care of automatically provisioning a dev environment with everything you need to build the OS.
 
 + **Setting up**
-    + You only need to run these steps once
-    + `$ multirust override nightly-2015-11-08` this version of Rust is known to work with our patched version of `libcore`. This step is not necessary if you are using Vagrant, as the Vagrantfile already selects this Rust version when provisioning the VM.
-    + `$ make runtime` compiles the patched `libcore`
+  + You only need to run these steps once
+  + `$ multirust override nightly-2015-11-08` this version of Rust is known to work with our patched version of `libcore`. This step is not necessary if you are using Vagrant, as the Vagrantfile already selects this Rust version when provisioning the VM.
+  + `$ make runtime` compiles the patched `libcore`
 + **Running the OS**
-    + `$ make run` compiles the kernel, makes the ISO, and boots QEMU from the ISO
+  + `$ make run` compiles the kernel, makes the ISO, and boots QEMU from the ISO
 
 #### Using Vagrant
 
