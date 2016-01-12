@@ -49,10 +49,10 @@ use arch::cpu;
 pub fn kernel_main() {
     let mut a_vec = collections::vec::Vec::<usize>::new();
     println!( "TEST: Created a vector in kernel space! {:?}", a_vec);
-    // a_vec.push(1);
-    // println!( "TEST: pushed to vec: {:?}", a_vec);
-    // a_vec.push(2);
-    // println!( "TEST: pushed to vec: {:?}", a_vec);
+    a_vec.push(1);
+    println!( "TEST: pushed to vec: {:?}", a_vec);
+    a_vec.push(2);
+    println!( "TEST: pushed to vec: {:?}", a_vec);
     loop { }
 }
 
