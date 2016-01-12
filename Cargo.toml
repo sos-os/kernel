@@ -13,6 +13,7 @@ crate-type = ["staticlib"]
 [dependencies]
 rlibc = "0.1.4"
 spin = "0.3.4"
+bitflags-core = "0.3.4"
 
 [dependencies.sos_alloc]
 path = "lib/sos_alloc"
@@ -24,11 +25,3 @@ path = "lib/sos_multiboot2"
 [dependencies.sos_vga]
 path = "lib/sos_vga"
 features = ["system_term"]
-
-[dependencies.bitflags]
-git = "https://github.com/phil-opp/bitflags.git"
-rev = "86fd8e7081ba667c34af8a81f449b21542d3f1a0"
-# branch = "no_std"
-
-# [build-dependencies]
-# nasm-rs = "^0.0.3"
