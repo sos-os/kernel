@@ -58,7 +58,7 @@ installed_target_libs := \
 
 runtime_rlibs := \
 	$(installed_target_libs)/libcore.rlib \
-	$(installed_target_libs)/liballoc.rlib \
+	# $(installed_target_libs)/liballoc.rlib \
 	$(installed_target_libs)/librustc_unicode.rlib \
 	$(installed_target_libs)/libcollections.rlib
 
@@ -75,7 +75,7 @@ runtime: $(runtime_rlibs)
 $(installed_target_libs):
 	@mkdir -p $(installed_target_libs)
 
-$(installed_target_libs)/%.rlib: lib/rust/src/%/lib.rs $(installed_target_libs)
+$(installed_target_libs)/%.rlib: lib/%/src/lib.rs $(installed_target_libs)
 	@echo RUSTC $<
 	@$(RUSTC) $<
 	@echo Check $(installed_target_libs)
