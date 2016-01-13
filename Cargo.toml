@@ -12,11 +12,8 @@ crate-type = ["staticlib"]
 
 [dependencies]
 rlibc = "0.1.4"
-bitflags-core = "0.3.4"
-
-[dependencies.spin]
-git = "https://github.com/mvdnes/spinlock-rs.git"
-rev = "b105b38c64f30f94aa44fc7f116b2adc0759f192"
+bitflags-core = "0.3.5"
+spin = "0.3.5"
 
 [dependencies.sos_alloc]
 path = "lib/sos_alloc"
