@@ -1,3 +1,4 @@
+sudo: true
 language: rust
 
 rust:
@@ -16,6 +17,8 @@ addons:
       - nasm
 
 install:
+  - sudo curl -sf https://raw.githubusercontent.com/brson/multirust/master/blastoff.sh | sh -s -- --yes
+  - multirust default nightly
   - make runtime
 
 script:
