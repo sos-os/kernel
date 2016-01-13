@@ -14,9 +14,8 @@
 #![feature( const_fn
           , ptr_as_ref
           , unique )]
-#![cfg_attr( not(feature = "use-std")
-           , feature( no_std, core_intrinsics ))]
-#![cfg_attr( not(feature = "use-std"), no_std )]
+#![cfg_attr(not(feature = "use-std"), feature( core_intrinsics ))]
+#![cfg_attr(not(feature = "use-std"), no_std )]
 
 #![cfg_attr(test, feature(box_syntax))]
 

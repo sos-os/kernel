@@ -9,13 +9,11 @@
 //! Code for interacting with the system's VGA buffer.
 #![crate_name = "sos_vga"]
 
-#![feature( no_std
-          , const_fn
+#![feature( const_fn
           , core_slice_ext
           , core_str_ext
           , slice_patterns
-          , unique
-          )]
+          , unique )]
 #![cfg_attr( feature = "system_term"
            , feature(lang_items) )]
 #![no_std]

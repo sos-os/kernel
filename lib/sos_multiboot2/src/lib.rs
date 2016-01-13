@@ -8,8 +8,7 @@
 //
 #![crate_name = "sos_multiboot2"]
 
-#![feature( no_std
-          , lang_items )]
+#![feature( lang_items )]
 #![feature( const_fn
           , slice_patterns )]
 #![no_std]

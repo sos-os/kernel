@@ -24,7 +24,6 @@
 // Allocators are not allowed to depend on the standard library which in turn
 // requires an allocator in order to avoid circular dependencies. This crate,
 // however, can use all of libcore.
-#![feature(no_std)]
 #![no_std]
 
 #![feature( const_fn
@@ -33,7 +32,7 @@
 
 #![cfg_attr( feature = "buddy"
            , feature(unique))]
-           
+
 #[cfg(feature = "buddy")]
 extern crate sos_intrusive as intrusive;
 #[cfg(feature = "multiboot")]

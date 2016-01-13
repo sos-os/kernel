@@ -15,14 +15,11 @@
 
 #![crate_name = "sos_kernel"]
 #![crate_type = "staticlib"]
-#![feature( no_std
-          , lang_items
-          , asm )]
+#![feature( lang_items, asm )]
 #![feature( const_fn
           , slice_patterns
           , associated_consts
-          , unique
-          )]
+          , unique )]
 #![feature(collections)]
 #![no_std]
 
