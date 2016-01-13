@@ -34,7 +34,7 @@ extern crate sos_multiboot2 as multiboot;
 extern crate sos_alloc as alloc;
 
 #[macro_use] extern crate sos_vga as vga;
-#[macro_use] extern crate bitflags_core as bitflags;
+#[macro_use] extern crate bitflags;
 
 pub mod arch;
 pub mod util;
