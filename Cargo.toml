@@ -15,7 +15,7 @@ rlibc = "0.1.4"
 spin = "0.3.5"
 
 [dependencies.bitflags]
-git = "https://github.com/rust-lang-nursery/bitflags.git"
+version = "0.4.0"
 features = ["no_std"]
 
 [dependencies.sos_alloc]
