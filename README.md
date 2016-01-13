@@ -32,9 +32,7 @@ Alternatively, if you want to use Vagrant to get a working development environme
 + **Setting up**
     + You only need to run these steps once
     + `$ multirust override nightly`
-    + `$ make runtime` compiles the patched `libcore`
-
-  + `$ make runtime` compiles the patched `libcore`
+    + `$ make runtime` compiles the patched `libcore`, and the Rust `libcollections`, and `liballoc` libraries
 + **Running the OS**
   + `$ make run` compiles the kernel, makes the ISO, and boots QEMU from the ISO
 
