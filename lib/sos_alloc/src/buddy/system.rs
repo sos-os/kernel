@@ -9,12 +9,33 @@ use super::{BuddyHeapAllocator, FreeList};
 static ALLOC: Mutex<Option<BuddyHeapAllocator<'static>>>
     = Mutex::new(None);
 
-pub unsafe fn init_heap( start_addr: *mut u8
-                       , free_lists: &'static mut [FreeList]
-                       , heap_size: usize ) {
+static mut KERNEL_FREE_LISTS: [FreeList; 17]
+    // TODO: I really wish there was a less awful way to do this...
+    = [ FreeList::new()
+      , FreeList::new()
+      , FreeList::new()
+      , FreeList::new()
+      , FreeList::new()
+      , FreeList::new()
+      , FreeList::new()
+      , FreeList::new()
+      , FreeList::new()
+      , FreeList::new()
+      , FreeList::new()
+      , FreeList::new()
+      , FreeList::new()
+      , FreeList::new()
+      , FreeList::new()
+      , FreeList::new()
+      , FreeList::new()
+      ];
+
+pub unsafe fn init_heap(start_addr: *mut u8, heap_size: usize ) {
     trace!("init_heap() was called.");
     *(ALLOC.lock())
-        = Some(BuddyHeapAllocator::new(start_addr, free_lists, heap_size));
+        = Some(BuddyHeapAllocator::new( start_addr
+                                      , &mut KERNEL_FREE_LISTS
+                                      , heap_size));
 }
 
 #[no_mangle]

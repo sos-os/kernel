@@ -10,7 +10,8 @@
 //!
 //! SOS is a simple, tiny toy OS implemented in Rust.
 //!
-//! I'm writing this mostly for fun, to learn more about OS design and kernel //! hacking, so don't expect anything new or exciting out of this project.
+//! I'm writing this mostly for fun, to learn more about OS design and kernel
+//! hacking, so don't expect anything new or exciting out of this project.
 
 #![crate_name = "sos_kernel"]
 #![crate_type = "staticlib"]
@@ -48,10 +49,10 @@ use arch::cpu;
 pub fn kernel_main() {
     let mut a_vec = collections::vec::Vec::<usize>::new();
     println!( "TEST: Created a vector in kernel space! {:?}", a_vec);
-    // a_vec.push(1);
-    // println!( "TEST: pushed to vec: {:?}", a_vec);
-    // a_vec.push(2);
-    // println!( "TEST: pushed to vec: {:?}", a_vec);
+    a_vec.push(1);
+    println!( "TEST: pushed to vec: {:?}", a_vec);
+    a_vec.push(2);
+    println!( "TEST: pushed to vec: {:?}", a_vec);
     loop { }
 }
 

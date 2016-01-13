@@ -212,10 +212,9 @@ impl<'a> BuddyHeapAllocator<'a> {
     //               heap_size);
 
         // Zero out the free lists in case we were passed existing data.
-        // TODO: we still need to do this, but iter_mut() is not a thing yet
-        // for list in free_lists.iter_mut() {
-        //     *list = FreeList::new();
-        // }
+        for list in free_lists.iter_mut() {
+            *list = FreeList::new();
+        }
 
         let mut heap
             = BuddyHeapAllocator { start_addr: start_addr
@@ -234,6 +233,12 @@ impl<'a> BuddyHeapAllocator<'a> {
         // Push the entire heap onto the free lists as the first block.
         heap.push_block(start_addr, root_order);
         heap
+    }
+
+    /// Add a block of max order
+    pub unsafe fn add_block(&mut self, block: *mut u8) {
+        let order = self.free_lists.len() -1;
+        self.push_block(block, order);
     }
 
     /// Computes the size of an allocation request.
