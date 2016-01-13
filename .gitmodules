@@ -1,7 +1,3 @@
-[submodule "lib/rust"]
-	path = lib/rust
-	url = https://github.com/emk/rust.git
-	branch = libcore_nofp
 [submodule "lib/libcore"]
 	path = lib/libcore
 	url = https://github.com/phil-opp/nightly-libcore.git
