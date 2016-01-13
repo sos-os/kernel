@@ -65,7 +65,7 @@ runtime_rlibs := \
 RUSTC := \
 	rustc --verbose --target $(target) \
 		-Z no-landing-pads \
-		--cfg disable_float \
+		--cfg "feature = \"disable_float\"" \
 		--out-dir $(installed_target_libs)
 
 .PHONY: runtime
@@ -74,6 +74,11 @@ runtime: $(runtime_rlibs)
 
 $(installed_target_libs):
 	@mkdir -p $(installed_target_libs)
+
+$(installed_target_libs)/libcore.rlib: lib/libcore/src/lib.rs
+	@echo RUSTC $<
+	@$(RUSTC) $<
+	@echo Check $(installed_target_libs)
 
 $(installed_target_libs)/%.rlib: lib/rust/src/%/lib.rs $(installed_target_libs)
 	@echo RUSTC $<
