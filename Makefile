@@ -53,7 +53,7 @@ build/arch/$(arch)/%.o: src/arch/$(arch)/%.asm $(assembly_header_files)
 
 # Where to put our compiled runtime libraries for this platform.
 installed_target_libs := \
-	$(shell multirust which rustc | \
+	$(shell (multirust which rustc || which rustc) | \
 		sed s,bin/rustc,lib/rustlib/$(target)/lib,)
 
 runtime_rlibs := \
