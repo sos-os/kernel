@@ -7,7 +7,7 @@ bits 64
 start_64:
 
     ; set SSE mode on
-    call    set_SSE
+    ; call    set_SSE ; disabled.
 
     ; call into kernel main function
     call    kernel_start
@@ -34,11 +34,18 @@ is_SSE:
     mov     al, "a"
     jmp     error
 
-; Sets SSE mode
-;
-; This may be a bad (slow) thing, look into setting no-SSE compiler flags
-; instead.
+;; Sets SSE mode
+;;
+;; This may be a bad (slow) thing, look into setting no-SSE compiler flags
+;; instead.
 set_SSE:
+    ; i have commented out the call to set_SSE in the boot cycle.
+    ; i know full well the  performance implications of my actions.
+    ; the things we do for an  extra clock cycle grow ever more
+    ; frightful and ghastly. it is a dark path we walk.
+    ;
+    ; remember set_SSE. he was my brother and i have killed him.
+    ; - jan 15th, 2016
     call    is_SSE
     mov     rax, cr0
     and     ax, 0xFFFB  ; clear coprocessor emulation CR0.EM
