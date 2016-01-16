@@ -1,28 +1,21 @@
-# sudo: required
 language: rust
-
 rust:
-    - nightly
-
+- nightly
 sudo: false
-
 notifications:
-    email:
-        on_success: never
-        on_failure: change
-
+  email:
+    on_success: never
+    on_failure: change
+  slack:
+    secure: CTfCGsKzNyb7SqEGeXYCnwE0jZLcANMjgdZpnpDMHtyBzOb0EJ1VXe5FpCVZ74jPD0De/eWwxT3aVnxZGnIn24gIB4K+3km4s+mSiecfhtP6lhHKaxy25NNKqcVJMt+52GgBYRvF9lPDdQR/I+YPznKeKkGCI8KMK8Y61RTMF1gWHezqsDirVemS+qp4YP8MrtcUk8W0yw+K522MuCLBFBy/LX1LrkZjkM1yyDIWmS7UerU1A0mWmDgiwfO33jJPtJKj64HrVwbOjl9ZH9SkEMeHumBsocxZ+3EPx8qygzJfEAMbWV6nu816e5Jg58UBsKrm5rPKdHmSshrvme7L79mGgfaROKF94OzIL67HFs+3vFXG5GspQz6myA+HtQMCO03dS7VydB6//Tpr9okWHsCBGgRgDnuvXWk/HG2kSP1uSDhrxqmBya/kTSaOa+QRqUnF6XxknxX5DCbGKIVY9fN5+IxDBVnigVYAlHe+NreT3xNeLd7E3p1TL865SYpU4szJ1KLtq+JX+DAAYF94UoIt4fD/kQ0tYhwKSJtUNfFRs5MubqewNpkw/Pt2d9gPIw9+hP7c6w/4gd3lDuVfMwhZwsXfRX9OvEemFET4dK+VHy5DqH00DJ/3tQaJ2dDeIHUtFMq1V93aVjspMDj+dwVctQ5DhIXHaYKmrc4yQkA=
 addons:
   apt:
     packages:
-      - nasm
-      - build-essential
-      - xorriso
-
+    - nasm
+    - build-essential
+    - xorriso
 install:
-  # - sudo curl -sf https://raw.githubusercontent.com/brson/multirust/master/blastoff.sh | sh -s -- --yes
-  # - multirust default nightly
-  - git submodule update
-  - make runtime
-
+- git submodule update
+- make runtime
 script:
-    - make
+- make
