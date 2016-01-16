@@ -21,6 +21,7 @@ addons:
 install:
   # - sudo curl -sf https://raw.githubusercontent.com/brson/multirust/master/blastoff.sh | sh -s -- --yes
   # - multirust default nightly
+  - git submodule update
   - make runtime
 
 script:
