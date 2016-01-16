@@ -1,6 +1,8 @@
 SOS: the Stupid Operating System
 --------------------------------
 
+[![Build Status](https://travis-ci.org/hawkw/sos-kernel.svg?branch=master)](https://travis-ci.org/hawkw/sos-kernel)
+
 SOS is a simple, tiny toy OS implemented in Rust.
 
 I'm writing this mostly for fun, to learn more about OS design and kernel hacking, so don't expect anything new or exciting out of this project.
