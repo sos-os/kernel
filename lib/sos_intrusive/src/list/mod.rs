@@ -19,6 +19,7 @@ use super::rawlink::RawLink;
 
 use core::marker::PhantomData;
 use core::ptr::Unique;
+use core::iter;
 #[cfg(test)] mod test;
 
 pub unsafe trait OwnedRef<T> {
@@ -249,7 +250,17 @@ where T: OwnedRef<N>
         ListCursor { list: self
                    , current: RawLink::none() }
     }
+    
+}
 
+impl<T, N> iter::FromIterator<T> for List<T, N>
+where T: OwnedRef<N>
+    , N: Node {
+        fn from_iter<I: IntoIterator<Item=T>>(iterator: I) -> Self {
+            let mut list: Self = List::new();
+            for item in iterator { list.push_front(item) }
+            list
+        }
 }
 
 /// A cursor for an intrusive linked list.
@@ -460,10 +471,13 @@ where T: OwnedRef<N>
 
 unsafe impl<T> OwnedRef<T> for Unique<T>  {
     #[inline]
-    fn get(&self) -> &T { unsafe { self.get() } }
+    fn get(&self) -> &T {
+        unsafe { self.get() }
+    }
 
-    #[inline]
-    fn get_mut(&mut self) -> &mut T { unsafe { self.get_mut() } }
+    #[inline] fn get_mut(&mut self) -> &mut T {
+        unsafe { self.get_mut() }
+    }
 
     #[inline]
     unsafe fn take(self) {}
