@@ -48,7 +48,7 @@ impl SimpleAreaAllocator {
                   .clone()
                   .filter(|a|
                       FrameNumber::containing(a.address()) >= self.next_free)
-                  .min_by(|a| a.base);
+                  .min_by_key(|a| a.base);
 
         self.current_area
             .map(|area| {

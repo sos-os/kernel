@@ -6,8 +6,6 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-use vga::{Terminal, Palette, Color};
-use spin::Mutex;
 
 extern {
     pub static __vga_buffer: u8;

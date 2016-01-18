@@ -180,7 +180,7 @@ pub trait Idt: Sized {
     #[allow(unused_must_use)]
     unsafe fn handle_cpu_exception(state: &Self::Ctx) -> ! {
         let ex_info = state.exception();
-        // let cr_state = control_regs::dump();
+        let cr_state = control_regs::dump();
         write!(CONSOLE.lock()
                       .set_colors(Color::White, Color::Blue)
                     //   .clear()
@@ -191,16 +191,16 @@ pub trait Idt: Sized {
               , ex_info.irq_type, state.int_id(), state.err_no()
               , ex_info.source );
 
-        // // TODO: parse error codes
-        // match state.int_id() {
-        //     14 => unimplemented!() //TODO: special handling for page faults
-        //    , _ => write!( CONSOLE.lock()
-        //                          .set_colors(Color::White, Color::Blue)
-        //                 , "Registers:\n{:?}\n    {}\n"
-        //                 , state.registers()
-        //                 , cr_state
-        //                 )
-        // };
+        // TODO: parse error codes
+        match state.int_id() {
+            14 => unimplemented!() //TODO: special handling for page faults
+           , _ => write!( CONSOLE.lock()
+                                 .set_colors(Color::White, Color::Blue)
+                        , "Registers:\n{:?}\n    {}\n"
+                        , state.registers()
+                        , cr_state
+                        )
+        };
 
         loop { }
     }

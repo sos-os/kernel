@@ -26,9 +26,7 @@
 // however, can use all of libcore.
 #![no_std]
 
-#![feature( const_fn
-          , core_slice_ext
-          , iter_cmp )]
+#![feature( const_fn, iter_cmp )]
 
 #![cfg_attr( feature = "buddy"
            , feature(unique))]

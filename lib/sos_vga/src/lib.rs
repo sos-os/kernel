@@ -10,8 +10,6 @@
 #![crate_name = "sos_vga"]
 
 #![feature( const_fn
-          , core_slice_ext
-          , core_str_ext
           , slice_patterns
           , unique )]
 #![cfg_attr( feature = "system_term"
