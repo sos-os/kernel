@@ -6,7 +6,15 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-//! A linked-list implementation using `RawLink`s.
+//! An intrusive linked list implementation using `RawLink`s.
+//!
+//! An _intrusive_ list is a list structure wherein the type of element stored
+//! in the list holds references to other nodes. This means that we don't have
+//! to store a separate node data type that holds the stored elements and
+//! pointers to other nodes, reducing the amount of memory allocated. We can
+//! use intrusive lists in code that runs without the kernel memory allocator,
+//! like the allocator implementation itself, since each list element manages
+//! its own memory.
 use super::rawlink::RawLink;
 
 use core::marker::PhantomData;
@@ -20,6 +28,10 @@ pub unsafe trait OwnedRef<T> {
     fn get_mut(&mut self) -> &mut T;
 }
 
+/// This trait defines a node in an intrusive list.
+///
+/// A Node must be capable of providing mutable and immutable references to
+/// the previous and next nodes in the list.
 pub trait Node: Sized {
     fn next(&self) -> &RawLink<Self>;
     fn prev(&self) -> &RawLink<Self>;
@@ -28,6 +40,11 @@ pub trait Node: Sized {
     fn prev_mut(&mut self) -> &mut RawLink<Self>;
 }
 
+/// The `List` struct is our way of interacting with an intrusive list.
+///
+/// It stores a pointer to the head and tail of the list, the length of the
+/// list, and a `PhantomData` marker for the list's `OwnedRef` type. It
+/// provides the methods for pushing, popping, and indexing the list.
 pub struct List<T, N>
 where T: OwnedRef<N>
     , N: Node {
@@ -51,6 +68,7 @@ impl<T, N> List<T, N>
 where T: OwnedRef<N>
     , N: Node {
 
+    /// Construct a new `List<T, N>` with zero elements
     pub const fn new() -> Self {
         List { head: RawLink::none()
              , tail: RawLink::none()
@@ -58,30 +76,55 @@ where T: OwnedRef<N>
              , length: 0 }
     }
 
+    /// Returns the length of the list
     #[inline] pub fn len(&self) -> usize {
         self.length
     }
 
+    /// Borrows the first element of the list as an `Option`
+    ///
+    /// # Returns:
+    ///   - `Some(&N)` if the list has elements
+    ///   - `None` if the list is empty.
     #[inline] pub fn front(&self) -> Option<&N> {
         unsafe { self.head.resolve() }
     }
 
+
+    /// Borrows the last element of the list as an `Option`
+    ///
+    /// # Returns:
+    ///   - `Some(&N)` if the list has elements
+    ///   - `None` if the list is empty.
     #[inline] pub fn back(&self) -> Option<&N> {
         unsafe { self.tail.resolve() }
     }
 
+    /// Mutably borrows the first element of the list as an `Option`
+    ///
+    /// # Returns:
+    ///   - `Some(&mut N)` if the list has elements
+    ///   - `None` if the list is empty.
     #[inline] pub fn front_mut(&mut self) -> Option<&mut N> {
         unsafe { self.head.resolve_mut() }
     }
 
+    /// Mutably borrows the last element of the list as an `Option`
+    ///
+    /// # Returns:
+    ///   - `Some(&mut N)` if the list has elements
+    ///   - `None` if the list is empty.
     #[inline] pub fn back_mut(&mut self) -> Option<&mut N> {
         unsafe { self.tail.resolve_mut() }
     }
 
+    /// Returns true if the list is empty.
     #[inline] pub fn is_empty(&self) -> bool {
         self.head.is_none()
     }
 
+    /// Push an element to the front of the list.
+    // TODO: should this really be called "prepend"?
     pub fn push_front(&mut self, mut item: T) {
         unsafe {
             match self.head.resolve_mut() {
@@ -109,6 +152,11 @@ where T: OwnedRef<N>
         }
     }
 
+    /// Push an element to the back of the list.
+    //  TODO: should this really be called "append"?
+    //  (the Rust standard library uses `append` to refer to the "drain all the
+    //  elements of another list and push them to this list" operation, but I
+    //  think that that function is more properly called `concat`...)
     pub fn push_back(&mut self, mut item: T) {
         unsafe {
             match self.tail.resolve_mut() {
@@ -136,6 +184,12 @@ where T: OwnedRef<N>
         }
     }
 
+    /// Removes and returns the element at the front of the list.
+    ///
+    /// # Returns:
+    ///   - `Some(T)` containing the element at the front of the list if the
+    ///     list is not empty
+    ///   - `None` if the list is empty
     pub fn pop_front(&mut self) -> Option<T> {
         unsafe {
             self.head.take().resolve_mut()
@@ -157,6 +211,12 @@ where T: OwnedRef<N>
         }
     }
 
+    /// Removes and returns the element at the end of the list.
+    ///
+    /// # Returns:
+    ///   - `Some(T)` containing the element at the end of the list if the
+    ///     list is not empty
+    ///   - `None` if the list is empty
     pub fn pop_back(&mut self) -> Option<T> {
         unsafe {
             self.tail.take().resolve_mut()
@@ -174,10 +234,17 @@ where T: OwnedRef<N>
         }
     }
 
+    /// Borrows the element at the front of the list
+    ///
+    /// # Returns:
+    ///   - `Some(&T)` containing the element at the end of the list if the
+    ///     list is not empty
+    ///   - `None` if the list is empty
     pub fn peek_front(&self) -> Option<&N> {
         unsafe { self.tail.resolve() }
     }
 
+    /// Returns a cursor for iterating over or modifying the list.
     pub fn cursor<'a>(&'a mut self) -> ListCursor<'a, T, N> {
         ListCursor { list: self
                    , current: RawLink::none() }
@@ -185,6 +252,7 @@ where T: OwnedRef<N>
 
 }
 
+// TODO: can we implement `Iterator` for cursors?
 pub struct ListCursor<'a, T, N>
 where T: OwnedRef<N>
     , T: 'a
