@@ -257,6 +257,10 @@ where T: OwnedRef<N>
 /// A cursor functions similarly to an iterator, except that it can seek back
 /// and forth rather than just advancing through the list, and it can mutate
 /// the element "under" the cursor.
+///
+/// A cursor begins before the first element in the list, and once it has been
+/// advanced past the last element of the list, it "loops around" back to the
+/// first element.
 // TODO: can we implement `Iterator` for cursors?
 pub struct ListCursor<'a, T, N>
 where T: OwnedRef<N>
@@ -284,20 +288,40 @@ where T: OwnedRef<N>
     pub fn next(&mut self) -> Option<&mut N> {
         unsafe {
             match self.current.take().resolve_mut() {
+                // The cursor has no current element, so we are sitting in the
+                // cursor's start position. The next element should be the head
+                // of the list...
                 None => self.list.head.resolve_mut()
                             .and_then(|head| {
+                                // if we resolved a head element, make it the
+                                // current element and return a reference to it
                                 self.current = RawLink::some(head);
                                 self.current.resolve_mut()
                             })
+                // The cursor did have a current element, so try to advance
+                // to that item's next element
               , Some(thing) => {
+                    // Set the current element under the cursor to either
+                    // the element after the old current, or None if this is
+                    // the last element.
                     self.current = match thing.next_mut().resolve_mut() {
                         None => RawLink::none()
                       , Some(other_thing) => RawLink::some(other_thing)
                     };
+                    // and return it
                     self.current.resolve_mut()
                 }
             }
         }
+    }
+
+    /// Steps back the cursor to the previous element and borrows it mutably.
+    ///
+    /// # Returns
+    ///   - `Some(&mut N)` if the list is not empty
+    ///   - `None` if the list is empty
+    pub fn prev(&mut self) -> Option<&mut N> {
+        unimplemented!()
     }
 
     /// Borrows the next element in the list without advancing the cursor.
@@ -313,6 +337,21 @@ where T: OwnedRef<N>
             self.current.resolve()
                 .map_or( self.list.front()
                        , |curr| curr.next().resolve())
+        }
+    }
+
+    /// Borrows the previous element without stepping back the cursor.
+    ///
+    /// If the cursor is at the head of the list, this returns `None`.
+    ///
+    /// # Returns
+    ///   - `Some(&N)` if the list is not empty
+    ///   - `None` if the list is empty or if the cursor is at the head
+    ///     of the list
+    pub fn peek_prev(&self) -> Option<&N> {
+        unsafe {
+            self.current.resolve()
+                .and_then(|curr| curr.prev().resolve())
         }
     }
 
@@ -364,6 +403,23 @@ where T: OwnedRef<N>
         None
     }
 
+    /// Advances the cursor `n` elements and mutably borrows the final element.
+    ///
+    /// This will wrap the cursor around the list if `n` > the length of
+    /// the list.
+    pub fn seek_forward(&mut self, n: usize) -> Option<&mut N> {
+        for _ in 0 .. (n - 1) { self.next(); }
+        self.next()
+    }
+
+    /// Moves the cursor back `n` times and mutably borrows the final element.
+    ///
+    /// This will wrap the cursor around the list if `n` > the length of
+    /// the list.
+    pub fn seek_backward(&mut self, n: usize) -> Option<&mut N> {
+        for _ in 0 .. (n - 1) { self.prev(); }
+        self.prev()
+    }
 
 }
 
