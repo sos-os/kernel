@@ -83,7 +83,7 @@ where T: OwnedRef<N>
 
     /// Borrows the first element of the list as an `Option`
     ///
-    /// # Returns:
+    /// # Returns
     ///   - `Some(&N)` if the list has elements
     ///   - `None` if the list is empty.
     #[inline] pub fn front(&self) -> Option<&N> {
@@ -93,7 +93,7 @@ where T: OwnedRef<N>
 
     /// Borrows the last element of the list as an `Option`
     ///
-    /// # Returns:
+    /// # Returns
     ///   - `Some(&N)` if the list has elements
     ///   - `None` if the list is empty.
     #[inline] pub fn back(&self) -> Option<&N> {
@@ -102,7 +102,7 @@ where T: OwnedRef<N>
 
     /// Mutably borrows the first element of the list as an `Option`
     ///
-    /// # Returns:
+    /// # Returns
     ///   - `Some(&mut N)` if the list has elements
     ///   - `None` if the list is empty.
     #[inline] pub fn front_mut(&mut self) -> Option<&mut N> {
@@ -111,7 +111,7 @@ where T: OwnedRef<N>
 
     /// Mutably borrows the last element of the list as an `Option`
     ///
-    /// # Returns:
+    /// # Returns
     ///   - `Some(&mut N)` if the list has elements
     ///   - `None` if the list is empty.
     #[inline] pub fn back_mut(&mut self) -> Option<&mut N> {
@@ -186,7 +186,7 @@ where T: OwnedRef<N>
 
     /// Removes and returns the element at the front of the list.
     ///
-    /// # Returns:
+    /// # Returns
     ///   - `Some(T)` containing the element at the front of the list if the
     ///     list is not empty
     ///   - `None` if the list is empty
@@ -213,7 +213,7 @@ where T: OwnedRef<N>
 
     /// Removes and returns the element at the end of the list.
     ///
-    /// # Returns:
+    /// # Returns
     ///   - `Some(T)` containing the element at the end of the list if the
     ///     list is not empty
     ///   - `None` if the list is empty
@@ -236,7 +236,7 @@ where T: OwnedRef<N>
 
     /// Borrows the element at the front of the list
     ///
-    /// # Returns:
+    /// # Returns
     ///   - `Some(&T)` containing the element at the end of the list if the
     ///     list is not empty
     ///   - `None` if the list is empty
@@ -252,6 +252,11 @@ where T: OwnedRef<N>
 
 }
 
+/// A cursor for an intrusive linked list.
+///
+/// A cursor functions similarly to an iterator, except that it can seek back
+/// and forth rather than just advancing through the list, and it can mutate
+/// the element "under" the cursor.
 // TODO: can we implement `Iterator` for cursors?
 pub struct ListCursor<'a, T, N>
 where T: OwnedRef<N>
@@ -268,6 +273,14 @@ where T: OwnedRef<N>
     , N: Node
     , N: 'a {
 
+    /// Advances the cursor to the next element and borrows it mutably.
+    ///
+    /// If the cursor is at the end of the list, this advances it back to the
+    /// first element.
+    ///
+    /// # Returns
+    ///   - `Some(&mut N)` if the list is not empty
+    ///   - `None` if the list is empty
     pub fn next(&mut self) -> Option<&mut N> {
         unsafe {
             match self.current.take().resolve_mut() {
@@ -287,6 +300,14 @@ where T: OwnedRef<N>
         }
     }
 
+    /// Borrows the next element in the list without advancing the cursor.
+    ///
+    /// If the cursor is at the end of the list, this returns the first element
+    /// instead.
+    ///
+    /// # Returns
+    ///   - `Some(&N)` if the list is not empty
+    ///   - `None` if the list is empty
     pub fn peek_next(&self) -> Option<&N> {
         unsafe {
             self.current.resolve()
@@ -295,6 +316,12 @@ where T: OwnedRef<N>
         }
     }
 
+    /// Removes the element currently under the cursor and returns it.
+    ///
+    /// # Returns
+    ///   - `Some(T)` if the there is an element currently under the cursor
+    ///     (i.e., the list is not empty)
+    ///   - `None` if the list is empty.
     pub fn remove(&mut self) -> Option<T> {
         unsafe {
             match self.current.resolve_mut() {
@@ -315,6 +342,16 @@ where T: OwnedRef<N>
         }
     }
 
+    /// Searches for and removes the first element matching a predicate.
+    ///
+    /// # Arguments
+    ///   - `p`: A predicate (function of the form `&N -> bool`) that returns
+    ///     true if the element should be removed and false if it should not.
+    ///
+    /// # Returns
+    ///   - `Some(T)` if an element matching the predicate was found
+    ///   - `None` if no elements matched the predicate (or if the list is
+    ///     empty.)
     pub fn find_and_remove<P>(&mut self, predicate: P) -> Option<T>
     where P: Fn(&N) -> bool {
         while self.peek_next().is_some() {
