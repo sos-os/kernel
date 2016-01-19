@@ -15,7 +15,7 @@ addons:
     - build-essential
     - xorriso
 install:
-  - git submodule update
+  - git submodule foreach git pull origin master
   - make runtime
 script:
   - cargo test -p sos_alloc
