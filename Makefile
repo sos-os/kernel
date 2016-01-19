@@ -75,13 +75,13 @@ runtime: $(runtime_rlibs)
 $(installed_target_libs):
 	@mkdir -p $(installed_target_libs)
 
-$(installed_target_libs)/libcore.rlib: lib/libcore/src/lib.rs \
+$(installed_target_libs)/%.rlib: lib/%/src/lib.rs \
 	$(installed_target_libs)
 	@echo RUSTC $<
 	@$(RUSTC) $<
 	@echo Check $(installed_target_libs)
 
-$(installed_target_libs)/%.rlib: lib/rust/src/%/lib.rs $(installed_target_libs)
-	@echo RUSTC $<
-	@$(RUSTC) $<
-	@echo Check $(installed_target_libs)
+# $(installed_target_libs)/%.rlib: lib/rust/src/%/lib.rs $(installed_target_libs)
+# 	@echo RUSTC $<
+# 	@$(RUSTC) $<
+# 	@echo Check $(installed_target_libs)
