@@ -2,7 +2,7 @@
 	path = lib/libcore
 	url = https://github.com/phil-opp/nightly-libcore.git
 [submodule "lib/lib/libcollections"]
-	path = lib/lib/libcollections
+	path = lib/libcollections
 	url = https://github.com/phil-opp/nightly-libcollections.git
 [submodule "lib/librustc_unicode"]
 	path = lib/librustc_unicode
