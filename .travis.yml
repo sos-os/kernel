@@ -15,10 +15,12 @@ addons:
     - build-essential
     - xorriso
 install:
-- git submodule update
-- make runtime
+  - git submodule update
+  - make runtime
 script:
-- make
+  - cargo test -p sos_alloc
+  - cargo test -p sos_intrusive
+  - make
 deploy:
   provider: releases
   api_key:
