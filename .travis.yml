@@ -18,7 +18,7 @@ install:
   - git submodule foreach git pull origin master
   - make runtime
 script:
-  - cd lib/sos_alloc; cargo test; cd ..
+  - cd lib/sos_alloc; (cargo test && cd ../..) || cd ../..; exit 1
   - cargo test -p sos_intrusive
   - make
 deploy:
