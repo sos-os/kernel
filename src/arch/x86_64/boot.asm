@@ -36,15 +36,15 @@ is_multiboot:
 ;
 ; If long mode is not available, die (we are a long mode OS).
 is_long_mode:
-    mov     eax, 0x80000000     ; Set the A-register to 0x80000000.
-    cpuid                       ; CPU identification.
-    cmp     eax, 0x80000001     ; Compare the A-register with 0x80000001.
-    jb      .no_long_mode       ; It is less, there is no long mode.
-    mov     eax, 0x80000001     ; Set the A-register to 0x80000001.
-    cpuid                       ; CPU identification.
-    test    edx, 1 << 29        ; Test if the LM-bit, (bit 29), is set in D-reg
-    jz      .no_long_mode       ; They aren't, there is no long mode.
-    ret
+    mov     eax, 0x80000000   ; Set the A-register to 0x80000000.
+    cpuid                     ; CPU identification.
+    cmp     eax, 0x80000001   ; Compare the A-register with 0x80000001.
+    jb      .no_long_mode     ; It is less, there is no long mode.
+    mov     eax, 0x80000001   ; Set the A-register to 0x80000001.
+    cpuid                     ; Do the CPUID thing once more.
+    test    edx, 1 << 29      ; Test if the LM-bit, (bit 29), is set in edx.
+    jz      .no_long_mode     ; If it isn't, there is no long mode,
+    ret                       ; and we are left with only the void for company.
 .no_long_mode:
     mov     al, "2"
     jmp     err
@@ -170,9 +170,16 @@ pd_table:
 page_table:
     resb    PAGE_TABLE_SIZE
 
-; reserve 8M for the kernel stack space
+; reserve 4mb for the kernel stack space
 STACK_BASE:
     resb    4096 * 2
+    ; for some unspeakable reason, doubling the kernel stack size
+    ; magically fixes all of the memory allocator bugs? i suspect
+    ; the Malloc Gods interpret the extra stack space as a
+    ; sacrifice. my mind grows weary of this treatchery.
+    ; 𐅃 𐅐𐆂𐅛𐅜𐅀𐅂𐅲𐅯𐅊𐅭𐅙 𐅗 𐅏 𐅽𐅆 𐅲𐆇𐅿𐅚𐆁𐅐𐅶𐅬𐅯𐅴𐅮𐅼 𐅊𐅦 𐅒𐅉 𐅻𐅷𐅘 𐅊𐅗 𐅤𐆁𐅛𐅒𐅎𐅅𐅨𐅓𐅵𐅯𐅺𐅐𐆀
+    ; 𐅵𐅿 𐅘 𐅈𐅘𐅁 𐅫 𐅟𐅸 𐅥𐅣𐅑𐅼𐅷𐅻𐆁 𐆊 𐆉𐆇𐆅𐅐 𐅦𐅕 𐅢𐅷𐅗𐅤𐅧 𐅣𐅖𐅺 𐅁𐅿𐅩𐅣 𐅥 𐆄𐅱𐅕 𐅈 𐅙𐅀 𐅋
+    ; 𐅩𐅿𐅋𐅫𐅌𐆆𐅊𐆇 𐅜𐅦𐅲 𐅷 𐅱𐆁𐅓𐅞
 STACK_TOP:
 
 ; reserved space for the kernel heap

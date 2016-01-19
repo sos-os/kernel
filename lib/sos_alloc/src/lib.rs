@@ -20,16 +20,15 @@
            , feature(allocator) )]
 #![cfg_attr( feature = "as_system"
            , allocator )]
+#![cfg_attr( feature = "buddy"
+          , feature(unique))]
 
 // Allocators are not allowed to depend on the standard library which in turn
 // requires an allocator in order to avoid circular dependencies. This crate,
 // however, can use all of libcore.
 #![no_std]
 
-#![feature( const_fn, iter_cmp )]
-
-#![cfg_attr( feature = "buddy"
-           , feature(unique))]
+#![feature( const_fn )]
 
 #[cfg(feature = "buddy")]
 extern crate sos_intrusive as intrusive;

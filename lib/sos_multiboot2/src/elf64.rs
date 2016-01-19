@@ -1,5 +1,4 @@
 use super::{elf,Tag};
-use core::mem;
 
 #[derive(Debug)]
 #[repr(packed)]

@@ -184,7 +184,6 @@ impl MemArea {
     }
 }
 
-#[allow(raw_pointer_derive)]
 #[derive(Clone)]
 pub struct MemAreas { curr: *const MemArea
                     , last: *const MemArea
