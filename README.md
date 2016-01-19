@@ -49,3 +49,7 @@ To run using vagrant (from the repo root directory):
  + `$ vagrant ssh -- -Y`
  + `$ cd /vagrant`
  + Follow the instructions from above
+
+## Updating Rust
+
+If you update your rust version to a new nightly (i.e. by running `$ multirust update nightly`), you must also update the Rust library submodules. This can be done by running the command `$ git submodule foreach git pull origin`.
