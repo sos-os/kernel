@@ -4,17 +4,17 @@ version = "0.1.0"
 authors = ["Hawk Weisman <hi@hawkweisman.me>"]
 
 [features]
-default = ["simple", "buddy"]
-simple = ["multiboot"]
+default = ["buddy"]
+# simple = ["multiboot"]
 trace = ["sos_vga"]
 buddy = ["sos_intrusive"]
 as_system = []
 buddy_as_system = ["spin", "as_system"]
-multiboot = ["sos_multiboot2"]
-
-[dependencies.sos_multiboot2]
-path = "../sos_multiboot2"
-optional = true
+# multiboot = ["sos_multiboot2"]
+#
+# [dependencies.sos_multiboot2]
+# path = "../sos_multiboot2"
+# optional = true
 
 [dependencies.spin]
 version = "0.3.5"

@@ -1,4 +1,4 @@
-use super::{elf,Tag};
+use multiboot2::{elf,Tag};
 
 #[derive(Debug)]
 #[repr(packed)]

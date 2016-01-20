@@ -6,16 +6,10 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-#![crate_name = "sos_multiboot2"]
-
-#![feature( lang_items )]
-#![feature( const_fn
-          , slice_patterns )]
-#![no_std]
+use memory::PAddr;
 
 const END_TAG_LEN: u32 = 8;
 pub mod elf;
-pub mod elf64;
 
 #[repr(C)]
 pub struct Info { pub length: u32
@@ -25,8 +19,8 @@ pub struct Info { pub length: u32
 
 impl Info {
 
-    pub unsafe fn from(addr: usize) -> &'static Self {
-        let info = &*(addr as *const Info);
+    pub unsafe fn from(addr: PAddr) -> &'static Self {
+        let info = &*(addr.as_u64() as *const Info);
         assert!(info.has_end());
         info
     }
@@ -47,10 +41,10 @@ impl Info {
     }
 
     #[inline]
-    pub fn elf64_sections(&self) -> Option<&'static elf64::SectionsTag> {
+    pub fn elf_sections(&self) -> Option<&'static elf::SectionsTag> {
         self.get_tag(TagType::ELFSections)
             .map(|tag| unsafe {
-                &*((tag as *const Tag) as *const elf64::SectionsTag)
+                &*((tag as *const Tag) as *const elf::SectionsTag)
             })
     }
 
@@ -164,6 +158,26 @@ impl MemMapTag {
     }
 }
 
+/// A tag that stores the boot command line.
+#[repr(C)]
+pub struct CommandLineTag { tag: Tag
+                          , /// The boot command line.
+                            ///
+                            /// The command line is a normal C-style zero-
+                            /// terminated UTF-8 string.
+                            pub command_line: [u8]
+                          }
+
+#[repr(C)]
+pub struct ModulesTag { tag: Tag
+                      , /// The address at which the module begins.
+                        pub mod_begin: PAddr
+                      , /// The address at which the module ends.
+                        pub mod_end: PAddr
+                      , /// A string (typically a command line)
+                        pub string: [u8]
+                      }
+
 #[repr(u32)]
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum MemAreaType { Available = 1
@@ -172,15 +186,15 @@ pub enum MemAreaType { Available = 1
                      }
 
 #[repr(C)]
-pub struct MemArea { pub base: u64
-                   , pub length: u64
+pub struct MemArea { pub base: PAddr
+                   , pub length: PAddr
                    , ty: MemAreaType
                    , _pad: u32
                    }
 
 impl MemArea {
-    #[inline] pub fn address(&self) -> usize {
-        (self.base + self.length - 1) as usize
+    #[inline] pub fn address(&self) -> PAddr {
+        self.base + self.length - 1
     }
 }
 

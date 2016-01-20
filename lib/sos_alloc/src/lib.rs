@@ -32,8 +32,8 @@
 
 #[cfg(feature = "buddy")]
 extern crate sos_intrusive as intrusive;
-#[cfg(feature = "multiboot")]
-extern crate sos_multiboot2 as multiboot;
+// #[cfg(feature = "multiboot")]
+// extern crate sos_multiboot2 as multiboot;
 #[cfg(feature = "buddy_as_system")]
 extern crate spin;
 #[cfg(feature = "trace")] #[macro_use]
@@ -155,5 +155,5 @@ pub trait Allocator {
 #[cfg(feature = "buddy")]
 pub mod buddy;
 
-#[cfg(feature = "simple")]
-pub mod simple;
+// #[cfg(feature = "simple")]
+// pub mod simple;

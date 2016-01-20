@@ -27,7 +27,6 @@ extern crate collections;
 extern crate rlibc;
 extern crate spin;
 
-extern crate sos_multiboot2 as multiboot;
 extern crate sos_alloc as alloc;
 
 #[macro_use] extern crate sos_vga as vga;
@@ -37,10 +36,12 @@ pub mod arch;
 pub mod util;
 pub mod panic;
 pub mod memory;
+pub mod multiboot2;
 
 #[macro_use] pub mod io;
 
 use arch::cpu;
+use memory::PAddr;
 
 /// Kernel main loop
 pub fn kernel_main() {
@@ -61,13 +62,13 @@ pub fn kernel_main() {
 /// convention (`edi` on x86). If this isn't there, you can expect to have a
 /// bad problem and not go to space today.
 #[no_mangle]
-pub extern fn kernel_start(multiboot_addr: usize) {
+pub extern fn kernel_start(multiboot_addr: PAddr) {
     io::term::CONSOLE.lock().clear();
 
     println!("Hello from the kernel!");
 
     // -- Unpack multiboot tag ------------------------------------------------
-    let boot_info = unsafe { multiboot::Info::from(multiboot_addr) };
+    let boot_info = unsafe { multiboot2::Info::from(multiboot_addr) };
 
     let mmap_tag // Extract the memory map tag from the multiboot info
         = boot_info.mem_map()
@@ -80,7 +81,7 @@ pub extern fn kernel_start(multiboot_addr: usize) {
     }
 
     let elf_sections_tag // Extract ELF sections tag from the multiboot info
-        = boot_info.elf64_sections()
+        = boot_info.elf_sections()
                    .expect("ELF sections tag required!");
 
     println!(" . Detecting kernel ELF sections:");
@@ -110,7 +111,7 @@ pub extern fn kernel_start(multiboot_addr: usize) {
     println!( " . . Kernel begins at {:#x} and ends at {:#x}."
              , kernel_begin, kernel_end );
 
-    let multiboot_end = multiboot_addr + boot_info.length as usize;
+    let multiboot_end = multiboot_addr + boot_info.length as u64;
 
     println!( " . . Multiboot info begins at {:#x} and ends at {:#x}."
              , multiboot_addr, multiboot_end);
