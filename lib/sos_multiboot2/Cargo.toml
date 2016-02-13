@@ -1,0 +1,4 @@
+[package]
+name = "sos_multiboot2"
+version = "0.1.0"
+authors = ["Hawk Weisman <hi@hawkweisman.me>"]
