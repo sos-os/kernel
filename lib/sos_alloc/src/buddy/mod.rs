@@ -394,7 +394,7 @@ impl<'a> BuddyHeapAllocator<'a> {
     ///   - `false` if the block was not found
     pub fn remove_block(&mut self, order: usize, block: *mut u8) -> bool {
         self.free_lists[order]
-            .cursor()
+            .cursor_mut()
             .find_and_remove(|b| b as *const FreeBlock as *const u8 == block)
             .is_some()
         // this is the way less elegant old version.

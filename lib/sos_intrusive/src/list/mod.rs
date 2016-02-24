@@ -246,11 +246,11 @@ where T: OwnedRef<N>
     }
 
     /// Returns a cursor for iterating over or modifying the list.
-    pub fn cursor<'a>(&'a mut self) -> ListCursor<'a, T, N> {
-        ListCursor { list: self
-                   , current: RawLink::none() }
+    pub fn cursor_mut<'a>(&'a mut self) -> ListCursorMut<'a, T, N> {
+        ListCursorMut { list: self
+                      , current: RawLink::none() }
     }
-    
+
 }
 
 impl<T, N> iter::FromIterator<T> for List<T, N>
@@ -263,6 +263,17 @@ where T: OwnedRef<N>
         }
 }
 
+pub trait Cursor {
+    type Item;
+
+    fn next(&mut self) -> Option<Self::Item>;
+    fn prev(&mut self) -> Option<Self::Item>;
+    fn get(&self) -> Option<Self::Item>;
+    fn seek_forward(&mut self, n: usize) -> Option<Self::Item>;
+    fn seek_backward(&mut self, n: usize) -> Option<Self::Item>;
+
+}
+
 /// A cursor for an intrusive linked list.
 ///
 /// A cursor functions similarly to an iterator, except that it can seek back
@@ -273,7 +284,7 @@ where T: OwnedRef<N>
 /// advanced past the last element of the list, it "loops around" back to the
 /// first element.
 // TODO: can we implement `Iterator` for cursors?
-pub struct ListCursor<'a, T, N>
+pub struct ListCursorMut<'a, T, N>
 where T: OwnedRef<N>
     , T: 'a
     , N: Node
@@ -282,7 +293,7 @@ where T: OwnedRef<N>
       , current: RawLink<N>
 }
 
-impl<'a, T, N> ListCursor<'a, T, N>
+impl<'a, T, N> ListCursorMut<'a, T, N>
 where T: OwnedRef<N>
     , T: 'a
     , N: Node
@@ -434,7 +445,7 @@ where T: OwnedRef<N>
 
 }
 
-// impl<'a, T, N> Iterator for ListCursor<'a, T, N>
+// impl<'a, T, N> Iterator for ListCursorMut<'a, T, N>
 // where T: OwnedRef<N>
 //     , T: 'a
 //     , N: Node
