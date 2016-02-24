@@ -50,114 +50,6 @@ macro_rules! max {
     ($x:expr, $($xs:expr),+) => (max($x, max!($($xs),+)));
 }
 
-// impl FreeList {
-//
-//     /// Create a new empty `FreeList`
-//     ///
-//     pub const fn new() -> FreeList{
-//         FreeList { head: RawLink::none(), length: 0 }
-//     }
-//
-//     /// Push a new block onto the free list
-//     ///
-//     /// # Unsafe due to
-//     ///   - `mem::transmute()`
-//     ///   - Dereferencing a raw pointer
-//     unsafe fn push(&mut self, block: *mut u8) {
-//         let block_ptr = block as *mut FreeBlock;
-//         // be nice if rawlink was kinder to pattern-matching but whatever
-//         *block_ptr = if self.head.is_some() {
-//             // if the head block is defined, set that block to point to The
-//             // head block
-//             FreeBlock { next: self.head }
-//         } else {
-//             // if the head block is not defined, set this block to point to
-//             // an empty block
-//             FreeBlock { next: RawLink::none() }
-//         };
-//         // replace the head-block pointer with the pushed block
-//         self.head = RawLink::from_raw(block_ptr);
-//         // the list is now one block longer
-//         self.length += 1;
-//     }
-//
-//     /// Pop the head block off of the free list.
-//     ///
-//     /// # Returns
-//     ///   - `Some(*mut u8)` if the free list has blocks left
-//     ///   - `None` if the free list is empty
-//     ///
-//     /// # Unsafe due to
-//     ///   - `mem::transmute()`
-//     ///   - Dereferencing a raw pointer
-//     unsafe fn pop(&mut self) -> Option<*mut u8> {
-//         if self.head.is_some() {
-//             let popped_block
-//                 = mem::replace(&mut self.head, (*self.head.as_raw()).next);
-//             let block_ptr: *mut u8
-//                 = mem::transmute(popped_block);
-//             Some(block_ptr)
-//         } else {
-//             None
-//         }
-//     }
-    //
-    // /// Returns true if this `FreeList` has free blocks remaining
-    // // #[inline] fn has_free_blocks(&self) -> bool { self.head.is_some() }
-    //
-    // /// Attempt to remove a block from the free list.
-    // ///
-    // /// This function searches the free list for the specified block, and
-    // /// removes it if it is found, returning whether or not the block was
-    // /// removed.
-    // ///
-    // /// This is quite slow; with a worst-case time complexity of O(log n),
-    // /// this function is a major bottleneck in our allocator implementation.
-    // /// By maintaining sorted free lists, we could perhaps improve performance
-    // /// somewhat.
-    // ///
-    // /// # Returns
-    // ///   - `true` if the block was removed from the free list
-    // ///   - `false` if the block was not present in the free list
-    // unsafe fn remove(&mut self, target_block: *mut u8) -> bool {
-    //     let target_ptr = target_block as *mut FreeBlock;
-    //     // loop through the free list's iterator to find the target block.
-    //     // this is gross but hopefully much faster than the much prettier
-    //     // recursive strategy.
-    //     for block in self.iter_mut() {
-    //         let block_ptr: *mut FreeBlock = block;
-    //         if block_ptr == target_ptr {
-    //             // if we've found the target block, remove it and break
-    //             *block_ptr = FreeBlock { next: block.next.take() };
-    //             return true;
-    //         }
-    //     }
-    //     false
-    // }
-
-    // /// Returns an iterator over the blocks in this free list
-    // fn iter<'b>(&'b self) -> FreeListIter<'b> {
-    //     // FreeListIter { current: self.head.map(|c| c.borrow())
-    //     //                             .as_ref()
-    //     //              }
-    //     match self.head {
-    //         Some(ref head) => FreeListIter { current: Some(head) }
-    //       , None           => FreeListIter { current: None }
-    //     }
-    //     // unimplemented!()
-    // }
-    //
-    // /// Returns a mutable iterator over the blocks in this free list.
-    // fn iter_mut<'b>(&'b mut self) -> FreeListIterMut<'b> {
-    //     // FreeListIterMut { current: self.head.map(|c| *c ).as_mut() }
-    //     match self.head {
-    //         Some(ref mut head) => FreeListIterMut { current: Some(head) }
-    //       , None               => FreeListIterMut { current: None }
-    //     }
-    // }
-
-// }
-
 pub struct BuddyHeapAllocator<'a> {
     /// Address of the base of the heap. This must be aligned
     /// on a `MIN_ALIGN` boundary.
@@ -205,7 +97,7 @@ impl<'a> BuddyHeapAllocator<'a> {
                   the free block header.");
         assert!( heap_size.is_pow2()
                , "Heap size must be a power of 2.");
-       //
+
     //    // We must have one free list per possible heap block size.
     //    assert_eq!(min_block_size *
     //               (2u32.pow(free_lists.len() as u32 - 1)) as usize,
@@ -261,16 +153,10 @@ impl<'a> BuddyHeapAllocator<'a> {
             None
         // If the request is valid, compute the size we need to allocate
         } else {
-            let alloc_size
-                // the allocation size for the request is the next power of 2
-                // after the size of the request, the alignment of the request,
-                // or the minimum block size (whichever is greatest).
-                = max!( size
-                        // we can't allocate less than the minimum block size
-                      , self.min_block_size
-                        // we can't allocate less than the alignment, either
-                      , align )
-                    .next_pow2();
+            // the allocation size for the request is the next power of 2
+            // after the size of the request, the alignment of the request,
+            // or the minimum block size (whichever is greatest).
+            let alloc_size = max!(size, self.min_block_size, align).next_pow2();
 
             if alloc_size > self.heap_size {
                 // if the calculated size is greater than the size of the heap,
@@ -293,8 +179,7 @@ impl<'a> BuddyHeapAllocator<'a> {
         trace!("TRACE: alloc_order() called");
         self.alloc_size(size, align)
             .map(|s| {
-                trace!("TRACE in alloc_order(): alloc_size() returned {}"
-                        , s);
+                trace!("TRACE in alloc_order(): alloc_size() returned {}", s);
                 s.log2() - self.min_block_size.log2()
             })
     }
@@ -343,16 +228,6 @@ impl<'a> BuddyHeapAllocator<'a> {
                   , order, split_size );
 
         }
-        // while curr_order > new_order {
-        //     split_size >>= 1;
-        //     curr_order -= 1;
-        //
-        //     self.push_block( block.offset(split_size as isize)
-        //                    , curr_order);
-        //
-        //     trace!( "split block successfully, order: {}, split size: {}"
-        //           , curr_order, split_size );
-        // }
     }
 
     /// Finds the buddy block for a given block.
@@ -397,27 +272,11 @@ impl<'a> BuddyHeapAllocator<'a> {
             .cursor_mut()
             .find_and_remove(|b| b as *const FreeBlock as *const u8 == block)
             .is_some()
-        // this is the way less elegant old version.
-        // let mut cursor = self.free_lists[order].cursor();
-        // let mut found = false;
-        // loop {
-        //     match cursor.peek_next() {
-        //         Some(b) if b as *const FreeBlock as *const u8 == block => {
-        //             found = true; break
-        //         }
-        //       , Some(_) => {}
-        //       , None => break
-        //     }
-        //     cursor.next();
-        // }
-        // if found { cursor.remove(); }
-        // found
     }
 }
 
 
 impl<'a> Allocator for BuddyHeapAllocator<'a> {
-    // type *mut u8 = Free;
 
     /// Allocate a new block of size `size` on alignment `align`.
     ///
@@ -445,7 +304,6 @@ impl<'a> Allocator for BuddyHeapAllocator<'a> {
                 // Starting at the minimum possible order...
                 // TODO: this is ugly and not FP, rewrite.
                 for order in min_order..self.free_lists.len() {
-                    // trace!("in allocate(): current order is {}", order);
                     if let Some(block) = self.pop_block(order) {
                         trace!( "in allocate(): found block");
                         if order > min_order {
@@ -460,19 +318,6 @@ impl<'a> Allocator for BuddyHeapAllocator<'a> {
                     }
                 }
                 None
-                // self.free_lists[min_order..].iter().enumerate()
-                // ...find the first free list that has free blocks left.
-                    // .find(|&(_, ref f)| f.has_free_blocks())
-                    // .and_then(|(order, f)| unsafe {
-                    //     let block = f.pop();
-                    //     if order > min_order {
-                    //         block.map(|b| {
-                    //             self.split_block(b, order, min_order);
-                    //             block
-                    //         });
-                    //     }
-                    //     block
-                    // })
             })
     }
 

@@ -49,8 +49,6 @@ pub extern "C" fn __rust_allocate(size: usize, align: usize) -> *mut u8 {
                  trace!("__rust_allocate: allocatedd {:?}", blck);
                  blck })
              .unwrap_or(ptr::null_mut())
-            //  .expect("Memory could not be allocated; either the allocator is\
-            //           out of memory, or the allocation request was invalid.")
     }
 }
 

@@ -61,12 +61,7 @@ impl PowersOf2 for usize {
     fn log2(&self) -> usize {
         let mut r: usize = 0;
         let mut v = *self;
-        // S.iter()
-        //  .zip(B.iter()) // this purely-functional implementation may be slower
-        //  .fold((0, *self), // but it's cute and I had fun figuring it out
-        //     |(r, v), (s, b)| if v & b != 0 { (r | s, v >> s) }
-        //                      else { (r, v) })
-        //   .0
+
         for i in (0..S.len()).rev() {
             if v & B[i] != 0 {
                 v >>= S[i];
