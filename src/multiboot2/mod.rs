@@ -19,10 +19,11 @@ pub struct Info { pub length: u32
 
 impl Info {
 
-    pub unsafe fn from(addr: PAddr) -> &'static Self {
+    pub unsafe fn from(addr: PAddr) -> Result<&'static Self, &'static str> {
         let info = &*(addr.as_u64() as *const Info);
-        assert!(info.has_end());
-        info
+        if info.has_end() { Ok(info) }
+        else { Err("Multiboot info structure had no end tag!") }
+
     }
 
     /// Finds the tag with the given tag type.

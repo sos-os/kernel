@@ -123,7 +123,9 @@ pub extern fn kernel_start(multiboot_addr: PAddr) {
     println!("Hello from the kernel!");
 
     // -- Unpack multiboot tag ------------------------------------------------
-    let boot_info = unsafe { multiboot2::Info::from(multiboot_addr) };
+    let boot_info
+        = unsafe { multiboot2::Info::from(multiboot_addr)
+                    .expect("Could not unpack multiboot2 information!") };
 
     let mmap_tag // Extract the memory map tag from the multiboot info
         = boot_info.mem_map()
