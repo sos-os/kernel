@@ -1,6 +1,7 @@
 use core::ptr::Unique;
+use core::convert;
 
-use ::memory::VAddr;
+use ::memory::{VAddr, Addr};
 use alloc::{PAGE_SIZE, Allocator};
 
 pub mod paddr_impls;
@@ -20,13 +21,26 @@ extern {
 #[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct PAddr(u64);
 
+impl Addr<u64> for PAddr { }
+
+impl convert::Into<u64> for PAddr {
+    #[inline] fn into(self) -> u64 { self.as_u64() }
+}
+
+impl convert::From<u64> for PAddr {
+    #[inline] fn from(u: u64) -> Self { PAddr::from_u64(u) }
+}
+
+impl convert::From<*mut u8> for PAddr {
+    #[inline] fn from(ptr: *mut u8) -> Self { PAddr::from_ptr(ptr) }
+}
+
 impl PAddr {
-    #[inline] pub const fn from_u64(u: u64) -> Self {
-        PAddr(u)
+    #[inline] pub const fn from_ptr(ptr: *mut u8) -> Self {
+        PAddr(ptr as u64)
     }
-    #[inline] pub const fn as_u64(&self) -> u64 {
-        self.0
-    }
+    #[inline] pub const fn from_u64(u: u64) -> Self { PAddr(u) }
+    #[inline] pub const fn as_u64(&self) -> u64 { self.0 }
 }
 
 macro_rules! table_idx {
@@ -83,7 +97,7 @@ impl ActivePML4 {
         self.translate_page(Page::containing_addr(vaddr))
             .map(|frame| {
                 let offset = vaddr.as_usize() % PAGE_SIZE;
-                PAddr::from_u64(frame as u64 + offset as u64)
+                PAddr::from(frame as u64 + offset as u64)
             })
     }
 
