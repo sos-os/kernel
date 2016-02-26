@@ -43,6 +43,61 @@ pub mod multiboot2;
 use arch::cpu;
 use memory::PAddr;
 
+#[macro_use]
+macro_rules! init_log {
+    (f$dots:expr, $task:expr, $msg:expr) => (
+        println!( "{task:<40}{res:>38}\n{msg:>.width$}"
+                , task = format!("{:>.width$}", $task, width = $dots)
+                , res = "[ FAIL ]"
+                , msg = $msg
+                , width = $dots + 1
+                )
+    );
+    (fail: $dots:expr, $task:expr) => (
+            println!( "{task:<40}{res:>38}"
+                    , task = format!("{:>.width$}", $task, width = $dots)
+                    , res = "[ FAIL ]"
+                    )
+    );
+    (okay: $dots:expr, $task:expr, $msg:expr) => (
+        println!( "{task:<40}{res:>38}\n{msg:>.width$}"
+                , task = format!("{:>.width$}", $task, width = $dots)
+                , res = "[ OKAY ]"
+                , msg = $msg
+                , width = $dots + 1
+                )
+    );
+    (okay: $dots:expr, $task:expr) => (
+            println!( "{task:<40}{res:>38}"
+                    , task = format!("{:>.width$}", $task, width = $dots)
+                    , res = "[ OKAY ]"
+                    )
+    );
+}
+
+macro_rules! init_try {
+    ($dots:expr, $task:expr, $result:expr) => (
+        match $result {
+            Ok(value) => {
+                println!( "{task:<40}{res:>38}"
+                        , task = format!("{:>.width$}", $task, width = $dots)
+                        , res = "[ OKAY ]"
+                        );
+                value
+            }
+          , Err(why) => {
+                println!( "{task:<40}{res:>38}\n\n{msg:>.width$}"
+                        , task = format!("{:>.width$}", $task, width = $dots)
+                        , res = "[ FAIL ]"
+                        , msg = why
+                        , width = $dots + 1
+                        );
+                return $expr
+            }
+        }
+    )
+}
+
 /// Kernel main loop
 pub fn kernel_main() {
     let mut a_vec = collections::vec::Vec::<usize>::new();
