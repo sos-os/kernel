@@ -72,8 +72,6 @@ pub extern "C" fn __rust_reallocate( ptr: *mut u8, old_size: usize
              .expect("Cannot reallocate memory, no system allocator exists!")
              .reallocate(ptr, old_size, size, align)
              .unwrap_or(ptr::null_mut())
-            //  .expect("Memory could not be reallocated; either the allocator\
-            //          is out of memory, or the allocation request was invalid.")
      }
 }
 
