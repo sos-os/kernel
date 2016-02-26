@@ -1,4 +1,5 @@
 use multiboot2::{elf,Tag};
+use memory::PAddr;
 
 #[derive(Debug)]
 #[repr(packed)]
@@ -24,7 +25,7 @@ impl SectionsTag {
 pub struct Section { name: u32
                    , ty: elf::SectionType
                    , pub flags: u64
-                   , pub address: u64
+                   , pub address: PAddr
                    , offset: u64
                    , pub length: u64
                    , link: u32

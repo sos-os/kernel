@@ -1,3 +1,12 @@
+#[cfg(any(target_arch = "x86_64", target_arch = "armv7"))]
+pub mod elf64;
+
+#[cfg(any(target_arch = "x86_64", target_arch = "armv7"))]
+pub type Section = elf64::Section;
+
+#[cfg(any(target_arch = "x86_64", target_arch = "armv7"))]
+pub type SectionsTag = elf64::SectionsTag;
+
 /// Enum representing an ELF file section type.
 ///
 /// Refer to Figure 1-10: "Section Types, sh_type" in Section 1 of the
@@ -90,12 +99,3 @@ pub enum SectionFlags { Writable    = 0x1
                       , Allocated   = 0x2
                       , Executable  = 0x4
                       }
-
-#[cfg(any(target_arch = "x86_64", target_arch = "armv7"))]
-pub mod elf64;
-
-#[cfg(any(target_arch = "x86_64", target_arch = "armv7"))]
-pub type Section = elf64::Section;
-
-#[cfg(any(target_arch = "x86_64", target_arch = "armv7"))]
-pub type SectionsTag = elf64::SectionsTag;
