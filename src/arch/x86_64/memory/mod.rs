@@ -36,9 +36,7 @@ impl convert::From<*mut u8> for PAddr {
 }
 
 impl PAddr {
-    #[inline] pub const fn from_ptr(ptr: *mut u8) -> Self {
-        PAddr(ptr as u64)
-    }
+    #[inline] pub fn from_ptr(ptr: *mut u8) -> Self { PAddr(ptr as u64) }
     #[inline] pub const fn from_u64(u: u64) -> Self { PAddr(u) }
     #[inline] pub const fn as_u64(&self) -> u64 { self.0 }
 }
