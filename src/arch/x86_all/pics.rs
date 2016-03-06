@@ -156,7 +156,7 @@ impl IRQHandler for PIC {
     }
 
     #[allow(unused_must_use)]
-    fn end_interrupt(&self, irq: IRQ) {
+    fn end_interrupt(&self, _: IRQ) {
         self.send_command(Command::EndIRQ)
     }
 }
