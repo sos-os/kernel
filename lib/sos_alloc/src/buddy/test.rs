@@ -11,7 +11,7 @@ extern "C" {
     fn free(ptr: *mut u8);
 }
 
-const HEAP_ALIGN: usize = 4092;
+const HEAP_ALIGN: usize = 4096;
 const HEAP_SIZE: usize = 256;
 
 #[test]
