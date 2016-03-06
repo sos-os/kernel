@@ -9,7 +9,6 @@
 use alloc::buddy;
 
 use core::ops;
-use core::fmt;
 use core::convert;
 
 pub use arch::memory::{PAddr, HEAP_BASE, HEAP_TOP};
