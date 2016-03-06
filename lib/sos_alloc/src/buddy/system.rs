@@ -78,13 +78,14 @@ pub extern "C" fn __rust_reallocate( ptr: *mut u8, old_size: usize
 /// This is currently unsupported, so we just silently ignore it
 /// and return the old size.
 #[no_mangle]
-pub extern "C" fn __rust_reallocate_inplace( ptr: *mut u8, old_size: usize
-                                           , _size: usize, _align: usize )
+pub extern "C" fn __rust_reallocate_inplace( ptr: *mut u8
+                                           , old_size: usize
+                                           , _: usize, _: usize )
                                            -> usize {
     old_size
 }
 
 #[no_mangle]
-pub extern "C" fn __rust_usable_size(size: usize, _align: usize) -> usize {
+pub extern "C" fn __rust_usable_size(size: usize, _: usize) -> usize {
     size
 }

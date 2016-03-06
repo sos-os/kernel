@@ -14,8 +14,6 @@ pub mod memory;
 use memory::PAddr;
 use multiboot2;
 
-use io;
-
 /// Entry point for architecture-specific kernel init
 pub fn arch_init(multiboot_addr: PAddr) {
 
