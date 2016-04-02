@@ -1,5 +1,6 @@
 use multiboot2::{elf,Tag};
 use memory::PAddr;
+use ::elf::section;
 
 #[derive(Debug)]
 #[repr(packed)]
@@ -23,7 +24,7 @@ impl SectionsTag {
 #[derive(Debug)]
 #[repr(C)]
 pub struct Section { name: u32
-                   , ty: elf::SectionType
+                   , ty: section::Type
                    , pub flags: u64
                    , pub address: PAddr
                    , offset: u64
@@ -53,7 +54,7 @@ impl Iterator for Sections {
                     as *const Section)
             };
             self.remaining -= 1;
-            if current.ty == elf::SectionType::Null {
+            if current.ty == section::Type::Null {
                 self.next()
             } else {
                 Some(current)

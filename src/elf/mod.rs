@@ -2,6 +2,7 @@ use core::mem;
 use core::intrinsics;
 use core::slice;
 
+pub mod section;
 pub mod header;
 use self::header::Header;
 
