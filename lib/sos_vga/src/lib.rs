@@ -11,7 +11,8 @@
 
 #![feature( const_fn
           , slice_patterns
-          , unique )]
+          , unique
+          , question_mark )]
 #![cfg_attr( feature = "system_term"
            , feature(lang_items) )]
 #![no_std]
@@ -327,7 +328,7 @@ impl Write for Terminal {
                 if segment.starts_with(ANSI_ESCAPE) {
                     // if the current segment is an ANSI escape code,
                     // try to handle the escape and fail if it is malformed
-                    try!(self.handle_ansi_escape(segment))
+                    self.handle_ansi_escape(segment)?
                 } else {
                     // otherwise, just write each chunk in the string.
                     for byte in segment.as_bytes() {
