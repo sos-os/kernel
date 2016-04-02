@@ -14,6 +14,8 @@ pub mod memory;
 use memory::PAddr;
 use multiboot2;
 
+pub const ARCH_BITS: u8 = 64;
+
 /// Entry point for architecture-specific kernel init
 pub fn arch_init(multiboot_addr: PAddr) {
 

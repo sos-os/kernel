@@ -8,3 +8,5 @@
 //
 //!  ARM v7 architecture-specific implementation
 //  TODO: NYI
+
+pub const ARCH_BITS: u8 = 32;

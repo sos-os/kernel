@@ -15,6 +15,7 @@
 
 #![crate_name = "sos_kernel"]
 #![crate_type = "staticlib"]
+#![feature(core_intrinsics)]
 #![feature( lang_items, asm )]
 #![feature( const_fn
           , slice_patterns
@@ -37,6 +38,7 @@ pub mod util;
 pub mod panic;
 pub mod memory;
 pub mod multiboot2;
+pub mod elf;
 
 #[macro_use] pub mod io;
 
