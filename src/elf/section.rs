@@ -1,3 +1,50 @@
+use memory::PAddr;
+
+/// Represents an ELF section header
+#[derive(Debug)]
+#[repr(C)]
+pub struct Header { name_offset: u32
+                  , pub ty: Type
+                  , pub flags: PAddr
+                  , pub address: PAddr
+                  , offset: PAddr
+                  , pub length: PAddr
+                  , link: u32
+                  , info: u32
+                  , address_align: u32
+                  , entry_length: PAddr
+                  }
+
+/// Iterator over ELF64 sections
+#[derive(Clone,Debug)]
+pub struct Sections { curr: &'static Header
+                    , remaining: u32
+                    , size: u32
+                    }
+
+impl Iterator for Sections {
+  type Item = &'static Header;
+
+  fn next(&mut self) -> Option<&'static Header> {
+      if self.remaining == 0 {
+          None
+      } else {
+          let current = self.curr;
+          self.curr = unsafe {
+              &*(((self.curr as *const Header) as u32 + self.size)
+                  as *const Header)
+          };
+          self.remaining -= 1;
+          if current.ty == Type::Null {
+              self.next()
+          } else {
+              Some(current)
+          }
+      }
+  }
+}
+
+
 
 /// Enum representing an ELF file section type.
 ///

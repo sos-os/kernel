@@ -1,7 +1,10 @@
-use multiboot2::{elf,Tag};
-use memory::PAddr;
+use multiboot2::Tag;
 use ::elf::section;
 
+#[cfg(any(target_arch = "x86_64", target_arch = "armv7"))]
+pub type Section = section::Header;
+
+#[cfg(any(target_arch = "x86_64", target_arch = "armv7"))]
 #[derive(Debug)]
 #[repr(packed)]
 pub struct SectionsTag { tag: Tag
@@ -19,20 +22,6 @@ impl SectionsTag {
                  }
     }
 }
-
-/// Represents an ELF-64 section
-#[derive(Debug)]
-#[repr(C)]
-pub struct Section { name: u32
-                   , ty: section::Type
-                   , pub flags: u64
-                   , pub address: PAddr
-                   , offset: u64
-                   , pub length: u64
-                   , link: u32
-                   , address_align: u32
-                   , entry_length: u64
-                   }
 
 /// Iterator over ELF64 sections
 #[derive(Clone,Debug)]
