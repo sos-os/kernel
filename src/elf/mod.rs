@@ -6,6 +6,8 @@ pub mod section;
 pub mod header;
 use self::header::Header;
 
+pub type Section = section::Header;
+
 pub struct Binary<'a> {
     pub header: Header
   , pub binary: &'a [u8]

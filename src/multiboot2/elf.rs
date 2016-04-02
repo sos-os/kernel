@@ -1,10 +1,7 @@
 use multiboot2::Tag;
-use ::elf::section;
+use ::elf::Section;
+use elf::section::Type;
 
-#[cfg(any(target_arch = "x86_64", target_arch = "armv7"))]
-pub type Section = section::Header;
-
-#[cfg(any(target_arch = "x86_64", target_arch = "armv7"))]
 #[derive(Debug)]
 #[repr(packed)]
 pub struct SectionsTag { tag: Tag
@@ -43,7 +40,7 @@ impl Iterator for Sections {
                     as *const Section)
             };
             self.remaining -= 1;
-            if current.ty == section::Type::Null {
+            if current.ty == Type::Null {
                 self.next()
             } else {
                 Some(current)
