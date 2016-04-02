@@ -29,12 +29,12 @@ pub extern "C" fn rust_begin_unwind( args: Arguments
     loop { }
 }
 
-#[lang = "stack_exhausted"]
-#[no_mangle] #[inline(never)] #[cold]
-pub extern "C" fn __morestack() -> ! {
-    println!("stack exhausted");
-    loop { }
-}
+// #[lang = "stack_exhausted"]
+// #[no_mangle] #[inline(never)] #[cold]
+// pub extern "C" fn __morestack() -> ! {
+//     println!("stack exhausted");
+//     loop { }
+// }
 
 #[allow(non_snake_case)]
 #[no_mangle] #[inline(never)] #[cold]
