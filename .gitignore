@@ -1,6 +1,12 @@
 
 # Created by https://www.gitignore.io/api/assembler,rust,emacs,osx,sublimetext,tags,vagrant,vim,linux
 
+### Kernel binaries ###
+/build/
+*.iso
+*.bin
+*.elf
+
 ### Assembler ###
 *.[sS]
 *.bc

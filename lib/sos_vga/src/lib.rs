@@ -13,8 +13,9 @@
           , slice_patterns
           , unique
           , question_mark )]
-#![cfg_attr( feature = "system_term"
-           , feature(lang_items) )]
+#![cfg_attr(feature = "system_term", feature(lang_items))]
+#![cfg_attr(feature = "clippy", feature(plugin))]
+#![cfg_attr(feature = "clippy", plugin(clippy))]
 #![no_std]
 
 #[cfg(feature = "system_term")]

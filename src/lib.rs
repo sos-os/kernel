@@ -22,6 +22,8 @@
           , associated_consts
           , unique )]
 #![feature(collections)]
+#![cfg_attr(feature="clippy", feature(plugin))]
+#![cfg_attr(feature="clippy", plugin(clippy))]
 #![no_std]
 
 extern crate collections;
