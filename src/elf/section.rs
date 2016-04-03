@@ -1,20 +1,65 @@
 use memory::PAddr;
+use core::mem;
+
+pub const SHT_LOOS: u32   = 0x60000000;
+pub const SHT_HIOS: u32   = 0x6fffffff;
+pub const SHT_LOPROC: u32 = 0x70000000;
+pub const SHT_HIPROC: u32 = 0x7fffffff;
+pub const SHT_LOUSER: u32 = 0x80000000;
+pub const SHT_HIUSER: u32 = 0xffffffff;
 
 /// Represents an ELF section header
+///
+/// Refer to the [ELF standard](http://www.sco.com/developers/gabi/latest/ch4.sheader.html)
+/// for more information.
 #[derive(Debug)]
 #[repr(C)]
-pub struct Header { name_offset: u32
-                  , pub ty: Type
-                  , pub flags: PAddr
-                  , pub address: PAddr
-                  , offset: PAddr
-                  , pub length: PAddr
-                  , link: u32
-                  , info: u32
-                  , address_align: u32
-                  , entry_length: PAddr
-                  }
+pub struct Header {
+    /// This member specifies the name of the section.
+    ///
+    /// Its value is an index into the section header string table section,
+    /// giving the location of a null-terminated string.
+    name_offset: u32
+  , /// This member categorizes the section's contents and semantics.
+    ty: TypeRepr
+  , pub flags: PAddr
+  , pub address: PAddr
+  , offset: PAddr
+  , pub length: PAddr
+  , link: u32
+  , info: u32
+  , address_align: u32
+  , entry_length: PAddr
+  }
 
+#[derive(Debug, Copy, Clone)]
+struct TypeRepr(u32);
+
+impl TypeRepr {
+    #[inline] fn as_type(&self) -> Type {
+        match self.0 {
+            0 => Type::Null
+          , 1 => Type::ProgramBits
+          , 2 => Type::SymbolTable
+          , 3 => Type::StringTable
+          , 4 => Type::Rela
+          , 5 => Type::HashTable
+          , 6 => Type::Dynamic
+          , 7 => Type::Notes
+          , 8 => Type::NoBits
+          , 9 => Type::Rel
+          , 10 => Type::Shlib
+          , 11 => Type::DynSymTable
+          , 14 => Type::InitArray
+          , 15 => Type::FiniArray
+          , 16 => Type::PreInitArray
+          , x @ SHT_LOOS ... SHT_HIOS => Type::OSSpecific(x)
+          , x @ SHT_LOPROC ... SHT_HIPROC => Type::ProcessorSpecific(x)
+          , x @ SHT_LOUSER ... SHT_HIUSER => Type::User(x)
+          , _ => panic!("Invalid section type!")
+        }
+    }
+}
 
 /// Enum representing an ELF file section type.
 ///
@@ -22,19 +67,18 @@ pub struct Header { name_offset: u32
 /// [ELF standard](http://www.sco.com/developers/gabi/latest/ch4.sheader.html)
 /// for more information.
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd)]
-#[repr(u32)]
 pub enum Type {
     /// Section type 0: `SHT_NULL`
     ///
     /// This value marks the section header as inactive; it does not have an
     /// associated section. Other members of the section header have
     /// undefined values.
-    Null         = 0
+    Null
   , /// Section type 1: `SHT_PROGBITS`
     ///
     /// The section holds information defined by the program, whose format and
     /// meaning are determined solely by the program.
-    ProgramBits = 1
+    ProgramBits
   , /// Section type 2: `SHT_SYMTAB`
     ///
     /// Typically, `SHT_SYMTAB` provides symbols for link editing, though it
@@ -43,52 +87,52 @@ pub enum Type {
     ///
     /// Consequently, an object file may also contain a `SHT_DYNSYM` section,
     /// which holds a minimal set of dynamic linking symbols, to save space.
-    SymbolTable = 2
+    SymbolTable
   , /// Section type 3: `SHT_STRTAB`
     ///
     /// The section holds a string table. An object file may have multiple
     /// string table sections.
-    StringTable  = 3
+    StringTable
   , /// Section type 4: `SHT_RELA`
     ///
     /// The section holds relocation entries with explicit addends, such as
     /// type `Elf32_Rela` for the 32-bit class of object files. An object file
     /// may have multiple relocation sections.
-    Rela         = 4
+    Rela
   , /// Section type 5: `SHT_HASH`
     ///
     /// The section holds a symbol hash table. All objects participating in
     /// dynamic linking must contain a symbol hash table. Currently, an object
     /// file may have only one hash table, but this restriction may be relaxed
     /// in the future.
-    HashTable   = 5
+    HashTable
   , /// Section type 6: `SHT_DYNAMIC`
     ///
     /// The section holds information for dynamic linking. Currently, an object
     /// file may have only one dynamic section, but this restriction may be
     ///  relaxed in the future.
-    Dynamic     = 6
+    Dynamic
   , /// Section type 7: `SHT_NOTE`
     ///
     /// The section holds information that marks the file in some way.
-    Notes       = 7
+    Notes
   , /// Section type 8: `SHT_NOBITS`
     ///
     /// A section of this type occupies no space in the file but otherwise
     /// resembles `SHT_PROGBITS`. Although this section contains no bytes, the
     /// `sh_offset` member contains the conceptual file offset.
-    NoBits      = 8
+    NoBits
   , /// Section type 9: `SHT_REL`
     ///
     /// The section holds relocation entries without explicit addends, such as
     /// type `Elf32_Rel` for the 32-bit class of object files. An object file
     /// may have multiple reloca- tion sections.
-    Rel         = 9
+    Rel
   , /// Section type 10: `SHT_SHLIB`
     ///
     /// This section type is reserved but has unspecified semantics. Programs
     /// that contain a section of this type do not conform to the ABI.
-    Shlib       = 10
+    Shlib
   , /// Section type 11: `SHT_DYNSYM`
     ///
     /// Typically, `SHT_SYMTAB` provides symbols for link editing, though it
@@ -97,8 +141,15 @@ pub enum Type {
     ///
     /// Consequently, an object file may also contain a `SHT_DYNSYM` section,
     /// which holds a minimal set of dynamic linking symbols, to save space.
-    DynSymTable = 11
-    // The remainder is reserved
+    DynSymTable
+  , InitArray
+  , FiniArray
+  , PreInitArray
+  , Group
+  , SymbolTableShIndex
+  , OSSpecific(u32)
+  , ProcessorSpecific(u32)
+  , User(u32)
 }
 
 
