@@ -10,6 +10,9 @@ authors = [ # hacked around by
 [lib]
 crate-type = ["staticlib"]
 
+[features]
+default = []
+
 [dependencies]
 rlibc = "0.1.4"
 spin = "0.3.5"
@@ -25,3 +28,7 @@ features = ["buddy_as_system"]
 [dependencies.sos_vga]
 path = "lib/sos_vga"
 features = ["system_term"]
+
+[dependencies.clippy]
+version = "*"
+optional = true

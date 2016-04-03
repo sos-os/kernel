@@ -16,12 +16,13 @@
 // The compiler needs to be instructed that this crate is an allocator in order
 // to realize that when this is linked in another allocator like jemalloc
 // should not be linked in
-#![cfg_attr( feature = "as_system"
-           , feature(allocator) )]
-#![cfg_attr( feature = "as_system"
-           , allocator )]
-#![cfg_attr( feature = "buddy"
-          , feature(unique))]
+#![cfg_attr( feature = "as_system", feature(allocator) )]
+#![cfg_attr( feature = "as_system", allocator )]
+
+#![cfg_attr( feature = "buddy", feature(unique))]
+
+#![cfg_attr(feature = "clippy", feature(plugin))]
+#![cfg_attr(feature = "clippy", plugin(clippy))]
 
 // Allocators are not allowed to depend on the standard library which in turn
 // requires an allocator in order to avoid circular dependencies. This crate,

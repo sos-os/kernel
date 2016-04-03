@@ -15,6 +15,8 @@
           , ptr_as_ref
           , unique )]
 #![cfg_attr(not(feature = "use-std"), no_std )]
+#![cfg_attr(feature = "clippy", feature(plugin))]
+#![cfg_attr(feature = "clippy", plugin(clippy))]
 
 #![cfg_attr(test, feature(box_syntax))]
 
