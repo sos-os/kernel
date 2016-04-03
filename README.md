@@ -1,4 +1,4 @@
-#Stupid Operating System [![Build Status](https://travis-ci.org/hawkw/sos-kernel.svg?branch=master)](https://travis-ci.org/hawkw/sos-kernel) [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://github.com/hawkw/sos-kernel/LICENSE-MIT)
+#Stupid Operating System [![Build Status](https://travis-ci.org/hawkw/sos-kernel.svg?branch=master)](https://travis-ci.org/hawkw/sos-kernel) [![Clippy Linting Result](https://clippy.bashy.io/github/hawkw/sos-kernel/master/badge.svg)](https://clippy.bashy.io/github/hawkw/sos-kernel/master/log) [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://github.com/hawkw/sos-kernel/LICENSE-MIT)
 
 
 SOS is a simple, tiny toy OS implemented in Rust.
