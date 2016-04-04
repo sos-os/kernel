@@ -47,15 +47,15 @@ macro_rules! impl_ops {
         impl ops::$name<VAddr> for VAddr {
             type Output = VAddr;
 
-            #[inline] fn $fun(self, _rhs: VAddr) -> VAddr {
-                VAddr(e!(self.0 $op _rhs.0))
+            #[inline] fn $fun(self, rhs: VAddr) -> VAddr {
+                VAddr(e!(self.0 $op rhs.0))
             }
         }
         impl ops::$name<usize> for VAddr {
             type Output = VAddr;
 
-            #[inline] fn $fun(self, _rhs: usize) -> VAddr {
-                VAddr(e!(self.0 $op _rhs))
+            #[inline] fn $fun(self, rhs: usize) -> VAddr {
+                VAddr(e!(self.0 $op rhs))
             }
         }
 
@@ -98,7 +98,7 @@ impl_fmt! {
 impl ops::BitAnd<usize> for VAddr {
     type Output = usize;
 
-    fn bitand(self, _rhs: usize) -> usize {
-        self.0 & _rhs
+    fn bitand(self, rhs: usize) -> usize {
+        self.0 & rhs
     }
 }

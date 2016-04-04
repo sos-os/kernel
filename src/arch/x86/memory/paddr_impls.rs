@@ -47,15 +47,15 @@ macro_rules! impl_ops {
         impl ops::$name<PAddr> for PAddr {
             type Output = PAddr;
 
-            #[inline] fn $fun(self, _rhs: PAddr) -> PAddr {
-                PAddr(e!(self.0 $op _rhs.0))
+            #[inline] fn $fun(self, rhs: PAddr) -> PAddr {
+                PAddr(e!(self.0 $op rhs.0))
             }
         }
         impl ops::$name<u32> for PAddr {
             type Output = PAddr;
 
-            #[inline] fn $fun(self, _rhs: u32) -> PAddr {
-                PAddr(e!(self.0 $op _rhs))
+            #[inline] fn $fun(self, rhs: u32) -> PAddr {
+                PAddr(e!(self.0 $op rhs))
             }
         }
 
@@ -98,7 +98,7 @@ impl_fmt! {
 impl ops::BitAnd<u32> for PAddr {
     type Output = u32;
 
-    fn bitand(self, _rhs: u32) -> u32 {
-        self.0 & _rhs
+    fn bitand(self, rhs: u32) -> u32 {
+        self.0 & rhs
     }
 }
