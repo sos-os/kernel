@@ -1,4 +1,4 @@
-use ::memory::{PAddr, VAddr};
+use ::memory::PAddr;
 
 use core::fmt;
 use core::mem;
@@ -8,7 +8,7 @@ use core::mem;
 #[repr(C, packed)]
 pub struct Header {
     pub ident: Ident
-  , pub elftype: TypeRepr
+  , elftype: TypeRepr
   , pub machine: Machine
   , /// Program entry point
     pub entry_point: PAddr
@@ -26,6 +26,7 @@ pub struct Header {
 }
 
 impl Header {
+
     pub fn from_slice<'a>(input: &'a [u8]) -> Result<&'a Header, &str> {
         if input.len() < mem::size_of::<Header>() {
             Err("Input too short to extract ELF header")
@@ -33,6 +34,11 @@ impl Header {
             unsafe { Ok(&super::extract_from_slice::<Header>(input, 0, 1)[0]) }
         }
     }
+
+    #[inline]
+    pub fn get_type(&self) -> Type { self.elftype.as_type() }
+
+
 }
 
 /// ELF header magic

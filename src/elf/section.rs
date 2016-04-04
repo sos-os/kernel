@@ -22,7 +22,7 @@ pub struct Header {
     name_offset: u32
   , /// This member categorizes the section's contents and semantics.
     ty: TypeRepr
-  , pub flags: PAddr
+  , flags: Flags
   , pub address: PAddr
   , offset: PAddr
   , pub length: PAddr
@@ -30,7 +30,68 @@ pub struct Header {
   , info: u32
   , address_align: u32
   , entry_length: PAddr
-  }
+}
+
+bitflags! {
+    flags Flags: usize {
+        // Flags (SectionHeader::flags)
+        const SHF_WRITE            =        0x1
+      , const SHF_ALLOC            =        0x2
+      , const SHF_EXECINSTR        =        0x4
+      , const SHF_MERGE            =       0x10
+      , const SHF_STRINGS          =       0x20
+      , const SHF_INFO_LINK        =       0x40
+      , const SHF_LINK_ORDER       =       0x80
+      , const SHF_OS_NONCONFORMING =      0x100
+      , const SHF_GROUP            =      0x200
+      , const SHF_TLS              =      0x400
+      , const SHF_COMPRESSED       =      0x800
+      , const SHF_MASKOS           = 0x0ff00000
+      , const SHF_MASKPROC         = 0xf0000000
+    }
+}
+
+bitflags! {
+    flags GroupFlags: u32 {
+        const GRP_COMDAT	=        0x1
+      , const GRP_MASKOS	= 0x0ff00000
+      , const GRP_MASKPROC	= 0xf0000000
+    }
+}
+
+impl Header {
+
+    /// Returns true if this section is writable.
+    #[inline] pub fn is_writable(&self) -> bool {
+        self.flags.contains(SHF_WRITE)
+    }
+
+    /// Returns true if this section occupies memory during program execution.
+    #[inline] pub fn is_allocated(&self) -> bool {
+        self.flags.contains(SHF_ALLOC)
+    }
+
+    /// Returns true if this section contains executable instructions.
+    #[inline] pub fn is_executable(&self) -> bool {
+        self.flags.contains(SHF_EXECINSTR)
+    }
+
+    /// Returns true if this section can be merged.
+    #[inline] pub fn is_mergeable(&self) -> bool {
+        self.flags.contains(SHF_MERGE)
+    }
+
+    /// Returns true if this section contains data that is of a uniform size.
+    #[inline] pub fn is_uniform(&self) -> bool {
+        self.flags.contains(SHF_MERGE) && !self.flags.contains(SHF_STRINGS)
+    }
+}
+
+pub enum Contents<'a> {
+    Empty
+  , Undefined(&'a [u8])
+  , Group { flags: &'a u32, indicies: &'a[u32] }
+}
 
 #[derive(Debug, Copy, Clone)]
 struct TypeRepr(u32);
@@ -152,10 +213,10 @@ pub enum Type {
   , User(u32)
 }
 
-
-#[derive(Debug)]
-#[repr(u32)]
-pub enum Flags { Writable    = 0x1
-               , Allocated   = 0x2
-               , Executable  = 0x4
-               }
+//
+// #[derive(Debug)]
+// #[repr(u32)]
+// pub enum Flags { Writable    = 0x1
+//                , Allocated   = 0x2
+//                , Executable  = 0x4
+//                }

@@ -30,5 +30,5 @@ path = "lib/sos_vga"
 features = ["system_term"]
 
 [dependencies.clippy]
-version = "*"
+version = "0.0.60"
 optional = true
