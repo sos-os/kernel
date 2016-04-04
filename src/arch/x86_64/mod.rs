@@ -44,10 +44,10 @@ pub fn arch_init(multiboot_addr: PAddr) {
         = elf_sections_tag.sections()
             .map(|s| {
                 println!(" . . address: {:#08x}, size: {:#08x}, flags: {:#08x}"
-                        , s.address
-                        , s.length
-                        , s.flags );
-                s.address })
+                        , s.address()
+                        , s.length()
+                        , s.flags() );
+                s.address() })
             .min()
             .expect("Could not find kernel start section!\
                     \nSomething is deeply wrong.");
@@ -56,7 +56,7 @@ pub fn arch_init(multiboot_addr: PAddr) {
     let kernel_end
         = elf_sections_tag.sections()
             .map(|s| { n_elf_sections += 1;
-                     s.address })
+                     s.address() })
             .max()
             .expect("Could not find kernel end section!\
                     \nSomething is deeply wrong.");

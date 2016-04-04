@@ -26,9 +26,15 @@ pub const SHT_HIUSER: u32 = 0xffffffff;
 ///
 /// Refer to the [ELF standard](http://www.sco.com/developers/gabi/latest/ch4.sheader.html)
 /// for more information.
+#[derive(Clone, Copy, Debug)]
+pub enum Header<'a> {
+    Header32(&'a HeaderRepr<u32>)
+  , Header64(&'a HeaderRepr<u64>)
+}
+
 #[derive(Debug)]
 #[repr(C)]
-pub struct Header {
+pub struct HeaderRepr<Word> {
     /// This member specifies the name of the section.
     ///
     /// Its value is an index into the section header string table section,
@@ -37,14 +43,31 @@ pub struct Header {
   , /// This member categorizes the section's contents and semantics.
     ty: TypeRepr
   , flags: Flags
-  , pub address: PAddr
-  , offset: PAddr
-  , pub length: PAddr
+  , address: Word
+  , offset: Word
+  , length: Word
   , link: u32
   , info: u32
   , address_align: u32
-  , entry_length: PAddr
+  , entry_length: Word
 }
+
+trait AsHeader {
+    fn as_header<'a>(&'a self) -> Header<'a>;
+}
+
+impl AsHeader for HeaderRepr<u32> {
+    #[inline] fn as_header<'a>(&'a self) -> Header<'a> {
+        Header::Header32(self)
+    }
+}
+
+impl AsHeader for HeaderRepr<u64> {
+    #[inline] fn as_header<'a>(&'a self) -> Header<'a> {
+        Header::Header64(self)
+    }
+}
+
 
 bitflags! {
     flags Flags: usize {
@@ -79,34 +102,66 @@ bitflags! {
     }
 }
 
-impl Header {
+macro_rules! get {
+    ($s: expr, $name: ident) => {
+        match *$s {
+            Header::Header32(x) => x.$name
+          , Header::Header64(x) => x.$name
+        }
+    }
+}
+
+macro_rules! impl_getters {
+    ( $($name: ident: $ty: ident),+ ) => {
+        $(#[inline] pub fn $name(&self) -> $ty {
+            match *self {
+                Header::Header32(x) => x.$name as $ty
+              , Header::Header64(x) => x.$name as $ty
+            }
+        })+
+    }
+}
+
+impl<'a> Header<'a> {
+    impl_getters! { address: u64
+                  , offset: u64
+                  , length: u64
+                  , link: u32
+                  , info: u32
+                  , address_align: u32
+                  , entry_length: u64
+                  }
 
     /// Access the type of this section
-    #[inline] pub fn get_type(&self) -> Type { self.ty.as_type() }
+    #[inline] pub fn flags(&self) -> u64 { get!(self, flags).bits as u64}
+
+    /// Access the type of this section
+    #[inline] pub fn get_type(&self) -> Type { get!(self, ty).as_type() }
 
     /// Returns true if this section is writable.
     #[inline] pub fn is_writable(&self) -> bool {
-        self.flags.contains(SHF_WRITE)
+        get!(self, flags).contains(SHF_WRITE)
     }
 
     /// Returns true if this section occupies memory during program execution.
     #[inline] pub fn is_allocated(&self) -> bool {
-        self.flags.contains(SHF_ALLOC)
+        get!(self, flags).contains(SHF_ALLOC)
     }
 
     /// Returns true if this section contains executable instructions.
     #[inline] pub fn is_executable(&self) -> bool {
-        self.flags.contains(SHF_EXECINSTR)
+        get!(self, flags).contains(SHF_EXECINSTR)
     }
 
     /// Returns true if this section can be merged.
     #[inline] pub fn is_mergeable(&self) -> bool {
-        self.flags.contains(SHF_MERGE)
+        get!(self, flags).contains(SHF_MERGE)
     }
 
     /// Returns true if this section contains data that is of a uniform size.
     #[inline] pub fn is_uniform(&self) -> bool {
-        self.flags.contains(SHF_MERGE) && !self.flags.contains(SHF_STRINGS)
+        get!(self, flags).contains(SHF_MERGE) &&
+        !get!(self, flags).contains(SHF_STRINGS)
     }
 }
 
@@ -235,6 +290,47 @@ pub enum Type {
   , ProcessorSpecific(u32)
   , User(u32)
 }
+
+/// Iterator over ELF64 sections
+#[derive(Clone,Debug)]
+pub struct Sections<'a, W: 'a> { curr: &'a HeaderRepr<W>
+                               , remaining: u32
+                               , size: u32
+                               }
+
+impl<'a, W: 'a> Sections<'a, W> {
+    pub fn new(curr: &'a HeaderRepr<W>, remaining: u32, size: u32)
+               -> Sections<'a, W>
+    {
+        Sections { curr: curr, remaining: remaining, size: size }
+
+    }
+}
+
+
+impl<'a, W> Iterator for Sections<'a, W>
+where HeaderRepr<W>: AsHeader {
+    type Item = Header<'a>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.remaining == 0 {
+            None
+        } else {
+            let current = self.curr.as_header();
+            self.curr = unsafe {
+                &*(((self.curr as *const HeaderRepr<W>) as u32 + self.size)
+                    as *const HeaderRepr<W>)
+            };
+            self.remaining -= 1;
+            if current.get_type() == Type::Null {
+                self.next()
+            } else {
+                Some(current)
+            }
+        }
+    }
+}
+
 
 //
 // #[derive(Debug)]

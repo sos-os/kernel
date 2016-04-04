@@ -30,6 +30,7 @@ pub struct Header {
 
 impl Header {
 
+    /// Attempt to extract an ELF file header from a slice of bytes.
     pub fn from_slice<'a>(input: &'a [u8]) -> Result<&'a Header, &str> {
         if input.len() < mem::size_of::<Header>() {
             Err("Input too short to extract ELF header")
@@ -38,6 +39,7 @@ impl Header {
         }
     }
 
+    /// Attempt to extract a section header from a slice of bytes.
     pub fn section<'a>(&'a self, input: &'a [u8], idx: u16)
                       -> Result<&'a Section, &str>
     {
@@ -45,14 +47,18 @@ impl Header {
             Err("Cannot parse reserved section.")
         } else {
             let start // start offset for section
-                = self.sh_offset + idx as u64 * self.sh_entry_size as u64;
+                = self.sh_offset.as_u64() + idx as u64 * self.sh_entry_size as u64;
             let end // end offset for section
                 = start + self.sh_entry_size as u64;
+            let raw
+                = &input[start as usize .. end as usize];
 
             match self.ident.class {
                 Class::None => Err("Invalid ELF class (ELFCLASSNONE).")
               , Class::Elf32 => unimplemented!()
-              , Class::Elf64 => unimplemented!()
+              , Class::Elf64 => unsafe {
+                    Ok(mem::transmute(raw as *const [u8] as *const u8 as *const Section))
+                }
             }
         }
     }
