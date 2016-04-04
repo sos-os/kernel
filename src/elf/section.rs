@@ -6,7 +6,7 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-
+use memory::PAddr;
 use core::fmt;
 
 // Distinguished section indices.
@@ -54,7 +54,7 @@ pub struct HeaderRepr<Word> {
   , length: Word
   , link: u32
   , info: u32
-  , address_align: u32
+  , address_align: Word
   , entry_length: Word
 }
 
@@ -118,30 +118,64 @@ macro_rules! get {
 }
 
 macro_rules! impl_getters {
-    ( $($name: ident: $ty: ident),+ ) => {
-        $(#[inline] pub fn $name(&self) -> $ty {
+    ( pub $name: ident : $ty: ident, $( $rest: tt )* ) => {
+        #[inline] pub fn $name(&self) -> $ty {
             match *self {
                 Header::Header32(x) => x.$name as $ty
               , Header::Header64(x) => x.$name as $ty
             }
-        })+
-    }
+        }
+        impl_getters!{ $( $rest )* }
+    };
+    ( $name: ident : $ty: ident,  $( $rest: tt )* ) => {
+        #[inline] fn $name(&self) -> $ty {
+            match *self {
+                Header::Header32(x) => x.$name as $ty
+              , Header::Header64(x) => x.$name as $ty
+            }
+        }
+        impl_getters!{ $( $rest )* }
+    };
+    ( $name: ident : $ty: ident ) => {
+        #[inline] fn $name(&self) -> $ty {
+            match *self {
+                Header::Header32(x) => x.$name as $ty
+              , Header::Header64(x) => x.$name as $ty
+            }
+        }
+    };
+    ( pub $name: ident : $ty: ident ) => {
+        #[inline] pub fn $name(&self) -> $ty {
+            match *self {
+                Header::Header32(x) => x.$name as $ty
+              , Header::Header64(x) => x.$name as $ty
+            }
+        }
+    };
 }
 
 impl<'a> Header<'a> {
     impl_getters! { address: u64
-                  , offset: u64
-                  , length: u64
-                  , link: u32
-                  , info: u32
-                  , address_align: u32
-                  , entry_length: u64
+                  , pub offset: u64
+                  , pub length: u64
+                  , pub link: u32
+                  , pub info: u32
+                  , pub address_align: u64
+                  , pub entry_length: u64
                   }
 
-    /// Access the type of this section
-    #[inline] pub fn flags(&self) -> u64 { get!(self, flags).bits as u64}
+    /// Returns the start address of this section
+    #[inline] pub fn addr(&self) -> PAddr { PAddr::from(self.address()) }
 
-    /// Access the type of this section
+    /// Returns the end address of this section
+    #[inline] pub fn end_addr(&self) -> PAddr {
+        PAddr::from(self.address() + self.length())
+    }
+
+    /// Returns the type of this section
+    #[inline] pub fn flags(&self) -> Flags { get!(self, flags) }
+
+    /// Returns the type of this section
     #[inline] pub fn get_type(&self) -> Type { get!(self, ty).as_type() }
 
     /// Returns true if this section is writable.
