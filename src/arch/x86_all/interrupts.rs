@@ -34,11 +34,11 @@ pub enum GateType { Absent    = 0b0000_0000
 
 impl fmt::Display for GateType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self { &GateType::Absent    => write!(f, "Absent")
-                   , &GateType::Interrupt => write!(f, "Interrupt")
-                   , &GateType::Call      => write!(f, "Call")
-                   , &GateType::Trap      => write!(f, "Trap")
-                   }
+        match *self { GateType::Absent    => write!(f, "Absent")
+                    , GateType::Interrupt => write!(f, "Interrupt")
+                    , GateType::Call      => write!(f, "Call")
+                    , GateType::Trap      => write!(f, "Trap")
+                    }
     }
 }
 
