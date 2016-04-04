@@ -7,9 +7,6 @@
 //  directory of this repository for more information.
 //
 
-use memory::PAddr;
-
-use core::mem;
 use core::fmt;
 
 // Distinguished section indices.
