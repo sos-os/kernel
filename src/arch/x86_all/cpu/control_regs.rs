@@ -22,23 +22,21 @@ impl fmt::Display for CrState {
 }
 
 pub fn dump() -> CrState {
-    let _cr0: usize;
-    let _cr2: usize;
-    let _cr3: usize;
-    let _cr4: usize;
+    let cr0_: usize; let cr2_: usize;
+    let cr3_: usize; let cr4_: usize;
     unsafe {
         asm!(  "mov $0, cr0
                 mov $1, cr2
                 mov $2, cr3
                 mov $3, cr4"
-            :   "=r"(_cr0)
-              , "=r"(_cr2)
-              , "=r"(_cr3)
-              , "=r"(_cr4)
+            :   "=r"(cr0_)
+              , "=r"(cr2_)
+              , "=r"(cr3_)
+              , "=r"(cr4_)
             ::: "intel"
               , "volatile");
     }
-    CrState { cr0: _cr0, cr2: _cr2, cr3: _cr3, cr4: _cr4 }
+    CrState { cr0: cr0_, cr2: cr2_, cr3: cr3_, cr4: cr4_ }
 
 }
 

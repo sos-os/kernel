@@ -45,8 +45,8 @@ where E: fmt::Debug {
     type Output = Self;
 
     /// Fakes the C++ `<<` operator for IOStreams on Write.
-    fn shl(self, _rhs: &'a [u8]) -> Self::Output {
-        self.write(_rhs)
+    fn shl(self, rhs: &'a [u8]) -> Self::Output {
+        self.write(rhs)
             .unwrap();
         self
     }
