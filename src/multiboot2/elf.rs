@@ -40,7 +40,7 @@ impl Iterator for Sections {
                     as *const Section)
             };
             self.remaining -= 1;
-            if current.ty == Type::Null {
+            if current.get_type() == Type::Null {
                 self.next()
             } else {
                 Some(current)

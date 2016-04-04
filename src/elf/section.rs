@@ -81,6 +81,9 @@ bitflags! {
 
 impl Header {
 
+    /// Access the type of this section
+    #[inline] pub fn get_type(&self) -> Type { self.ty.as_type() }
+
     /// Returns true if this section is writable.
     #[inline] pub fn is_writable(&self) -> bool {
         self.flags.contains(SHF_WRITE)
