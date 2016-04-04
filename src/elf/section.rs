@@ -1,5 +1,19 @@
 use memory::PAddr;
+
 use core::mem;
+use core::fmt;
+
+// Distinguished section indices.
+pub const SHN_UNDEF: u16        = 0;
+pub const SHN_LORESERVE: u16    = 0xff00;
+pub const SHN_LOPROC: u16       = 0xff00;
+pub const SHN_HIPROC: u16       = 0xff1f;
+pub const SHN_LOOS: u16         = 0xff20;
+pub const SHN_HIOS: u16         = 0xff3f;
+pub const SHN_ABS: u16          = 0xfff1;
+pub const SHN_COMMON: u16       = 0xfff2;
+pub const SHN_XINDEX: u16       = 0xffff;
+pub const SHN_HIRESERVE: u16    = 0xffff;
 
 pub const SHT_LOOS: u32   = 0x60000000;
 pub const SHT_HIOS: u32   = 0x6fffffff;
@@ -48,6 +62,12 @@ bitflags! {
       , const SHF_COMPRESSED       =      0x800
       , const SHF_MASKOS           = 0x0ff00000
       , const SHF_MASKPROC         = 0xf0000000
+    }
+}
+
+impl fmt::LowerHex for Flags {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.bits.fmt(f)
     }
 }
 

@@ -1,5 +1,8 @@
 use ::memory::PAddr;
 
+use super::Section;
+use super::section;
+
 use core::fmt;
 use core::mem;
 
@@ -32,6 +35,25 @@ impl Header {
             Err("Input too short to extract ELF header")
         } else {
             unsafe { Ok(&super::extract_from_slice::<Header>(input, 0, 1)[0]) }
+        }
+    }
+
+    pub fn section<'a>(&'a self, input: &'a [u8], idx: u16)
+                      -> Result<&'a Section, &str>
+    {
+        if idx < section::SHN_LORESERVE {
+            Err("Cannot parse reserved section.")
+        } else {
+            let start // start offset for section
+                = self.sh_offset + idx as u64 * self.sh_entry_size as u64;
+            let end // end offset for section
+                = start + self.sh_entry_size as u64;
+
+            match self.ident.class {
+                Class::None => Err("Invalid ELF class (ELFCLASSNONE).")
+              , Class::Elf32 => unimplemented!()
+              , Class::Elf64 => unimplemented!()
+            }
         }
     }
 
