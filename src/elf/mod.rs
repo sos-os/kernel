@@ -6,7 +6,13 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-
+//! Parsing and loading Executable and Linkable Format (ELF) 32- and 64-bit
+//! binaries.
+//!
+//! For more information on the ELF format, refer to:
+//!  - [Wikipedia](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format)
+//!  - The [OS Dev Wiki](http://wiki.osdev.org/ELF)
+//!  - The [ELF Format Specification](http://www.skyfree.org/linux/references/ELF_Format.pdf)
 use core::mem;
 use core::intrinsics;
 use core::slice;

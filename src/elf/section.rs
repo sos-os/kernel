@@ -59,17 +59,17 @@ pub struct HeaderRepr<Word> {
 }
 
 trait AsHeader {
-    fn as_header<'a>(&'a self) -> Header<'a>;
+    fn as_header(&self) -> Header;
 }
 
 impl AsHeader for HeaderRepr<u32> {
-    #[inline] fn as_header<'a>(&'a self) -> Header<'a> {
+    #[inline] fn as_header(&self) -> Header {
         Header::ThirtyTwo(self)
     }
 }
 
 impl AsHeader for HeaderRepr<u64> {
-    #[inline] fn as_header<'a>(&'a self) -> Header<'a> {
+    #[inline] fn as_header(&self) -> Header {
         Header::SixtyFour(self)
     }
 }
@@ -242,7 +242,7 @@ impl TypeRepr {
 
 /// Enum representing an ELF file section type.
 ///
-/// Refer to Figure 1-10: "Section Types, sh_type" in Section 1 of the
+/// Refer to Figure 1-10: "Section Types, `sh_type`" in Section 1 of the
 /// [ELF standard](http://www.sco.com/developers/gabi/latest/ch4.sheader.html)
 /// for more information.
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd)]
