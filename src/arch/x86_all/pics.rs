@@ -44,7 +44,7 @@ enum Command { Mode8086 = 0x01
 #[repr(u8)]
 #[derive(Eq, PartialEq, Ord, PartialOrd, Copy, Clone)]
 pub enum IRQ { /// System timer IRQ
-               Timer        = 0 + OFFSET
+               Timer        = OFFSET
              , /// PS/2 keyboard controller
                PS2Keyboard  = 1 + OFFSET
              , /// PIC2 cascade IRQ
@@ -84,7 +84,7 @@ struct PIC {
 
 impl PIC {
 
-    const fn leader() -> PIC {
+    pub const fn leader() -> PIC {
         unsafe {
             PIC { offset: OFFSET
                 , command_port: Port::new(0x20)
@@ -93,7 +93,7 @@ impl PIC {
         }
     }
 
-    const fn follower() -> PIC {
+    pub const fn follower() -> PIC {
         unsafe {
             PIC { offset: OFFSET + 8
                 , command_port: Port::new(0xA0)
@@ -103,12 +103,12 @@ impl PIC {
     }
 
     #[inline]
-    fn is_leader(&self) -> bool {
+    pub fn is_leader(&self) -> bool {
         self.offset == OFFSET
     }
 
     #[inline]
-    fn send_command(&self, command: Command) {
+    pub fn send_command(&self, command: Command) {
         unsafe {
             self.command_port
                 .out8(command as u8)
@@ -116,7 +116,7 @@ impl PIC {
     }
 
     #[inline]
-    fn send_data(&self, data: u8) {
+    pub fn send_data(&self, data: u8) {
         unsafe {
             self.data_port
                 .out8(data)
@@ -124,12 +124,12 @@ impl PIC {
     }
 
     #[inline]
-    fn initialize(&self) {
+    pub fn initialize(&self) {
         self.send_command(Command::Init)
     }
 
     #[inline]
-    fn read_isr(&self) -> u8 {
+    pub fn read_isr(&self) -> u8 {
         self.send_command(Command::ReadISR);
         unsafe { self.data_port.in8() }
     }
