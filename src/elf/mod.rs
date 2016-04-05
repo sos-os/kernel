@@ -18,10 +18,10 @@ use core::intrinsics;
 use core::slice;
 
 pub mod section;
-pub mod header;
+pub mod file;
 
 pub type Section<'a> = section::Header<'a>;
-pub type FileHeader = header::Header;
+pub type FileHeader = file::Header;
 
 pub struct Binary<'a> {
     pub header: &'a FileHeader
