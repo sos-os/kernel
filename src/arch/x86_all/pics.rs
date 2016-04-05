@@ -22,19 +22,28 @@
 
 use super::super::Port;
 use spin::Mutex;
+
 use core::mem::transmute;
 
 /// Starting offset for PIC1
 const OFFSET: u8 = 0x20;
 
+const FOLLOWER_CMD_PORT: u16 = 0xA0;
+const LEADER_CMD_PORT: u16 = OFFSET as u16;
+
 /// Commands to send to the PIC
 #[repr(u8)]
 #[derive(Eq, PartialEq, Ord, PartialOrd, Copy, Clone)]
-enum Command { Mode8086 = 0x01
-             , Init     = 0x11
-             , EndIRQ   = 0x20
-             , ReadIRR  = 0x0a
-             , ReadISR  = 0x0b
+enum Command { /// Command to set the PIC to 8086 mode
+               Mode8086 = 0x01
+             , /// Command to initialize a PIC
+               Init     = 0x11
+             , /// Command that ends an interrupt request
+               EndIRQ   = 0x20
+             , /// Command to read the Interrupt Request Register
+               ReadIRR  = 0x0a
+             , /// Command to read the Interrupt Service Register
+               ReadISR  = 0x0b
              }
 
 /// List of IRQs on the x86.
@@ -72,8 +81,8 @@ pub enum IRQ { /// System timer IRQ
              }
 
 
-
-struct PIC {
+/// A 8259 Programmable Interrupt Controller.
+pub struct PIC {
     /// The base offset to which interrupts on this PIC are mapped
     offset: u8
   , /// The port on the CPU that sends commands to this PIC.
@@ -84,20 +93,22 @@ struct PIC {
 
 impl PIC {
 
+    /// Construct a new leader PIC
     pub const fn leader() -> PIC {
         unsafe {
             PIC { offset: OFFSET
-                , command_port: Port::new(0x20)
-                , data_port: Port::new(0x21)
+                , command_port: Port::new(LEADER_CMD_PORT)
+                , data_port: Port::new(LEADER_CMD_PORT + 1)
                 }
         }
     }
 
+    /// Construct a new follower PIC
     pub const fn follower() -> PIC {
         unsafe {
             PIC { offset: OFFSET + 8
-                , command_port: Port::new(0xA0)
-                , data_port: Port::new(0xA1)
+                , command_port: Port::new(FOLLOWER_CMD_PORT)
+                , data_port: Port::new(FOLLOWER_CMD_PORT + 1)
                 }
         }
     }
@@ -108,11 +119,9 @@ impl PIC {
     }
 
     #[inline]
-    pub fn send_command(&self, command: Command) {
-        unsafe {
-            self.command_port
-                .out8(command as u8)
-        }
+    unsafe fn send_command(&self, command: Command) {
+        self.command_port
+            .out8(command as u8)
     }
 
     #[inline]
@@ -125,19 +134,23 @@ impl PIC {
 
     #[inline]
     pub fn initialize(&self) {
-        self.send_command(Command::Init)
+        unsafe { self.send_command(Command::Init) }
     }
 
     #[inline]
     pub fn read_isr(&self) -> u8 {
-        self.send_command(Command::ReadISR);
-        unsafe { self.data_port.in8() }
+        unsafe {
+            self.send_command(Command::ReadISR);
+            self.data_port.in8()
+        }
     }
 
     #[inline]
-    fn read_irr(&self) -> u8 {
-        self.send_command(Command::ReadIRR);
-        unsafe { self.data_port.in8() }
+    pub fn read_irr(&self) -> u8 {
+        unsafe {
+            self.send_command(Command::ReadIRR);
+            self.data_port.in8()
+        }
     }
 
 }
@@ -157,7 +170,7 @@ impl IRQHandler for PIC {
 
     #[allow(unused_must_use)]
     fn end_interrupt(&self, _: IRQ) {
-        self.send_command(Command::EndIRQ)
+        unsafe { self.send_command(Command::EndIRQ) }
     }
 }
 
@@ -167,6 +180,7 @@ impl IRQHandler for PIC {
 struct BothPICs (PIC, PIC);
 
 impl BothPICs {
+    #[allow(new_without_default)]
     const fn new() -> Self {
         BothPICs (PIC::leader(), PIC::follower())
     }
