@@ -34,8 +34,8 @@ pub const SHT_HIUSER: u32 = 0xffffffff;
 /// for more information.
 #[derive(Clone, Copy, Debug)]
 pub enum Header<'a> {
-    Header32(&'a HeaderRepr<u32>)
-  , Header64(&'a HeaderRepr<u64>)
+    ThirtyTwo(&'a HeaderRepr<u32>)
+  , SixtyFour(&'a HeaderRepr<u64>)
 }
 
 #[derive(Debug)]
@@ -64,13 +64,13 @@ trait AsHeader {
 
 impl AsHeader for HeaderRepr<u32> {
     #[inline] fn as_header<'a>(&'a self) -> Header<'a> {
-        Header::Header32(self)
+        Header::ThirtyTwo(self)
     }
 }
 
 impl AsHeader for HeaderRepr<u64> {
     #[inline] fn as_header<'a>(&'a self) -> Header<'a> {
-        Header::Header64(self)
+        Header::SixtyFour(self)
     }
 }
 
@@ -111,8 +111,8 @@ bitflags! {
 macro_rules! get {
     ($s: expr, $name: ident) => {
         match *$s {
-            Header::Header32(x) => x.$name
-          , Header::Header64(x) => x.$name
+            Header::ThirtyTwo(x) => x.$name
+          , Header::SixtyFour(x) => x.$name
         }
     }
 }
@@ -121,8 +121,8 @@ macro_rules! impl_getters {
     ( pub $name: ident : $ty: ident, $( $rest: tt )* ) => {
         #[inline] pub fn $name(&self) -> $ty {
             match *self {
-                Header::Header32(x) => x.$name as $ty
-              , Header::Header64(x) => x.$name as $ty
+                Header::ThirtyTwo(x) => x.$name as $ty
+              , Header::SixtyFour(x) => x.$name as $ty
             }
         }
         impl_getters!{ $( $rest )* }
@@ -130,8 +130,8 @@ macro_rules! impl_getters {
     ( $name: ident : $ty: ident,  $( $rest: tt )* ) => {
         #[inline] fn $name(&self) -> $ty {
             match *self {
-                Header::Header32(x) => x.$name as $ty
-              , Header::Header64(x) => x.$name as $ty
+                Header::ThirtyTwo(x) => x.$name as $ty
+              , Header::SixtyFour(x) => x.$name as $ty
             }
         }
         impl_getters!{ $( $rest )* }
@@ -139,16 +139,16 @@ macro_rules! impl_getters {
     ( $name: ident : $ty: ident ) => {
         #[inline] fn $name(&self) -> $ty {
             match *self {
-                Header::Header32(x) => x.$name as $ty
-              , Header::Header64(x) => x.$name as $ty
+                Header::ThirtyTwo(x) => x.$name as $ty
+              , Header::SixtyFour(x) => x.$name as $ty
             }
         }
     };
     ( pub $name: ident : $ty: ident ) => {
         #[inline] pub fn $name(&self) -> $ty {
             match *self {
-                Header::Header32(x) => x.$name as $ty
-              , Header::Header64(x) => x.$name as $ty
+                Header::ThirtyTwo(x) => x.$name as $ty
+              , Header::SixtyFour(x) => x.$name as $ty
             }
         }
     };
