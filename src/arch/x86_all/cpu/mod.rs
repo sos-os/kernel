@@ -6,7 +6,7 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-//! Common functionality for x86 and x86_64 CPUs
+//! Common functionality for `x86` and `x86_64` CPUs
 use ::{io,util};
 
 pub mod control_regs;

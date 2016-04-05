@@ -6,7 +6,7 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-//! Common functionality for the x86 and x86_64 Interrupt Descriptor Table.
+//! Common functionality for the `x86` and `x86_64` Interrupt Descriptor Table.
 
 use core::fmt;
 use core::fmt::Write;
@@ -177,22 +177,22 @@ pub trait Idt: Sized {
     /// Add a new interrupt gate pointing to the given handler
     fn add_gate(&mut self, idx: usize, handler: Handler);
 
-    #[allow(unused_must_use)]
+    #[allow(empty_loop)]
     unsafe fn handle_cpu_exception(state: &Self::Ctx) -> ! {
         let ex_info = state.exception();
         let cr_state = control_regs::dump();
-        write!(CONSOLE.lock()
-                      .set_colors(Color::White, Color::Blue)
-                    //   .clear()
-              , "CPU EXCEPTION {}: {}\n\
-                 {} on vector {} with error code {:#x}\n\
-                 Source: {}.\nThis is fine.\n\n"
-              , ex_info.mnemonic, ex_info.name
-              , ex_info.irq_type, state.int_id(), state.err_no()
-              , ex_info.source );
+        let _ = write!( CONSOLE.lock()
+                              .set_colors(Color::White, Color::Blue)
+                            //   .clear()
+                      , "CPU EXCEPTION {}: {}\n\
+                         {} on vector {} with error code {:#x}\n\
+                         Source: {}.\nThis is fine.\n\n"
+                      , ex_info.mnemonic, ex_info.name
+                      , ex_info.irq_type, state.int_id(), state.err_no()
+                      , ex_info.source );
 
         // TODO: parse error codes
-        match state.int_id() {
+        let _ = match state.int_id() {
             14 => unimplemented!() //TODO: special handling for page faults
            , _ => write!( CONSOLE.lock()
                                  .set_colors(Color::White, Color::Blue)

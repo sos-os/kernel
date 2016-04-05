@@ -10,6 +10,8 @@
 use arch::cpu::Port;
 use spin::Mutex;
 
+use core::default::Default;
+
 /// PS/2 keyboard scancode
 #[derive(Copy,Clone,Debug)]
 pub struct Scancode(u8);
@@ -71,11 +73,15 @@ bitflags! {
                         }
 }
 
+impl Default for Modifiers {
+    #[inline] fn default() -> Self { Modifiers::new() }
+}
+
 impl Modifiers {
-    const fn new() -> Self {
+
+    pub const fn new() -> Self {
         Modifiers { bits: 0b0000_0000 }
     }
-
 
     /// Returns true if either shift key is pressed.
     #[inline] pub fn is_shifted(&self) -> bool {

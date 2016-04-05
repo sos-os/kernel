@@ -22,6 +22,7 @@
           , associated_consts
           , unique )]
 #![feature(collections)]
+#![feature(question_mark)]
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
 #![no_std]

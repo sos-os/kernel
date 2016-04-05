@@ -6,7 +6,7 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-//! Code for interacting with the x86_64 CPU.
+//! Code for interacting with the `x86_64` CPU.
 //!
 //! This module contains code for interrupts, paging, context switches,
 //! CPU I/O (from `x86_all`), and reading/writing the x86 control registers.

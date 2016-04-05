@@ -157,7 +157,8 @@ impl ActivePML4 {
     pub fn identity_map<A: Allocator>( &mut self
                                      , frame: *mut u8
                                      , flags: EntryFlags
-                                     , allocator: &mut A) {
+                                     , allocator: &mut A)
+    {
         self.map_to( Page::containing_addr(VAddr::from_ptr(frame))
                    , frame
                    , flags
@@ -167,7 +168,8 @@ impl ActivePML4 {
     pub fn map<A: Allocator>( &mut self
                             , page: Page
                             , flags: EntryFlags
-                            , allocator: &mut A) {
+                            , allocator: &mut A)
+    {
         unsafe {
             self.map_to( page
                        , allocator.allocate(PAGE_SIZE, PAGE_SIZE)
