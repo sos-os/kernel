@@ -14,18 +14,19 @@ use vga::Color;
 
 #[lang = "panic_fmt"]
 #[no_mangle] #[inline(never)] #[cold]
+#[allow(empty_loop)]
 pub extern "C" fn rust_begin_unwind( args: Arguments
                                    , file: &'static str
                                    , line: usize )
                                    -> ! {
-    write!(term::CONSOLE.lock()
+    let _ = write!( term::CONSOLE.lock()
                         .set_colors(Color::White, Color::Red)
                         .clear()
-          , "Something has gone horribly wrong in {} at line {}. \
-            \n{}\n\
-            This is fine."
-          , file, line, args
-          );
+                  , "Something has gone horribly wrong in {} at line {}. \
+                    \n{}\n\
+                    This is fine."
+                  , file, line, args
+                  );
     loop { }
 }
 
@@ -36,7 +37,7 @@ pub extern "C" fn rust_begin_unwind( args: Arguments
 //     loop { }
 // }
 
-#[allow(non_snake_case)]
+#[allow(non_snake_case, empty_loop)]
 #[no_mangle] #[inline(never)] #[cold]
 pub extern "C" fn _Unwind_Resume() -> ! {
     println!("UNWIND!");
