@@ -28,10 +28,10 @@ pub struct Binary<'a> {
   , binary: &'a [u8]
 }
 
-unsafe fn extract_from_slice<'a, T: Sized>( data: &'a [u8]
-                                          , offset: usize
-                                          , n: usize)
-                                          -> &'a [T] {
+unsafe fn extract_from_slice<T: Sized>( data: &[u8]
+                                      , offset: usize
+                                      , n: usize)
+                                      -> &[T] {
     assert!( data.len() - offset >= mem::size_of::<T>() * n
            , "Slice too short to contain {} objects of type {}"
            , n
