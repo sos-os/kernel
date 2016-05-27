@@ -28,6 +28,8 @@ pub struct Binary<'a> {
   , binary: &'a [u8]
 }
 
+/// if `n` == 0, this will give you an `&[]`. just a warning.
+//  thanks to Max for making  me figure this out.
 unsafe fn extract_from_slice<T: Sized>( data: &[u8]
                                       , offset: usize
                                       , n: usize)
