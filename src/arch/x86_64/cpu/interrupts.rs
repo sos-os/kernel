@@ -162,7 +162,7 @@ impl Idt for Idt64 {
     type GateSize = Gate64;
     type PtrSize = u64;
 
-    fn get_ptr(&self) -> DTablePtr<u64>{
+    fn get_ptr(&self) -> DTablePtr<u64> {
         DTablePtr { limit: (mem::size_of::<Self::GateSize>() * IDT_ENTRIES)
                             as u16
                   , base: &self.0[0] as *const Gate64 as u64

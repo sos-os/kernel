@@ -13,7 +13,6 @@ use intrusive::list::{List, Node};
 use intrusive::rawlink::RawLink;
 
 #[cfg(test)] mod test;
-
 /// A `FreeList` is a list of unique free blocks
 pub type FreeList = List<Unique<FreeBlock>, FreeBlock>;
 
