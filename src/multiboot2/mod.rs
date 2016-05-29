@@ -96,7 +96,6 @@ impl Info {
 /// and size `8`.
 #[repr(C)]
 #[derive(Debug)]
-#[allow(doc_markdown)]
 pub struct Tag { ty: TagType
                , length: u32
                }

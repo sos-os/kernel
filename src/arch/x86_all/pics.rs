@@ -180,7 +180,7 @@ impl IRQHandler for PIC {
 struct BothPICs (PIC, PIC);
 
 impl BothPICs {
-    #[allow(new_without_default)]
+    
     const fn new() -> Self {
         BothPICs (PIC::leader(), PIC::follower())
     }

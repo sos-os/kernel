@@ -48,7 +48,6 @@ impl Header {
     }
 
     /// Attempt to extract a section header from a slice of bytes.
-    #[allow(transmute_ptr_to_ref)] // rather not...
     pub fn section<'a>(&'a self, input: &'a [u8], idx: u16)
                       -> Result<&'a Section, &str>
     {
