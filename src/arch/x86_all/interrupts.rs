@@ -17,7 +17,7 @@ use io::term::CONSOLE;
 use vga::Color;
 
 
-pub type Handler = unsafe extern "C" fn() -> ();
+pub type Handler = unsafe extern "C" fn() -> !;
 pub const IDT_ENTRIES: usize = 256;
 
 /// x86 interrupt gate types.
