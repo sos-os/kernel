@@ -154,11 +154,10 @@ impl ActivePML4 {
 
     }
 
-    pub fn identity_map( &mut self
-                       , frame: *mut u8
-                       , flags: EntryFlags
-                       , allocator: &mut A )
-    where A: Allocator {
+    pub fn identity_map<A: Allocator>( &mut self
+                                     , frame: *mut u8
+                                     , flags: EntryFlags
+                                     , allocator: &mut A )  {
         self.map_to( Page::containing_addr(VAddr::from_ptr(frame))
                    , frame
                    , flags
