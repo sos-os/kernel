@@ -138,6 +138,9 @@ impl Gate for Gate64 {
         }
     }
 
+    ///  Creates a new IDT gate from a raw reference to a handler.
+    ///
+    ///  This should probably not be used ever.
     unsafe fn from_raw(handler: *const u8) -> Self {
         let (low, mid, high): (u16, u16, u32)
             = mem::transmute(handler as u64);
@@ -153,7 +156,7 @@ impl Gate for Gate64 {
     }
 }
 
-//==------------------------------------------------------------------------==
+//==-------------------------------------------------------------------------==
 // 64-bit implementation of the IDT trait
 struct Idt64([Gate64; IDT_ENTRIES]);
 
@@ -199,12 +202,17 @@ impl Idt64 {
     }
 }
 
+//==--------------------------------------------------------------------------==
+// Top-level interrupt handling
 /// Global Interrupt Descriptor Table instance
 /// Our global IDT.
 static IDT: Mutex<Idt64>
     = Mutex::new(Idt64([Gate64::absent(); IDT_ENTRIES]));
 
-/// Assembly interrupt handlers call into this
+/// Kernel interrupt-handling function.
+///
+/// Assembly interrupt handlers call into this, and it dispatches interrupts to
+/// the appropriate consumers.
 #[no_mangle]
 pub unsafe extern "C" fn handle_interrupt(state: &InterruptCtx64) {
     let id = state.int_id();
@@ -234,6 +242,13 @@ pub unsafe extern "C" fn handle_interrupt(state: &InterruptCtx64) {
     pics::end_pic_interrupt(id as u8);
 }
 
+
+/// Initialize interrupt handling.
+///
+/// This function initializes the PICs, populates the IDT with interrupt
+/// handlers, loads the IDT pointer, and enables interrupts.
+///
+/// This is called from the kernel during the init process.
 pub unsafe fn initialize() {
     // println!(" . Enabling interrupts:" );
     // println!( " . . Initialising PICs {:>40}"
