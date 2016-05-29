@@ -11,7 +11,8 @@
 use core::fmt;
 use core::fmt::Write;
 
-use super::super::{DTablePtr, control_regs};
+use super::super::{dtable, control_regs};
+use super::super::dtable::DTable;
 use io::term::CONSOLE;
 
 use vga::Color;
@@ -157,10 +158,10 @@ pub trait InterruptContext {
 pub trait Idt: Sized {
     type Ctx: InterruptContext;
     type GateSize: Gate;
-    type PtrSize;
+    //type PtrSize;
 
     /// Get the IDT pointer struct to pass to `lidt`
-    fn get_ptr(&self) -> DTablePtr<Self::PtrSize>;
+    fn get_ptr(&self) -> dtable::Pointer;
     //
     // /// This is just a wrapper for prettiness reasons.
     // #[inline]
@@ -205,4 +206,13 @@ pub trait Idt: Sized {
     }
 
     //unsafe extern "C" fn handle_interrupt(state: &Self::Ctx);
+}
+
+impl<I> DTable for I where I: Idt {
+    #[inline] unsafe fn load(&self) {
+        asm!(  "lidt ($0)"
+            :: "r"(&self.get_ptr())
+            :  "memory" );
+        println!("{:<38}{:>40}", " . . Loading IDT", "[ OKAY ]");
+    }
 }

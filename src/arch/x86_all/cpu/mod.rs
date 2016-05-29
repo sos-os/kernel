@@ -11,6 +11,7 @@ use ::{io,util};
 
 pub mod control_regs;
 pub mod segment;
+pub mod dtable;
 
 pub struct Port(u16);
 
@@ -121,15 +122,4 @@ impl io::Write for Port {
         }
         Ok(written_bytes)
     }
-}
-
-/// A pointer to a descriptor table (IDT or GDT)
-#[repr(C, packed)]
-pub struct DTablePtr<T> { pub limit: u16
-                        , pub base: T
-                        }
-
-/// A descriptor table (IDT or GDT)
-pub trait DTable {
-    unsafe fn load(&self);
 }

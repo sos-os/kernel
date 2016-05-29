@@ -15,7 +15,8 @@ use core::ptr;
 
 use spin::Mutex;
 
-use super::{Registers, DTable, DTablePtr, segment};
+use super::{Registers, dtable, segment};
+use super::dtable::DTable;
 use io::keyboard;
 
 #[path = "../../x86_all/interrupts.rs"] mod interrupts_all;
@@ -163,13 +164,13 @@ struct Idt64([Gate64; IDT_ENTRIES]);
 impl Idt for Idt64 {
     type Ctx = InterruptCtx64;
     type GateSize = Gate64;
-    type PtrSize = u64;
+    //type PtrSize = u64;
 
-    fn get_ptr(&self) -> DTablePtr<u64> {
-        DTablePtr { limit: (mem::size_of::<Self::GateSize>() * IDT_ENTRIES)
-                            as u16
-                  , base: &self.0[0] as *const Gate64 as u64
-                  }
+    fn get_ptr(&self) -> dtable::Pointer {
+        dtable::Pointer {
+            limit: (mem::size_of::<Self::GateSize>() * IDT_ENTRIES) as u16
+         , base: &self.0[0] as *const Gate64 as usize
+        }
     }
 
     /// Add an entry for the given handler at the given index
@@ -177,15 +178,6 @@ impl Idt for Idt64 {
         self.0[index] = Gate64::from_handler(handler)
     }
 
-}
-
-impl DTable for Idt64 {
-    #[inline] unsafe fn load(&self) {
-        asm!(  "lidt ($0)"
-            :: "r"(&self.get_ptr())
-            :  "memory" );
-        println!("{:<38}{:>40}", " . . Loading IDT", "[ OKAY ]");
-    }
 }
 
 impl Idt64 {
