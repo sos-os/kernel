@@ -12,6 +12,8 @@ use core::ops;
 use core::convert;
 
 pub use arch::memory::{PAddr, HEAP_BASE, HEAP_TOP};
+
+pub mod paging;
 pub mod vaddr_impls;
 pub use self::vaddr_impls::*;
 
