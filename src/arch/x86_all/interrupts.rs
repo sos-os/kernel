@@ -8,8 +8,10 @@
 //
 //! Common functionality for the `x86` and `x86_64` Interrupt Descriptor Table.
 
-use core::fmt;
+use core::{fmt, mem};
 use core::fmt::Write;
+
+use memory::PAddr;
 
 use super::super::{dtable, control_regs};
 use super::super::dtable::DTable;
@@ -158,17 +160,14 @@ pub trait InterruptContext {
 pub trait Idt: Sized {
     type Ctx: InterruptContext;
     type GateSize: Gate;
-    //type PtrSize;
 
     /// Get the IDT pointer struct to pass to `lidt`
-    fn get_ptr(&self) -> dtable::Pointer;
-    //
-    // /// This is just a wrapper for prettiness reasons.
-    // #[inline]
-    // unsafe fn load(&self) {
-    //     self.get_ptr()
-    //         .load()
-    // }
+    fn get_ptr(&self) -> dtable::Pointer {
+            dtable::Pointer {
+                limit: (mem::size_of::<Self::GateSize>() * IDT_ENTRIES) as u16
+              , base: PAddr::from_ptr(unsafe { mem::transmute(self) })
+            }
+        }
 
     /// Enable interrupts
     unsafe fn enable_interrupts() { asm!("sti") }
@@ -208,7 +207,7 @@ pub trait Idt: Sized {
     //unsafe extern "C" fn handle_interrupt(state: &Self::Ctx);
 }
 
-impl<I> DTable for I where I: Idt {
+impl<I: Idt> DTable for I {
     #[inline] unsafe fn load(&self) {
         asm!(  "lidt ($0)"
             :: "r"(&self.get_ptr())

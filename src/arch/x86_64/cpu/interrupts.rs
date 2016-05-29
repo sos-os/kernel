@@ -166,13 +166,6 @@ impl Idt for Idt64 {
     type GateSize = Gate64;
     //type PtrSize = u64;
 
-    fn get_ptr(&self) -> dtable::Pointer {
-        dtable::Pointer {
-            limit: (mem::size_of::<Self::GateSize>() * IDT_ENTRIES) as u16
-         , base: &self.0[0] as *const Gate64 as usize
-        }
-    }
-
     /// Add an entry for the given handler at the given index
     fn add_gate(&mut self, index: usize, handler: Handler) {
         self.0[index] = Gate64::from_handler(handler)
@@ -181,6 +174,7 @@ impl Idt for Idt64 {
 }
 
 impl Idt64 {
+    /// Add interrupt handlers exported by assembly to the IDT.
     fn add_handlers(&mut self) -> &mut Self {
         for (i, &h_ptr) in interrupt_handlers.iter()
             .enumerate()
