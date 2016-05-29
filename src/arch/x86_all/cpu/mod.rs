@@ -10,6 +10,7 @@
 use ::{io,util};
 
 pub mod control_regs;
+pub mod segment;
 
 pub struct Port(u16);
 
