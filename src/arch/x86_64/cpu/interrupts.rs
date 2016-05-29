@@ -174,35 +174,6 @@ impl Idt for Idt64 {
         self.0[index] = Gate64::from_handler(handler)
     }
 
-    /// Assembly interrupt handlers call into this
-    #[no_mangle]
-    unsafe extern "C" fn handle_interrupt(state: &Self::Ctx) {
-        let id = state.int_id();
-        match id {
-            // interrupts 0 - 16 are CPU exceptions
-            0x00...0x0f => Self::handle_cpu_exception(state)
-            // System timer
-          , 0x20 => { /* TODO: make this work */ }
-            // Keyboard
-          , 0x21 => {
-              // TODO: dispatch keypress event to subscribers (NYI)
-                if let Some(input) = keyboard::read_char() {
-                    if input == '\r' {
-                        println!("");
-                    } else {
-                        print!("{}", input);
-                    }
-                }
-            }
-            // Loonix syscall vector
-          , 0x80 => { // TODO: currently, we do nothing here, do we want
-                      // our syscalls on this vector as well?
-            }
-          , _ => panic!("Unknown interrupt: #{} Sorry!", id)
-        }
-        // send the PICs the end interrupt signal
-        pics::end_pic_interrupt(id as u8);
-    }
 }
 
 impl DTable for Idt64 {
@@ -233,6 +204,35 @@ impl Idt64 {
 static IDT: Mutex<Idt64>
     = Mutex::new(Idt64([Gate64::absent(); IDT_ENTRIES]));
 
+/// Assembly interrupt handlers call into this
+#[no_mangle]
+pub unsafe extern "C" fn handle_interrupt(state: &InterruptCtx64) {
+    let id = state.int_id();
+    match id {
+        // interrupts 0 - 16 are CPU exceptions
+        0x00...0x0f => Idt64::handle_cpu_exception(state)
+        // System timer
+      , 0x20 => { /* TODO: make this work */ }
+        // Keyboard
+      , 0x21 => {
+          // TODO: dispatch keypress event to subscribers (NYI)
+            if let Some(input) = keyboard::read_char() {
+                if input == '\r' {
+                    println!("");
+                } else {
+                    print!("{}", input);
+                }
+            }
+        }
+        // Loonix syscall vector
+      , 0x80 => { // TODO: currently, we do nothing here, do we want
+                  // our syscalls on this vector as well?
+        }
+      , _ => panic!("Unknown interrupt: #{} Sorry!", id)
+    }
+    // send the PICs the end interrupt signal
+    pics::end_pic_interrupt(id as u8);
+}
 
 pub unsafe fn initialize() {
     // println!(" . Enabling interrupts:" );

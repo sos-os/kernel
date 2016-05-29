@@ -204,5 +204,5 @@ pub trait Idt: Sized {
         loop { }
     }
 
-    unsafe extern "C" fn handle_interrupt(state: &Self::Ctx);
+    //unsafe extern "C" fn handle_interrupt(state: &Self::Ctx);
 }
