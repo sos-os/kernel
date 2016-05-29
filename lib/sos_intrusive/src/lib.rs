@@ -11,9 +11,7 @@
 //! These structures are primarily used by the kernel and memory allocator.
 #![crate_name = "sos_intrusive"]
 #![crate_type = "lib"]
-#![feature( const_fn
-          , ptr_as_ref
-          , unique )]
+#![feature( const_fn, unique )]
 #![cfg_attr(not(feature = "use-std"), no_std )]
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
