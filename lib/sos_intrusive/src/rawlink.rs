@@ -60,7 +60,7 @@ impl<T> RawLink<T> {
     /// # Returns
     ///   - A `RawLink<T>` wrapping a pointer to the specified value
     #[inline]
-    pub const fn some(thing: &mut T) -> RawLink<T> { RawLink(thing) }
+    pub fn some(thing: &mut T) -> RawLink<T> { RawLink(thing) }
 
     pub const fn from_raw(ptr: *mut T) -> RawLink<T> { RawLink(ptr) }
 
