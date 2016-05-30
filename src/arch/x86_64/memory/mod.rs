@@ -70,8 +70,18 @@ impl Page {
     }
 
     /// Return the start virtual address of this page
+    #[inline]
     pub fn start_addr(&self) -> VAddr {
         VAddr::from_usize(self.number * PAGE_SIZE)
+    }
+
+    /// Flush the page from memory
+    pub unsafe fn flush(&self) {
+        asm!("invlpg [$0]"
+            :
+            : "{rax}"(self.start_addr())
+            : "memory"
+            : "intel", "volatile")
     }
 
     table_idx!{
