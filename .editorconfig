@@ -1,0 +1,28 @@
+# EditorConfig helps developers define and maintain consistent
+# coding styles between different editors and IDEs
+# editorconfig.org
+root = true
+
+### Makefiles #######################################################
+[Makefile]
+indent_style = tab # Makefiles must be indented with tabs.
+
+### Rust source code files ##########################################
+# Based on @xtian's .editorconfig file at
+# https://gist.github.com/xtian/339112af8a11d0583d81
+# and on the Rust style guidelines at
+# https://github.com/rust-lang/rust/tree/master/src/doc/style/style/
+[*.rs]
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+### Assembly language files #########################################
+[*.asm]
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
