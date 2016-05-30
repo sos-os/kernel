@@ -20,7 +20,8 @@
 #![feature( const_fn
           , slice_patterns
           , associated_consts
-          , unique )]
+          , unique
+          , naked_functions )]
 #![feature(collections)]
 #![feature(question_mark)]
 #![cfg_attr(feature="clippy", feature(plugin))]

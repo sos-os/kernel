@@ -47,6 +47,46 @@ pub struct Registers { pub rsi: u64
                    , rdx: 0, rcx: 0, rax: 0
                    }
      }
+
+     /// Push the caller-saved registers to the stack
+     /// (such as when handling a context switch or interrupt).
+     ///
+     /// THIS FUNCTION IS NAKED. DO NOT CALL IT NORMALLY.
+     #[naked]
+     #[inline(always)]
+     unsafe extern "C" fn push() {
+         asm!( "push rax
+                push rcx
+                push rdx
+                push r8
+                push r9
+                push r10
+                push r11
+                push rdi
+                push rsi"
+             :::: "intel"
+                , "volatile");
+     }
+
+     /// Push the caller-saved registers off the stack
+     /// (such as when handling a context switch or interrupt).
+     ///
+     /// THIS FUNCTION IS NAKED. DO NOT CALL IT NORMALLY.
+     #[naked]
+     #[inline(always)]
+     unsafe extern "C" fn pop() {
+         asm!( "pop rsi
+                pop rdi
+                pop r11
+                pop r10
+                pop r9
+                pop r8
+                pop rdx
+                pop rcx
+                pop rax"
+             :::: "intel"
+                , "volatile");
+     }
  }
 
  impl fmt::Debug for Registers {
