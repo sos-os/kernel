@@ -92,7 +92,7 @@ pub struct Ident {
   , /// ELF file class (32- or 64-bit)
     pub class: Class
   , /// ELF data encoding (big- or little-endian)
-    pub data: Data
+    pub data: DataEncoding
   , /// ELF file version
     pub version: Version
   , pub abi: OsAbi
@@ -116,7 +116,7 @@ pub enum Class {
 /// Identifies the data encoding of the ELF file
 #[derive(Copy, Clone, PartialEq, Debug)]
 #[repr(u8)]
-pub enum Data {
+pub enum DataEncoding {
     /// Invalid data encoding (`ELFDATANONE` in the standard)
     None  = 0
   , /// Twos-complement little-endian data encoding
