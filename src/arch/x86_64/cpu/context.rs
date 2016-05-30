@@ -54,7 +54,7 @@ pub struct Registers { pub rsi: u64
      /// THIS FUNCTION IS NAKED. DO NOT CALL IT NORMALLY.
      #[naked]
      #[inline(always)]
-     unsafe extern "C" fn push() {
+     pub unsafe fn push() {
          asm!( "push rax
                 push rcx
                 push rdx
@@ -74,7 +74,7 @@ pub struct Registers { pub rsi: u64
      /// THIS FUNCTION IS NAKED. DO NOT CALL IT NORMALLY.
      #[naked]
      #[inline(always)]
-     unsafe extern "C" fn pop() {
+     pub unsafe fn pop() {
          asm!( "pop rsi
                 pop rdi
                 pop r11
