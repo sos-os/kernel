@@ -15,6 +15,22 @@
 macro_rules! impl_addr {
     ($ty:ident, $size:ty) => {
 
+        impl $crate::core::convert::Into<$size> for $ty {
+            #[inline] fn into(self) -> $size { self.0 }
+        }
+
+        impl $crate::core::convert::From<$size> for $ty {
+            #[inline] fn from(n: $size) -> Self { $ty(n) }
+        }
+
+        impl<T> $crate::core::convert::From<*mut T> for $ty {
+            #[inline] fn from(ptr: *mut T) -> Self { $ty(ptr as $size) }
+        }
+
+        impl<T> $crate::core::convert::From<*const T> for $ty {
+            #[inline] fn from(ptr: *const T) -> Self { $ty(ptr as $size) }
+        }
+
         impl_ops! {
             impl Add, add, + for $ty, $size
             impl Sub, sub, - for $ty, $size

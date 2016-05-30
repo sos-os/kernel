@@ -29,19 +29,8 @@ extern {
 pub struct PAddr(u64);
 
 impl Addr<u64> for PAddr { }
+
 impl_addr! { PAddr, u64 }
-
-impl convert::Into<u64> for PAddr {
-    #[inline] fn into(self) -> u64 { self.as_u64() }
-}
-
-impl convert::From<u64> for PAddr {
-    #[inline] fn from(u: u64) -> Self { PAddr::from_u64(u) }
-}
-
-impl convert::From<*mut u8> for PAddr {
-    #[inline] fn from(ptr: *mut u8) -> Self { PAddr::from_ptr(ptr) }
-}
 
 impl PAddr {
     #[inline] pub fn from_ptr(ptr: *mut u8) -> Self { PAddr(ptr as u64) }
@@ -168,7 +157,7 @@ impl ActivePML4 {
                                      , frame: *mut u8
                                      , flags: EntryFlags
                                      , allocator: &mut A )  {
-        self.map_to( Page::containing_addr(VAddr::from_ptr(frame))
+        self.map_to( Page::containing_addr(VAddr::from(frame))
                    , frame
                    , flags
                    , allocator )
