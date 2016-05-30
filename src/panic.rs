@@ -36,12 +36,12 @@ pub extern "C" fn rust_begin_unwind( args: Arguments
 //     loop { }
 // }
 
-#[allow(non_snake_case)]
-#[no_mangle] #[inline(never)] #[cold]
-pub extern "C" fn _Unwind_Resume() -> ! {
-    println!("UNWIND!");
-    loop { }
-}
+//#[allow(non_snake_case)]
+//#[no_mangle] #[inline(never)] #[cold]
+//pub extern "C" fn _Unwind_Resume() -> ! {
+//    println!("UNWIND!");
+//    loop { }
+//}
 
 
 // #[lang = "begin_unwind"]
