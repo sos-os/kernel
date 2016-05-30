@@ -10,10 +10,9 @@ use core::ptr::Unique;
 use core::convert;
 
 use ::memory::{VAddr, Addr};
+
 use alloc::{PAGE_SIZE, Allocator};
 
-pub mod paddr_impls;
-pub use self::paddr_impls::*;
 
 pub mod table;
 use self::table::*;
@@ -30,6 +29,7 @@ extern {
 pub struct PAddr(u64);
 
 impl Addr<u64> for PAddr { }
+impl_addr! { PAddr, u64 }
 
 impl convert::Into<u64> for PAddr {
     #[inline] fn into(self) -> u64 { self.as_u64() }

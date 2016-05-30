@@ -14,8 +14,7 @@ use core::convert;
 pub use arch::memory::{PAddr, HEAP_BASE, HEAP_TOP};
 
 pub mod paging;
-pub mod vaddr_impls;
-pub use self::vaddr_impls::*;
+#[macro_use] pub mod macros;
 
 /// A virtual address is a machine-sized unsigned integer
 #[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -44,6 +43,8 @@ impl convert::From<usize> for VAddr {
 impl convert::From<*mut u8> for VAddr {
     #[inline] fn from(ptr: *mut u8) -> Self { VAddr::from_ptr(ptr) }
 }
+
+impl_addr! { VAddr, usize }
 
 impl VAddr {
     #[inline] pub fn from_ptr(ptr: *mut u8) -> Self { VAddr(ptr as usize) }

@@ -36,14 +36,14 @@ extern crate sos_alloc as alloc;
 #[macro_use] extern crate sos_vga as vga;
 #[macro_use] extern crate bitflags;
 
-pub mod arch;
+#[macro_use] pub mod memory;
+#[macro_use] pub mod io;
+
 pub mod util;
 pub mod panic;
-pub mod memory;
 pub mod multiboot2;
 pub mod elf;
-
-#[macro_use] pub mod io;
+pub mod arch;
 
 use arch::cpu;
 use memory::PAddr;
