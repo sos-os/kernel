@@ -13,8 +13,8 @@ Vagrant.configure(2) do |config|
     sudo apt-get install git -y
     sudo apt-get install vim -y
     sudo apt-get install -y qemu
-    curl https://sh.rustup.rs -sSf | sh -s -- -y
-    rustup default nightly
+    su - vagrant -c 'curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly'
+    ex +'$s@$@\rexport PATH=~/.cargo/bin/:$PATH@' -cwq /etc/bash.bashrc
   SHELL
 
   config.ssh.forward_x11 = true
