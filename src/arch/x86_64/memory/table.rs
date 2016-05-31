@@ -14,15 +14,18 @@ use core::mem;
 
 /// The number of entries in a page table.
 pub const N_ENTRIES: usize = 512;
+/// Size of a page table (in bytes)
 pub const PAGE_TABLE_SIZE: usize = N_ENTRIES * PAGE_SIZE;
 
 /// PML4 table
 pub const PML4: *mut Table<PML4Level>
     = 0o177777_777_777_777_777_0000 as *mut _;
 
+/// A page table
 pub struct Table<L>
-where L: TableLevel { entries: [Entry; N_ENTRIES]
-                    , level_marker: PhantomData<L>
+where L: TableLevel { /// The entries in the page table.
+                      pub entries: [Entry; N_ENTRIES]
+                    , _level_marker: PhantomData<L>
                     }
 
 pub trait TableLevel {}
@@ -37,16 +40,16 @@ impl TableLevel for PDLevel   {}
 impl TableLevel for PTLevel   {}
 
 pub trait Sublevel: TableLevel {
-    type NextLevel: TableLevel;
+    type Next: TableLevel;
 }
 impl Sublevel for PML4Level {
-    type NextLevel = PDPTLevel;
+    type Next = PDPTLevel;
 }
 impl Sublevel for PDPTLevel {
-    type NextLevel = PDLevel;
+    type Next = PDLevel;
 }
 impl Sublevel for PDLevel {
-    type NextLevel = PTLevel;
+    type Next = PTLevel;
 }
 
 impl<L: TableLevel> Index<usize> for Table<L> {
@@ -75,6 +78,7 @@ impl<L: TableLevel> Table<L>  {
 
 impl<L: Sublevel> Table<L> {
 
+    /// Returns the address of the next table, or None if none exists.
     fn next_table_addr(&self, index: usize) -> Option<usize> {
         let flags = self[index].flags();
         if flags.contains(PRESENT) && !flags.contains(HUGE_PAGE) {
@@ -84,33 +88,35 @@ impl<L: Sublevel> Table<L> {
         }
     }
 
-    pub fn next_table(&self, index: usize) -> Option<&Table<L::NextLevel>> {
+    /// Returns the next table, or `None` if none exists
+    pub fn next_table(&self, index: usize) -> Option<&Table<L::Next>> {
         self.next_table_addr(index)
             .map(|addr| unsafe { &*(addr as *const _) })
     }
 
-    pub fn next_table_mut(&self, index: usize)
-                         -> Option<& mut Table<L::NextLevel>> {
+    /// Mutably borrows the next table.
+    pub fn next_table_mut(&self, index: usize) -> Option<& mut Table<L::Next>> {
         self.next_table_addr(index)
             .map(|addr| unsafe { &mut *(addr as *mut _) })
     }
 
 
+    /// Returns the next table, creating it if it does not exist.
     pub fn create_next<A>(&mut self, index: usize, alloc: &mut A)
-                         -> &mut Table<L::NextLevel>
+                         -> &mut Table<L::Next>
     where A: Allocator {
         if self.next_table(index).is_none() {
-            assert!( !self.entries[index].flags().contains(HUGE_PAGE)
+            assert!( !self[index].is_huge()
                    , "Couldn't create next table: huge pages not \
                       currently supported.");
 
             let frame = unsafe {
                 alloc.allocate(PAGE_SIZE, PAGE_SIZE)// I hope that's right
                      .expect("Couldn't create next table: no \
-                             frames  available!")
+                              frames  available!")
             };
 
-            self.entries[index].set(frame, PRESENT | WRITABLE);
+            self[index].set(frame, PRESENT | WRITABLE);
             self.next_table_mut(index).unwrap().zero();
         }
         self.next_table_mut(index).unwrap()
@@ -151,13 +157,28 @@ bitflags! {
 }
 
 impl Entry {
-    #[inline] pub fn is_unused(&self) -> bool {
+
+    /// Returns true if this is an unused entry
+    #[inline]
+    pub fn is_unused(&self) -> bool {
         self.0 == 0
     }
-    #[inline] pub fn set_unused(&mut self) {
+
+    /// Sets this entry to be unused
+    #[inline]
+    pub fn set_unused(&mut self) {
         self.0 = 0;
     }
-    #[inline] pub fn flags(&self) -> EntryFlags {
+
+    /// Returns true if this page is huge
+    #[inline]
+    pub fn is_huge(&self) -> bool {
+        self.flags().contains(HUGE_PAGE)
+    }
+
+    /// Access the entry's bitflags.
+    #[inline]
+    pub fn flags(&self) -> EntryFlags {
         EntryFlags::from_bits_truncate(self.0)
     }
 
