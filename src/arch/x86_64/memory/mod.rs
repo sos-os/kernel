@@ -6,13 +6,13 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
+//! Architecture-specific memory management.
 use core::ptr::Unique;
 use core::convert;
 
 use ::memory::{VAddr, Addr};
 
 use alloc::{PAGE_SIZE, Allocator};
-
 
 pub mod table;
 use self::table::*;

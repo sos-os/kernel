@@ -19,8 +19,10 @@ use io::term::CONSOLE;
 
 use vga::Color;
 
-
+/// An interrupt handler function.
 pub type Handler = unsafe extern "C" fn() -> !;
+
+/// Number of entries in the system's Interrupt Descriptor Table.
 pub const IDT_ENTRIES: usize = 256;
 
 /// x86 interrupt gate types.
@@ -125,30 +127,31 @@ pub static EXCEPTIONS: [ExceptionInfo; 20]
                       , source: "SSE/SSE2/SSE3 floating-point instructions" }
        ];
 
+/// An interrupt Gate
 pub trait Gate {
     fn from_handler(handler: Handler) -> Self;
     unsafe fn from_raw(handler: *const u8) -> Self;
 }
 
-// /// This is the format that `lidt` expects for the pointer to the IDT.
-// /// ...apparently.
-// #[repr(C, packed)]
-// pub struct IdtPtr<I>
-// where I: Idt { pub limit: u16
-//              , pub base: *const I
-//              }
-//
-// pub trait IdtPtrOps {
-//     unsafe fn load(&self);
-// }
-
+/// Trait representing an interrupt context.
+///
+/// This should consist of an error number, an interrupt ID, and the state of
+/// the caller-saved registers pushed on the stack at the time of the interrupt.
 pub trait InterruptContext {
+    /// The type of the registers state for this interrupt (`x86` or `x86_64`).
     type Registers: fmt::Debug;
 
+    /// Returns the error number
     fn err_no(&self) -> u32;
+
+    /// Returns the interrupt ID
     fn int_id(&self) -> u32;
+
+    /// Returns the state of the caller-saved registers.
     fn registers(&self) -> Self::Registers;
 
+    /// Fetches the corresponding CPU exception for this interrupt, if this
+    /// interrupt is a CPU exception.
     #[inline]
     fn exception(&self) -> &ExceptionInfo {
         &EXCEPTIONS[self.int_id() as usize]
@@ -157,8 +160,14 @@ pub trait InterruptContext {
 
 }
 
+/// An Interrupt Descriptor Table
+///
+/// The IDT is either 64-bit or 32-bit, and therefore, it has corresponding
+/// associated types for the appropriately-sized `InterruptContext` and `Gate`.
 pub trait Idt: Sized {
+    /// The type of interrupt context handled by this IDT (`x86` or `x86_64`)
     type Ctx: InterruptContext;
+    /// The type of interrupt gate handled by this IDT `x86` or `x86_64`)
     type GateSize: Gate;
 
     /// Get the IDT pointer struct to pass to `lidt`
@@ -177,6 +186,7 @@ pub trait Idt: Sized {
     /// Add a new interrupt gate pointing to the given handler
     fn add_gate(&mut self, idx: usize, handler: Handler);
 
+    /// Handle a CPU exception with a given interrupt context.
     unsafe fn handle_cpu_exception(state: &Self::Ctx) -> ! {
         let ex_info = state.exception();
         let cr_state = control_regs::dump();

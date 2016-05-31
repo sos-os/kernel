@@ -85,6 +85,7 @@ struct Idt32([Gate32; IDT_ENTRIES]);
 
 impl Idt for Idt32 {
     type Ptr = Idt32Ptr;
+
     /// Get the IDT pointer struct to pass to `lidt`
     fn get_ptr(&self) -> Self::Ptr {
         Idt32Ptr { limit: (mem::size_of::<Gate32>() * IDT_ENTRIES) as u16

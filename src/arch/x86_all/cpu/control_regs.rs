@@ -6,12 +6,20 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-//! x86 64-bit control registers
+//! x86 control registers
 use core::fmt;
 
+/// A struct bundling together a snapshot of the control registers state.
 #[derive(Copy,Clone,Debug)]
-pub struct CrState { pub cr0: usize, pub cr2: usize
-                   , pub cr3: usize, pub cr4: usize
+pub struct CrState { /// `$cr0` contains flags that control the CPU's operations
+                     pub cr0: usize
+                   , /// `$cr2` contains the page fault linear address
+                     pub cr2: usize
+                   , /// `$cr3` contains the page table root pointer
+                     pub cr3: usize
+                   , /// `$cr4` contains flags that control operations in
+                     ///  protected mode
+                     pub cr4: usize
                    }
 
 impl fmt::Display for CrState {
@@ -21,6 +29,7 @@ impl fmt::Display for CrState {
      }
 }
 
+/// Dump the current contents of the control registers to a `CrState`.
 pub fn dump() -> CrState {
     let cr0_: usize; let cr2_: usize;
     let cr3_: usize; let cr4_: usize;
@@ -46,55 +55,88 @@ pub fn set_write_protect() {
     unsafe { cr0_write(cr0_read() | wp_bit) };
 }
 
-/// `cr0` contains flags that control the CPU's operations
-pub unsafe fn cr0_read() -> usize {
+/// Read the current value from `$cr0`.
+pub fn cr0_read() -> usize {
     let result: usize;
-    asm!(   "mov $0, cr0"
-        :   "=r"(result)
-        ::: "intel" );
+    unsafe {
+        asm!(   "mov $0, cr0"
+            :   "=r"(result)
+            ::: "intel" );
+    }
     result
 }
+
+/// Write a value to `$cr0`.
+///
+/// # Unsafe Because:
+///  - Control registers should generally not be modified during normal
+///    operation.
 pub unsafe fn cr0_write(value: usize) {
     asm!(  "mov cr0, $0"
         :: "r"(value)
         :: "intel");
 }
 
-/// `cr2` contains the page fault linear address
-pub unsafe fn cr2_read() -> usize {
+/// Read the current value from `$cr2`.
+pub fn cr2_read() -> usize {
     let result: usize;
-    asm!(   "mov $0, cr2"
-        :   "=r"(result)
-        ::: "intel" );
+    unsafe {
+        asm!(   "mov $0, cr2"
+            :   "=r"(result)
+            ::: "intel" );
+    }
     result
 }
+
+/// Write a value to `$cr2`.
+///
+/// # Unsafe Because:
+///  - Control registers should generally not be modified during normal
+///    operation.
 pub unsafe fn cr2_write(value: usize) {
     asm!(  "mov cr2, $0"
         :: "r"(value)
         :: "intel");
 }
-/// `cr3` contains the page table root pointer
-pub unsafe fn cr3_read() -> usize {
+
+/// Read the current value from `$cr3`.
+pub fn cr3_read() -> usize {
     let result: usize;
-    asm!(   "mov $0, cr3"
-        :   "=r"(result)
-        ::: "intel" );
+    unsafe {
+        asm!(   "mov $0, cr3"
+            :   "=r"(result)
+            ::: "intel" );
+    }
     result
 }
+
+/// Write a value to `$cr3`.
+///
+/// # Unsafe Because:
+///  - Control registers should generally not be modified during normal
+///    operation.
 pub unsafe fn cr3_write(value: usize) {
     asm!(  "mov cr3, $0"
         :: "r"(value)
         :: "intel");
 }
 
-/// `cr4` contains flags that control operations in protected mode
-pub unsafe fn cr4_read() -> usize {
+/// Read the current value from `$cr4`.
+pub fn cr4_read() -> usize {
     let result: usize;
-    asm!(   "mov $0, cr4"
-        :   "=r"(result)
-        ::: "intel" );
+    unsafe {
+        asm!(   "mov $0, cr4"
+            :   "=r"(result)
+            ::: "intel" );
+    }
     result
 }
+
+/// Write a value to `$cr4`.
+///
+/// # Unsafe Because:
+///  - Control registers should generally not be modified during normal
+///    operation.
 pub unsafe fn cr4_write(value: usize) {
     asm!(  "mov cr4, $0"
         :: "r"(value)

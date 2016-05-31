@@ -11,6 +11,7 @@ use elf::section::{Sections, HeaderRepr};
 
 const END_TAG_LEN: u32 = 8;
 
+
 #[repr(C)]
 pub struct Info { pub length: u32
                 , _pad: u32
@@ -23,24 +24,37 @@ impl Info {
         let info: &Info = &*(addr.into(): u64 as *const Info);
         if info.has_end() { Ok(info) }
         else { Err("Multiboot info structure had no end tag!") }
-
     }
 
     /// Finds the tag with the given tag type.
     ///
     /// This is actually safe since the tag types are constrained by The
     /// `TagType` enum
+    ///
+    /// # Returns
+    ///  - `Some(tag)` if a tag of the given type could be found.
+    ///  - `None` if no tag of the given type could be found.
     pub fn get_tag(&self, tag_type: TagType) -> Option<&'static Tag> {
         self.tags()
             .find(|t| t.ty == tag_type)
     }
 
+    /// Finds the memory map tag.
+    ///
+    ///  # Returns
+    ///  - `Some(MemMapTag)` if a memory map tag could be found
+    ///  - `None` if no tag of the given type could be found.
     #[inline]
     pub fn mem_map(&self) -> Option<&'static MemMapTag> {
         self.get_tag(TagType::MemoryMap)
             .map(|tag| unsafe { &*((tag as *const Tag) as *const MemMapTag) })
     }
 
+    /// Finds the ELF sections tag.
+    ///
+    ///  # Returns
+    ///  - `Some(ElfSectionsTag)` if a memory map tag could be found
+    ///  - `None` if no tag of the given type could be found.
     #[inline]
     pub fn elf_sections(&self) -> Option<&'static ElfSectionsTag> {
         self.get_tag(TagType::ELFSections)
@@ -49,9 +63,11 @@ impl Info {
             })
     }
 
+    /// Returns an iterator over all Multiboot tags.
     #[inline]
     fn tags(&self) -> Tags { Tags(&self.tag_start as *const Tag) }
 
+    /// Returns true if the multiboot structure has a valid end tag.
     fn has_end(&self) -> bool {
         let end_tag_addr
             = (self as *const _) as usize +
@@ -96,7 +112,8 @@ impl Info {
 /// and size `8`.
 #[repr(C)]
 #[derive(Debug)]
-pub struct Tag { ty: TagType
+pub struct Tag { /// the type of this tag.
+                 pub ty: TagType
                , length: u32
                }
 
@@ -120,6 +137,7 @@ pub enum TagType { /// Tag that indicates the end of multiboot tags
                  , APMTable         = 10
                  }
 
+/// An iterator over Multiboot 2 tags.
 struct Tags(*const Tag);
 
 impl Tags {
@@ -140,15 +158,17 @@ impl Iterator for Tags {
     }
 }
 
+/// A Memory Map tag
 #[repr(C)]
 pub struct MemMapTag { tag: Tag
-                     , entry_size: u32
-                     , entry_version: u32
+                     , pub entry_size: u32
+                     , pub entry_version: u32
                      , first_entry: MemArea
                      }
 
 impl MemMapTag {
 
+    /// Returns an iterator over all the memory areas in this tag.
     pub fn areas(&self) -> MemAreas {
         MemAreas { curr: (&self.first_entry) as *const MemArea
                  , last: ((self as *const MemMapTag as u32) +
@@ -169,6 +189,7 @@ pub struct CommandLineTag { tag: Tag
                             pub command_line: [u8]
                           }
 
+
 #[repr(C)]
 pub struct ModulesTag { tag: Tag
                       , /// The address at which the module begins.
@@ -182,14 +203,18 @@ pub struct ModulesTag { tag: Tag
 #[repr(u32)]
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum MemAreaType { Available = 1
-                     , ACPI      = 3
+                     , Acpi      = 3
                      , Preserve  = 4
                      }
 
+/// A multiboot 2 memory area
 #[repr(C)]
-pub struct MemArea { pub base: PAddr
-                   , pub length: PAddr
-                   , ty: MemAreaType
+pub struct MemArea { /// the starting address of the memory area
+                     pub base: PAddr
+                   , /// the length of the memory area
+                     pub length: PAddr
+                   , /// the type of the memory area
+                     pub ty: MemAreaType
                    , _pad: u32
                    }
 
@@ -199,6 +224,7 @@ impl MemArea {
     }
 }
 
+/// An iterator over memory areas
 #[derive(Clone)]
 pub struct MemAreas { curr: *const MemArea
                     , last: *const MemArea
@@ -228,16 +254,20 @@ pub type Word = u32;
 #[cfg(target_pointer_width = "64")]
 pub type Word = u64;
 
+/// A Multiboot 2 ELF sections tag
 #[derive(Debug)]
 #[repr(packed)]
 pub struct ElfSectionsTag { tag: Tag
-                       , pub n_sections: u32
-                       , section_size: u32
-                       , stringtable_idx: u32
-                       , first_section: HeaderRepr<Word>
-                       }
+                          , /// the number of sections pointed to by this tag
+                            pub n_sections: u32
+                          , /// the size of each ELF section
+                            pub section_size: u32
+                          , stringtable_idx: u32
+                          , first_section: HeaderRepr<Word>
+                          }
 
 impl ElfSectionsTag {
+    /// Returns an iterator over the ELF sections pointed to by this tag.
     pub fn sections(&'static self) -> Sections<'static, Word> {
         Sections::new( &self.first_section
                      , self.n_sections - 1

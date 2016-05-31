@@ -58,7 +58,7 @@ pub struct HeaderRepr<Word> {
   , entry_length: Word
 }
 
-trait AsHeader {
+pub trait AsHeader {
     fn as_header(&self) -> Header;
 }
 
@@ -208,7 +208,8 @@ impl<'a> Header<'a> {
 pub enum Contents<'a> {
     Empty
   , Undefined(&'a [u8])
-  , Group { flags: &'a u32, indicies: &'a[u32] }
+  , Group { flags: &'a u32
+          , indicies: &'a[u32] }
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -370,12 +371,3 @@ where HeaderRepr<W>: AsHeader {
         }
     }
 }
-
-
-//
-// #[derive(Debug)]
-// #[repr(u32)]
-// pub enum Flags { Writable    = 0x1
-//                , Allocated   = 0x2
-//                , Executable  = 0x4
-//                }

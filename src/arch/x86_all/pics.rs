@@ -27,8 +27,9 @@ use core::mem::transmute;
 
 /// Starting offset for PIC1
 const OFFSET: u8 = 0x20;
-
+/// Command port for the follower PIC (PIC2)
 const FOLLOWER_CMD_PORT: u16 = 0xA0;
+/// Command port for the leader PIC (PIC1)
 const LEADER_CMD_PORT: u16 = OFFSET as u16;
 
 /// Commands to send to the PIC
@@ -113,17 +114,20 @@ impl PIC {
         }
     }
 
+    /// Returns true if this PIC is the leader PIC
     #[inline]
     pub fn is_leader(&self) -> bool {
         self.offset == OFFSET
     }
 
+    /// Send a command to the PIC
     #[inline]
     unsafe fn send_command(&self, command: Command) {
         self.command_port
             .out8(command as u8)
     }
 
+    /// Send a byte of data to the PIC
     #[inline]
     pub fn send_data(&self, data: u8) {
         unsafe {
@@ -132,11 +136,13 @@ impl PIC {
         }
     }
 
+    /// Send the "initialize" command to this PIC
     #[inline]
     pub fn initialize(&self) {
         unsafe { self.send_command(Command::Init) }
     }
 
+    /// Read the contents of the ISR (Interrupt Service Register) from this PIC
     #[inline]
     pub fn read_isr(&self) -> u8 {
         unsafe {
@@ -145,6 +151,7 @@ impl PIC {
         }
     }
 
+/// Read the contents of the IRR (Interrupt Request Register) from this PIC
     #[inline]
     pub fn read_irr(&self) -> u8 {
         unsafe {
@@ -155,6 +162,7 @@ impl PIC {
 
 }
 
+/// Trait for something which is capable of handling a PIC IRQ
 trait IRQHandler {
     /// Returns whether or not this handler handles the given IRQ
     fn handles(&self, irq: IRQ) -> bool;
@@ -168,9 +176,8 @@ impl IRQHandler for PIC {
         self.offset <= (irq as u8) && (irq as u8) < self.offset + 8
     }
 
-    #[allow(unused_must_use)]
     fn end_interrupt(&self, _: IRQ) {
-        unsafe { self.send_command(Command::EndIRQ) }
+        unsafe { let _ = self.send_command(Command::EndIRQ); }
     }
 }
 
@@ -180,7 +187,8 @@ impl IRQHandler for PIC {
 struct BothPICs (PIC, PIC);
 
 impl BothPICs {
-    
+
+    /// Constructs the system's pair of PICs
     const fn new() -> Self {
         BothPICs (PIC::leader(), PIC::follower())
     }
@@ -246,6 +254,11 @@ static PICS: Mutex<BothPICs>
     = Mutex::new(BothPICs::new());
 
 /// Initialize the system's Programmable Interrupt Controller
+///
+/// # Unsafe Because:
+///  - This should only ever be called by the kernel boot process.
+///    Initializing the PICs once they have already been inicialized
+///    will probably cause Bad Things to take place.
 pub unsafe fn initialize() {
     PICS.lock()
         .initialize();
@@ -257,6 +270,9 @@ pub unsafe fn initialize() {
 ///
 /// This is called by the interrupt handler at the end of all interrupts.
 /// If the interrupt is not a PIC interrupt, it silently does nothing.
+///
+/// # Unsafe Because:
+///  - This should only be called by interrupt handler functions.
 pub unsafe fn end_pic_interrupt(interrupt_id: u8) {
     let pics = PICS.lock();
     let irq: IRQ = transmute(interrupt_id);

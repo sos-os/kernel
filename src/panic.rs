@@ -6,12 +6,22 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-//! Panic handling and stack unwinding
+//! Panic handling.
+//!
+//! This module contains the `panic_fmt` language item. This function handles
+//! panics at runtime.
 
 use core::fmt::{Arguments, Write};
 use super::io::term;
 use vga::Color;
 
+/// Called to handle a panic.
+///
+/// Since kernel panics are non-recoverable, this function prints out
+/// the error message and hangs forever.
+///
+/// Eventually – way in the future – when we have disk I/O and stuff,
+/// we'll probably want to write out some core dumps here as well.
 #[lang = "panic_fmt"]
 #[no_mangle] #[inline(never)] #[cold]
 pub extern "C" fn rust_begin_unwind( args: Arguments
@@ -28,24 +38,3 @@ pub extern "C" fn rust_begin_unwind( args: Arguments
                   );
     loop { }
 }
-
-// #[lang = "stack_exhausted"]
-// #[no_mangle] #[inline(never)] #[cold]
-// pub extern "C" fn __morestack() -> ! {
-//     println!("stack exhausted");
-//     loop { }
-// }
-
-//#[allow(non_snake_case)]
-//#[no_mangle] #[inline(never)] #[cold]
-//pub extern "C" fn _Unwind_Resume() -> ! {
-//    println!("UNWIND!");
-//    loop { }
-//}
-
-
-// #[lang = "begin_unwind"]
-// #[no_mangle] #[inline(never)] #[cold]
-// pub fn begin_unwind<M: Send>(msg: M
-//                             , file_line: &(&'static str, usize))  -> !
-// { loop { } }
