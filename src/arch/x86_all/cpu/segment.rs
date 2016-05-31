@@ -29,22 +29,23 @@ use core::fmt;
 ///       address of the GDT or LDT (from the GDTR or LDTR register,
 ///       respectively).
 bitflags! {
-    flags Selector: u16 {
-                          const RPL_RING_0 = 0b00
-                        , const RPL_RING_1 = 0b01
-                        , const RPL_RING_2 = 0b10
-                        , const RPL_RING_3 = 0b11,
-                          /// Requested Prrivelege Level (RPL)
-                          const RPL = RPL_RING_0.bits
-                           | RPL_RING_1.bits
-                           | RPL_RING_2.bits
-                           | RPL_RING_3.bits,
+    pub flags Selector: u16 { const RPL_RING_0 = 0b00
+                            , const RPL_RING_1 = 0b01
+                            , const RPL_RING_2 = 0b10
+                            , const RPL_RING_3 = 0b11
 
-                          /// If the Table Indicator (TI) is 0, use the GDT
-                          const TI_GDT = 0 << 3,
-                          /// If the TI is 1, use the LDT
-                          const TI_LDT = 1 << 3,
-                        }
+                            , /// Requested Prrivelege Level (RPL)
+                              const RPL = RPL_RING_0.bits
+                               | RPL_RING_1.bits
+                               | RPL_RING_2.bits
+                               | RPL_RING_3.bits
+
+                            , /// If the Table Indicator (TI) is 0, use the GDT
+                              const TI_GDT = 0 << 3
+                              
+                            , /// If the TI is 1, use the LDT
+                              const TI_LDT = 1 << 3
+                            }
 }
 
 impl Selector {

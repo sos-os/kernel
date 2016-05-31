@@ -76,7 +76,7 @@ impl AsHeader for HeaderRepr<u64> {
 
 
 bitflags! {
-    flags Flags: usize {
+    pub flags Flags: usize {
         // Flags (SectionHeader::flags)
         const SHF_WRITE            =        0x1
       , const SHF_ALLOC            =        0x2
@@ -101,7 +101,7 @@ impl fmt::LowerHex for Flags {
 }
 
 bitflags! {
-    flags GroupFlags: u32 {
+    pub flags GroupFlags: u32 {
         const GRP_COMDAT	=        0x1
       , const GRP_MASKOS	= 0x0ff00000
       , const GRP_MASKPROC	= 0xf0000000

@@ -1,6 +1,6 @@
 use memory::{VAddr, PAddr};
 
-trait Mapper {
+pub trait Mapper {
     type Page;
     type Flags;
 
