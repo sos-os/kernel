@@ -15,7 +15,7 @@ use core::ptr;
 
 use spin::Mutex;
 
-use super::{Registers, dtable, segment};
+use super::{Registers, segment};
 use super::dtable::DTable;
 use io::keyboard;
 

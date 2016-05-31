@@ -38,6 +38,7 @@ macro_rules! impl_addr {
             impl Mul, mul, * for $ty, $size
             impl Shl, shl, >> for $ty, $size
             impl Shr, shr, << for $ty, $size
+            impl Rem, rem, % for $ty, $size
         }
 
         impl_fmt! {

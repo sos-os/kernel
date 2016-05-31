@@ -36,8 +36,8 @@ impl_addr! { VAddr, usize }
 
 impl VAddr {
     //#[inline] pub fn from_ptr<T>(ptr: *mut T) -> Self { VAddr(ptr as usize) }
-    #[inline] pub const fn from_usize(u: usize) -> Self { VAddr(u) }
-    #[inline] pub const fn as_usize(&self) -> usize { self.0 }
+    //#[inline] pub const fn from_usize(u: usize) -> Self { VAddr(u) }
+    //#[inline] pub const fn as_usize(&self) -> usize { self.0 }
 
     /// Calculate the index in the PML4 table corresponding to this address.
     #[inline] pub fn pml4_index(&self) -> usize {

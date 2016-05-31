@@ -165,7 +165,7 @@ pub trait Idt: Sized {
     fn get_ptr(&self) -> dtable::Pointer {
             dtable::Pointer {
                 limit: (mem::size_of::<Self::GateSize>() * IDT_ENTRIES) as u16
-              , base: PAddr::from_ptr(unsafe { mem::transmute(self) })
+              , base: PAddr::from(self as *const _)
             }
         }
 

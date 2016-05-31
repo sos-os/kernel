@@ -141,8 +141,8 @@ pub trait Allocator {
     }
 
     unsafe fn zero_alloc( &mut self
-                        , size: usize
-                        , align: usize)
+                        , _size: usize
+                        , _align: usize)
                         -> Option<*mut u8> {
         unimplemented!()
     }

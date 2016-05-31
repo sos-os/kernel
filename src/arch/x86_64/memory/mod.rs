@@ -33,11 +33,16 @@ impl Addr<u64> for PAddr { }
 
 impl_addr! { PAddr, u64 }
 
-impl PAddr {
-    #[inline] pub fn from_ptr(ptr: *mut u8) -> Self { PAddr(ptr as u64) }
-    #[inline] pub const fn from_u64(u: u64) -> Self { PAddr(u) }
-    #[inline] pub const fn as_u64(&self) -> u64 { self.0 }
+impl convert::Into<usize> for PAddr {
+    #[inline] fn into(self) -> usize { self.0 as usize }
 }
+
+//
+//impl PAddr {
+//    //#[inline] pub fn from_ptr(ptr: *mut u8) -> Self { PAddr(ptr as u64) }
+//    #[inline] pub const fn from_u64(u: u64) -> Self { PAddr(u) }
+//    #[inline] pub const fn as_u64(&self) -> u64 { self.0 }
+//}
 
 macro_rules! table_idx {
     ( $($name:ident >> $shift:expr)* ) => {$(
@@ -53,10 +58,11 @@ pub struct Page { pub number: usize }
 impl Page {
     /// Create a new `Page` containing the given virtual address
     pub fn containing_addr(addr: VAddr) -> Page {
-        assert!( addr.as_usize() < 0x0000_8000_0000_0000 ||
-                 addr.as_usize() >= 0xffff_8000_0000_0000
+        assert!( addr < VAddr::from(0x0000_8000_0000_0000) ||
+                 addr >= VAddr::from(0xffff_8000_0000_0000)
                , "invalid address: 0x{:x}", addr );
-        Page { number: (addr / PAGE_SIZE).as_usize() }
+        let num: usize = (addr / PAGE_SIZE).into();
+        Page { number: num }
     }
 
     /// Return the start virtual address of this page
@@ -102,7 +108,7 @@ impl ActivePML4 {
     fn translate(&self, vaddr: VAddr) -> Option<PAddr> {
         self.translate_page(Page::containing_addr(vaddr))
             .map(|frame| {
-                let offset = vaddr.as_usize() % PAGE_SIZE;
+                let offset: usize = (vaddr % VAddr::from(PAGE_SIZE)).into();
                 PAddr::from(frame as u64 + offset as u64)
             })
     }

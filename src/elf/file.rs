@@ -54,12 +54,12 @@ impl Header {
         if idx < section::SHN_LORESERVE {
             Err("Cannot parse reserved section.")
         } else {
-            let start // start offset for section
-                = self.sh_offset.as_u64() + idx as u64 * self.sh_entry_size as u64;
-            let end // end offset for section
+            let start: PAddr// start offset for section
+                = self.sh_offset + idx as u64 * self.sh_entry_size as u64;
+            let end: PAddr // end offset for section
                 = start + self.sh_entry_size as u64;
             let raw
-                = &input[start as usize .. end as usize];
+                = &input[start.into() .. end.into()];
 
             match self.ident.class {
                 Class::None => Err("Invalid ELF class (ELFCLASSNONE).")
