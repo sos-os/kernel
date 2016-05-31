@@ -22,7 +22,7 @@ This project includes Git submodules; you will want to clone it using `git clone
 
 #### You will need:
 
-+ Rust; I strongly recommend installing it using [multirust](https://github.com/brson/multirust)
++ Rust; I strongly recommend installing it using [rustup](https:/www./rustup.rs)
 + `nasm`
 + `grub-mkrescue` and possibly `xorriso` depending on whether your system considers it to be part of the `mkrescue` package (ugh)
 + `qemu`, specifically `qemu-system-x86_64`; unless you want to try SOS on bare metal (which I cannot possibly endorse)
@@ -31,8 +31,8 @@ Alternatively, if you want to use Vagrant to get a working development environme
 
 + **Setting up**
     + You only need to run these steps once
-    + `$ multirust override nightly`
-    + `$ make runtime` compiles the patched `libcore`, and the Rust `libcollections`, and `liballoc` libraries
+    + `$ rustup override nightly`
+    + `$ make runtime` compiles the patched `libcore`, and the Rust `libcollections`, and `liballoc` libraries (it will need to be run every time you change Rust versions)
 + **Running the OS**
   + `$ make run` compiles the kernel, makes the ISO, and boots QEMU from the ISO
 
@@ -49,4 +49,4 @@ To run using vagrant (from the repo root directory):
 
 ## Updating Rust
 
-If you update your rust version to a new nightly (i.e. by running `$ multirust update nightly`), you must also update the Rust library submodules. This can be done by running the command `$ git submodule foreach git pull origin`.
+If you update your rust version to a new nightly (i.e. by running `$ rustup update nightly`), you must also update the Rust library submodules. This can be done by running the command `$ git submodule foreach git pull origin`.
