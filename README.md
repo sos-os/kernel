@@ -8,7 +8,8 @@ I'm writing this mostly for fun, to learn more about OS design and kernel hackin
 
 Inspiration, and a reasonable amount of code, taken from @phil-opp's great [series of blog posts](http://os.phil-opp.com) on the subject, Charlie Somerville's [rustboot](https://github.com/charliesome/rustboot), and Samy Pessé's [_How to Make an Operating System_](https://www.gitbook.com/book/samypesse/how-to-create-an-operating-system/details).
 
-### Design goals
+Design goals
+------------
 
  + **POSIX compliance is not a goal** (though it would be cool)
  + **Hybrid/loosely microkernel** (i.e., move code to user space *when convenient/practical*)
@@ -17,7 +18,8 @@ Inspiration, and a reasonable amount of code, taken from @phil-opp's great [seri
  + Possibly experiment with a [Plan 9-esque](https://en.wikipedia.org/wiki/9P_(protocol)) networking stack eventually?
 
 
-### Building & Running
+Building & Running
+------------------
 
 This project includes Git submodules; you will want to clone it using `git clone --recursive` or run `git submodule update --init` after cloning.
 
@@ -30,11 +32,12 @@ This project includes Git submodules; you will want to clone it using `git clone
 
 Alternatively, if you want to use Vagrant to get a working development environment right out of the box, all you need is Vagrant installed. The Vagrantfile in this repo will take care of automatically provisioning a dev environment with everything you need to build the OS.
 
-+ **Setting up**
-    + You only need to run these steps once
-    + `$ rustup override nightly`
-    + `$ make runtime` compiles the patched `libcore`, and the Rust `libcollections`, and `liballoc` libraries (it will need to be run every time you change Rust versions)
-+ **Running the OS**
+#### Setting up
+You only need to run these steps once
++ `$ rustup override nightly`
++ `$ make runtime` compiles the patched `libcore`, and the Rust `libcollections`, and `liballoc` libraries (it will need to be run every time you change Rust versions)
+
+#### Running the OS
   + `$ make run` compiles the kernel, makes the ISO, and boots QEMU from the ISO
 
 #### Using Vagrant
@@ -48,6 +51,6 @@ To run using vagrant (from the repo root directory):
  + `$ cd /vagrant`
  + Follow the instructions from above
 
-## Updating Rust
+#### Updating Rust Versions
 
-If you update your rust version to a new nightly (i.e. by running `$ rustup update nightly`), you must also update the Rust library submodules. This can be done by running the command `$ git submodule foreach git pull origin`.
+If you update your Rust version to a new nightly (i.e. by running `$ rustup update nightly`), you must also update the Rust library submodules. This can be done by running the command `$ git submodule foreach git pull origin`.
