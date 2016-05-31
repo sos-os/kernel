@@ -13,7 +13,6 @@ use super::entry::Entry;
 
 use core::marker::PhantomData;
 use core::ops::{Index, IndexMut};
-use core::mem;
 
 /// The number of entries in a page table.
 pub const N_ENTRIES: usize = 512;
