@@ -5,30 +5,21 @@ use core::ptr;
 use ::Allocator;
 use super::{BuddyHeapAllocator, FreeList};
 
+pub const NUM_FREE_LISTS: usize = 19;
 
 static ALLOC: Mutex<Option<BuddyHeapAllocator<'static>>>
     = Mutex::new(None);
 
-static mut KERNEL_FREE_LISTS: [FreeList; 17]
+static mut KERNEL_FREE_LISTS: [FreeList; NUM_FREE_LISTS]
     // TODO: I really wish there was a less awful way to do this...
-    = [ FreeList::new()
+    = [ FreeList::new(),  FreeList::new(), FreeList::new()
+      , FreeList::new(),  FreeList::new(), FreeList::new()
+      , FreeList::new(),  FreeList::new(), FreeList::new()
+      , FreeList::new(),  FreeList::new(), FreeList::new()
+      , FreeList::new(),  FreeList::new(), FreeList::new()
+      , FreeList::new(),  FreeList::new(), FreeList::new()
       , FreeList::new()
-      , FreeList::new()
-      , FreeList::new()
-      , FreeList::new()
-      , FreeList::new()
-      , FreeList::new()
-      , FreeList::new()
-      , FreeList::new()
-      , FreeList::new()
-      , FreeList::new()
-      , FreeList::new()
-      , FreeList::new()
-      , FreeList::new()
-      , FreeList::new()
-      , FreeList::new()
-      , FreeList::new()
-      ];
+      , ];
 
 pub unsafe fn init_heap(start_addr: *mut u8, heap_size: usize ) {
     trace!("init_heap() was called.");
