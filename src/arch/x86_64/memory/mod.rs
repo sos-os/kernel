@@ -18,6 +18,7 @@ pub mod table;
 use self::table::*;
 
 extern {
+    // It would be really nice if there was a less ugly way of doing this...
     pub static mut HEAP_BASE: u8;
     pub static mut HEAP_TOP: u8;
     pub static mut STACK_BASE: u8;
@@ -61,7 +62,7 @@ impl Page {
     /// Return the start virtual address of this page
     #[inline]
     pub fn start_addr(&self) -> VAddr {
-        VAddr::from_usize(self.number * PAGE_SIZE)
+        VAddr::from(self.number * PAGE_SIZE)
     }
 
     /// Flush the page from memory
