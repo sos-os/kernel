@@ -349,6 +349,15 @@ impl Write for Terminal {
 
 }
 
+/// Macro for printing to the standard output.
+///
+/// Equivalent to the `println!` macro except that a newline is not printed at
+/// the end of the message.
+///
+/// # Panics
+///
+/// Panics if writing to the VGA console fails.
+///
 #[cfg(feature = "system_term")]
 #[macro_export]
 macro_rules! println {
@@ -356,6 +365,14 @@ macro_rules! println {
     ($fmt:expr, $($arg:tt)*) => (print!(concat!($fmt, "\n"), $($arg)*));
 }
 
+/// Macro for printing to the standard output.
+///
+/// Equivalent to the `println!` macro except that a newline is not printed at
+/// the end of the message.
+///
+/// # Panics
+///
+/// Panics if writing to the VGA console fails.
 #[cfg(feature = "system_term")]
 #[macro_export]
 macro_rules! print {
@@ -378,12 +395,3 @@ macro_rules! log {
         println!("[{} {}:{}] {}", $level, file!(), line!(), $fmt);
     });
 }
-//
-///// Required for Rust stack unwinding
-//#[cfg(feature = "system_term")]
-//#[lang = "eh_personality"]
-//#[no_mangle] #[inline(never)] #[cold]
-//pub extern "C" fn rust_eh_personality() {
-//    // TODO: add support for stack unwinding
-//    println!("eh")
-//}
