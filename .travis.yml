@@ -14,13 +14,19 @@ addons:
     - nasm
     - build-essential
     - xorriso
+before_script:
+- |
+  pip install 'travis-cargo<0.2' --user &&
+  export PATH=$HOME/.local/bin:$PATH
 install:
-  - git submodule foreach git pull origin master
-  - make runtime
+- git submodule foreach git pull origin master
+- make runtime
 script:
-  - cd lib/sos_alloc && cargo test
-  - cd ../.. && cargo test -p sos_intrusive
-  - make
+- cd lib/sos_alloc && cargo test
+- cd ../.. && cargo test -p sos_intrusive
+- make
+after_success:
+- travis-cargo doc && travis-cargo doc-upload
 deploy:
   provider: releases
   api_key:
@@ -30,3 +36,6 @@ deploy:
   on:
     tags: true
     repo: hawkw/sos-kernel
+env:
+  global:
+    secure: Vv4bFCkxM3o7FpKjcxTzQRWdkp5aSfrkmFcxSRLYFhm8tyeh+TRiC2+ucNfscFeOzPTC/hTwatbbpdTIaAZKpyrD/gB4hNiGFdKV1x1pw23KQkiPmQdFKxAHtIS20jeIa44q6kPltTQtZXXuM8s0xc6r+C14Q6igd4HkD0nLhAlKIQpcS/srXoeMheL3vNIroasHUwFgpv1LLJnMqYhCHzNk2Y6CaxYygg5Cy2gS9G1nfxdNVfF4iaUXYZKgU0s3C1GL0ApTtUxW0uT/NS0UBZwttsq9NvwmZSZQIXpfTnn0wHd4cl8MhokUQNEumFouU5rlEIcFS9ulohxaHnn50cqfos+seblKs2E+MJoX8rBO5Kz3dNE3+otZw9CpImskO4EKA2MYwtTC3Ds4uVoleS9PskCMz32jKXqp6WqZkJgpimHrdv0jNBy2ucTMdw91XjRXLA557GPRa/28TPpKkMYrSB02c2IadftexWKDP5Q9uMsfTEgIpXzx/XRQvPoxtJo+rOn9hTbyHWexKEMAuic12FBoYFOMSbRKtpT8kjtd8WeBzc1RmXZYpg5td5EN3v/2fmvM6F6Sz/db4HgNZIccC/j/fWvXN7njRl8bgMC002/tkQs0Ugl1aE5onaK9DTMHquqCLnd9CADwXdQf1YsfxryjhhBfd1WIfuqe1Ww=
