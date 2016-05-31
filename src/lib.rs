@@ -15,6 +15,9 @@
 
 #![crate_name = "sos_kernel"]
 #![crate_type = "staticlib"]
+
+#![doc(html_root_url = "https://hawkw.github.io/sos-kernel/")]
+
 #![feature(core_intrinsics)]
 #![feature( lang_items, asm )]
 #![feature( const_fn
@@ -25,8 +28,10 @@
           , type_ascription )]
 #![feature(collections)]
 #![feature(question_mark)]
+
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
+
 #![no_std]
 
 extern crate collections;

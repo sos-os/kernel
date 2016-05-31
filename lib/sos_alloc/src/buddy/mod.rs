@@ -1,3 +1,13 @@
+//
+//  SOS: the Stupid Operating System
+//  by Hawk Weisman (hi@hawkweisman.me)
+//
+//  Copyright (c) 2015 Hawk Weisman
+//  Released under the terms of the MIT license. See `LICENSE` in the root
+//  directory of this repository for more information.
+//
+//! Simple buddy-block allocator
+
 mod math;
 #[cfg(feature = "buddy_as_system")]
 pub mod system;
@@ -16,7 +26,7 @@ use intrusive::rawlink::RawLink;
 /// A `FreeList` is a list of unique free blocks
 pub type FreeList = List<Unique<FreeBlock>, FreeBlock>;
 
-/// A free block header stores a pointer to
+/// A free block header stores a pointer to the next and previous free blocks.
 pub struct FreeBlock { next: RawLink<FreeBlock>
                      , prev: RawLink<FreeBlock>
                      }
@@ -49,16 +59,17 @@ macro_rules! max {
     ($x:expr, $($xs:expr),+) => (max($x, max!($($xs),+)));
 }
 
+/// Structure with data for implementing the buddy block allocation strategy.
 pub struct BuddyHeapAllocator<'a> {
     /// Address of the base of the heap. This must be aligned
     /// on a `MIN_ALIGN` boundary.
-    start_addr: *mut u8
+    pub start_addr: *mut u8
   , /// The allocator's free list
     free_lists: &'a mut [FreeList]
   , /// Number of blocks in the heap (must be a power of 2)
-    heap_size: usize
+    pub heap_size: usize
   , /// Minimum block size
-    min_block_size: usize
+    pub min_block_size: usize
 }
 
 impl<'a> BuddyHeapAllocator<'a> {

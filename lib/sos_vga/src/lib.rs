@@ -378,12 +378,12 @@ macro_rules! log {
         println!("[{} {}:{}] {}", $level, file!(), line!(), $fmt);
     });
 }
-
-/// Required for Rust stack unwinding
-#[cfg(feature = "system_term")]
-#[lang = "eh_personality"]
-#[no_mangle] #[inline(never)] #[cold]
-pub extern "C" fn rust_eh_personality() {
-    // TODO: add support for stack unwinding
-    println!("eh")
-}
+//
+///// Required for Rust stack unwinding
+//#[cfg(feature = "system_term")]
+//#[lang = "eh_personality"]
+//#[no_mangle] #[inline(never)] #[cold]
+//pub extern "C" fn rust_eh_personality() {
+//    // TODO: add support for stack unwinding
+//    println!("eh")
+//}
