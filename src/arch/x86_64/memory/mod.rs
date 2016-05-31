@@ -112,7 +112,7 @@ impl ActivePML4 {
         let huge_page = || pdpt.and_then(|pdpt| {
             let pdpt_entry = &pdpt[page.pdpt_index()];
 
-            if pdpt_entry.flags().contains(HUGE_PAGE) {
+            if pdpt_entry.is_huge() {
                 // If the PDPT entry contains the huge page flag, and the
                 // entry points to the start frame of a page, then the pointed
                 // frame is a 1GB huge page
@@ -130,12 +130,11 @@ impl ActivePML4 {
                     .and_then(|pd| {
                         let pd_entry = &pd[page.pd_index()];
 
-                        if pd_entry.flags().contains(HUGE_PAGE) {
+                        if pd_entry.is_huge() {
                             pd_entry.pointed_frame()
                                 .map(|start_frame|{
-                                    assert!( (start_frame as usize %
-                                             table::N_ENTRIES) == 0
-                                         , "Start frame must be aligned!");
+                                    assert!( (start_frame as usize % table::N_ENTRIES) == 0
+                                           , "Start frame must be aligned!");
                                     (start_frame as usize + page.pt_index())
                                         as *mut u8
                                 })
