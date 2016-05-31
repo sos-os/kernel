@@ -7,9 +7,9 @@
 //  directory of this repository for more information.
 //
 use memory::PAddr;
+use elf::section::{Sections, HeaderRepr};
 
 const END_TAG_LEN: u32 = 8;
-pub mod elf;
 
 #[repr(C)]
 pub struct Info { pub length: u32
@@ -42,10 +42,10 @@ impl Info {
     }
 
     #[inline]
-    pub fn elf_sections(&self) -> Option<&'static elf::SectionsTag> {
+    pub fn elf_sections(&self) -> Option<&'static ElfSectionsTag> {
         self.get_tag(TagType::ELFSections)
             .map(|tag| unsafe {
-                &*((tag as *const Tag) as *const elf::SectionsTag)
+                &*((tag as *const Tag) as *const ElfSectionsTag)
             })
     }
 
@@ -220,5 +220,28 @@ impl Iterator for MemAreas {
                 self.next()
             }
         }
+    }
+}
+
+#[cfg(target_pointer_width = "32")]
+pub type Word = u32;
+#[cfg(target_pointer_width = "64")]
+pub type Word = u64;
+
+#[derive(Debug)]
+#[repr(packed)]
+pub struct ElfSectionsTag { tag: Tag
+                       , pub n_sections: u32
+                       , section_size: u32
+                       , stringtable_idx: u32
+                       , first_section: HeaderRepr<Word>
+                       }
+
+impl ElfSectionsTag {
+    pub fn sections(&'static self) -> Sections<'static, Word> {
+        Sections::new( &self.first_section
+                     , self.n_sections - 1
+                     , self.section_size
+                     )
     }
 }
