@@ -11,10 +11,13 @@ use core::ptr::Unique;
 use core::convert;
 
 use ::memory::{VAddr, Addr};
+use ::memory::paging;
 
 use alloc::{PAGE_SIZE, Allocator};
 
 pub mod table;
+pub mod entry;
+
 use self::table::*;
 
 extern {
@@ -73,7 +76,7 @@ impl Page {
 
     /// Flush the page from memory
     pub unsafe fn flush(&self) {
-        asm!("invlpg [$0]"
+        asm!( "invlpg [$0]"
             :
             : "{rax}"(self.start_addr())
             : "memory"
@@ -91,19 +94,9 @@ impl Page {
 
 pub struct ActivePML4(Unique<Table<PML4Level>>);
 
-impl ActivePML4 {
-
-    pub unsafe fn new() -> Self {
-        ActivePML4(Unique::new(PML4))
-    }
-
-    fn pml4(&self) -> &Table<PML4Level> {
-        unsafe { self.0.get() }
-    }
-
-    fn pml4_mut(&mut self) -> &mut Table<PML4Level> {
-        unsafe { self.0.get_mut() }
-    }
+impl paging::Mapper for ActivePML4 {
+    type Page = Page;
+    type Flags = entry::Flags;
 
     fn translate(&self, vaddr: VAddr) -> Option<PAddr> {
         self.translate_page(Page::containing_addr(vaddr))
@@ -113,7 +106,7 @@ impl ActivePML4 {
             })
     }
 
-    pub fn translate_page(&self, page: Page) -> Option<*mut u8> {
+    fn translate_page(&self, page: Page) -> Option<*mut u8> {
         let pdpt = self.pml4().next_table(page.pml4_index());
 
         let huge_page = || pdpt.and_then(|pdpt| {
@@ -159,9 +152,25 @@ impl ActivePML4 {
 
     }
 
+}
+
+impl ActivePML4 {
+
+    pub unsafe fn new() -> Self {
+        ActivePML4(Unique::new(PML4))
+    }
+
+    fn pml4(&self) -> &Table<PML4Level> {
+        unsafe { self.0.get() }
+    }
+
+    fn pml4_mut(&mut self) -> &mut Table<PML4Level> {
+        unsafe { self.0.get_mut() }
+    }
+
     pub fn identity_map<A: Allocator>( &mut self
                                      , frame: *mut u8
-                                     , flags: EntryFlags
+                                     , flags: entry::Flags
                                      , allocator: &mut A )  {
         self.map_to( Page::containing_addr(VAddr::from(frame))
                    , frame
@@ -171,7 +180,7 @@ impl ActivePML4 {
 
     pub fn map<A: Allocator>( &mut self
                             , page: Page
-                            , flags: EntryFlags
+                            , flags: entry::Flags
                             , allocator: &mut A)
     {
         unsafe {
@@ -186,7 +195,7 @@ impl ActivePML4 {
     pub fn map_to<A: Allocator>( &mut self
                                , page: Page
                                , frame: *mut u8
-                               , flags: EntryFlags
+                               , flags: entry::Flags
                                , allocator: &mut A) {
         let mut pdpt = self.pml4_mut()
                            .create_next(page.pml4_index(), allocator);
@@ -198,7 +207,7 @@ impl ActivePML4 {
         assert!(pt[idx].is_unused()
                , "Could not map frame {:?}, page table entry {} is already \
                   in use!", frame, idx);
-        pt[idx].set(frame, flags | PRESENT);
+        pt[idx].set(frame, flags | entry::PRESENT);
     }
 
 }
