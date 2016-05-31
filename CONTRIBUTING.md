@@ -1,6 +1,8 @@
 Contributing to SOS
 ===================
 
+**Looking for a first issue?** You might want to start out by looking at [issues tagged "easy"](https://github.com/hawkw/sos-kernel/issues?q=is%3Aissue+is%3Aopen+label%3Aeasy). These are issues that, while important, will probably require less knowledge of Rust, systems programming in general, or SOS, and might make good jumping-off points for potential contibutors.
+
 Code Style
 ----------
 
