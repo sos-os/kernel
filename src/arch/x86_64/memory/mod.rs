@@ -8,7 +8,7 @@
 //
 //! Architecture-specific memory management.
 use core::ptr::Unique;
-use core::convert;
+use core::mem;
 
 use ::memory::{VAddr, Addr};
 use ::memory::paging::{Page, Mapper};
@@ -78,9 +78,19 @@ impl Frame {
     pub const fn containing(addr: PAddr) -> Frame {
         Frame { number: addr.0 / PAGE_SIZE }
     }
+
+    /// Convert the frame into a raw pointer to the frame's base address
+    #[inline]
+    pub unsafe fn as_ptr<T>(&self) -> *const T {
+        mem::transmute(self.base_addr())
+    }
+
+    /// Convert the frame into a raw mutable pointer to the frame's base address
+    #[inline]
+    pub unsafe fn as_mut_ptr<T>(&self) -> *mut T {
+        *self.base_addr() as *mut u8 as *mut T
+    }
 }
-
-
 
 /// A physical (linear) memory address is a 64-bit unsigned integer
 #[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
