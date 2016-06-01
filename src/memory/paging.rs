@@ -111,5 +111,32 @@ impl Page {
 
 }
 
-/// An iterator over a range of pages
+/// A range of pages
 pub struct PageRange { start: Page, end: Page }
+
+impl PageRange {
+    /// Returns an iterator over this `PageRange`
+    pub fn iter<'a>(&'a self) -> PageRangeIter<'a> {
+        PageRangeIter { range: self, current: self.start.clone() }
+    }
+}
+
+/// An iterator over a range of pages
+pub struct PageRangeIter<'a> { range: &'a PageRange, current: Page }
+
+impl<'a> Iterator for PageRangeIter<'a> {
+    type Item = Page;
+
+    fn next(&mut self) -> Option<Page> {
+      let end = self.range.end.number;
+      assert!(self.range.start.number <= end);
+      if self.current.number < end {
+          let page = self.current.clone();
+          self.current.number += 1;
+          Some(page)
+      } else {
+          None
+      }
+  }
+
+}
