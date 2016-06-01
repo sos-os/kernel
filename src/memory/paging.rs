@@ -99,4 +99,17 @@ impl Page {
         pt_index >> 0
     }
 
+    /// Returns a `PageRange`
+    pub const fn range_between(start: Page, end: Page) -> PageRange {
+        PageRange { start: start, end: end }
+    }
+
+    /// Returns a `PageRange` on the pages from this page until the end page
+    pub const fn range_until(&self, end: Page) -> PageRange {
+        PageRange { start: *self, end: end }
+    }
+
 }
+
+/// An iterator over a range of pages
+pub struct PageRange { start: Page, end: Page }
