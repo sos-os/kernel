@@ -90,7 +90,49 @@ impl Frame {
     pub unsafe fn as_mut_ptr<T>(&self) -> *mut T {
         *self.base_addr() as *mut u8 as *mut T
     }
+
+    /// Returns a `FrameRange`
+    pub const fn range_between(start: Frame, end: Frame) -> FrameRange {
+        FrameRange { start: start, end: end }
+    }
+
+    /// Returns a `FrameRange` on the frames from this frame until the end frame
+    pub const fn range_until(&self, end: Frame) -> FrameRange {
+        FrameRange { start: *self, end: end }
+    }
+
 }
+
+/// A range of frames
+pub struct FrameRange { start: Frame, end: Frame }
+
+impl FrameRange {
+    /// Returns an iterator over this `FrameRange`
+    pub fn iter<'a>(&'a self) -> FrameRangeIter<'a> {
+        FrameRangeIter { range: self, current: self.start.clone() }
+    }
+}
+
+/// An iterator over a range of frames
+pub struct FrameRangeIter<'a> { range: &'a FrameRange, current: Frame }
+
+impl<'a> Iterator for FrameRangeIter<'a> {
+    type Item = Frame;
+
+    fn next(&mut self) -> Option<Frame> {
+      let end = self.range.end.number;
+      assert!(self.range.start.number <= end);
+      if self.current.number < end {
+          let frame = self.current.clone();
+          self.current.number += 1;
+          Some(frame)
+      } else {
+          None
+      }
+  }
+
+}
+
 
 /// A physical (linear) memory address is a 64-bit unsigned integer
 #[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
