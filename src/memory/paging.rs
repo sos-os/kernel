@@ -1,8 +1,6 @@
 use memory::{VAddr, PAddr};
 use arch::memory::{ PAGE_SHIFT, PAGE_SIZE };
 
-use core::convert;
-
 // for now - allocator may soon move into the kernel crate.
 use alloc::Allocator;
 
