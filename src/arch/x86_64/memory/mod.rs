@@ -11,14 +11,19 @@ use core::ptr::Unique;
 use core::convert;
 
 use ::memory::{VAddr, Addr};
-use ::memory::paging;
+use ::memory::paging::{Page, Mapper};
 
-use alloc::{PAGE_SIZE, Allocator};
+use alloc::{Allocator};
 
 pub mod table;
 pub mod entry;
 
 use self::table::*;
+
+
+pub const PAGE_SHIFT: u8 = 12;
+/// The size of a page (4096 bytes)
+pub const PAGE_SIZE: u64 = 1 << PAGE_SHIFT; // 4096
 
 extern {
     // It would be really nice if there was a less ugly way of doing this...
@@ -27,6 +32,27 @@ extern {
     pub static mut STACK_BASE: u8;
     pub static mut STACK_TOP: u8;
 }
+
+/// A frame (physical page)
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Frame { pub number: u64 }
+
+impl Frame {
+
+    /// Returns the physical address where this frame starts.
+    #[inline]
+    pub const fn start_addr(&self) -> PAddr {
+        PAddr(self.number << PAGE_SHIFT)
+    }
+
+    /// Returns a new frame containing `addr`
+    #[inline]
+    pub const fn containing(addr: PAddr) -> Frame {
+        Frame { number: addr.0 / PAGE_SIZE }
+    }
+}
+
+
 
 /// A physical (linear) memory address is a 64-bit unsigned integer
 #[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -47,61 +73,16 @@ impl convert::Into<usize> for PAddr {
 //    #[inline] pub const fn as_u64(&self) -> u64 { self.0 }
 //}
 
-macro_rules! table_idx {
-    ( $($name:ident >> $shift:expr)* ) => {$(
-        pub fn $name(&self) -> usize {
-            (self.number >> $shift) & 0o777
-        }
-    )*};
-}
-
-#[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct Page { pub number: usize }
-
-impl Page {
-    /// Create a new `Page` containing the given virtual address
-    pub fn containing_addr(addr: VAddr) -> Page {
-        assert!( addr < VAddr::from(0x0000_8000_0000_0000) ||
-                 addr >= VAddr::from(0xffff_8000_0000_0000)
-               , "invalid address: 0x{:x}", addr );
-        let num: usize = (addr / PAGE_SIZE).into();
-        Page { number: num }
-    }
-
-    /// Return the start virtual address of this page
-    #[inline]
-    pub fn start_addr(&self) -> VAddr {
-        VAddr::from(self.number * PAGE_SIZE)
-    }
-
-    /// Flush the page from memory
-    pub unsafe fn flush(&self) {
-        asm!( "invlpg [$0]"
-            :
-            : "{rax}"(self.start_addr())
-            : "memory"
-            : "intel", "volatile")
-    }
-
-    table_idx!{
-        pml4_index >> 27
-        pdpt_index >> 18
-        pd_index >> 9
-        pt_index >> 0
-    }
-
-}
 
 pub struct ActivePML4(Unique<Table<PML4Level>>);
 
-impl paging::Mapper for ActivePML4 {
-    type Page = Page;
+impl Mapper for ActivePML4 {
     type Flags = entry::Flags;
 
     fn translate(&self, vaddr: VAddr) -> Option<PAddr> {
         self.translate_page(Page::containing_addr(vaddr))
             .map(|frame| {
-                let offset: usize = (vaddr % VAddr::from(PAGE_SIZE)).into();
+                let offset = vaddr.as_usize() % PAGE_SIZE as usize;
                 PAddr::from(frame as u64 + offset as u64)
             })
     }
@@ -183,13 +164,13 @@ impl ActivePML4 {
                             , flags: entry::Flags
                             , allocator: &mut A)
     {
-        unsafe {
-            self.map_to( page
-                       , allocator.allocate(PAGE_SIZE, PAGE_SIZE)
-                                  .expect("Couldn't map, out of frames!")
-                       , flags
-                       , allocator );
-        }
+        //unsafe {
+        //    self.map_to( page
+        //               , allocator.allocate(PAGE_SIZE, PAGE_SIZE)
+        //                          .expect("Couldn't map, out of frames!")
+        //               , flags
+        //               , allocator );
+        //}
     }
 
     pub fn map_to<A: Allocator>( &mut self

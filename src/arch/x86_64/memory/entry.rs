@@ -31,6 +31,20 @@ bitflags! {
     }
 }
 
+impl Flags {
+    /// Returns true if this page is huge
+    #[inline]
+    pub fn is_huge(&self) -> bool {
+        self.contains(HUGE_PAGE)
+    }
+
+    /// Returns true if this page is present
+    #[inline]
+    pub fn is_present(&self) -> bool {
+        self.contains(PRESENT)
+    }
+}
+
 impl Entry {
 
     /// Returns true if this is an unused entry
@@ -48,7 +62,7 @@ impl Entry {
     /// Returns true if this page is huge
     #[inline]
     pub fn is_huge(&self) -> bool {
-        self.flags().contains(HUGE_PAGE)
+        self.flags().is_huge()
     }
 
     /// Access the entry's bitflags.
@@ -57,9 +71,12 @@ impl Entry {
         Flags::from_bits_truncate(self.0)
     }
 
+    /// Returns the frame in memory pointed to by this page table entry.
     pub fn pointed_frame(&self) -> Option<*mut u8> {
         unsafe {
-            if self.flags().contains(PRESENT) {
+            if self.flags().is_present() {
+                // If the entry is present, mask out bits 12-51 and
+                //
                 Some(mem::transmute(self.0 & 0x000fffff_fffff000))
             } else { None }
         }

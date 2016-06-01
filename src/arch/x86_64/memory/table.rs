@@ -70,6 +70,7 @@ impl<L: TableLevel> IndexMut<usize> for Table<L> {
 
 impl<L: TableLevel> Table<L>  {
 
+    /// Zeroes out the page table by setting all entries "unused"
     pub fn zero(&mut self) {
         for entry in self.entries.iter_mut() {
             entry.set_unused()
@@ -124,15 +125,3 @@ impl<L: Sublevel> Table<L> {
         self.next_table_mut(index).unwrap()
     }
 }
-
-
-// pub type PML4  = [PML4Entry; 512];
-//
-// /// A page directory pointer table.
-// pub type PDPT  = [PDPTEntry; 512];
-//
-// /// A page directory.
-// pub type PD    = [PDEntry; 512];
-//
-// /// A page table.
-// pub type PT    = [PTEntry; 512];

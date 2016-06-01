@@ -188,6 +188,7 @@ impl Terminal {
             // otherwise, it's a regular character, so we just set the
             // byte at the current position in the buffer to that
             // character (with the current color palette)
+            // 
             self.buffer()[self.y][self.x]
                 = Char { ascii: byte
                        , colors: self.colors };
