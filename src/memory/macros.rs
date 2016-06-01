@@ -31,6 +31,11 @@ macro_rules! impl_addr {
             #[inline] fn from(ptr: *const T) -> Self { $ty(ptr as $size) }
         }
 
+        impl $crate::core::ops::Deref for $ty {
+            type Target = $size;
+            #[inline] fn deref(&self) -> &Self::Target { &self.0 }
+        }
+
         impl_ops! {
             impl Add, add, + for $ty, $size
             impl Sub, sub, - for $ty, $size

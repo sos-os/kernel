@@ -59,7 +59,7 @@ impl Header {
             let end: PAddr // end offset for section
                 = start + self.sh_entry_size as u64;
             let raw
-                = &input[start.into() .. end.into()];
+                = &input[*start as usize .. *end as usize];
 
             match self.ident.class {
                 Class::None => Err("Invalid ELF class (ELFCLASSNONE).")

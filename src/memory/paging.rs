@@ -16,7 +16,8 @@ pub trait Mapper {
     ///  + `None`: if the address is not mapped.
     fn translate(&self, vaddr: VAddr) -> Option<PAddr>;
 
-    fn translate_page(&self, page: Page) -> Option<*mut u8>;
+    /// Translates a virtual page to a physical frame.
+    fn translate_page(&self, page: Page) -> Option<Self::Frame>;
 
     /// Modifies the page tables so that `page` maps to `frame`.
     ///
@@ -70,10 +71,10 @@ impl Page {
     /// Create a new `Page` containing the given virtual address.
     //  TODO: rewrite this as `up`/`down` using the page shift, instead.
     pub fn containing(addr: VAddr) -> Page {
-        assert!( addr < VAddr::from(0x0000_8000_0000_0000) ||
-                 addr >= VAddr::from(0xffff_8000_0000_0000)
+        assert!( *addr < 0x0000_8000_0000_0000 ||
+                 *addr >= 0xffff_8000_0000_0000
                , "invalid address: 0x{:x}", addr );
-        Page { number: addr.as_usize() / PAGE_SIZE as usize }
+        Page { number: *addr / PAGE_SIZE as usize }
     }
 
     /// Return the start virtual address of this page

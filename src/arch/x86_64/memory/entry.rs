@@ -6,9 +6,8 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-use core::mem;
-
-use super::Frame;
+//! Page table entries
+use super::{Frame, PAddr, table};
 
 /// A page table entry.
 pub struct Entry(u64);
@@ -49,6 +48,20 @@ impl Flags {
 
 impl Entry {
 
+    // TODO: this is one of the worst names I have ever given a thing
+    pub fn do_huge(&self, offset: usize) -> Option<Frame> {
+        if self.is_huge() {
+            self.get_frame()
+                .map(|start_frame| {
+                    assert!( start_frame.number as usize % table::N_ENTRIES == 0
+                           , "Start frame must be aligned on a 1GB boundary!");
+                    start_frame + offset
+                })
+        } else {
+            None
+        }
+    }
+
     /// Returns true if this is an unused entry
     #[inline]
     pub fn is_unused(&self) -> bool {
@@ -74,14 +87,12 @@ impl Entry {
     }
 
     /// Returns the frame in memory pointed to by this page table entry.
-    pub fn pointed_frame(&self) -> Option<*mut u8> {
-        unsafe {
-            if self.flags().is_present() {
-                // If the entry is present, mask out bits 12-51 and
-                //
-                Some(mem::transmute(self.0 & 0x000fffff_fffff000))
-            } else { None }
-        }
+    pub fn get_frame(&self) -> Option<Frame> {
+        if self.flags().is_present() {
+            // If the entry is present, mask out bits 12-51 and
+            //
+            Some(Frame::containing(PAddr::from(self.0 & 0x000fffff_fffff000)))
+        } else { None }
     }
 
     pub fn set(&mut self, frame: Frame, flags: Flags) {

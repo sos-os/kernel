@@ -21,6 +21,8 @@ pub mod entry;
 use self::table::*;
 use self::entry::Flags;
 
+use core::ops;
+
 
 pub const PAGE_SHIFT: u8 = 12;
 /// The size of a page (4mb)
@@ -44,6 +46,24 @@ extern {
 /// A frame (physical page)
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Frame { pub number: u64 }
+
+impl ops::Add<u64> for Frame {
+    type Output = Frame;
+
+    #[inline]
+    fn add(self, amount: u64) -> Frame {
+        Frame { number: self.number + amount }
+    }
+}
+
+impl ops::Add<usize> for Frame {
+    type Output = Frame;
+
+    #[inline]
+    fn add(self, amount: usize) -> Frame {
+        Frame { number: self.number + amount as u64 }
+    }
+}
 
 impl Frame {
 
@@ -70,17 +90,6 @@ impl Addr<u64> for PAddr { }
 
 impl_addr! { PAddr, u64 }
 
-impl convert::Into<usize> for PAddr {
-    #[inline] fn into(self) -> usize { self.0 as usize }
-}
-
-//
-//impl PAddr {
-//    //#[inline] pub fn from_ptr(ptr: *mut u8) -> Self { PAddr(ptr as u64) }
-//    #[inline] pub const fn from_u64(u: u64) -> Self { PAddr(u) }
-//    #[inline] pub const fn as_u64(&self) -> u64 { self.0 }
-//}
-
 /// Struct representing the currently active PML4 instance.
 ///
 /// The `ActivePML4` is a `Unique` reference to a PML4-level page table. It's
@@ -97,53 +106,30 @@ impl Mapper for ActivePML4 {
     fn translate(&self, vaddr: VAddr) -> Option<PAddr> {
         self.translate_page(Page::containing(vaddr))
             .map(|frame| {
-                let offset = vaddr.as_usize() % PAGE_SIZE as usize;
-                PAddr::from(frame as u64 + offset as u64)
+                let offset = *vaddr % PAGE_SIZE as usize;
+                PAddr::from(frame.number + offset as u64)
             })
     }
 
-    fn translate_page(&self, page: Page) -> Option<*mut u8> {
+    fn translate_page(&self, page: Page) -> Option<Frame> {
         let pdpt = self.pml4().next_table(page.pml4_index());
+
         pdpt.and_then(|pdpt| pdpt.next_table(page.pdpt_index()))
             .and_then(|pd| pd.next_table(page.pd_index()))
-            .and_then(|pt| pt[page.pt_index()].pointed_frame())
+            .and_then(|pt| pt[page.pt_index()].get_frame())
             .or_else( || {
                 pdpt.and_then(|pdpt| {
                     let pdpt_entry = &pdpt[page.pdpt_index()];
-
-                    if pdpt_entry.is_huge() {
-                    // If the PDPT entry contains the huge page flag, and the
-                    // entry points to the start frame of a page, then the pointed
-                    // frame is a 1GB huge page
-                        pdpt_entry.pointed_frame()
-                            .map(|start_frame| {
-                                assert!( start_frame as usize % table::N_ENTRIES == 0
-                                       , "Start frame must be aligned on a \
-                                          1GB boundary!");
-                                (start_frame as usize + page.pd_index()
-                                                      + page.pt_index()) as *mut u8
-                            })
-
-                    } else {
-                        pdpt.next_table(page.pdpt_index())
-                            .and_then(|pd| {
-                                let pd_entry = &pd[page.pd_index()];
-
-                                if pd_entry.is_huge() {
-                                    pd_entry.pointed_frame()
-                                        .map(|start_frame|{
-                                            assert!( (start_frame as usize % table::N_ENTRIES) == 0
-                                                   , "Start frame must be aligned!");
-                                            (start_frame as usize + page.pt_index())
-                                                as *mut u8
-                                        })
-                                } else {
-                                    None
-                                }
-                            })
-                    }
+                    pdpt_entry.do_huge(page.pd_index() + page.pt_index() )
+                        .or_else(|| {
+                            pdpt.next_table(page.pdpt_index())
+                                .and_then(|pd| {
+                                    let pd_entry = &pd[page.pd_index()];
+                                    pd_entry.do_huge(page.pt_index())
+                                })
+                        })
+                    })
                 })
-            })
     }
 
 
