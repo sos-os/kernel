@@ -6,7 +6,10 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-
+//! Kernel IO.
+//!
+//! This module should eventually abstract over architecture-specific
+//! implementation.
 pub mod term;
 pub mod keyboard;
 use core::ops;

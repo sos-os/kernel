@@ -6,6 +6,10 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
+//! Kernel memory management.
+//!
+//! This module contains all of the non-arch-specific paging code, and
+//! re-exports memory-related definitions.
 use alloc::buddy;
 
 use core::ops;

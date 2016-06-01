@@ -6,6 +6,11 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
+//! Code for reading & extracting data from Multiboot 2 boot information.
+//!
+//! Consult the [Multiboot Specification](http://nongnu.askapache.com/grub/phcoder/multiboot.pdf)
+//! for more information.
+//  TODO: this is x86-only and should move to `arch`
 use memory::PAddr;
 use elf::section::{Sections, HeaderRepr};
 
