@@ -8,6 +8,8 @@
 //
 use core::mem;
 
+use super::Frame;
+
 /// A page table entry.
 pub struct Entry(u64);
 
@@ -82,9 +84,10 @@ impl Entry {
         }
     }
 
-    pub fn set(&mut self, frame: *mut u8, flags: Flags) {
-        assert!(frame as u64 & !0x000fffff_fffff000 == 0);
-        self.0 = (frame as u64) | flags.bits();
+    pub fn set(&mut self, frame: Frame, flags: Flags) {
+        let addr: u64 = frame.base_addr().into();
+        assert!(addr & !0x000fffff_fffff000 == 0);
+        self.0 = addr | flags.bits();
     }
 
 }

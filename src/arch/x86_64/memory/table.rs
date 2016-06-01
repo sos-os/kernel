@@ -6,9 +6,9 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-use alloc::{Allocator, PAGE_SIZE};
+use alloc::Allocator;
 
-use super::entry;
+use super::{entry, Frame, PAGE_SIZE};
 use super::entry::Entry;
 
 use core::marker::PhantomData;
@@ -17,7 +17,7 @@ use core::ops::{Index, IndexMut};
 /// The number of entries in a page table.
 pub const N_ENTRIES: usize = 512;
 /// Size of a page table (in bytes)
-pub const PAGE_TABLE_SIZE: usize = N_ENTRIES * PAGE_SIZE;
+pub const PAGE_TABLE_SIZE: usize = N_ENTRIES * PAGE_SIZE as usize;
 
 /// PML4 table
 pub const PML4: *mut Table<PML4Level>
@@ -113,10 +113,15 @@ impl<L: Sublevel> Table<L> {
                    , "Couldn't create next table: huge pages not \
                       currently supported.");
 
-            let frame = unsafe {
-                alloc.allocate(PAGE_SIZE, PAGE_SIZE)// I hope that's right
-                     .expect("Couldn't create next table: no \
-                              frames  available!")
+            let frame: Frame = unsafe {
+                // TODO: this won't work, since our Allocators allocate
+                //       pointers rather than frames. this needs to be fixed
+                //       pending a rewrite of the allocator.
+                unimplemented!()
+                //alloc.allocate(PAGE_SIZE, PAGE_SIZE)// I hope that's right
+                //     .expect("Couldn't create next table: no \
+                //              frames  available!")
+                //
             };
 
             self[index].set(frame, entry::PRESENT | entry::WRITABLE);
