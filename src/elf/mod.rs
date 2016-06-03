@@ -23,6 +23,8 @@ pub mod file;
 pub type Section<'a> = section::Header<'a>;
 pub type FileHeader = file::Header;
 
+/// A handle on an ELF binary
+#[derive(Debug)]
 pub struct Binary<'a> {
     pub header: &'a FileHeader
   , binary: &'a [u8]

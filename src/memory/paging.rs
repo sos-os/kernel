@@ -121,6 +121,7 @@ impl Page {
 }
 
 /// A range of pages
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub struct PageRange { start: Page, end: Page }
 
 impl PageRange {
