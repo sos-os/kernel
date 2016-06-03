@@ -85,8 +85,8 @@ pub unsafe fn init_heap<'a>() -> Result<&'a str, &'a str> {
     Ok("[ OKAY ]")
 }
 
-macro_rules! make_addr_range {
-    $($name:ident, $addr:ty),+ => {$(
-
-    )+}
-}
+//macro_rules! make_addr_range {
+//    $($name:ident, $addr:ty),+ => {$(
+//
+//    )+}
+//}
