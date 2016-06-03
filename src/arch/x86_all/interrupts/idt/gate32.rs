@@ -15,7 +15,8 @@ use core::mem::transmute;
 extern {
     /// Offset of the 32-bit GDT main code segment.
     /// Exported by `boot.asm`
-    static gdt32_offset: u16;
+    #[link_name="gdt32_offset"]
+    static GDT_OFFSET: u16;
 }
 
 /// An IDT entry is called a gate.
@@ -71,7 +72,7 @@ impl convert::From<Handler> for Gate {
         let (low, mid): (u16, u16) = unsafe { mem::transmute(handler) };
 
         Gate { offset_lower: low
-             , selector: segment::Selector::from_raw(gdt32_offset)
+             , selector: segment::Selector::from_raw(GDT_OFFSET)
              , _zero: 0
              , type_attr: GateType::Interrupt
              , offset_upper: high

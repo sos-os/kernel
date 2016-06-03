@@ -15,7 +15,8 @@ use core::{convert, mem};
 extern {
     /// Offset of the 64-bit GDT main code segment.
     /// Exported by `boot.asm`
-    static gdt64_offset: u16;
+    #[link_name = "gdt64_offset"]
+    static GDT_OFFSET: u16;
 }
 
 /// An IDT entry is called a gate.
@@ -82,7 +83,7 @@ impl convert::From<Handler> for Gate {
             = unsafe { mem::transmute(handler) };
 
         Gate { offset_lower: low
-             , selector: segment::Selector::from_raw(gdt64_offset)
+             , selector: segment::Selector::from_raw(GDT_OFFSET)
              , _zero: 0
              // Bit 7 is the present bit
              // Bits 4-0 indicate this is an interrupt gate
@@ -111,7 +112,7 @@ impl convert::From<*const u8> for Gate {
             = unsafe { mem::transmute(handler) };
 
         Gate { offset_lower: low
-             , selector: segment::Selector::from_raw(gdt64_offset)
+             , selector: segment::Selector::from_raw(GDT_OFFSET)
              , _zero: 0
              // Bit 7 is the present bit
              // Bits 4-0 indicate this is an interrupt gate

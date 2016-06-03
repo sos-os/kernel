@@ -12,10 +12,10 @@
 
 global start
 global gdt64_offset
-global HEAP_BASE
-global HEAP_TOP
-global STACK_BASE
-global STACK_TOP
+global heap_base
+global heap_top
+global stack_base
+global stack_top
 
 extern start_64
 
@@ -171,7 +171,7 @@ page_table:
     resb    PAGE_TABLE_SIZE
 
 ; reserve 4mb for the kernel stack space
-STACK_BASE:
+stack_base:
     resb    4096 * 2
     ; for some unspeakable reason, doubling the kernel stack size
     ; magically fixes all of the memory allocator bugs? i suspect
@@ -180,12 +180,12 @@ STACK_BASE:
     ; 𐅃 𐅐𐆂𐅛𐅜𐅀𐅂𐅲𐅯𐅊𐅭𐅙 𐅗 𐅏 𐅽𐅆 𐅲𐆇𐅿𐅚𐆁𐅐𐅶𐅬𐅯𐅴𐅮𐅼 𐅊𐅦 𐅒𐅉 𐅻𐅷𐅘 𐅊𐅗 𐅤𐆁𐅛𐅒𐅎𐅅𐅨𐅓𐅵𐅯𐅺𐅐𐆀
     ; 𐅵𐅿 𐅘 𐅈𐅘𐅁 𐅫 𐅟𐅸 𐅥𐅣𐅑𐅼𐅷𐅻𐆁 𐆊 𐆉𐆇𐆅𐅐 𐅦𐅕 𐅢𐅷𐅗𐅤𐅧 𐅣𐅖𐅺 𐅁𐅿𐅩𐅣 𐅥 𐆄𐅱𐅕 𐅈 𐅙𐅀 𐅋
     ; 𐅩𐅿𐅋𐅫𐅌𐆆𐅊𐆇 𐅜𐅦𐅲 𐅷 𐅱𐆁𐅓𐅞
-STACK_TOP:
+stack_top:
 
 ; reserved space for the kernel heap
-HEAP_BASE:
+heap_base:
     resb    4 * 1024 * 1024
-HEAP_TOP:
+heap_top:
 
 section .rodata
 gdt64:
