@@ -23,7 +23,7 @@ use vga::Color;
 extern {
     /// Array of interrupt handlers exported by ASM
     //  TODO: hopefully, we will not need this much longer.
-    static interrupt_handlers: [*const Handler; ENTRIES];
+    static interrupt_handlers: [*const u8; ENTRIES];
 }
 
 /// An interrupt handler function.
@@ -117,7 +117,7 @@ impl Idt {
         for (i, &handler_ptr) in interrupt_handlers.iter()
             .enumerate()
             .filter(|&(_, &ptr)| ptr != ptr::null() ) {
-                self.0[i] = Gate::from(*handler_ptr)
+                self.0[i] = Gate::from(handler_ptr)
         }
 
         println!("{:<38}{:>40}", " . . Adding interrupt handlers to IDT"

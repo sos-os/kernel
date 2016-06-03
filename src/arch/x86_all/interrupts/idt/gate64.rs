@@ -71,7 +71,41 @@ impl Gate {
 }
 
 impl convert::From<Handler> for Gate {
+
+    /// Creates a new IDT gate pointing at the given handler function.
+    ///
+    /// The `handler` function must have been created with valid interrupt
+    /// calling conventions.
     fn from(handler: Handler) -> Self {
+        let (low, mid, high): (u16, u16, u32)
+            // trust me on this, `mem::transmute()` is glorious black magic
+            = unsafe { mem::transmute(handler) };
+
+        Gate { offset_lower: low
+             , selector: segment::Selector::from_raw(gdt64_offset)
+             , _zero: 0
+             // Bit 7 is the present bit
+             // Bits 4-0 indicate this is an interrupt gate
+             , type_attr: GateType::Interrupt
+             , offset_mid: mid
+             , offset_upper: high
+             , _reserved: 0
+             }
+    }
+}
+
+impl convert::From<*const u8> for Gate {
+
+    /// Creates a new IDT gate pointing at the given handler function.
+    ///
+    /// The `handler` function must have been created with valid interrupt
+    /// calling conventions.
+    ///
+    /// This should probably not be used, if it can possibly be avoided.
+    //  TODO: it would be really nice if we didn't need this any more.
+    //        after the Revolution, once handlers are created in Rust-land with
+    //        naked functions...
+    fn from(handler: *const u8) -> Self {
         let (low, mid, high): (u16, u16, u32)
             // trust me on this, `mem::transmute()` is glorious black magic
             = unsafe { mem::transmute(handler) };
