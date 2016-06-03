@@ -130,7 +130,7 @@ set_long_mode:
     ret
 
 start:
-    mov     esp, STACK_TOP
+    mov     esp, stack_top
     mov     edi, ebx       ; Move Multiboot info pointer to edi
 
     call    is_multiboot
