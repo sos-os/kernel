@@ -6,10 +6,9 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-//! x86 architecture-specific implementation.
+//! `x86` architecture-specific implementation.
 //!
-//! This module contains code for x86 32-bit
-//! protected-mode systems.
+//! This module contains code for `x86` 32-bit protected-mode systems.
 pub mod cpu;
 pub mod memory;
 // pub mod keyboard;

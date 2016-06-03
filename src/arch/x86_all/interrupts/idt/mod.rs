@@ -8,8 +8,10 @@
 //
 //! Common functionality for the `x86` and `x86_64` Interrupt Descriptor Table.
 
-use core::{fmt, mem, convert, ptr};
+use core::{fmt, ptr};
 use core::fmt::Write;
+
+use core::mem::size_of;
 
 use memory::PAddr;
 
@@ -133,7 +135,7 @@ impl DTable for Idt {
     /// Get the IDT pointer struct to pass to `lidt`
     fn get_ptr(&self) -> dtable::Pointer {
         dtable::Pointer {
-            limit: (mem::size_of::<Gate>() * ENTRIES) as u16
+            limit: (size_of::<Gate>() * ENTRIES) as u16
           , base: PAddr::from(self as *const _)
         }
     }

@@ -20,8 +20,8 @@ extern {
 
 /// An IDT entry is called a gate.
 ///
-/// Based on code from the OS Dev Wiki
-/// http://wiki.osdev.org/Interrupt_Descriptor_Table#Structure
+/// Based on [code](http://wiki.osdev.org/Interrupt_Descriptor_Table#Structure)
+/// from the OS Dev Wiki.
 #[repr(C, packed)]
 #[derive(Copy,Clone)]
 pub struct Gate { /// bits 0 - 15 of the offset
@@ -46,10 +46,6 @@ impl Gate {
    ///
    /// This is basically just for filling the new IDT table
    /// with valid (but useless) gates upon init.
-   ///
-   /// This would be in the `Gate` trait, but this has to be a `const fn` so
-   /// that it can be usedm in static initializers, and trait functions cannot
-   /// be `const`.
    ///
    /// Actually triggering an absent interrupt will send a General Protection
    /// fault (13).

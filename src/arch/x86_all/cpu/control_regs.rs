@@ -6,7 +6,7 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-//! x86 control registers
+//! `x86` and `x86_64` control registers
 use core::fmt;
 
 /// A struct bundling together a snapshot of the control registers state.

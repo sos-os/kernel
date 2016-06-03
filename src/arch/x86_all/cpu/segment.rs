@@ -6,7 +6,7 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-//! Code for using the x86_64 segmentation hardware.
+//! Code for using the `x86` and `x86_64` segmentation hardware.
 //!
 //! For more information, refer to the _Intel® 64 and IA-32 Architectures
 //! Software Developer’s Manual_, Vol. 3A, section 3.2, "Using Segments".
@@ -14,21 +14,21 @@
 //! manual.
 use core::fmt;
 
-/// A segment selector is a 16-bit identifier for a segment.
-///
-/// It does not point directly to the segment, but instead points to the
-/// segment descriptor that defines the segment.
-///
-/// A segment selector contains the following items:
-///     - *Requested Privilege Level (RPL)*: bits 0 and 1.
-///       Specifies the privelege level of the selector.
-///     - *Table Indicator*: bit 2. Specifies which descriptor table to use.
-///     - *Index*: bits 3 through 15. Selects one of 8192 descriptors in the
-///       GDT or LDT. The processor multiplies the index value by 8 (the number
-///       of bytes in a segment descriptor) and adds the result to the base
-///       address of the GDT or LDT (from the GDTR or LDTR register,
-///       respectively).
 bitflags! {
+    /// A segment selector is a 16-bit identifier for a segment.
+    ///
+    /// It does not point directly to the segment, but instead points to the
+    /// segment descriptor that defines the segment.
+    ///
+    /// A segment selector contains the following items:
+    ///     - *Requested Privilege Level (RPL)*: bits 0 and 1.
+    ///       Specifies the privelege level of the selector.
+    ///     - *Table Indicator*: bit 2. Specifies which descriptor table to use.
+    ///     - *Index*: bits 3 through 15. Selects one of 8192 descriptors in the
+    ///       GDT or LDT. The processor multiplies the index value by 8 (the number
+    ///       of bytes in a segment descriptor) and adds the result to the base
+    ///       address of the GDT or LDT (from the GDTR or LDTR register,
+    ///       respectively).
     pub flags Selector: u16 { const RPL_RING_0 = 0b00
                             , const RPL_RING_1 = 0b01
                             , const RPL_RING_2 = 0b10
@@ -42,7 +42,7 @@ bitflags! {
 
                             , /// If the Table Indicator (TI) is 0, use the GDT
                               const TI_GDT = 0 << 3
-                              
+
                             , /// If the TI is 1, use the LDT
                               const TI_LDT = 1 << 3
                             }

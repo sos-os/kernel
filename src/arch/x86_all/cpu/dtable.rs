@@ -6,7 +6,7 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-//! x86 descriptor tables (IDT, GDT, or LDT)
+//! `x86` and `x86_64` descriptor tables (IDT, GDT, or LDT)
 
 use memory::PAddr;
 

@@ -6,7 +6,7 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-//! x86_64 execution contexts.
+//! `x86_64` execution contexts.
 //!
 //! This is inteded to be general-purpose and composable, so that the same
 //! code can be reused for interrupts and for multithreading.

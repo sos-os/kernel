@@ -1,3 +1,16 @@
+//
+//  SOS: the Stupid Operating System
+//  by Hawk Weisman (hi@hawkweisman.me)
+//
+//  Copyright (c) 2015 Hawk Weisman
+//  Released under the terms of the MIT license. See `LICENSE` in the root
+//  directory of this repository for more information.
+//
+//! Intterupt handling on x86 machines.
+//!
+//! This module provides support for interrupt handling on both `x86` and
+//! `x86_64` as a black box. Code that depends on this can use the same API
+//! regardless of system word size.
 use arch::cpu::Registers;
 use arch::cpu::dtable::DTable;
 
@@ -8,7 +21,7 @@ use spin::Mutex;
 pub mod idt;
 pub mod pics;
 
-use self::idt::{Idt, Gate};
+use self::idt::Idt;
 
 /// State stored when handling an interrupt.
 #[repr(C, packed)]

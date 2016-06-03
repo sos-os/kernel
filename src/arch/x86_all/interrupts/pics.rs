@@ -49,8 +49,7 @@ enum Command { /// Command to set the PIC to 8086 mode
 
 /// List of IRQs on the x86.
 ///
-/// See here for more info:
-/// https://en.wikibooks.org/wiki/X86_Assembly/Programmable_Interrupt_Controller
+/// See [here](https://en.wikibooks.org/wiki/X86_Assembly/Programmable_Interrupt_Controller) for more info.
 #[repr(u8)]
 #[derive(Eq, PartialEq, Ord, PartialOrd, Copy, Clone)]
 pub enum IRQ { /// System timer IRQ
