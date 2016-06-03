@@ -11,10 +11,15 @@
 //! This module provides support for interrupt handling on both `x86` and
 //! `x86_64` as a black box. Code that depends on this can use the same API
 //! regardless of system word size.
-use arch::cpu::Registers;
+use core::fmt::Write;
+
+use arch::cpu::{control_regs, Registers};
 use arch::cpu::dtable::DTable;
 
+use io::term::CONSOLE;
 use io::keyboard;
+
+use vga::Color;
 
 use spin::Mutex;
 
@@ -27,22 +32,20 @@ use self::idt::Idt;
 #[repr(C, packed)]
 pub struct InterruptContext { /// callee-saved registers
                               pub registers: Registers
-                            , /// interrupt ID number
-                              pub int_id:  u32
-                            , _pad_1: u32
-                            , /// error number
-                              pub err_no:  u32
-                            , _pad_2: u32
+                            //, /// interrupt ID number
+                            //  pub int_id:  u32
+                            //, _pad_1: u32
+                            //, /// error number
+                            //  pub err_no:  u32
+                            //, _pad_2: u32
                             }
 
-impl InterruptContext {
-    /// Fetches the corresponding CPU exception for this interrupt, if this
-    /// interrupt is a CPU exception.
-    #[inline]
-    pub fn exception(&self) -> &ExceptionInfo {
-        &EXCEPTIONS[self.int_id as usize]
-    }
-}
+//impl InterruptContext {
+//    /// Fetches the corresponding CPU exception for this interrupt, if this
+//    /// interrupt is a CPU exception.
+//    #[inline]
+//
+//}
 
 #[derive(Debug)]
 pub struct ExceptionInfo { pub name: &'static str
@@ -124,7 +127,6 @@ pub static EXCEPTIONS: [ExceptionInfo; 20]
                       , source: "SSE/SSE2/SSE3 floating-point instructions" }
        ];
 
-
 //==--------------------------------------------------------------------------==
 // Top-level interrupt handling
 /// Global Interrupt Descriptor Table instance
@@ -136,13 +138,11 @@ static IDT: Mutex<Idt> = Mutex::new(Idt::new());
 /// Assembly interrupt handlers call into this, and it dispatches interrupts to
 /// the appropriate consumers.
 #[no_mangle]
-pub unsafe extern "C" fn handle_interrupt(state: &InterruptContext) {
-   let id = state.int_id;
+pub extern fn handle_interrupt( state: &InterruptContext
+                              , id: usize, _err_code: usize) {
    match id {
-       // interrupts 0 - 16 are CPU exceptions
-       0x00...0x0f => Idt::handle_cpu_exception(state)
        // System timer
-     , 0x20 => { /* TODO: make this work */ }
+       0x20 => { /* TODO: make this work */ }
        // Keyboard
      , 0x21 => {
          // TODO: dispatch keypress event to subscribers (NYI)
@@ -161,7 +161,37 @@ pub unsafe extern "C" fn handle_interrupt(state: &InterruptContext) {
      , _ => panic!("Unknown interrupt: #{} Sorry!", id)
    }
    // send the PICs the end interrupt signal
-   pics::end_pic_interrupt(id as u8);
+   unsafe { pics::end_pic_interrupt(id as u8) };
+}
+
+/// Handle a CPU exception with a given interrupt context.
+#[no_mangle]
+pub extern fn handle_cpu_exception( state: &InterruptContext
+                                  , id: usize, err_code: usize) -> ! {
+    let ex_info = &EXCEPTIONS[id];
+    let cr_state = control_regs::dump();
+    let _ = write!( CONSOLE.lock()
+                          .set_colors(Color::White, Color::Blue)
+                        //   .clear()
+                  , "CPU EXCEPTION {}: {}\n\
+                     {} on vector {} with error code {:#x}\n\
+                     Source: {}.\nThis is fine.\n\n"
+                  , ex_info.mnemonic, ex_info.name, ex_info.irq_type
+                  , id, err_code
+                  , ex_info.source );
+
+    // TODO: parse error codes
+    let _ = match id {
+        14 => unimplemented!() //TODO: special handling for page faults
+       , _ => write!( CONSOLE.lock()
+                             .set_colors(Color::White, Color::Blue)
+                    , "Registers:\n{:?}\n    {}\n"
+                    , state.registers
+                    , cr_state
+                    )
+    };
+
+    loop { }
 }
 
 /// Initialize interrupt handling.
@@ -182,5 +212,13 @@ pub unsafe fn initialize() {
    // asm!("int $0" :: "N" (0x80));
    // println!("   [DONE]");
    Idt::enable_interrupts(); // enable interrupts
+
+}
+
+bitflags! {
+    flags PageFaultErrorCode: u32 {
+        const PRESENT = 1 << 0
+      , const READ_WRITE = 1 << 1
+    }
 
 }

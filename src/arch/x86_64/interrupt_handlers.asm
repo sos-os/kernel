@@ -1,6 +1,7 @@
-global  interrupt_handlers
+global isrs
 
-extern  handle_interrupt
+extern handle_interrupt
+extern handle_cpu_exception
 
 section .text
 bits    64
@@ -35,44 +36,51 @@ bits    64
         pop rax
 %endmacro
 
-%macro  int_err 1
-interrupt_%1:
+%macro  ex_err 1
+isr_%1:
         ; the error code has already been pushed, so we just push the ID
-        push    qword %1        ; push interrupt ID
-        jmp     call_handler    ; call into Rust handler
+        ; TODO: interrupt IDs can probably just be a byte?
+        push    qword %1         ; push interrupt ID
+        jmp     call_ex_handler ; call into Rust handler
+%endmacro
+
+%macro  exception 1
+isr_%1:
+        push    qword 0         ; push fake error code of 0
+        push    qword %1         ; push interrupt ID
+        jmp     call_ex_handler ; call into Rust handler
 %endmacro
 
 %macro  interrupt 1
-interrupt_%1:
-        push    qword 0         ; push fake error code of 0
-        push    qword %1        ; push interrupt ID
+isr_%1:
+        push    qword 0
+        push    qword %1         ; push interrupt ID
         jmp     call_handler    ; call into Rust handler
 %endmacro
 
-interrupt   0   ; divide-by-zero exception
-interrupt   1   ; debug exception
-interrupt   2   ; non-maskable intterupt
-interrupt   3   ; breakpoint exception
-interrupt   4   ; overflow exception
-interrupt   5   ; bound-range exception
-interrupt   6   ; invalid opcode exception
-interrupt   7   ; device not available exception
-int_err     8   ; double fault exception
-; int_err   9   ; coprocessor segment overrun exception (reserved in x86_64)
-int_err     10  ; invalid TSS exception
-int_err     11  ; segment not present exception
-int_err     12  ; stack exception
-int_err     13  ; general protection fault exception
-int_err     14  ; page fault exception
-; interrupt 15  ; reserved
-interrupt   16  ; x87 floating-point exception
-int_err     17  ; alignment check exception
-interrupt   18  ; machine check exception
-interrupt   19  ; SIMD floating-point exception
+exception 0   ; divide-by-zero exception
+exception 1   ; debug exception
+exception 2   ; non-maskable intterupt
+exception 3   ; breakpoint exception
+exception 4   ; overflow exception
+exception 5   ; bound-range exception
+exception 6   ; invalid opcode exception
+exception 7   ; device not available exception
+ex_err    8   ; double fault exception
+; exception 9 ; coprocessor segment overrun exception (reserved in x86_64)
+ex_err    10  ; invalid TSS exception
+ex_err    11  ; segment not present exception
+ex_err    12  ; stack exception
+ex_err    13  ; general protection fault exception
+ex_err    14  ; page fault exception
+; exception 15 ; reserved
+exception 16  ; x87 floating-point exception
+ex_err    17  ; alignment check exception
+exception 18  ; machine check exception
+exception 19  ; SIMD floating-point exception
 
 ;;; Fill in handlers 32 through 255.
-interrupt 32
-%assign i 33
+%assign i 32
 %rep    224
 interrupt i
 %assign i i+1
@@ -86,32 +94,43 @@ call_handler:
     call    handle_interrupt    ; call the Rust interrupt handler
 
     pop_ctx                     ; pop context off of the stack
-    add     rsp, 16             ; skip past the interrupt id & err code
+    add     rsp, 8              ; skip past the interrupt id
+    iretq
+
+;;; Call into the Rust interrupt handler function
+call_ex_handler:
+    push_ctx                     ; push the context registers to the stack
+    mov     rdi, rsp             ; push pointer to interrupt data
+
+    call    handle_cpu_exception ; call the Rust interrupt handler
+
+    pop_ctx                      ; pop context off of the stack
+    add     rsp, 16              ; skip past the interrupt id & err code
     iretq
 
 
 section .rodata
-interrupt_handlers:
-    dq interrupt_0
-    dq interrupt_1
-    dq interrupt_2
-    dq interrupt_3
-    dq interrupt_4
-    dq interrupt_5
-    dq interrupt_6
-    dq interrupt_7
-    dq interrupt_8
+isrs:
+    dq isr_0
+    dq isr_1
+    dq isr_2
+    dq isr_3
+    dq isr_4
+    dq isr_5
+    dq isr_6
+    dq isr_7
+    dq isr_8
     dq 0
-    dq interrupt_10
-    dq interrupt_11
-    dq interrupt_12
-    dq interrupt_13
-    dq interrupt_14
+    dq isr_10
+    dq isr_11
+    dq isr_12
+    dq isr_13
+    dq isr_14
     dq 0
-    dq interrupt_16
-    dq interrupt_17
-    dq interrupt_18
-    dq interrupt_19
+    dq isr_16
+    dq isr_17
+    dq isr_18
+    dq isr_19
     dq 0
     dq 0
     dq 0
@@ -126,6 +145,6 @@ interrupt_handlers:
     dq 0
 %assign i 32
 %rep    224
-        dq interrupt_%+i
+        dq isr_%+i
 %assign i i+1
 %endrep

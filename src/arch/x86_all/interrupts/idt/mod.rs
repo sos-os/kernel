@@ -9,21 +9,14 @@
 //! Common functionality for the `x86` and `x86_64` Interrupt Descriptor Table.
 
 use core::{fmt, ptr};
-use core::fmt::Write;
 
-use arch::cpu::control_regs;
 use arch::cpu::dtable::DTable;
-
-use super::InterruptContext;
-
-use io::term::CONSOLE;
-
-use vga::Color;
 
 extern {
     /// Array of interrupt handlers exported by ASM
     //  TODO: hopefully, we will not need this much longer.
-    static interrupt_handlers: [*const u8; ENTRIES];
+    #[link_name = "isrs"]
+    static ISRs: [*const u8; ENTRIES];
 }
 
 /// An interrupt handler function.
@@ -84,37 +77,9 @@ impl Idt {
         self.0[idx] = Gate::from(handler)
     }
 
-    /// Handle a CPU exception with a given interrupt context.
-    pub unsafe fn handle_cpu_exception(state: &InterruptContext) -> ! {
-        let ex_info = state.exception();
-        let cr_state = control_regs::dump();
-        let _ = write!( CONSOLE.lock()
-                              .set_colors(Color::White, Color::Blue)
-                            //   .clear()
-                      , "CPU EXCEPTION {}: {}\n\
-                         {} on vector {} with error code {:#x}\n\
-                         Source: {}.\nThis is fine.\n\n"
-                      , ex_info.mnemonic, ex_info.name
-                      , ex_info.irq_type, state.int_id, state.err_no
-                      , ex_info.source );
-
-        // TODO: parse error codes
-        let _ = match state.int_id {
-            14 => unimplemented!() //TODO: special handling for page faults
-           , _ => write!( CONSOLE.lock()
-                                 .set_colors(Color::White, Color::Blue)
-                        , "Registers:\n{:?}\n    {}\n"
-                        , state.registers
-                        , cr_state
-                        )
-        };
-
-        loop { }
-    }
-
     /// Add interrupt handlers exported by assembly to the IDT.
     pub unsafe fn add_handlers(&mut self) -> &mut Self {
-        for (i, &handler_ptr) in interrupt_handlers.iter()
+        for (i, &handler_ptr) in ISRs.iter()
             .enumerate()
             .filter(|&(_, &ptr)| ptr != ptr::null() ) {
                 self.0[i] = Gate::from(handler_ptr)
