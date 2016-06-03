@@ -25,7 +25,7 @@ use vga::Color;
 //==------------------------------------------------------------------------==
 // Interface into ASM interrupt handling
 extern {
-    static interrupt_handlers: [*const u8; ENTRIES];
+    static interrupt_handlers: [*const Handler; ENTRIES];
 }
 
 /// An interrupt handler function.
@@ -35,18 +35,10 @@ pub type Handler = unsafe extern "C" fn() -> !;
 pub const ENTRIES: usize = 256;
 
 //==------------------------------------------------------------------------==
-//  IDT Gates
+// IDT Gates
 #[cfg(target_arch = "x86")]    #[path = "gate32.rs"] pub mod gate;
 #[cfg(target_arch = "x86_64")] #[path = "gate64.rs"] pub mod gate;
 pub use self::gate::*;
-
-
-impl convert::From<Handler> for Gate {
-    #[inline] fn from(handler: Handler) -> Self {
-        Gate::from_handler(handler)
-    }
-}
-
 
 /// x86 interrupt gate types.
 ///
@@ -71,15 +63,15 @@ impl fmt::Display for GateType {
 }
 
 //==------------------------------------------------------------------------==
-//  IDT
+//  IDT  implementation
 /// An Interrupt Descriptor Table
 ///
-/// The IDT is either 64-bit or 32-bit, and therefore, it has corresponding
-/// associated types for the appropriately-sized `InterruptContext` and `Gate`.
+/// The IDT is either 64-bit or 32-bit.
 pub struct Idt([Gate; ENTRIES]);
 
 impl Idt {
 
+    /// Construct a new IDT with all interrupt gates set to `absent`.
     pub const fn new() -> Self {
         Idt([Gate::absent(); ENTRIES])
     }
@@ -124,10 +116,10 @@ impl Idt {
 
     /// Add interrupt handlers exported by assembly to the IDT.
     pub unsafe fn add_handlers(&mut self) -> &mut Self {
-        for (i, &h_ptr) in interrupt_handlers.iter()
+        for (i, &handler_ptr) in interrupt_handlers.iter()
             .enumerate()
-            .filter(|&(_, &h_ptr)| h_ptr != ptr::null() ) {
-                self.0[i] = Gate::from_raw(h_ptr)
+            .filter(|&(_, &ptr)| ptr != ptr::null() ) {
+                self.0[i] = Gate::from(*handler_ptr)
         }
 
         println!("{:<38}{:>40}", " . . Adding interrupt handlers to IDT"

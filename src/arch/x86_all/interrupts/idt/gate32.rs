@@ -62,28 +62,17 @@ impl Gate {
             }
     }
 
+}
+
+impl convert::From<Handler> for Gate {
+
     /// Creates a new IDT gate pointing at the given handler function.
     ///
     /// The `handler` function must have been created with valid interrupt
     /// calling conventions.
-    pub fn from_handler(handler: Handler) -> Self {
+    fn from(handler: Handler) -> Self {
         // trust me on this, `mem::transmute()` is glorious black magic
-        let (low, high): (u16, u16) = unsafe { transmute(handler) };
-
-        Gate { offset_lower: low
-             , selector: gdt32_offset
-             , _zero: 0
-             , type_attr: GateType::Interrupt
-             , offset_upper: high
-             , _reserved: 0
-             }
-    }
-
-    ///  Creates a new IDT gate from a raw reference to a handler.
-    ///
-    ///  This should probably not be used ever.
-    pub unsafe fn from_raw(handler: *const u8) -> Self {
-        let (low, high): (u16, u16) = transmute(handler as u64);
+        let (low, mid): (u16, u16) = unsafe { mem::transmute(handler) };
 
         Gate { offset_lower: low
              , selector: segment::Selector::from_raw(gdt32_offset)

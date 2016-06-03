@@ -10,7 +10,7 @@
 use arch::cpu::segment;
 use super::{Handler, GateType};
 
-use core::mem::transmute;
+use core::{convert, mem};
 
 extern {
     /// Offset of the 64-bit GDT main code segment.
@@ -72,13 +72,13 @@ impl Gate {
             }
     }
 
-    /// Creates a new IDT gate pointing at the given handler function.
-    ///
-    /// The `handler` function must have been created with valid interrupt
-    /// calling conventions.
-    pub fn from_handler(handler: Handler) -> Self {
-        // trust me on this, `mem::transmute()` is glorious black magic
-        let (low, mid, high): (u16, u16, u32) = unsafe { transmute(handler) };
+}
+
+impl convert::From<Handler> for Gate {
+    fn from(handler: Handler) -> Self {
+        let (low, mid, high): (u16, u16, u32)
+            // trust me on this, `mem::transmute()` is glorious black magic
+            = unsafe { mem::transmute(handler) };
 
         Gate { offset_lower: low
              , selector: segment::Selector::from_raw(gdt64_offset)
@@ -91,21 +91,4 @@ impl Gate {
              , _reserved: 0
              }
     }
-
-    ///  Creates a new IDT gate from a raw reference to a handler.
-    ///
-    ///  This should probably not be used ever.
-    pub unsafe fn from_raw(handler: *const u8) -> Self {
-        let (low, mid, high): (u16, u16, u32) = transmute(handler as u64);
-
-        Gate { offset_lower: low
-             , selector: segment::Selector::from_raw(gdt64_offset)
-             , _zero: 0
-             , type_attr: GateType::Interrupt
-             , offset_mid: mid
-             , offset_upper: high
-             , _reserved: 0
-             }
-    }
-
 }
