@@ -22,6 +22,8 @@ pub struct Pointer { /// the length of the descriptor table
 
 /// A descriptor table (IDT or GDT)
 pub trait DTable {
+    fn get_ptr(&self) -> Pointer;
+
     /// Load the descriptor table with the appropriate load instruction
     unsafe fn load(&self);
 }

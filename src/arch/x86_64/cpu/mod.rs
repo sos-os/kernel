@@ -14,7 +14,13 @@
 
 #[path = "../../x86_all/cpu/mod.rs"] mod cpu_all;
 
+/// 64-bit Interrupt Descriptor Table implementation.
+///
+/// Refer to section 6.10 of the _Intel® 64 and IA-32 Architectures
+/// Software Developer’s Manual_ for more information.
+#[path = "../../x86_all/interrupts/mod.rs"]
 pub mod interrupts;
+
 pub mod context;
 
 pub use self::context::Registers;

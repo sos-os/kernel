@@ -13,6 +13,7 @@
 //!
 
 #[path = "../x86_all/cpu/mod.rs"] mod cpu_all;
-#[path = "../x86_all/pics.rs"] pub mod pics;
-
 pub use self::cpu_all::*;
+
+#[path = "../x86_all/interrupts/mod.rs"]
+pub mod interrupts;

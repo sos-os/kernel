@@ -11,7 +11,6 @@
 //! This module contains code for x86 32-bit
 //! protected-mode systems.
 pub mod cpu;
-pub mod interrupts;
 pub mod memory;
 // pub mod keyboard;
 
