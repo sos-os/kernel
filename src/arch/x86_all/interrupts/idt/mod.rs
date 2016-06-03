@@ -11,11 +11,7 @@
 use core::{fmt, ptr};
 use core::fmt::Write;
 
-use core::mem::size_of;
-
-use memory::PAddr;
-
-use arch::cpu::{dtable, control_regs};
+use arch::cpu::control_regs;
 use arch::cpu::dtable::DTable;
 
 use super::InterruptContext;
