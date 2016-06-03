@@ -128,6 +128,9 @@ impl Idt {
 }
 
 impl DTable for Idt {
+    type Entry = Gate;
+
+    #[inline] fn entry_count(&self) -> usize { ENTRIES }
 
     #[inline] unsafe fn load(&self) {
         asm!(  "lidt ($0)"

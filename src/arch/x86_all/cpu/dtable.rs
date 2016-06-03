@@ -23,6 +23,8 @@ pub struct Pointer { /// the length of the descriptor table
 
 /// A descriptor table (IDT or GDT)
 pub trait DTable: Sized {
+    type Entry: Sized;
+
     /// Get the IDT pointer struct to pass to `lidt` or `lgdt`
     ///
     /// This expects that the object implementing `DTable` not contain
@@ -49,10 +51,15 @@ pub trait DTable: Sized {
     //
     fn get_ptr(&self) -> Pointer {
         Pointer {
-            limit: size_of::<Self>() as u16
+            limit: (size_of::<Self::Entry>() * self.entry_count()) as u16
           , base: PAddr::from(self as *const _)
         }
     }
+
+    /// Returns the number of Entries in the `DTable`.
+    ///
+    /// This is used for calculating the limit.
+    fn entry_count(&self) -> usize;
 
     /// Load the descriptor table with the appropriate load instruction
     unsafe fn load(&self);
