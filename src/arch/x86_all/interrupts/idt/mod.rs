@@ -24,9 +24,9 @@ use io::term::CONSOLE;
 
 use vga::Color;
 
-//==------------------------------------------------------------------------==
-// Interface into ASM interrupt handling
 extern {
+    /// Array of interrupt handlers exported by ASM
+    //  TODO: hopefully, we will not need this much longer.
     static interrupt_handlers: [*const Handler; ENTRIES];
 }
 
@@ -42,7 +42,7 @@ pub const ENTRIES: usize = 256;
 #[cfg(target_arch = "x86_64")] #[path = "gate64.rs"] pub mod gate;
 pub use self::gate::*;
 
-/// x86 interrupt gate types.
+/// `x86` interrupt gate types.
 ///
 /// Bit-and this with the attribute half-byte to produce the
 /// `type_attr` field for a `Gate`
@@ -65,7 +65,7 @@ impl fmt::Display for GateType {
 }
 
 //==------------------------------------------------------------------------==
-//  IDT  implementation
+//  IDT implementation
 /// An Interrupt Descriptor Table
 ///
 /// The IDT is either 64-bit or 32-bit.
@@ -132,13 +132,6 @@ impl Idt {
 }
 
 impl DTable for Idt {
-    /// Get the IDT pointer struct to pass to `lidt`
-    fn get_ptr(&self) -> dtable::Pointer {
-        dtable::Pointer {
-            limit: (size_of::<Gate>() * ENTRIES) as u16
-          , base: PAddr::from(self as *const _)
-        }
-    }
 
     #[inline] unsafe fn load(&self) {
         asm!(  "lidt ($0)"

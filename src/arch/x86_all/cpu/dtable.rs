@@ -24,6 +24,12 @@ pub struct Pointer { /// the length of the descriptor table
 /// A descriptor table (IDT or GDT)
 pub trait DTable: Sized {
     /// Get the IDT pointer struct to pass to `lidt` or `lgdt`
+    /// 
+    /// This expects that the object implementing `DTable` not contain
+    /// additional data before or after the actual `DTable`, if you wish
+    /// to attach information to a descriptor table besides the array of
+    /// entries that it consists of, it will be necessary to encose the
+    /// descriptor table in another `struct` or `enum` type.
     fn get_ptr(&self) -> Pointer {
         Pointer {
             limit: size_of::<Self>() as u16
