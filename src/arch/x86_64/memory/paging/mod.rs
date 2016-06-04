@@ -1,4 +1,4 @@
-use ::memory::{VAddr, Addr};
+use ::memory::VAddr;
 use ::memory::paging::{Page, Mapper, FrameAllocator};
 
 use super::{Frame, PAddr, PAGE_SIZE};

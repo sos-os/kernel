@@ -7,7 +7,6 @@
 //  directory of this repository for more information.
 //
 //! Architecture-specific memory management.
-use core::ptr::Unique;
 use core::mem;
 
 use ::memory::Addr;
