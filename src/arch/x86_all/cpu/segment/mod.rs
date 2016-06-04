@@ -74,6 +74,17 @@ impl Selector {
         Selector { bits: bits }
     }
 
+    /// Returns the current value of the code segment register.
+    pub fn from_cs() -> Self {
+        let cs: u16;
+        unsafe {
+            asm!( "mov $0, cs"
+                : "=r"(cs)
+                ::: "intel" )
+        };
+        Selector::from_bits_truncate(cs)
+    }
+
     /// Extracts the index from a segment selector
     #[inline] pub fn index(&self) -> u16 {
         self.bits >> 3
@@ -109,45 +120,64 @@ impl Selector {
     }
 
 
-    /// Load this selector into the stack segment register.
+    /// Load this selector into the stack segment register (`ss`).
     pub unsafe fn load_ss(&self) {
         asm!(  "mov ss, $0"
-            :: "r"(self.bits)
+            :: "r"(*self)
             :  "memory"
             :  "intel");
     }
 
-    /// Load this selector into the data segment register.
+    /// Load this selector into the data segment register (`ds`).
     pub unsafe fn load_ds(&self) {
         asm!(  "mov ds, $0"
-            :: "r"(self.bits)
+            :: "r"(*self)
             :  "memory"
             :  "intel");
     }
 
-    /// Load this selector into the es segment register.
+    /// Load this selector into the `es` segment register.
     pub unsafe fn load_es(&self) {
         asm!(  "mov es, $0"
-            :: "r"(self.bits)
+            :: "r"(*self)
             :  "memory"
             :  "intel");
     }
 
-    /// Load this selector into the fs segment register.
+    /// Load this selector into the `fs` segment register.
     pub unsafe fn load_fs(&self) {
         asm!(  "mov fs, $0"
-            :: "r"(self.bits)
+            :: "r"(*self)
             :  "memory"
             :  "intel");
     }
 
-    /// Load this selector into the gs segment register.
+    /// Load this selector into the `gs` segment register.
     pub unsafe fn load_gs(&self) {
         asm!(  "mov gs, $0"
-            :: "r"(self.bits)
+            :: "r"(*self)
             :  "memory"
             :  "intel");
     }
+
+
+    /// Load this selector into the code segment register.
+    ///
+    /// N.B. that as we cannot `mov` directly to `cs`, we have to do this
+    /// differently. We push the selector and return value onto the stack,
+    /// and use `lret` to reload `cs`.
+    #[cfg(target_arch = "x86_64")]
+    pub unsafe fn load_cs(&self) {
+        asm!(  "push $0
+                lea rax, [rip + 1]
+                push rax
+                iret
+                1:"
+            :: "r"(self.bits as u64)
+            :  "{rax}", "memory"
+            :  "intel");
+    }
+
 }
 
 impl fmt::Display for Selector {
