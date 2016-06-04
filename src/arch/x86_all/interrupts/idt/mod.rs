@@ -11,7 +11,6 @@
 use core::{fmt, ptr};
 
 use arch::cpu::dtable::DTable;
-use arch::cpu::Registers;
 
 extern {
     /// Array of interrupt handlers exported by ASM
