@@ -10,8 +10,6 @@
 use core::ptr::Unique;
 use core::mem;
 
-use alloc::{Allocator};
-
 use ::memory::Addr;
 //pub mod table;
 //pub mod entry;
@@ -139,15 +137,4 @@ impl<'a> Iterator for FrameRangeIter<'a> {
       }
   }
 
-}
-
-/// Trait for a memory allocator which can allocate memory in terms of frames.
-pub trait FrameAllocator {
-
-    /// Allocate a new `Frame`
-    //  TODO: do we want to be able to request a frame size?
-    fn alloc_frame(&mut self) -> Option<Frame>;
-
-    /// Deallocate a given `Frame`.
-    fn dealloc_frame(&mut self, frame: Frame);
 }

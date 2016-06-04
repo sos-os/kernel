@@ -10,8 +10,18 @@
 use memory::{VAddr, PAddr};
 use arch::memory::{ PAGE_SHIFT, PAGE_SIZE };
 
-// for now - allocator may soon move into the kernel crate.
-use alloc::Allocator;
+
+/// Trait for a memory allocator which can allocate memory in terms of frames.
+pub trait FrameAllocator<Frame> {
+
+    /// Allocate a new `Frame`
+    //  TODO: do we want to be able to request a frame size?
+    fn alloc_frame(&mut self) -> Option<Frame>;
+
+    /// Deallocate a given `Frame`.
+    fn dealloc_frame(&mut self, frame: Frame);
+}
+
 
 pub trait Mapper {
     type Flags;
@@ -37,7 +47,7 @@ pub trait Mapper {
     /// + `alloc`: a memory allocator
     fn map_to<A>( &mut self, page: Page, frame: Self::Frame
                 , flags: Self::Flags, alloc: &mut A )
-    where A: Allocator;
+    where A: FrameAllocator<Self::Frame>;
 
     /// Identity map a given `frame`.
     ///
@@ -47,7 +57,7 @@ pub trait Mapper {
     /// + `alloc`: a memory allocator
     fn identity_map<A>( &mut self, frame: Self::Frame
                       , flags: Self::Flags, alloc: &mut A )
-    where A: Allocator;
+    where A: FrameAllocator<Self::Frame>;
 
     /// Map the given `page` to any free frame.
     ///
@@ -59,7 +69,7 @@ pub trait Mapper {
     /// + `flags`: the page table entry flags.
     /// + `alloc`: a memory allocator
     fn map_to_any<A>(&mut self, page: Page, flags: Self::Flags, alloc: &mut A)
-    where A: Allocator;
+    where A: FrameAllocator<Self::Frame>;
 
 }
 

@@ -6,9 +6,9 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-use alloc::Allocator;
+use arch::memory::{Frame, PAddr, PAGE_SIZE};
 
-use arch::memory::{FrameAllocator, Frame, PAddr, PAGE_SIZE};
+use memory::paging::FrameAllocator;
 
 use core::marker::PhantomData;
 use core::ops::{Index, IndexMut};
@@ -106,24 +106,18 @@ impl<L: Sublevel> Table<L> {
     /// Returns the next table, creating it if it does not exist.
     pub fn create_next<A>(&mut self, index: usize, alloc: &mut A)
                          -> &mut Table<L::Next>
-    where A: Allocator {
+    where A: FrameAllocator<Frame> {
         if self.next_table(index).is_none() {
             assert!( !self[index].is_huge()
                    , "Couldn't create next table: huge pages not \
                       currently supported.");
 
-            let frame: Frame = unsafe {
-                // TODO: this won't work, since our Allocators allocate
-                //       pointers rather than frames. this needs to be fixed
-                //       pending a rewrite of the allocator.
-                unimplemented!()
-                //alloc.allocate(PAGE_SIZE, PAGE_SIZE)// I hope that's right
-                //     .expect("Couldn't create next table: no \
-                //              frames  available!")
-                //
-            };
+            let frame = alloc.alloc_frame()
+                             // TODO: would we rather rewrite this to return
+                             // a `Result`? I think so.
+                            .expect("Couldn't map page, out of frames!");
 
-            self[index].set(frame, PRESENT | :WRITABLE);
+            self[index].set(frame, PRESENT | WRITABLE);
             self.next_table_mut(index).unwrap().zero();
         }
         self.next_table_mut(index).unwrap()

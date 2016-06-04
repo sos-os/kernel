@@ -1,5 +1,5 @@
 use ::memory::{VAddr, Addr};
-use ::memory::paging::{Page, Mapper};
+use ::memory::paging::{Page, Mapper, FrameAllocator};
 
 use super::{Frame, PAddr, PAGE_SIZE};
 use self::table::*;
@@ -61,7 +61,7 @@ impl Mapper for ActivePML4 {
     /// + `alloc`: a memory allocator
     fn map_to<A>( &mut self, page: Page, frame: Frame
                 , flags: EntryFlags, alloc: &mut A)
-    where A: Allocator{
+    where A: FrameAllocator<Frame> {
 
        // get the page table index of the page to map
        let idx = page.pt_index();
@@ -88,7 +88,7 @@ impl Mapper for ActivePML4 {
 
     fn identity_map<A>(&mut self, frame: Frame, flags: EntryFlags
                       , alloc: &mut A)
-    where A: Allocator {
+    where A: FrameAllocator<Frame> {
         self.map_to( Page::containing(VAddr::from(frame.base_addr().0 as usize))
                    , frame
                    , flags
@@ -96,20 +96,14 @@ impl Mapper for ActivePML4 {
     }
 
     fn map_to_any<A>(&mut self, page: Page, flags: EntryFlags, alloc: &mut A)
-    where A: Allocator {
-        // TODO: this is Definitely Wrong; our malloc just gives us
-        //       pointers instead of allocating as frames that we coerce to
-        //       pointers. might want to rewrite that.
-        let frame = unsafe {
-            alloc.allocate(PAGE_SIZE as usize, PAGE_SIZE as usize)
-            // also, "PAGE_SIZE, PAGE_SIZE" is Almost Certainly the wrong size
-            // and alignment for the allocation request - I think i left it that
-            // way because i couldn't figure it out at the time and am an idiot.
-            //      -- eliza
-                    .expect("Couldn't map page, out of frames!")
-        };
-        unimplemented!()
-        //self.map_to(page, frame, flags, alloc);
+    where A: FrameAllocator<Frame> {
+        self.map_to( page
+                   , alloc.alloc_frame()
+                            // TODO: would we rather rewrite this to return
+                            // a `Result`? I think so.
+                           .expect("Couldn't map page, out of frames!")
+                   , flags
+                   , alloc);
     }
 
 
