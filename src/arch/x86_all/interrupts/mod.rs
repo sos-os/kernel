@@ -32,8 +32,8 @@ use self::idt::Idt;
 #[repr(C, packed)]
 pub struct InterruptContext { /// callee-saved registers
                               pub registers: Registers
-                            //, /// interrupt ID number
-                            //  pub int_id:  u32
+                            , /// interrupt ID number
+                              pub int_id: usize
                             //, _pad_1: u32
                             //, /// error number
                             //  pub err_no:  u32
@@ -138,8 +138,8 @@ static IDT: Mutex<Idt> = Mutex::new(Idt::new());
 /// Assembly interrupt handlers call into this, and it dispatches interrupts to
 /// the appropriate consumers.
 #[no_mangle]
-pub extern fn handle_interrupt( state: &InterruptContext
-                              , id: usize, _err_code: usize) {
+pub extern "C" fn handle_interrupt(state: &InterruptContext) {
+    let id = state.int_id;
    match id {
        // System timer
        0x20 => { /* TODO: make this work */ }
@@ -166,8 +166,8 @@ pub extern fn handle_interrupt( state: &InterruptContext
 
 /// Handle a CPU exception with a given interrupt context.
 #[no_mangle]
-pub extern fn handle_cpu_exception( state: &InterruptContext
-                                  , id: usize, err_code: usize) -> ! {
+pub extern "C" fn handle_cpu_exception(state: &InterruptContext, err_code: usize) -> ! {
+    let id = state.int_id;
     let ex_info = &EXCEPTIONS[id];
     let cr_state = control_regs::dump();
     let _ = write!( CONSOLE.lock()
