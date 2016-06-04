@@ -47,6 +47,14 @@ extern {
     pub static mut STACK_TOP: u8;
 }
 
+/// A physical (linear) memory address is a 64-bit unsigned integer
+#[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub struct PAddr(u64);
+
+impl Addr<u64> for PAddr { }
+
+impl_addr! { PAddr, u64 }
+
 /// A frame (physical page)
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Frame { pub number: u64 }
@@ -137,14 +145,17 @@ impl<'a> Iterator for FrameRangeIter<'a> {
 
 }
 
+/// Trait for a memory allocator which can allocate memory in terms of frames.
+pub trait FrameAllocator {
 
-/// A physical (linear) memory address is a 64-bit unsigned integer
-#[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct PAddr(u64);
+    /// Allocate a new `Frame`
+    //  TODO: do we want to be able to request a frame size?
+    fn alloc_frame(&mut self) -> Option<Frame>;
 
-impl Addr<u64> for PAddr { }
+    /// Deallocate a given `Frame`.
+    fn dealloc_frame(&mut self, frame: Frame);
+}
 
-impl_addr! { PAddr, u64 }
 
 /// Struct representing the currently active PML4 instance.
 ///
