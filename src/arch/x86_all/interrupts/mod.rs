@@ -136,36 +136,41 @@ static IDT: Mutex<Idt> = Mutex::new(Idt::new());
 
 /// Kernel interrupt-handling function.
 ///
-/// Assembly interrupt handlers call into this, and it dispatches interrupts to
+/// Assembly ISRs call into this, and it dispatches interrupts to
 /// the appropriate consumers.
+//  TODO: should this be #[cold]?
 #[no_mangle] #[inline(never)]
 pub extern "C" fn handle_interrupt(state: &InterruptContext) {
     let id = state.int_id;
-   match id {
-       // System timer
-       0x20 => { /* TODO: make this work */ }
-       // Keyboard
-     , 0x21 => {
-         // TODO: dispatch keypress event to subscribers (NYI)
-           if let Some(input) = keyboard::read_char() {
-               if input == '\r' {
-                   println!("");
-               } else {
-                   print!("{}", input);
-               }
-           }
-       }
-       // Loonix syscall vector
-     , 0x80 => { // TODO: currently, we do nothing here, do we want
-                 // our syscalls on this vector as well?
-       }
-     , _ => panic!("Unknown interrupt: #{} Sorry!", id)
-   }
-   // send the PICs the end interrupt signal
-   unsafe { pics::end_pic_interrupt(id as u8) };
+    match id {
+        // System timer
+        0x20 => { /* TODO: make this work
+                    TODO: should this IRQ get its own handler?
+                  */ }
+        // Keyboard
+      , 0x21 => {
+          // TODO: dispatch keypress event to subscribers (NYI)
+            // TODO: should this interrupt get its own handler for perf?
+            if let Some(input) = keyboard::read_char() {
+                if input == '\r' {
+                    println!("");
+                } else {
+                    print!("{}", input);
+                }
+            }
+        }
+        // Loonix syscall vector
+      , 0x80 => { // TODO: currently, we do nothing here, do we want
+                  // our syscalls on this vector as well?
+        }
+      , _ => panic!("Unknown interrupt: #{} Sorry!", id)
+    }
+    // send the PICs the end interrupt signal
+    unsafe { pics::end_pic_interrupt(id as u8) };
 }
 
 /// Handle a CPU exception with a given interrupt context.
+//  TODO: should this be #[cold]?
 #[no_mangle] #[inline(never)]
 pub extern "C" fn handle_cpu_exception( state: &InterruptContext
                                       , err_code: usize) -> ! {
@@ -184,7 +189,12 @@ pub extern "C" fn handle_cpu_exception( state: &InterruptContext
 
     // TODO: parse error codes
     let _ = match id {
-        14 => unimplemented!() //TODO: special handling for page faults
+        // TODO: page fault needs its own handler
+        14 => write!( CONSOLE.lock()
+                             .set_colors(Color::White, Color::Blue)
+                    , "{}"
+                    , PageFaultErrorCode::from_bits_truncate(err_code as u32)
+                    )
        , _ => write!( CONSOLE.lock()
                              .set_colors(Color::White, Color::Blue)
                     , "Registers:\n{:?}\n    {}\n"
@@ -192,6 +202,7 @@ pub extern "C" fn handle_cpu_exception( state: &InterruptContext
                     , cr_state
                     )
     };
+    // TODO: stack dumps please
 
     loop { }
 }
@@ -207,6 +218,8 @@ pub unsafe fn initialize() {
    // println!( " . . Initialising PICs {:>40}"
    //         , pics::initialize().unwrap_or("[ FAIL ]") );
    pics::initialize();
+   // TODO: consider loading double-fault handler before anything else in case
+   //       a double fault occurs during init?
    IDT.lock()
       .add_handlers()
       .load();                 // Load the IDT pointer
