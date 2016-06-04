@@ -93,7 +93,7 @@ call_handler:
     call    handle_interrupt    ; call the Rust interrupt handler
 
     pop_ctx                     ; pop context off of the stack
-    add     rsp, 8              ; skip past the interrupt id
+    add     rsp, 8             ; skip past the interrupt id
     iretq
 
 ;;; Call into the Rust interrupt handler function

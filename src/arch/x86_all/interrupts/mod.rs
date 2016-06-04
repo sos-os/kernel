@@ -11,6 +11,7 @@
 //! This module provides support for interrupt handling on both `x86` and
 //! `x86_64` as a black box. Code that depends on this can use the same API
 //! regardless of system word size.
+use core::fmt;
 use core::fmt::Write;
 
 use arch::cpu::{control_regs, Registers};
@@ -32,8 +33,8 @@ use self::idt::Idt;
 #[repr(C, packed)]
 pub struct InterruptContext { /// callee-saved registers
                               pub registers: Registers
-                            //, /// interrupt ID number
-                            //  pub int_id:  u32
+                            , /// interrupt ID number
+                              pub int_id: usize
                             //, _pad_1: u32
                             //, /// error number
                             //  pub err_no:  u32
@@ -174,18 +175,36 @@ macro_rules! isr {
         Gate::from($name)
     };
     (interrupt id $id:expr, $name:ident) => {
-        #[inline(never)] #[naked] #[no_mangle]
-        pub unsafe extern fn $name() -> ! {
-            asm!(  "push 0
-                    push $0" :: "i"($id) :: "volatile", "intel" );
-            Registers::push();
-            asm!( "mov rdi, rsp
-                   call interrupt_handler"
-                :::: "volatile", "intel");
-            Registers::pop();
-            asm!( "add rsp, 16
-                   iretq"
-                 :::: "volatile", "intel");
+        #[naked] #[no_mangle]
+        pub unsafe extern fn $name() {
+            asm!(  "push $0
+                    push rax
+                    push rcx
+                    push rdx
+                    push r8
+                    push r9
+                    push r10
+                    push r11
+                    push rdi
+                    push rsi
+
+                    mov rdi, rsp
+                    call keyboard_handler
+
+                    pop rsi
+                    pop rdi
+                    pop r11
+                    pop r10
+                    pop r9
+                    pop r8
+                    pop rdx
+                    pop rcx
+                    pop rax
+
+                    add rsp, 8
+                    iretq"
+                :: "i"($id)
+                :: "volatile", "intel");
             unreachable!();
         }
     }
@@ -193,43 +212,51 @@ macro_rules! isr {
 
 /// Kernel interrupt-handling function.
 ///
-/// Assembly interrupt handlers call into this, and it dispatches interrupts to
+/// Assembly ISRs call into this, and it dispatches interrupts to
 /// the appropriate consumers.
-#[no_mangle]
-pub extern fn handle_interrupt( state: &InterruptContext
-                              , id: usize ) {
-   match id {
-       // System timer
-       0x20 => { /* TODO: make this work */ }
-       // Keyboard
-     , 0x21 => {
-         // TODO: dispatch keypress event to subscribers (NYI)
-           if let Some(input) = keyboard::read_char() {
-               if input == '\r' {
-                   println!("");
-               } else {
-                   print!("{}", input);
-               }
-           }
-       }
-       // Loonix syscall vector
-     , 0x80 => { // TODO: currently, we do nothing here, do we want
-                 // our syscalls on this vector as well?
-       }
-     , _ => panic!("Unknown interrupt: #{} Sorry!", id)
-   }
-   // send the PICs the end interrupt signal
-   unsafe { pics::end_pic_interrupt(id as u8) };
+//  TODO: should this be #[cold]?
+#[no_mangle] #[inline(never)]
+pub extern "C" fn handle_interrupt(state: &InterruptContext) {
+    let id = state.int_id;
+    match id {
+        // System timer
+        0x20 => { /* TODO: make this work
+                    TODO: should this IRQ get its own handler?
+                  */ }
+        // Keyboard
+      , 0x21 => {
+          // TODO: dispatch keypress event to subscribers (NYI)
+            // TODO: should this interrupt get its own handler for perf?
+            if let Some(input) = keyboard::read_char() {
+                if input == '\r' {
+                    println!("");
+                } else {
+                    print!("{}", input);
+                }
+            }
+        }
+        // Loonix syscall vector
+      , 0x80 => { // TODO: currently, we do nothing here, do we want
+                  // our syscalls on this vector as well?
+        }
+      , _ => panic!("Unknown interrupt: #{} Sorry!", id)
+    }
+    // send the PICs the end interrupt signal
+    unsafe { pics::end_pic_interrupt(id as u8) };
 }
 
-pub extern fn interrupt_handler (state: &InterruptContext, id: usize, _: usize ) {
-    println!("got interrupt {}, yay!", id);
+#[no_mangle] #[inline(never)]
+pub extern "C" fn keyboard_handler(state: &InterruptContext) {
+    println!("help, i'm trapped in the keyboard event handler");
+    println!("got interrupt {}, yay!", state.int_id);
 }
 
 /// Handle a CPU exception with a given interrupt context.
-#[no_mangle]
-pub extern fn handle_cpu_exception( state: &InterruptContext
-                                  , id: usize, err_code: usize) -> ! {
+//  TODO: should this be #[cold]?
+#[no_mangle] #[inline(never)]
+pub extern "C" fn handle_cpu_exception( state: &InterruptContext
+                                      , err_code: usize) -> ! {
+    let id = state.int_id;
     let ex_info = &EXCEPTIONS[id];
     let cr_state = control_regs::dump();
     let _ = write!( CONSOLE.lock()
@@ -244,7 +271,12 @@ pub extern fn handle_cpu_exception( state: &InterruptContext
 
     // TODO: parse error codes
     let _ = match id {
-        14 => unimplemented!() //TODO: special handling for page faults
+        // TODO: page fault needs its own handler
+        14 => write!( CONSOLE.lock()
+                             .set_colors(Color::White, Color::Blue)
+                    , "{}"
+                    , PageFaultErrorCode::from_bits_truncate(err_code as u32)
+                    )
        , _ => write!( CONSOLE.lock()
                              .set_colors(Color::White, Color::Blue)
                     , "Registers:\n{:?}\n    {}\n"
@@ -252,6 +284,7 @@ pub extern fn handle_cpu_exception( state: &InterruptContext
                     , cr_state
                     )
     };
+    // TODO: stack dumps please
 
     loop { }
 }
@@ -269,6 +302,8 @@ pub unsafe fn initialize() {
    // println!( " . . Initialising PICs {:>40}"
    //         , pics::initialize().unwrap_or("[ FAIL ]") );
    pics::initialize();
+   // TODO: consider loading double-fault handler before anything else in case
+   //       a double fault occurs during init?
    IDT.lock()
       .add_handlers()
       .add_gate(0x21, keyboard_isr)
@@ -282,8 +317,35 @@ pub unsafe fn initialize() {
 
 bitflags! {
     flags PageFaultErrorCode: u32 {
+        /// If 1, the error was caused by a page that was present.
+        /// Otherwise, the page was non-present.
         const PRESENT = 1 << 0
-      , const READ_WRITE = 1 << 1
+      , /// If 1, the error was caused by a read. If 0, the cause was a write.
+        const READ_WRITE = 1 << 1
+      , /// If 1, the error was caused during user-mode execution.
+        /// If 0, the processor was in kernel mode.
+        const USER_MODE = 1 << 2
+      , /// If 1, the fault was caused by reserved bits set to 1 during a fetch.
+        const RESERVED = 1 << 3
+      , /// If 1, the fault was caused during an instruction fetch.
+        const INST_FETCH = 1 << 4
+      , /// If 1, there was a protection key violation.
+        const PROTECTION = 1 << 5
     }
+}
 
+impl fmt::Display for PageFaultErrorCode {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!( f, "Caused by {}{}{} during a {}{} executing in {} mode."
+              , if self.contains(PRESENT) { "a present page" }
+                else { "a non-present page" }
+              , if self.contains(PROTECTION) { " protection-key violation" }
+                else { "" }
+              , if self.contains(RESERVED) { " reserved bits set to one "}
+                else { "" }
+              , if self.contains(READ_WRITE) { "read" } else { "write" }
+              , if self.contains(INST_FETCH) { " in an instruction fetch"}
+                else { "" }
+              , if self.contains(USER_MODE) { "user" } else { "kernel" }            )
+    }
 }
