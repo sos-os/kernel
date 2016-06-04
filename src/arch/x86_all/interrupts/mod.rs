@@ -134,11 +134,10 @@ pub static EXCEPTIONS: [ExceptionInfo; 20]
 /// Our global IDT.
 static IDT: Mutex<Idt> = Mutex::new(Idt::new());
 
-
 macro_rules! isr {
     (exception $ex:expr, $name:ident, handler: $handler:expr) => {
         #[inline(never)] #[naked] #[no_mangle]
-        pub unsafe extern fn $name() {
+        pub unsafe extern "C" fn $name() {
             asm!(  "push 0
                     push $0"
                 :: "i"($ex)
@@ -157,7 +156,7 @@ macro_rules! isr {
     };
     (error $ex:expr, $name:ident, handler: $handler:expr) => {
         #[inline(never)] #[naked] #[no_mangle]
-        pub unsafe extern fn $name() {
+        pub unsafe extern "C" fn $name() {
             asm!(  "push $0"
                 :: "i"($ex)
                 :: "volatile", "intel" );
@@ -175,7 +174,7 @@ macro_rules! isr {
     };
     (interrupt $id:expr, $name:ident, handler: $handler:expr) => {
         #[naked] #[no_mangle]
-        pub unsafe extern fn $name() {
+        pub unsafe extern "C" fn $name() {
             asm!(  "push $0"
                 :: "i"($id)
                 :: "volatile", "intel" );
@@ -238,7 +237,7 @@ pub extern "C" fn handle_interrupt(state: &InterruptContext) {
 }
 
 #[no_mangle] #[inline(never)]
-pub extern "C" fn keyboard_handler(state: &InterruptContext) {
+pub unsafe extern "C" fn keyboard_handler(state: &InterruptContext) {
     if let Some(input) = keyboard::read_char() {
         if input == '\r' {
             println!("");
@@ -247,7 +246,7 @@ pub extern "C" fn keyboard_handler(state: &InterruptContext) {
         }
     }
     // send the PICs the end interrupt signal
-    unsafe { pics::end_pic_interrupt(state.int_id as u8) };
+    pics::end_pic_interrupt(state.int_id as u8);
 }
 
 /// Handle a CPU exception with a given interrupt context.
