@@ -11,6 +11,7 @@
 //! This module provides support for interrupt handling on both `x86` and
 //! `x86_64` as a black box. Code that depends on this can use the same API
 //! regardless of system word size.
+use core::fmt;
 use core::fmt::Write;
 
 use arch::cpu::{control_regs, Registers};
@@ -137,7 +138,7 @@ static IDT: Mutex<Idt> = Mutex::new(Idt::new());
 ///
 /// Assembly interrupt handlers call into this, and it dispatches interrupts to
 /// the appropriate consumers.
-#[no_mangle]
+#[no_mangle] #[inline(never)]
 pub extern "C" fn handle_interrupt(state: &InterruptContext) {
     let id = state.int_id;
    match id {
@@ -165,8 +166,9 @@ pub extern "C" fn handle_interrupt(state: &InterruptContext) {
 }
 
 /// Handle a CPU exception with a given interrupt context.
-#[no_mangle]
-pub extern "C" fn handle_cpu_exception(state: &InterruptContext, err_code: usize) -> ! {
+#[no_mangle] #[inline(never)]
+pub extern "C" fn handle_cpu_exception( state: &InterruptContext
+                                      , err_code: usize) -> ! {
     let id = state.int_id;
     let ex_info = &EXCEPTIONS[id];
     let cr_state = control_regs::dump();
@@ -217,8 +219,35 @@ pub unsafe fn initialize() {
 
 bitflags! {
     flags PageFaultErrorCode: u32 {
+        /// If 1, the error was caused by a page that was present.
+        /// Otherwise, the page was non-present.
         const PRESENT = 1 << 0
-      , const READ_WRITE = 1 << 1
+      , /// If 1, the error was caused by a read. If 0, the cause was a write.
+        const READ_WRITE = 1 << 1
+      , /// If 1, the error was caused during user-mode execution.
+        /// If 0, the processor was in kernel mode.
+        const USER_MODE = 1 << 2
+      , /// If 1, the fault was caused by reserved bits set to 1 during a fetch.
+        const RESERVED = 1 << 3
+      , /// If 1, the fault was caused during an instruction fetch.
+        const INST_FETCH = 1 << 4
+      , /// If 1, there was a protection key violation.
+        const PROTECTION = 1 << 5
     }
+}
 
+impl fmt::Display for PageFaultErrorCode {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!( f, "Caused by {}{}{} during a {}{} executing in {} mode."
+              , if self.contains(PRESENT) { "a present page" }
+                else { "a non-present page" }
+              , if self.contains(PROTECTION) { " protection-key violation" }
+                else { "" }
+              , if self.contains(RESERVED) { " reserved bits set to one "}
+                else { "" }
+              , if self.contains(READ_WRITE) { "read" } else { "write" }
+              , if self.contains(INST_FETCH) { " in an instruction fetch"}
+                else { "" }
+              , if self.contains(USER_MODE) { "user" } else { "kernel" }            )
+    }
 }
