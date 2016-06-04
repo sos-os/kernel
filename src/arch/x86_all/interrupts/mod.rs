@@ -247,8 +247,15 @@ pub extern "C" fn handle_interrupt(state: &InterruptContext) {
 
 #[no_mangle] #[inline(never)]
 pub extern "C" fn keyboard_handler(state: &InterruptContext) {
-    println!("help, i'm trapped in the keyboard event handler");
-    println!("got interrupt {}, yay!", state.int_id);
+    if let Some(input) = keyboard::read_char() {
+        if input == '\r' {
+            println!("");
+        } else {
+            print!("{}", input);
+        }
+    }
+    // send the PICs the end interrupt signal
+    unsafe { pics::end_pic_interrupt(state.int_id as u8) };
 }
 
 /// Handle a CPU exception with a given interrupt context.
