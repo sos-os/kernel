@@ -163,3 +163,8 @@ impl fmt::Display for Selector {
         write!(f, "Index {} in {} at Ring {}", self.index(), table, ring)
     }
 }
+
+#[cfg(target_arch = "x86_64")]
+#[path = "descr64.rs"] pub mod descriptor;
+
+pub use self::descriptor::Descriptor;
