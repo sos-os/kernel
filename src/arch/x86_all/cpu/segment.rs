@@ -12,7 +12,19 @@
 //! Software Developer’s Manual_, Vol. 3A, section 3.2, "Using Segments".
 //! Some of the documentation present in this module was taken from the Intel
 //! manual.
-use core::fmt;
+use core::{fmt, mem};
+
+/// Represents an x86 privilege level.
+#[derive(Copy, Clone, Debug, PartialEq, PartialOrd, Ord, Eq)]
+#[repr(u16)]
+pub enum PrivilegeLevel { /// Ring 0 is the most privileged ring
+                          KernelMode = 0
+                        , Ring1 = 1
+                        , Ring2 = 2
+                        , /// Ring 3 is the least privileged ring
+                          UserMode = 3
+
+}
 
 bitflags! {
     /// A segment selector is a 16-bit identifier for a segment.
@@ -67,6 +79,36 @@ impl Selector {
         self.bits >> 3
     }
 
+    /// Sets this segment selector to be a GDT segment.
+    ///
+    /// If the segment is already a GDT segment, this will quietly do nothing.
+    #[inline] pub fn set_global(&mut self) -> &mut Self {
+        self.remove(TI_LDT);
+        self
+    }
+
+    /// Sets this segment selector to be an LDT segment.
+    ///
+    /// If the segment is already an LDT segment, this will quietly do nothing.
+    #[inline] pub fn set_local(&mut self) -> &mut Self {
+        self.insert(TI_GDT);
+        self
+    }
+
+    /// Sets the Requested Priveliege Level (RPL)
+    ///
+    /// The RPL must be in the range between 0 and 3.
+    #[inline] pub fn set_rpl(&mut self, rpl: PrivilegeLevel) -> &mut Self {
+        self.bits &= rpl as u16;
+        self
+    }
+
+    /// Checks the segment's privelige.
+    #[inline] pub fn get_rpl(&self) -> PrivilegeLevel {
+        unsafe { mem::transmute(*self & RPL) }
+    }
+
+
     /// Load this selector into the stack segment register.
     pub unsafe fn load_ss(&self) {
         asm!(  "mov ss, $0"
@@ -111,10 +153,10 @@ impl Selector {
 impl fmt::Display for Selector {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // TODO: this could be much less ugly.
-        let ring = if self.contains(RPL_RING_0) { "0" }
-                   else if self.contains(RPL_RING_1) { "1" }
+        let ring = if self.contains(RPL_RING_3) { "3" }
                    else if self.contains(RPL_RING_2) { "2" }
-                   else if self.contains(RPL_RING_3) { "3" }
+                   else if self.contains(RPL_RING_1) { "1" }
+                   else if self.contains(RPL_RING_0) { "0" }
                    else { unreachable!() };
         let table = if self.contains(TI_GDT) { "GDT" }
                     else { "LDT" };

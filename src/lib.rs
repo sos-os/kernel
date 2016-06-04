@@ -25,7 +25,8 @@
           , associated_consts
           , unique
           , naked_functions
-          , type_ascription )]
+          , type_ascription
+          , assignment_ops )]
 #![feature(collections)]
 #![feature(question_mark)]
 
