@@ -53,6 +53,36 @@ impl fmt::Display for GateType {
     }
 }
 
+bitflags! {
+    pub flags GateOptions: u8 {
+        /// Indicates whether or not this gate is present.
+        /// An interrupt on a non-present gate will trigger a
+        /// General Protection Fault.
+        const PRESENT = 1 << 7
+      , const CALL_GATE = 0b0000_1100
+      , const TRAP_GATE = 0b0000_1111
+      , const IRQ_GATE  = 0b0000_1110
+      ,
+    }
+}
+
+impl GateOptions {
+    #[inline] fn is_trap(&self) -> bool {
+        self.contains(TRAP_GATE)
+    }
+
+    #[inline] fn is_present(&self) -> bool {
+        self.contains(PRESENT)
+    }
+
+    /// Sets the present bit for this gate
+    #[inline] fn set_present(&mut self, present: bool) -> &mut Self {
+        if present { self.insert(PRESENT) }
+        else { self.remove(PRESENT) }
+        self
+    }
+}
+
 //==------------------------------------------------------------------------==
 //  IDT implementation
 /// An Interrupt Descriptor Table
