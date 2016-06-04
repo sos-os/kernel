@@ -136,78 +136,70 @@ static IDT: Mutex<Idt> = Mutex::new(Idt::new());
 
 
 macro_rules! isr {
-    (exception $ex:expr, $name:ident) => {
+    (exception $ex:expr, $name:ident, handler: $handler:expr) => {
         #[inline(never)] #[naked] #[no_mangle]
         pub unsafe extern fn $name() {
-            //asm!(  "push 0
-            //        push $0"
-            //    :: "i"($ex)
-            //    :: "volatile", "intel" );
-            Registers::push();
-            cpu_exception_handler($ex);
-            //asm!( "mov rdi, rsp
-            //       call handle_cpu_exception"
-            //    :::: "volatile", "intel");
+            asm!(  "push 0
+                    push $0"
+                :: "i"($ex)
+                :: "volatile", "intel" );
+            $crate::arch::cpu::Registers::push();
+            asm!( concat!(
+                    "mov rdi, rsp
+                     call ", $handler)
+                :: :: "volatile", "intel");
             Registers::pop();
             asm!( "add rsp, 16
                    iretq"
                  :::: "volatile", "intel");
             unreachable!();
         }
-        Gate::from($name)
     };
-    (error $ex:expr, $name:ident) => {
+    (error $ex:expr, $name:ident, handler: $handler:expr) => {
         #[inline(never)] #[naked] #[no_mangle]
         pub unsafe extern fn $name() {
-            //asm!(  "push $0"
-            //    :: "i"($expr)
-            //    :: "volatile", "intel" );
-            Registers::push();
-            asm!( "mov rdi, rsp
-                   call handle_cpu_exception"
-                :::: "volatile", "intel");
-            Registers::pop();
+            asm!(  "push $0"
+                :: "i"($ex)
+                :: "volatile", "intel" );
+            $crate::arch::cpu::Registers::push();
+            asm!( concat!(
+                    "mov rdi, rsp
+                     call ", $handler)
+                :: :: "volatile", "intel");
+            $crate::arch::cpu::Registers::pop();
             asm!( "add rsp, 16
                    iretq"
                  :::: "volatile", "intel");
             unreachable!();
         }
-        Gate::from($name)
     };
-    (interrupt id $id:expr, $name:ident) => {
+    (interrupt $id:expr, $name:ident, handler: $handler:expr) => {
         #[naked] #[no_mangle]
         pub unsafe extern fn $name() {
-            asm!(  "push $0
-                    push rax
-                    push rcx
-                    push rdx
-                    push r8
-                    push r9
-                    push r10
-                    push r11
-                    push rdi
-                    push rsi
-
-                    mov rdi, rsp
-                    call keyboard_handler
-
-                    pop rsi
-                    pop rdi
-                    pop r11
-                    pop r10
-                    pop r9
-                    pop r8
-                    pop rdx
-                    pop rcx
-                    pop rax
-
-                    add rsp, 8
-                    iretq"
+            asm!(  "push $0"
                 :: "i"($id)
-                :: "volatile", "intel");
+                :: "volatile", "intel" );
+            $crate::arch::cpu::Registers::push();
+            asm!( concat!(
+                    "mov rdi, rsp
+                     call ", $handler)
+                :: :: "volatile", "intel");
+            $crate::arch::cpu::Registers::pop();
+            asm!( "add rsp, 8
+                   iretq"
+                 :::: "volatile", "intel");
             unreachable!();
         }
-    }
+    };
+    (interrupt $id:expr, $name:ident) => {
+        isr! { interrupt $id, $name, handler: "handle_interrupt" }
+    };
+    (error $id:expr, $name:ident) => {
+        isr! { error $id, $name, handler: "handle_cpu_exception" }
+    };
+    (exception $id:expr, $name:ident) => {
+        isr! { exception $id, $name, handler: "handle_cpu_exception" }
+    };
 }
 
 /// Kernel interrupt-handling function.
@@ -296,7 +288,9 @@ pub extern "C" fn handle_cpu_exception( state: &InterruptContext
     loop { }
 }
 
-isr! { interrupt id 0x21, keyboard_isr }
+isr! { interrupt 0x21
+     , keyboard_isr
+     , handler: "keyboard_handler" }
 
 /// Initialize interrupt handling.
 ///
