@@ -53,7 +53,6 @@ isr_%1:
 
 %macro  interrupt 1
 isr_%1:
-        push    qword 0
         push    qword %1         ; push interrupt ID
         jmp     call_handler    ; call into Rust handler
 %endmacro

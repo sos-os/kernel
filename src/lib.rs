@@ -18,7 +18,7 @@
 
 #![doc(html_root_url = "https://hawkw.github.io/sos-kernel/")]
 
-#![feature(core_intrinsics)]
+#![feature( core_intrinsics )]
 #![feature( lang_items, asm )]
 #![feature( const_fn
           , slice_patterns

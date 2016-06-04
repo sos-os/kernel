@@ -133,13 +133,71 @@ pub static EXCEPTIONS: [ExceptionInfo; 20]
 /// Our global IDT.
 static IDT: Mutex<Idt> = Mutex::new(Idt::new());
 
+
+macro_rules! isr {
+    (exception $ex:expr, $name:ident) => {
+        #[inline(never)] #[naked] #[no_mangle]
+        pub unsafe extern fn $name() {
+            //asm!(  "push 0
+            //        push $0"
+            //    :: "i"($ex)
+            //    :: "volatile", "intel" );
+            Registers::push();
+            cpu_exception_handler($ex);
+            //asm!( "mov rdi, rsp
+            //       call handle_cpu_exception"
+            //    :::: "volatile", "intel");
+            Registers::pop();
+            asm!( "add rsp, 16
+                   iretq"
+                 :::: "volatile", "intel");
+            unreachable!();
+        }
+        Gate::from($name)
+    };
+    (error $ex:expr, $name:ident) => {
+        #[inline(never)] #[naked] #[no_mangle]
+        pub unsafe extern fn $name() {
+            //asm!(  "push $0"
+            //    :: "i"($expr)
+            //    :: "volatile", "intel" );
+            Registers::push();
+            asm!( "mov rdi, rsp
+                   call handle_cpu_exception"
+                :::: "volatile", "intel");
+            Registers::pop();
+            asm!( "add rsp, 16
+                   iretq"
+                 :::: "volatile", "intel");
+            unreachable!();
+        }
+        Gate::from($name)
+    };
+    (interrupt id $id:expr, $name:ident) => {
+        #[inline(never)] #[naked] #[no_mangle]
+        pub unsafe extern fn $name() -> ! {
+            asm!(  "push 0
+                    push $0" :: "i"($id) :: "volatile", "intel" );
+            Registers::push();
+            asm!( "mov rdi, rsp
+                   call interrupt_handler"
+                :::: "volatile", "intel");
+            Registers::pop();
+            asm!( "add rsp, 16
+                   iretq"
+                 :::: "volatile", "intel");
+            unreachable!();
+        }
+    }
+}
+
 /// Kernel interrupt-handling function.
 ///
 /// Assembly interrupt handlers call into this, and it dispatches interrupts to
 /// the appropriate consumers.
 #[no_mangle]
 pub extern fn handle_interrupt( state: &InterruptContext
-                              , id: usize, _err_code: usize) {
+                              , id: usize ) {
    match id {
        // System timer
        0x20 => { /* TODO: make this work */ }
@@ -162,6 +220,10 @@ pub extern fn handle_interrupt( state: &InterruptContext
    }
    // send the PICs the end interrupt signal
    unsafe { pics::end_pic_interrupt(id as u8) };
+}
+
+pub extern fn interrupt_handler (state: &InterruptContext, id: usize, _: usize ) {
+    println!("got interrupt {}, yay!", id);
 }
 
 /// Handle a CPU exception with a given interrupt context.
@@ -194,6 +256,8 @@ pub extern fn handle_cpu_exception( state: &InterruptContext
     loop { }
 }
 
+isr! { interrupt id 0x21, keyboard_isr }
+
 /// Initialize interrupt handling.
 ///
 /// This function initializes the PICs, populates the IDT with interrupt
@@ -207,6 +271,7 @@ pub unsafe fn initialize() {
    pics::initialize();
    IDT.lock()
       .add_handlers()
+      .add_gate(0x21, keyboard_isr)
       .load();                 // Load the IDT pointer
    // print!("Testing interrupt handling...");
    // asm!("int $0" :: "N" (0x80));

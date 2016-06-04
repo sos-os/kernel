@@ -11,6 +11,7 @@
 use core::{fmt, ptr};
 
 use arch::cpu::dtable::DTable;
+use arch::cpu::Registers;
 
 extern {
     /// Array of interrupt handlers exported by ASM
@@ -73,8 +74,9 @@ impl Idt {
     pub unsafe fn disable_interrupts() { asm!("cli") }
 
     /// Add a new interrupt gate pointing to the given handler
-    pub fn add_gate(&mut self, idx: usize, handler: Handler) {
-        self.0[idx] = Gate::from(handler)
+    pub fn add_gate(&mut self, idx: usize, handler: Handler) -> &mut Self {
+        self.0[idx] = Gate::from(handler);
+        self
     }
 
     /// Add interrupt handlers exported by assembly to the IDT.
