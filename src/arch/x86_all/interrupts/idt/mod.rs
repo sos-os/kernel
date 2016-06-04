@@ -67,16 +67,16 @@ bitflags! {
 }
 
 impl GateOptions {
-    #[inline] fn is_trap(&self) -> bool {
+    #[inline] pub fn is_trap(&self) -> bool {
         self.contains(TRAP_GATE)
     }
 
-    #[inline] fn is_present(&self) -> bool {
+    #[inline] pub fn is_present(&self) -> bool {
         self.contains(PRESENT)
     }
 
     /// Sets the present bit for this gate
-    #[inline] fn set_present(&mut self, present: bool) -> &mut Self {
+    #[inline] pub fn set_present(&mut self, present: bool) -> &mut Self {
         if present { self.insert(PRESENT) }
         else { self.remove(PRESENT) }
         self
