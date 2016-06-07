@@ -327,7 +327,7 @@ pub enum Type {
   , PreInitArray
   , Group
   , SymbolTableShIndex
-  , OSSpecific(u32)
+  , OsSpecific(u32)
   , ProcessorSpecific(u32)
   , User(u32)
 }

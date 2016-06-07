@@ -133,14 +133,14 @@ pub enum DataEncoding {
 pub enum OsAbi { /// Ox00 also represents "none"
                  SystemV = 0x00
                , HpUx    = 0x01
-               , NetBSD  = 0x02
+               , NetBsd  = 0x02
                , Linux   = 0x03
                , Solaris = 0x06
                , Aix     = 0x07
                , Irix    = 0x08
-               , FreeBSD = 0x09
-               , OpenBSD = 0x0C
-               , OpenVMS = 0x0D
+               , FreeBsd = 0x09
+               , OpenBsd = 0x0C
+               , OpenVms = 0x0D
                }
 
 /// Identifies the version of the ELF file
@@ -186,7 +186,7 @@ pub enum Machine { None    = 0
                  , Sparc   = 0x02
                  , X86     = 0x03
                  , Mips    = 0x08
-                 , PowerPC = 0x14
+                 , PowerPc = 0x14
                  , Arm     = 0x28
                  , SuperH  = 0x2A
                  , Ia64    = 0x32
