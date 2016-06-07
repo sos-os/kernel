@@ -8,11 +8,9 @@
 //
 use ::memory::PAddr;
 
-use super::Section;
-use super::section;
+use super::{ElfResult, Section, section};
 
-use core::fmt;
-use core::mem;
+use core::{fmt, mem};
 
 /// An ELF file header
 #[derive(Copy, Clone, Debug)]
@@ -39,7 +37,7 @@ pub struct Header {
 impl Header {
 
     /// Attempt to extract an ELF file header from a slice of bytes.
-    pub fn from_slice<'a>(input: &'a [u8]) -> Result<&'a Header, &str> {
+    pub fn from_slice<'a>(input: &'a [u8]) -> ElfResult<&'a Header> {
         if input.len() < mem::size_of::<Header>() {
             Err("Input too short to extract ELF header")
         } else {
@@ -49,7 +47,7 @@ impl Header {
 
     /// Attempt to extract a section header from a slice of bytes.
     pub fn section<'a>(&'a self, input: &'a [u8], idx: u16)
-                      -> Result<&'a Section, &str>
+                      -> ElfResult<&'a Section>
     {
         if idx < section::SHN_LORESERVE {
             Err("Cannot parse reserved section.")
