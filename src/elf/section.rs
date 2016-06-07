@@ -8,6 +8,7 @@
 //
 use memory::PAddr;
 use core::fmt;
+use super::ElfResult;
 
 // Distinguished section indices.
 pub const SHN_UNDEF: u16        = 0;
@@ -176,7 +177,9 @@ impl<'a> Header<'a> {
     #[inline] pub fn flags(&self) -> Flags { get!(self, flags) }
 
     /// Returns the type of this section
-    #[inline] pub fn get_type(&self) -> Type { get!(self, ty).as_type() }
+    #[inline] pub fn get_type(&self) -> ElfResult<Type> {
+         get!(self, ty).as_type()
+     }
 
     /// Returns true if this section is writable.
     #[inline] pub fn is_writable(&self) -> bool {
@@ -212,31 +215,36 @@ pub enum Contents<'a> {
           , indicies: &'a[u32] }
 }
 
+/// Underlying representation of a section header type field
+///
+/// Unfortunately, we cannot have enums with open ranges yet, so we have
+/// to convert between the ELF file underlying representation and our
+/// type-safe representation.
 #[derive(Debug, Copy, Clone)]
 struct TypeRepr(u32);
 
 impl TypeRepr {
-    #[inline] fn as_type(&self) -> Type {
+    #[inline] fn as_type(&self) -> ElfResult<Type> {
         match self.0 {
-            0 => Type::Null
-          , 1 => Type::ProgramBits
-          , 2 => Type::SymbolTable
-          , 3 => Type::StringTable
-          , 4 => Type::Rela
-          , 5 => Type::HashTable
-          , 6 => Type::Dynamic
-          , 7 => Type::Notes
-          , 8 => Type::NoBits
-          , 9 => Type::Rel
-          , 10 => Type::Shlib
-          , 11 => Type::DynSymTable
-          , 14 => Type::InitArray
-          , 15 => Type::FiniArray
-          , 16 => Type::PreInitArray
-          , x @ SHT_LOOS ... SHT_HIOS => Type::OSSpecific(x)
-          , x @ SHT_LOPROC ... SHT_HIPROC => Type::ProcessorSpecific(x)
-          , x @ SHT_LOUSER ... SHT_HIUSER => Type::User(x)
-          , _ => panic!("Invalid section type!")
+            0 => Ok(Type::Null)
+          , 1 => Ok(Type::ProgramBits)
+          , 2 => Ok(Type::SymbolTable)
+          , 3 => Ok(Type::StringTable)
+          , 4 => Ok(Type::Rela)
+          , 5 => Ok(Type::HashTable)
+          , 6 => Ok(Type::Dynamic)
+          , 7 => Ok(Type::Notes)
+          , 8 => Ok(Type::NoBits)
+          , 9 => Ok(Type::Rel)
+          , 10 => Ok(Type::Shlib)
+          , 11 => Ok(Type::DynSymTable)
+          , 14 => Ok(Type::InitArray)
+          , 15 => Ok(Type::FiniArray)
+          , 16 => Ok(Type::PreInitArray)
+          , x @ SHT_LOOS ... SHT_HIOS => Ok(Type::OsSpecific(x))
+          , x @ SHT_LOPROC ... SHT_HIPROC => Ok(Type::ProcessorSpecific(x))
+          , x @ SHT_LOUSER ... SHT_HIUSER => Ok(Type::User(x))
+          , _ => Err("Invalid section type!")
         }
     }
 }
@@ -363,7 +371,7 @@ where HeaderRepr<W>: AsHeader {
                     as *const HeaderRepr<W>)
             };
             self.remaining -= 1;
-            if current.get_type() == Type::Null {
+            if current.get_type().unwrap() == Type::Null {
                 self.next()
             } else {
                 Some(current)

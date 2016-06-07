@@ -22,6 +22,7 @@ pub mod file;
 
 pub type Section<'a> = section::Header<'a>;
 pub type FileHeader = file::Header;
+pub type ElfResult<T> = Result<T, &'static str>;
 
 /// A handle on an ELF binary
 #[derive(Debug)]
