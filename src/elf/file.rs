@@ -8,23 +8,23 @@
 //
 use ::memory::PAddr;
 
-use super::{ElfResult, Section, section};
+use super::{ElfResult, ElfWord, Section, section};
 
 use core::{fmt, mem};
 
 /// An ELF file header
 #[derive(Copy, Clone, Debug)]
 #[repr(C, packed)]
-pub struct Header {
+pub struct Header<W: ElfWord> {
     pub ident: Ident
   , elftype: TypeRepr
   , pub machine: Machine
   , /// Program entry point
-    pub entry_point: PAddr
+    pub entry_point: W
   , /// Offset for start of program headers
-    pub ph_offset: PAddr
+    pub ph_offset: W
   , /// Offset for start of section headers
-    pub sh_offset: PAddr
+    pub sh_offset: W
   , pub flags: u32
   , pub header_size: u16
   , pub ph_entry_size: u16
@@ -34,34 +34,42 @@ pub struct Header {
   , pub sh_str_idx: u16
 }
 
-impl Header {
+impl<W> Header<W> where W: ElfWord {
 
     /// Attempt to extract an ELF file header from a slice of bytes.
-    pub fn from_slice<'a>(input: &'a [u8]) -> ElfResult<&'a Header> {
-        if input.len() < mem::size_of::<Header>() {
+    pub fn from_slice<'a>(input: &'a [u8]) -> ElfResult<&'a Header<W>> {
+        if input.len() < mem::size_of::<Header<W>>() {
             Err("Input too short to extract ELF header")
         } else {
-            unsafe { Ok(&super::extract_from_slice::<Header>(input, 0, 1)[0]) }
+            unsafe { Ok(&super::extract_from_slice::<Header<W>>(input, 0, 1)[0]) }
         }
     }
 
+    #[inline]
+    pub fn get_type(&self) -> Type { self.elftype.as_type() }
+
+}
+
+impl Header<u64> {
+
     /// Attempt to extract a section header from a slice of bytes.
-    pub fn section<'a>(&'a self, input: &'a [u8], idx: u16)
-                      -> ElfResult<&'a Section>
+    pub fn parse_section<'a>(&'a self, input: &'a [u8], idx: u16)
+                            -> ElfResult<&'a Section>
     {
         if idx < section::SHN_LORESERVE {
             Err("Cannot parse reserved section.")
         } else {
-            let start: PAddr// start offset for section
+            let start: u64// start offset for section
                 = self.sh_offset + idx as u64 * self.sh_entry_size as u64;
-            let end: PAddr // end offset for section
+            let end: u64 // end offset for section
                 = start + self.sh_entry_size as u64;
             let raw
-                = &input[*start as usize .. *end as usize];
+                = &input[start as usize .. end as usize];
 
             match self.ident.class {
                 Class::None => Err("Invalid ELF class (ELFCLASSNONE).")
-              , Class::Elf32 => unimplemented!()
+              , Class::Elf32 => Err("Cannot parse 32-bit section from 64-bit \
+                                     ELF file.")
               , Class::Elf64 => unsafe {
                     Ok(mem::transmute(raw as *const [u8] as *const u8 as *const Section))
                 }
@@ -69,9 +77,34 @@ impl Header {
         }
     }
 
-    #[inline]
-    pub fn get_type(&self) -> Type { self.elftype.as_type() }
+}
 
+impl Header<u32> {
+
+    /// Attempt to extract a section header from a slice of bytes.
+    pub fn parse_section<'a>(&'a self, input: &'a [u8], idx: u16)
+                            -> ElfResult<&'a Section>
+    {
+        if idx < section::SHN_LORESERVE {
+            Err("Cannot parse reserved section.")
+        } else {
+            let start: u32// start offset for section
+                = self.sh_offset + idx as u32 * self.sh_entry_size as u32;
+            let end: u32 // end offset for section
+                = start + self.sh_entry_size as u32;
+            let raw
+                = &input[start as usize .. end as usize];
+
+            match self.ident.class {
+                Class::None => Err("Invalid ELF class (ELFCLASSNONE).")
+              , Class::Elf32 => unsafe {
+                    Ok(mem::transmute(raw as *const [u8] as *const u8 as *const Section))
+                }
+              , Class::Elf64 => Err("Cannot parse 64-bit section from 32-bit \
+                                     ELF file.")
+            }
+        }
+    }
 
 }
 
@@ -147,7 +180,7 @@ pub enum OsAbi { /// Ox00 also represents "none"
 pub enum Version { None = 0, Current = 1 }
 
 #[derive(Clone, Copy, PartialEq)]
-pub struct TypeRepr(u16);
+struct TypeRepr(u16);
 
 impl TypeRepr {
     pub fn as_type(&self) -> Type {

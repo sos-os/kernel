@@ -348,12 +348,14 @@ pub struct Sections<'a, W: 'a> { curr: &'a HeaderRepr<W>
                                }
 
 impl<'a, W: 'a> Sections<'a, W> {
+
     pub fn new(curr: &'a HeaderRepr<W>, remaining: u32, size: u32)
                -> Sections<'a, W>
     {
         Sections { curr: curr, remaining: remaining, size: size }
 
     }
+
 }
 
 
