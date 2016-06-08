@@ -109,10 +109,11 @@ impl Header<u32> {
 }
 
 /// ELF header magic
-pub const MAGIC: [u8; 4] = [0x7f, b'E', b'L', b'F'];
+pub const MAGIC: Magic = [0x7f, b'E', b'L', b'F'];
 
 /// Type of header magic
 pub type Magic = [u8; 4];
+
 
 /// ELF identifier (`e_ident` in the ELF standard)
 #[derive(Copy, Clone, Debug)]
@@ -130,6 +131,10 @@ pub struct Ident {
   , /// ABI version (often this is just padding)
     pub abi_version: u8
   , _padding: [u8; 7]
+}
+
+impl Ident {
+    #[inline] pub fn check_magic(&self) -> bool { self.magic == MAGIC }
 }
 
 /// Identifies the class of the ELF file
