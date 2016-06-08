@@ -100,9 +100,9 @@ fn test_alloc_and_dealloc() {
               , FreeList::new(), FreeList::new()
               , FreeList::new()
               ];
-        let heap = BuddyHeapAllocator::new( mem
-                                          , &mut free_lists
-                                          , HEAP_SIZE );
+        let mut heap = BuddyHeapAllocator::new( mem
+                                              , &mut free_lists
+                                              , HEAP_SIZE );
 
 
         let block_128_0 = heap.allocate(128, 128);
