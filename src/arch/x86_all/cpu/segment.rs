@@ -13,19 +13,7 @@
 //! Some of the documentation present in this module was taken from the Intel
 //! manual.
 use core::{fmt, mem};
-
-
-/// Represents an x86 privilege level.
-#[derive(Copy, Clone, Debug, PartialEq, PartialOrd, Ord, Eq)]
-#[repr(u16)]
-pub enum PrivilegeLevel { /// Ring 0 is the most privileged ring
-                          KernelMode = 0
-                        , Ring1 = 1
-                        , Ring2 = 2
-                        , /// Ring 3 is the least privileged ring
-                          UserMode = 3
-
-}
+use super::PrivilegeLevel;
 
 bitflags! {
     /// A segment selector is a 16-bit identifier for a segment.

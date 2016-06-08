@@ -8,9 +8,10 @@
 //
 //! Common functionality for the `x86` and `x86_64` Interrupt Descriptor Table.
 
-use core::{fmt, ptr};
+use core::{fmt, ptr, mem};
 
 use arch::cpu::dtable::DTable;
+use arch::cpu::PrivilegeLevel;
 
 extern {
     /// Array of interrupt handlers exported by ASM
@@ -31,44 +32,34 @@ pub const ENTRIES: usize = 256;
 #[cfg(target_arch = "x86_64")] #[path = "gate64.rs"] pub mod gate;
 pub use self::gate::*;
 
-/// `x86` interrupt gate types.
-///
-/// Bit-and this with the attribute half-byte to produce the
-/// `type_attr` field for a `Gate`
-#[repr(u8)]
-#[derive(Copy,Clone,Debug)]
-pub enum GateType { Absent    = 0b0000_0000
-                  , Interrupt = 0b1000_1110
-                  , Call      = 0b1000_1100
-                  , Trap      = 0b1000_1111
-                  }
-
-impl fmt::Display for GateType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self { GateType::Absent    => write!(f, "Absent")
-                    , GateType::Interrupt => write!(f, "Interrupt")
-                    , GateType::Call      => write!(f, "Call")
-                    , GateType::Trap      => write!(f, "Trap")
-                    }
-    }
-}
-
 bitflags! {
-    pub flags GateOptions: u8 {
+    pub flags GateFlags: u8 {
         /// Indicates whether or not this gate is present.
         /// An interrupt on a non-present gate will trigger a
         /// General Protection Fault.
-        const PRESENT = 1 << 7
-      , const CALL_GATE = 0b0000_1100
-      , const TRAP_GATE = 0b0000_1111
-      , const IRQ_GATE  = 0b0000_1110
-      ,
+        const PRESENT       = 0b1000_0000
+
+      , const DPL_RING_0    = 0b0000_0000
+      , const DPL_RING_1    = 0b0010_0000
+      , const DPL_RING_2    = 0b0100_0000
+      , const DPL_RING_3    = 0b0110_0000
+      , const DPL           = DPL_RING_0.bits | DPL_RING_1.bits |
+                              DPL_RING_2.bits | DPL_RING_3.bits
+
+      , const SEGMENT       = 0b0001_0000
+      , const LONG_MODE     = 0b0000_1000
+
+      , const INT_GATE_16   = 0b0000_0110
+      , const INT_GATE_32   = INT_GATE_16.bits | LONG_MODE.bits
+      , const TRAP_GATE_16  = 0b0000_0111
+      , const TRAP_GATE_32  = TRAP_GATE_16.bits | LONG_MODE.bits
+      , const TASK_GATE_32  = 0b0000_0101 | LONG_MODE.bits
     }
 }
 
-impl GateOptions {
+impl GateFlags {
     #[inline] pub fn is_trap(&self) -> bool {
-        self.contains(TRAP_GATE)
+        self.contains(TRAP_GATE_16)
     }
 
     #[inline] pub fn is_present(&self) -> bool {
@@ -81,6 +72,18 @@ impl GateOptions {
         else { self.remove(PRESENT) }
         self
     }
+
+    /// Checks the gate's privilege
+    #[inline] pub fn get_dpl(&self) -> PrivilegeLevel {
+        unsafe { mem::transmute((*self & DPL).bits as u16 >> 5) }
+    }
+
+    /// Sets the privilege level of the gate
+    pub fn set_dpl(&mut self, dpl: PrivilegeLevel) -> &mut Self {
+        self.insert(GateFlags::from_bits_truncate((dpl as u8) << 5));
+        self
+    }
+
 }
 
 //==------------------------------------------------------------------------==

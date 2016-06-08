@@ -13,6 +13,19 @@ pub mod control_regs;
 pub mod segment;
 pub mod dtable;
 
+/// Represents an x86 privilege level.
+#[derive(Copy, Clone, Debug, PartialEq, PartialOrd, Ord, Eq)]
+#[repr(u16)]
+pub enum PrivilegeLevel { /// Ring 0 is the most privileged ring
+                          KernelMode = 0
+                        , Ring1 = 1
+                        , Ring2 = 2
+                        , /// Ring 3 is the least privileged ring
+                          UserMode = 3
+
+}
+
+
 pub struct Port(u16);
 
 impl Port {
