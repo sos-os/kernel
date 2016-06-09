@@ -47,10 +47,13 @@ extern crate sos_alloc as alloc;
 #[macro_use] pub mod io;
 
 pub mod util;
-pub mod panic;
 pub mod multiboot2;
 pub mod elf;
 pub mod arch;
+
+// Since the test module contains lang items, it can't be compiled when
+// running tests.
+#[cfg(not(test))] pub mod panic;
 
 use arch::cpu;
 use memory::PAddr;

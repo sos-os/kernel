@@ -8,7 +8,7 @@
 //
 //! 64-bit IDT gate implementation
 use arch::cpu::segment;
-use super::{Handler, GateType};
+use super::{Handler, GateFlags};
 
 use core::{convert, mem};
 
@@ -17,6 +17,25 @@ extern {
     /// Exported by `boot.asm`
     #[link_name = "gdt64_offset"]
     static GDT_OFFSET: u16;
+}
+
+impl GateFlags {
+
+    /// Returns a new trap gate
+    pub const fn new_trap() -> Self {
+        GateFlags { bits: super::TRAP_GATE_32.bits | super::PRESENT.bits }
+    }
+
+    /// Returns a new call gate
+    pub const fn new_task() -> Self {
+        GateFlags { bits: super::TASK_GATE_32.bits | super::PRESENT.bits }
+    }
+
+    /// Returns a new interrupt gate
+    pub const fn new_interrupt() -> Self {
+        GateFlags { bits: super::INT_GATE_32.bits | super::PRESENT.bits }
+    }
+
 }
 
 /// An IDT entry is called a gate.
@@ -40,7 +59,7 @@ pub struct Gate { /// bits 0 - 15 of the offset
                    ///   + `0b1100`: Call gate
                    ///   + `0b1110`: Interrupt gate
                    ///   + `0b1111`: Trap Gate
-                   pub type_attr: GateType
+                   pub flags: GateFlags
                  , /// bits 16 - 31 of the offset
                    pub offset_mid: u16
                  , /// bits 32 - 63 of the offset
@@ -62,7 +81,7 @@ impl Gate {
        Gate { offset_lower: 0
             , selector: segment::Selector::from_raw(0)
             , _zero: 0
-            , type_attr: GateType::Absent
+            , flags: GateFlags { bits: 0 }
             , offset_mid: 0
             , offset_upper: 0
             , _reserved: 0
@@ -87,7 +106,7 @@ impl convert::From<Handler> for Gate {
              , _zero: 0
              // Bit 7 is the present bit
              // Bits 4-0 indicate this is an interrupt gate
-             , type_attr: GateType::Interrupt
+             , flags: GateFlags::new_interrupt()
              , offset_mid: mid
              , offset_upper: high
              , _reserved: 0
@@ -116,7 +135,7 @@ impl convert::From<*const u8> for Gate {
              , _zero: 0
              // Bit 7 is the present bit
              // Bits 4-0 indicate this is an interrupt gate
-             , type_attr: GateType::Interrupt
+             , flags: GateFlags::new_interrupt()
              , offset_mid: mid
              , offset_upper: high
              , _reserved: 0

@@ -114,7 +114,7 @@ impl<T> RawLink<T> {
     #[inline]
     pub fn take(&mut self) -> Self { mem::replace(self, Self::none()) }
 
-    pub unsafe fn map<U, F: FnOnce(T) -> U>(self, f: F) -> RawLink<U> {
+    pub unsafe fn map<U, F: FnOnce(T) -> U>(self, _f: F) -> RawLink<U> {
         unimplemented!()
     }
 }
