@@ -38,6 +38,7 @@ pub mod control_regs;
 pub mod segment;
 pub mod dtable;
 pub mod flags;
+pub mod timer;
 
 /// Represents an x86 privilege level.
 #[derive(Copy, Clone, Debug, PartialEq, PartialOrd, Ord, Eq)]
