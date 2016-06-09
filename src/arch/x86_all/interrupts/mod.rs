@@ -251,7 +251,10 @@ pub unsafe extern "C" fn handle_interrupt(state: &InterruptContext) {
       , 0x80 => { // TODO: currently, we do nothing here, do we want
                   // our syscalls on this vector as well?
         }
-      , _ => panic!("Unknown interrupt: #{} Sorry!", id)
+      , _ =>  {
+          // unknown interrupt. silently do nothing?
+          //panic!("Unknown interrupt: #{} Sorry!", id)
+      }
     }
     // send the PICs the end interrupt signal
     pics::end_pic_interrupt(id as u8);
