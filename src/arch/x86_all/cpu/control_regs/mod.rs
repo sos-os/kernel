@@ -35,7 +35,7 @@ impl fmt::Display for CrState {
 /// Dump the current contents of the control registers to a `CrState`.
 pub fn dump() -> CrState {
     let cr0_: usize; let cr2_: usize;
-    let cr3_: usize; let cr4_: cr4::Flags;
+    let cr3_: usize; let cr4_: usize;
     unsafe {
         asm!(  "mov $0, cr0
                 mov $1, cr2
@@ -48,7 +48,8 @@ pub fn dump() -> CrState {
             ::: "intel"
               , "volatile");
     }
-    CrState { cr0: cr0_, cr2: cr2_, cr3: cr3_, cr4: cr4_ }
+    CrState { cr0: cr0_, cr2: cr2_, cr3: cr3_
+            , cr4: cr4::Flags::from_bits_truncate(cr4_) }
 
 }
 

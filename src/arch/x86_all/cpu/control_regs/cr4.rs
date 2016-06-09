@@ -2,13 +2,13 @@ use core::fmt;
 
 /// Read the current value from `$cr4`.
 pub fn read() -> Flags {
-    let result: Flags;
+    let result: usize;
     unsafe {
         asm!(   "mov $0, cr4"
             :   "=r"(result)
             ::: "intel" );
     }
-    result
+    Flags::from_bits_truncate(result)
 }
 
 /// Write a value to `$cr4`.
