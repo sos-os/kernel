@@ -52,15 +52,9 @@ pub enum PrivilegeLevel { /// Ring 0 is the most privileged ring
 }
 
 impl PrivilegeLevel {
-
-    /// Returns the current IO Privilege Level from `%rflags`/`%eflags`.
-    #[cfg(any(arch = "x86_64", arch = "x86"))]
-    pub fn get_iopl() -> PrivilegeLevel {
-        use core::mem::transmute;
-        transmute( (flags::read() & flags::IOPL).bits >> 12 )
-    }
+    /// Returns the current I/O Privilege Level from `%eflags`/`%rflags`.
+    #[inline] pub fn current_iopl() -> Self { flags::read().iopl() }
 }
-
 
 pub struct Port(u16);
 

@@ -1,4 +1,4 @@
-use core::mem;
+use super::PrivilegeLevel;
 
 bitflags! {
     /// Contents of the `%eflags`/`%rflags` register.
@@ -70,6 +70,14 @@ bitflags! {
         ///
         /// Present on Pentium and later.
         const ID = 1 << 21
+    }
+}
+
+impl Flags {
+    pub fn iopl(&self) -> PrivilegeLevel {
+        use core::mem::transmute;
+        let bits = (*self & IOPL).bits >> 12;
+        unsafe { transmute(bits as u16) }
     }
 }
 
