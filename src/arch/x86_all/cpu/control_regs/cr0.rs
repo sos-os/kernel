@@ -63,7 +63,7 @@ pub fn enable_write_protect() {
     let mut flags: Flags = read();
     if !flags.contains(WP) {
         flags.insert(WP);
-        unsafe { write(flags.bits) }
+        unsafe { write(flags) }
     }
 }
 
@@ -72,7 +72,7 @@ pub fn disable_write_protect() {
     let mut flags: Flags = read();
     if flags.contains(WP) {
         flags.remove(WP);
-        unsafe { write(flags.bits) }
+        unsafe { write(flags) }
     }
 }
 
@@ -81,7 +81,7 @@ pub fn enable_paging() {
     let mut flags: Flags = read();
     if !flags.contains(WP) {
         flags.insert(WP);
-        unsafe { write(flags.bits) }
+        unsafe { write(flags) }
     }
 }
 
@@ -90,7 +90,7 @@ pub fn disable_paging() {
     let mut flags: Flags = read();
     if flags.contains(PG) {
         flags.remove(PG);
-        unsafe { write(flags.bits) }
+        unsafe { write(flags) }
     }
 }
 
