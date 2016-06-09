@@ -9,13 +9,17 @@
 //! `x86` and `x86_64` control registers
 use core::fmt;
 
+/// `%cr0` contains flags that modify basic processor operation.
+pub mod cr0;
+
 /// `%cr4` contains flags that control protected mode execution.
 pub mod cr4;
+
 
 /// A struct bundling together a snapshot of the control registers state.
 #[derive(Copy,Clone,Debug)]
 pub struct CrState { /// `$cr0` contains flags that control the CPU's operations
-                     pub cr0: usize
+                     pub cr0: cr0::Flags
                    , /// `$cr2` contains the page fault linear address
                      pub cr2: usize
                    , /// `$cr3` contains the page table root pointer
@@ -48,38 +52,13 @@ pub fn dump() -> CrState {
             ::: "intel"
               , "volatile");
     }
-    CrState { cr0: cr0_, cr2: cr2_, cr3: cr3_
-            , cr4: cr4::Flags::from_bits_truncate(cr4_) }
+    CrState { cr0: cr0::Flags::from_bits_truncate(cr0_)
+            , cr2: cr2_, cr3: cr3_
+            , cr4: cr4::Flags::from_bits_truncate(cr4_)
+            }
 
 }
 
-/// Set the write protect bit in `cr0`.
-pub fn set_write_protect() {
-    let wp_bit = 1 << 16;
-    unsafe { cr0_write(cr0_read() | wp_bit) };
-}
-
-/// Read the current value from `$cr0`.
-pub fn cr0_read() -> usize {
-    let result: usize;
-    unsafe {
-        asm!(   "mov $0, cr0"
-            :   "=r"(result)
-            ::: "intel" );
-    }
-    result
-}
-
-/// Write a value to `$cr0`.
-///
-/// # Unsafe Because:
-///  - Control registers should generally not be modified during normal
-///    operation.
-pub unsafe fn cr0_write(value: usize) {
-    asm!(  "mov cr0, $0"
-        :: "r"(value)
-        :: "intel");
-}
 
 /// Read the current value from `$cr2`.
 pub fn cr2_read() -> usize {
