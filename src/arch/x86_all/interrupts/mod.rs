@@ -22,8 +22,6 @@ use io::keyboard;
 
 use vga::Color;
 
-use spin::Mutex;
-
 pub mod idt;
 pub mod pics;
 
@@ -128,83 +126,111 @@ pub static EXCEPTIONS: [ExceptionInfo; 20]
                       , source: "SSE/SSE2/SSE3 floating-point instructions" }
        ];
 
+/// Macro for making Interrupt Service Routines
+macro_rules! isr {
+   (exception $ex:expr, $name:ident, handler: $handler:ident) => {
+       #[inline(never)] #[naked] #[no_mangle]
+       pub unsafe extern "C" fn $name() -> ! {
+           asm!(  "push 0
+                   push $0"
+               :: "i"($ex)
+               :: "volatile", "intel" );
+           $crate::arch::cpu::Registers::push();
+           asm!( concat!(
+                   "mov rdi, rsp
+                    call ", stringify!($handler))
+               :: :: "volatile", "intel");
+           $crate::arch::cpu::Registers::pop();
+           asm!( "add rsp, 16
+                  iretq"
+                :::: "volatile", "intel");
+           unreachable!();
+
+       }
+   };
+   (error $ex:expr, $name:ident, handler: $handler:ident) => {
+       #[inline(never)] #[naked] #[no_mangle]
+       pub unsafe extern "C" fn $name() -> ! {
+           asm!(  "push $0"
+               :: "i"($ex)
+               :: "volatile", "intel" );
+           $crate::arch::cpu::Registers::push();
+           asm!( concat!(
+                   "mov rdi, rsp
+                    call ", stringify!($handler))
+               :: :: "volatile", "intel");
+           $crate::arch::cpu::Registers::pop();
+           asm!( "add rsp, 16
+                  iretq"
+                :::: "volatile", "intel");
+           unreachable!();
+       }
+   };
+   (interrupt $id:expr, $name:ident, handler: $handler:ident) => {
+       #[inline(never)] #[naked] #[no_mangle]
+       pub unsafe extern "C" fn $name() -> ! {
+           asm!(  "push $0"
+               :: "i"($id)
+               :: "volatile", "intel" );
+           $crate::arch::cpu::Registers::push();
+           asm!( concat!(
+                   "mov rdi, rsp
+                    call ", stringify!($handler))
+               :: :: "volatile", "intel");
+           $crate::arch::cpu::Registers::pop();
+           asm!( "add rsp, 8
+                  iretq"
+                :::: "volatile", "intel");
+           unreachable!();
+       }
+   };
+   (interrupt $id:expr, $name:ident) => {
+       isr! { interrupt $id, $name, handler: handle_interrupt }
+   };
+   (error $id:expr, $name:ident) => {
+       isr! { error $id, $name, handler: handle_cpu_exception }
+   };
+   (exception $id:expr, $name:ident) => {
+       isr! { exception $id, $name, handler: handle_cpu_exception }
+   };
+}
 //==--------------------------------------------------------------------------==
 // Top-level interrupt handling
-/// Global Interrupt Descriptor Table instance
-/// Our global IDT.
-static IDT: Mutex<Idt> = Mutex::new(Idt::new());
+lazy_static! {
+    static ref IDT: Idt = {
+        let mut idt = Idt::new();
 
-macro_rules! isr {
-    (exception $ex:expr, $name:ident, handler: $handler:ident) => {{
-        #[inline(never)] #[naked] #[no_mangle]
-        pub unsafe extern "C" fn $name() {
-            asm!(  "push 0
-                    push $0"
-                :: "i"($ex)
-                :: "volatile", "intel" );
-            $crate::arch::cpu::Registers::push();
-            asm!( concat!(
-                    "mov rdi, rsp
-                     call ", stringify!($handler))
-                :: :: "volatile", "intel");
-            $crate::arch::cpu::Registers::pop();
-            asm!( "add rsp, 16
-                   iretq"
-                 :::: "volatile", "intel");
-            unreachable!();
+        // fill the IDT with empty ISRs so we don't throw faults
+        for i in 0..idt::ENTRIES {
+            idt.add_handler(i, empty_isr);
+        }
 
-        }
-        $crate::arch::cpu::interrupts::idt::Gate::from(
-            $name as $crate::arch::cpu::interrupts::idt::Handler)
-    }};
-    (error $ex:expr, $name:ident, handler: $handler:ident) => {{
-        #[inline(never)] #[naked] #[no_mangle]
-        pub unsafe extern "C" fn $name() -> ! {
-            asm!(  "push $0"
-                :: "i"($ex)
-                :: "volatile", "intel" );
-            $crate::arch::cpu::Registers::push();
-            asm!( concat!(
-                    "mov rdi, rsp
-                     call ", stringify!($handler))
-                :: :: "volatile", "intel");
-            $crate::arch::cpu::Registers::pop();
-            asm!( "add rsp, 16
-                   iretq"
-                 :::: "volatile", "intel");
-            unreachable!();
-            $crate::arch::cpu::interrupts::idt::Gate::from(
-                $name as $crate::arch::cpu::interrupts::idt::Handler)
-        }
-    }};
-    (interrupt $id:expr, $name:ident, handler: $handler:ident) => {{
-        #[inline(never)] #[naked] #[no_mangle]
-        pub unsafe extern "C" fn $name() -> ! {
-            asm!(  "push $0"
-                :: "i"($id)
-                :: "volatile", "intel" );
-            $crate::arch::cpu::Registers::push();
-            asm!( concat!(
-                    "mov rdi, rsp
-                     call ", stringify!($handler))
-                :: :: "volatile", "intel");
-            $crate::arch::cpu::Registers::pop();
-            asm!( "add rsp, 8
-                   iretq"
-                 :::: "volatile", "intel");
-            unreachable!();
-        }
-        $crate::arch::cpu::interrupts::idt::Gate::from(
-            $name as $crate::arch::cpu::interrupts::idt::Handler)
-    }};
-    (interrupt $id:expr, $name:ident) => {
-        isr! { interrupt $id, $name, handler: handle_interrupt }
-    };
-    (error $id:expr, $name:ident) => {
-        isr! { error $id, $name, handler: handle_cpu_exception }
-    };
-    (exception $id:expr, $name:ident) => {
-        isr! { exception $id, $name, handler: handle_cpu_exception }
+        idt.add_handler(0,   isr_0)
+        .add_handler(1,   isr_1)
+        .add_handler(2,   isr_2)
+        .add_handler(3,   isr_3)
+        .add_handler(4,   isr_4)
+        .add_handler(5,   isr_5)
+        .add_handler(6,   isr_6)
+        .add_handler(7,   isr_7)
+        .add_handler(8,   isr_8)
+         // ISR 9 is reserved in x86_64
+        .add_handler(10,  isr_10)
+        .add_handler(11,  isr_11)
+        .add_handler(12,  isr_12)
+        .add_handler(13,  isr_13)
+        .add_handler(14,  isr_14_pagefault)
+         // ISR 15: reserved
+        .add_handler(16,  isr_16)
+        .add_handler(17,  isr_17)
+        .add_handler(18,  isr_18)
+        .add_handler(19,  isr_19)
+        .add_handler(0x21, keyboard_isr)
+        .add_handler(0x80, test_isr);
+
+        println!("{:<38}{:>40}", " . . Adding interrupt handlers to IDT"
+             , "[ OKAY ]");
+        idt
     };
 }
 
@@ -214,25 +240,13 @@ macro_rules! isr {
 /// the appropriate consumers.
 //  TODO: should this be #[cold]?
 #[no_mangle] #[inline(never)]
-pub extern "C" fn handle_interrupt(state: &InterruptContext) {
+pub unsafe extern "C" fn handle_interrupt(state: &InterruptContext) {
     let id = state.int_id;
     match id {
         // System timer
         0x20 => { /* TODO: make this work
                     TODO: should this IRQ get its own handler?
                   */ }
-        // Keyboard
-      , 0x21 => {
-          // TODO: dispatch keypress event to subscribers (NYI)
-            // TODO: should this interrupt get its own handler for perf?
-            if let Some(input) = keyboard::read_char() {
-                if input == '\r' {
-                    println!("");
-                } else {
-                    print!("{}", input);
-                }
-            }
-        }
         // Loonix syscall vector
       , 0x80 => { // TODO: currently, we do nothing here, do we want
                   // our syscalls on this vector as well?
@@ -240,7 +254,7 @@ pub extern "C" fn handle_interrupt(state: &InterruptContext) {
       , _ => panic!("Unknown interrupt: #{} Sorry!", id)
     }
     // send the PICs the end interrupt signal
-    unsafe { pics::end_pic_interrupt(id as u8) };
+    pics::end_pic_interrupt(id as u8);
 }
 
 #[no_mangle] #[inline(never)]
@@ -276,13 +290,7 @@ pub extern "C" fn handle_cpu_exception( state: &InterruptContext
 
     // TODO: parse error codes
     let _ = match id {
-        // TODO: page fault needs its own handler
-        14 => write!( CONSOLE.lock()
-                             .set_colors(Color::White, Color::Blue)
-                    , "{}"
-                    , PageFaultErrorCode::from_bits_truncate(err_code as u32)
-                    )
-       , _ => write!( CONSOLE.lock()
+        _ => write!( CONSOLE.lock()
                              .set_colors(Color::White, Color::Blue)
                     , "Registers:\n{:?}\n    {}\n"
                     , state.registers
@@ -294,9 +302,51 @@ pub extern "C" fn handle_cpu_exception( state: &InterruptContext
     loop { }
 }
 
-//isr! { interrupt 0x21
-//     , keyboard_isr
-//     , handler: "keyboard_handler" }
+/// Handles page fault exceptions
+#[no_mangle] #[inline(never)]
+pub extern "C" fn handle_page_fault( _state: &InterruptContext
+                                   , err_code: usize) -> ! {
+    let _ = write!( CONSOLE.lock()
+                           .set_colors(Color::White, Color::Blue)
+                        //   .clear()
+                  , "PAGE FAULT EXCEPTION\nCode: {:#x}\n\n{}"
+                  , err_code
+                  , PageFaultErrorCode::from_bits_truncate(err_code as u32) );
+    // TODO: stack dumps please
+
+    loop { }
+}
+
+#[no_mangle] #[inline(never)]
+pub extern "C" fn test_handler( state: &InterruptContext) {
+    assert_eq!(state.int_id, 0x80);
+}
+
+isr! { exception 0, isr_0 }
+isr! { exception 1, isr_1 }
+isr! { exception 2, isr_2 }
+isr! { exception 3, isr_3 }
+isr! { exception 4, isr_4 }
+isr! { exception 5, isr_5 }
+isr! { exception 6, isr_6 }
+isr! { exception 7, isr_7 }
+isr! { error 8, isr_8 }
+ // ISR 9 is reserved in x86_64
+isr! { error 10, isr_10 }
+isr! { error 11, isr_11 }
+isr! { error 12, isr_12 }
+isr! { error 13, isr_13 }
+isr! { error 14, isr_14_pagefault, handler: handle_page_fault }
+ // ISR 15: reserved
+isr! { exception 16, isr_16 }
+isr! { error 17, isr_17 }
+isr! { exception 18, isr_18 }
+isr! { exception 19, isr_19 }
+isr! { interrupt 0x21, keyboard_isr, handler: keyboard_handler }
+isr! { interrupt 0x80, test_isr, handler: test_handler }
+
+isr!{ interrupt 255, empty_isr }
+
 
 /// Initialize interrupt handling.
 ///
@@ -308,17 +358,14 @@ pub unsafe fn initialize() {
    // println!(" . Enabling interrupts:" );
    // println!( " . . Initialising PICs {:>40}"
    //         , pics::initialize().unwrap_or("[ FAIL ]") );
-   pics::initialize();
+    pics::initialize();
    // TODO: consider loading double-fault handler before anything else in case
    //       a double fault occurs during init?
-   IDT.lock()
-      .add_handlers()
-    //  .add_gate(0x21, keyboard_isr)
-      .load();                 // Load the IDT pointer
-   // print!("Testing interrupt handling...");
-   // asm!("int $0" :: "N" (0x80));
-   // println!("   [DONE]");
-   Idt::enable_interrupts(); // enable interrupts
+    IDT.load();         // Load the IDT pointer
+    //print!("Testing interrupt handling...");
+    //asm!("int $0" :: "N" (0x80));
+    //println!("   [DONE]");
+    Idt::enable_interrupts(); // enable interrupts
 
 }
 

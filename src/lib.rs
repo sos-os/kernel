@@ -42,6 +42,7 @@ extern crate sos_alloc as alloc;
 
 #[macro_use] extern crate sos_vga as vga;
 #[macro_use] extern crate bitflags;
+#[macro_use] extern crate lazy_static;
 
 #[macro_use] pub mod memory;
 #[macro_use] pub mod io;

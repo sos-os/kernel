@@ -22,9 +22,11 @@ default = []
 [dependencies]
 rlibc = "0.1.4"
 spin = "0.3.5"
+bitflags = "0.7"
 
-[dependencies.bitflags]
-version = "0.7"
+[dependencies.lazy_static]
+version = "0.2.*"
+features = ["spin_no_std"]
 
 [dependencies.sos_alloc]
 path = "lib/sos_alloc"

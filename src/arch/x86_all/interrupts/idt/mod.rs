@@ -13,13 +13,6 @@ use core::{ptr, mem};
 use arch::cpu::dtable::DTable;
 use arch::cpu::PrivilegeLevel;
 
-extern {
-    /// Array of interrupt handlers exported by ASM
-    //  TODO: hopefully, we will not need this much longer.
-    #[link_name = "isrs"]
-    static ISRs: [*const u8; ENTRIES];
-}
-
 /// An interrupt handler function.
 pub type Handler = unsafe extern "C" fn() -> !;
 
@@ -119,18 +112,18 @@ impl Idt {
         self
     }
 
-    /// Add interrupt handlers exported by assembly to the IDT.
-    pub unsafe fn add_handlers(&mut self) -> &mut Self {
-        for (i, &handler_ptr) in ISRs.iter()
-            .enumerate()
-            .filter(|&(_, &ptr)| ptr != ptr::null() ) {
-                self.0[i] = Gate::from(handler_ptr)
-        }
-
-        println!("{:<38}{:>40}", " . . Adding interrupt handlers to IDT"
-             , "[ OKAY ]");
-        self
-    }
+    ///// Add interrupt handlers exported by assembly to the IDT.
+    //pub unsafe fn add_handlers(&mut self) -> &mut Self {
+    //    for (i, &handler_ptr) in ISRs.iter()
+    //        .enumerate()
+    //        .filter(|&(_, &ptr)| ptr != ptr::null() ) {
+    //            self.0[i] = Gate::from(handler_ptr)
+    //    }
+    //
+    //    println!("{:<38}{:>40}", " . . Adding interrupt handlers to IDT"
+    //         , "[ OKAY ]");
+    //    self
+    //}
 
 }
 
