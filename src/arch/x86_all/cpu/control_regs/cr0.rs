@@ -58,41 +58,51 @@ bitflags! {
     }
 }
 
-/// Set the write protect bit in `%cr0`.
-pub fn enable_write_protect() {
-    let mut flags: Flags = read();
-    if !flags.contains(WP) {
-        flags.insert(WP);
-        unsafe { write(flags) }
-    }
+cpu_flag! {
+    doc="If set, enable paging; if unset, disable paging.",
+    PG, is_paging_enabled, enable_paging
+}
+cpu_flag! {
+    doc="If set, enable the write protect bit; if unset, disable write \
+        protect.",
+    WP, is_write_protected, enable_write_protect
 }
 
-/// Unset the write protect bit in `%cr0`.
-pub fn disable_write_protect() {
-    let mut flags: Flags = read();
-    if flags.contains(WP) {
-        flags.remove(WP);
-        unsafe { write(flags) }
-    }
-}
-
-/// Set the paging bit in `%cr0`.
-pub fn enable_paging() {
-    let mut flags: Flags = read();
-    if !flags.contains(WP) {
-        flags.insert(WP);
-        unsafe { write(flags) }
-    }
-}
-
-/// Unset the paging bit in `%cr0`.
-pub fn disable_paging() {
-    let mut flags: Flags = read();
-    if flags.contains(PG) {
-        flags.remove(PG);
-        unsafe { write(flags) }
-    }
-}
+///// Set the write protect bit in `%cr0`.
+//pub fn enable_write_protect() {
+//    let mut flags: Flags = read();
+//    if !flags.contains(WP) {
+//        flags.insert(WP);
+//        unsafe { write(flags) }
+//    }
+//}
+//
+///// Unset the write protect bit in `%cr0`.
+//pub fn disable_write_protect() {
+//    let mut flags: Flags = read();
+//    if flags.contains(WP) {
+//        flags.remove(WP);
+//        unsafe { write(flags) }
+//    }
+//}
+//
+///// Set the paging bit in `%cr0`.
+//pub fn enable_paging() {
+//    let mut flags: Flags = read();
+//    if !flags.contains(WP) {
+//        flags.insert(WP);
+//        unsafe { write(flags) }
+//    }
+//}
+//
+///// Unset the paging bit in `%cr0`.
+//pub fn disable_paging() {
+//    let mut flags: Flags = read();
+//    if flags.contains(PG) {
+//        flags.remove(PG);
+//        unsafe { write(flags) }
+//    }
+//}
 
 /// Read the current value from `%cr0`.
 pub fn read() -> Flags {

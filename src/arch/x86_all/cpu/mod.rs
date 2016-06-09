@@ -9,6 +9,31 @@
 //! Common functionality for `x86` and `x86_64` CPUs
 use ::{io,util};
 
+macro_rules! cpu_flag {
+    ($doc:meta, $flag:ident, $get:ident, $set:ident) => {
+        #[$doc]
+        pub fn $get() -> bool {
+            read().contains($flag)
+        }
+        #[$doc]
+        pub fn $set(set: bool) {
+            let mut flags: Flags = read();
+            if set {
+                flags.insert($flag);
+            } else {
+                flags.remove($flag);
+            }
+            unsafe { write(flags) }
+        }
+    };
+    ($doc:meta, $flag:ident, $get:ident) => {
+        #[$doc]
+        pub fn $get() -> bool {
+            read().contains($flag)
+        }
+    }
+}
+
 pub mod control_regs;
 pub mod segment;
 pub mod dtable;
@@ -24,6 +49,16 @@ pub enum PrivilegeLevel { /// Ring 0 is the most privileged ring
                         , /// Ring 3 is the least privileged ring
                           UserMode = 3
 
+}
+
+impl PrivilegeLevel {
+
+    /// Returns the current IO Privilege Level from `%rflags`/`%eflags`.
+    #[cfg(any(arch = "x86_64", arch = "x86"))]
+    pub fn get_iopl() -> PrivilegeLevel {
+        use core::mem::transmute;
+        transmute( (flags::read() & flags::IOPL).bits >> 12 )
+    }
 }
 
 

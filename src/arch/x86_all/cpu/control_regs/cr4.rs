@@ -39,7 +39,9 @@ bitflags! {
         /// If set, enables support for the virtual interrupt flag (VIF) in
         /// protected mode.
         const PVI = 1 << 1
-      , /// If 1, the `RTDSC` instruction can only be executed in Ring 0
+      , /// Time Stamp Disable
+        ///
+        /// If 1, the `RTDSC` instruction can only be executed in Ring 0
         const TSD = 1 << 2
       , /// Debugging Extensions
         ///
@@ -107,4 +109,9 @@ impl fmt::LowerHex for Flags {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{:#08x}", self.bits)
     }
+}
+
+cpu_flag! {
+    doc="If disabled, the `RTDSC` instruction can only be executed in Ring 0.",
+    TSD, is_timestamp_disabled, disable_timestamp
 }
