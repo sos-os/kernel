@@ -1,3 +1,5 @@
+use core::mem;
+
 bitflags! {
     /// Contents of the `%eflags`/`%rflags` register.
     ///
@@ -71,24 +73,12 @@ bitflags! {
     }
 }
 
-/// Read the current value from `$eflags`.
-#[cfg(arch = "x86")]
+/// Read the current value from `$eflags`/`%rflags`.
 pub fn read() -> Flags {
     let result: usize;
     unsafe {
-        asm!(   "mov $0, eflags"
-            :   "=r"(result)
-            ::: "intel" );
-    }
-    Flags { bits: result }
-}
-
-/// Read the current value from `$rflags`.
-#[cfg(arch = "x86_64")]
-pub fn read() -> Flags {
-    let result: usize;
-    unsafe {
-        asm!(   "mov $0, rflags"
+        asm!(   "pushf
+                 pop $0"
             :   "=r"(result)
             ::: "intel" );
     }
