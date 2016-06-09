@@ -26,6 +26,8 @@ pub type Handler = unsafe extern "C" fn() -> !;
 /// Number of entries in the system's Interrupt Descriptor Table.
 pub const ENTRIES: usize = 256;
 
+#[cfg(test)] mod tests;
+
 //==------------------------------------------------------------------------==
 // IDT Gates
 #[cfg(target_arch = "x86")]    #[path = "gate32.rs"] pub mod gate;
