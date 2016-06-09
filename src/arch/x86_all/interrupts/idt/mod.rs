@@ -108,8 +108,14 @@ impl Idt {
     pub unsafe fn disable_interrupts() { asm!("cli") }
 
     /// Add a new interrupt gate pointing to the given handler
-    pub fn add_gate(&mut self, idx: usize, handler: Handler) -> &mut Self {
-        self.0[idx] = Gate::from(handler);
+    #[inline]
+    pub fn add_handler(&mut self, idx: usize, handler: Handler) -> &mut Self {
+        self.add_gate(idx, Gate::from(handler))
+    }
+
+    #[inline]
+    pub fn add_gate(&mut self, idx: usize, gate: Gate) -> &mut Self {
+        self.0[idx] = gate;
         self
     }
 
@@ -133,10 +139,12 @@ impl DTable for Idt {
 
     #[inline] fn entry_count(&self) -> usize { ENTRIES }
 
-    #[inline] unsafe fn load(&self) {
-        asm!(  "lidt ($0)"
-            :: "r"(&self.get_ptr())
-            :  "memory" );
+    #[inline] fn load(&'static self) {
+        unsafe {
+            asm!(  "lidt ($0)"
+                :: "r"(&self.get_ptr())
+                :  "memory" );
+        }
         println!("{:<38}{:>40}", " . . Loading IDT", "[ OKAY ]");
     }
 }
