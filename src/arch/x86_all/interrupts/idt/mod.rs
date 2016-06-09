@@ -8,7 +8,7 @@
 //
 //! Common functionality for the `x86` and `x86_64` Interrupt Descriptor Table.
 
-use core::{fmt, ptr, mem};
+use core::{ptr, mem};
 
 use arch::cpu::dtable::DTable;
 use arch::cpu::PrivilegeLevel;
