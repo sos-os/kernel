@@ -8,7 +8,7 @@ pub fn read() -> Flags {
             :   "=r"(result)
             ::: "intel" );
     }
-    Flags::from_bits_truncate(result)
+    Flags { bits: result }
 }
 
 /// Write a value to `$cr4`.
@@ -16,9 +16,9 @@ pub fn read() -> Flags {
 /// # Unsafe Because:
 ///  - Control registers should generally not be modified during normal
 ///    operation.
-pub unsafe fn cr4_write(value: usize) {
+pub unsafe fn write(flags: Flags) {
     asm!(  "mov cr4, $0"
-        :: "r"(value)
+        :: "r"(flags.bits)
         :: "intel");
 }
 
