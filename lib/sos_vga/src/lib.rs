@@ -188,7 +188,7 @@ impl Terminal {
             // otherwise, it's a regular character, so we just set the
             // byte at the current position in the buffer to that
             // character (with the current color palette)
-            // 
+            //
             self.buffer()[self.y][self.x]
                 = Char { ascii: byte
                        , colors: self.colors };
@@ -212,13 +212,13 @@ impl Terminal {
     fn handle_ansi_escape(&self, escape_code: &str) -> Result {
         match escape_code.as_bytes() {
             // `\x1b[3Nm` sets the foreground color to N.
-            [0x1b, b'[', b'3', n, b'm'] => {
+            &[0x1b, b'[', b'3', n, b'm'] => {
                 unsafe { self.colors
                              .set_foreground(mem::transmute(n - 48)); }
                 Ok(())
             }
             // `\x1b[4Nm` sets the background color to N
-          , [0x1b, b'[', b'4', n, b'm'] => {
+          , &[0x1b, b'[', b'4', n, b'm'] => {
                 unsafe { self.colors
                              .set_background(mem::transmute(n - 48)); }
                 Ok(())

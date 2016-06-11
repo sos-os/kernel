@@ -9,9 +9,53 @@
 //! Common functionality for `x86` and `x86_64` CPUs
 use ::{io,util};
 
+macro_rules! cpu_flag {
+    ($doc:meta, $flag:ident, $get:ident, $set:ident) => {
+        #[$doc]
+        pub fn $get() -> bool {
+            read().contains($flag)
+        }
+        #[$doc]
+        pub fn $set(set: bool) {
+            let mut flags: Flags = read();
+            if set {
+                flags.insert($flag);
+            } else {
+                flags.remove($flag);
+            }
+            unsafe { write(flags) }
+        }
+    };
+    ($doc:meta, $flag:ident, $get:ident) => {
+        #[$doc]
+        pub fn $get() -> bool {
+            read().contains($flag)
+        }
+    }
+}
+
 pub mod control_regs;
 pub mod segment;
 pub mod dtable;
+pub mod flags;
+pub mod timer;
+
+/// Represents an x86 privilege level.
+#[derive(Copy, Clone, Debug, PartialEq, PartialOrd, Ord, Eq)]
+#[repr(u16)]
+pub enum PrivilegeLevel { /// Ring 0 is the most privileged ring
+                          KernelMode = 0
+                        , Ring1 = 1
+                        , Ring2 = 2
+                        , /// Ring 3 is the least privileged ring
+                          UserMode = 3
+
+}
+
+impl PrivilegeLevel {
+    /// Returns the current I/O Privilege Level from `%eflags`/`%rflags`.
+    #[inline] pub fn current_iopl() -> Self { flags::read().iopl() }
+}
 
 pub struct Port(u16);
 
@@ -86,9 +130,9 @@ impl io::Read for Port {
             Ok(match &mut *buf {
                 // if the length of the buffer is 0, then obviously
                 // no bytes were read
-                []                  => 0
+                &mut []                  => 0
                 // otherwise, read one byte into the head of the buffer
-              , [ref mut head, _..] => { *head = self.in8(); 1 }
+              , &mut [ref mut head, _..] => { *head = self.in8(); 1 }
             })
         }
     }

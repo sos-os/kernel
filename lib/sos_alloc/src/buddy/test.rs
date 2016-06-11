@@ -23,10 +23,9 @@ fn test_allocation_size_and_order() {
               , FreeList::new(), FreeList::new()
               , FreeList::new()
               ];
-        let mut heap
-            = BuddyHeapAllocator::new( mem
-                                     , &mut free_lists
-                                     , HEAP_SIZE );
+        let heap = BuddyHeapAllocator::new( mem
+                                          , &mut free_lists
+                                          , HEAP_SIZE );
 
         // TEST NEEDED: Can't align beyond MIN_HEAP_ALIGN.
 
@@ -67,10 +66,9 @@ fn test_get_buddy() {
               , FreeList::new(), FreeList::new()
               , FreeList::new()
               ];
-        let mut heap
-            = BuddyHeapAllocator::new( mem
-                                     , &mut free_lists
-                                     , HEAP_SIZE );
+        let heap = BuddyHeapAllocator::new( mem
+                                          , &mut free_lists
+                                          , HEAP_SIZE );
         let block_16_0 = mem;
         let block_16_1 = mem.offset(16);
         assert_eq!(Some(block_16_1), heap.get_buddy(0, block_16_0));
@@ -102,10 +100,9 @@ fn test_alloc_and_dealloc() {
               , FreeList::new(), FreeList::new()
               , FreeList::new()
               ];
-        let mut heap
-            = BuddyHeapAllocator::new( mem
-                                     , &mut free_lists
-                                     , HEAP_SIZE );
+        let mut heap = BuddyHeapAllocator::new( mem
+                                              , &mut free_lists
+                                              , HEAP_SIZE );
 
 
         let block_128_0 = heap.allocate(128, 128);

@@ -13,20 +13,27 @@
 //!  - [Wikipedia](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format)
 //!  - The [OS Dev Wiki](http://wiki.osdev.org/ELF)
 //!  - The [ELF Format Specification](http://www.skyfree.org/linux/references/ELF_Format.pdf)
-use core::mem;
-use core::intrinsics;
-use core::slice;
+use core::{ intrinsics, ops, mem, slice };
 
 pub mod section;
 pub mod file;
 
 pub type Section<'a> = section::Header<'a>;
-pub type FileHeader = file::Header;
+pub type FileHeader<W> = file::Header<W>;
+pub type ElfResult<T> = Result<T, &'static str>;
+
+pub trait ElfWord: Sized + Copy + Clone
+                         + ops::Add<Self> + ops::Sub<Self>
+                         + ops::Mul<Self> + ops::Div<Self>
+                         + ops::Shl<Self> + ops::Shr<Self> { }
+impl ElfWord for u64 { }
+impl ElfWord for u32 { }
 
 /// A handle on an ELF binary
 #[derive(Debug)]
-pub struct Binary<'a> {
-    pub header: &'a FileHeader
+pub struct Binary<'a, Word>
+where Word: ElfWord + 'a {
+    pub header: &'a FileHeader<Word>
   , binary: &'a [u8]
 }
 
