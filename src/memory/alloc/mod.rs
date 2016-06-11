@@ -1,3 +1,88 @@
+use super::paging::{Page, PageRange};
+use core::ops;
+
+/// A borrowed handle on a frame with a specified lifetime.
+///
+/// This automatically deallocates the frame when the borrow's lifetime
+/// ends. It also ensures that the borrow only lives as long as the allocator
+/// that provided it, and that the borrow is dropped if the allocator is
+/// dropped.
+pub struct BorrowedFrame<'a, F, A>
+where F: Page
+    , A: FrameAllocator<F>
+    , A: 'a {
+    frame: F
+  , allocator: &'a A
+}
+
+impl<'a, F, A> ops::Deref for BorrowedFrame<'a, F, A>
+where F: Page
+    , A: 'a {
+    type Target = F;
+    fn deref(&self) -> &F { &self.frame }
+}
+
+impl<'a, F, A> ops::DerefMut for BorrowedFrame<'a, F, A>
+where F: Page
+    , A: 'a {
+    fn deref_mut(&mut self) -> &mut F { &mut self.frame }
+}
+
+impl<'a, F, A> Drop for BorrowedFrame<'a, F, A>
+where F: Page
+    , A: FrameAllocator<F>
+    , A: 'a {
+    fn drop(&mut self) {
+        unsafe { self.allocator.deallocate(self.frame) }
+    }
+}
+
+/// Identical to a `BorrowedFrame` but borrowing a range of `Frame`s.
+pub struct BorrowedFrameRange<'a, F, A>
+where F: Page
+    , A: FrameAllocator<F>
+    , A: 'a {
+    range: PageRange<F>
+  , allocator: &'a A
+}
+
+impl<'a, F, A> ops::Deref for BorrowedFrame<'a, F, A>
+where F: Page
+    , A: 'a {
+    type Target = PageRange<F>;
+    fn deref(&self) -> &Self::Target { &self.range }
+}
+
+impl<'a, F, A> ops::DerefMut for BorrowedFrame<'a, F, A>
+where F: Page
+    , A: 'a {
+    fn deref_mut(&mut self) -> &mut Self::Target { &mut self.range }
+}
+
+impl<'a, F, A> Drop for BorrowedFrame<'a, F, A>
+where F: Page
+    , A: FrameAllocator<F>
+    , A: 'a {
+    fn drop(&mut self) {
+        unsafe { self.allocator.deallocate_range(self.range) }
+    }
+}
+
+
+pub trait FrameAllocator<Frame>
+where Frame: Page {
+
+    unsafe fn allocate(&self) -> Option<Frame>;
+    unsafe fn deallocate(&self, frame: Frame);
+    fn borrow(&self) -> Option<BorrowedFrame<Frame, Self>>;
+
+    unsafe fn allocate_range(&self, num: usize) -> Option<PageRange<Frame>>;
+    unsafe fn deallocate_range(&self, range: PageRange<Frame>);
+    fn borrow_range(&self, num: usize)
+                    -> Option<BorrowedFrameRange<Frame, Self>>;
+
+
+}
 
 /// An `Allocator` implements a particular memory allocation strategy.
 pub trait Allocator {
