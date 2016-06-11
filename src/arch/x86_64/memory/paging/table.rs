@@ -8,7 +8,7 @@
 //
 use arch::memory::{Frame, PAddr, PAGE_SIZE};
 
-use memory::paging::FrameAllocator;
+use memory::paging::{Page, FrameAllocator};
 
 use core::marker::PhantomData;
 use core::ops::{Index, IndexMut};

@@ -10,6 +10,7 @@
 use core::mem;
 
 use ::memory::Addr;
+use ::memory::paging::Page;
 //pub mod table;
 //pub mod entry;
 pub mod paging;
@@ -49,6 +50,19 @@ derive_addr! { PAddr, u64 }
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Frame { pub number: u64 }
 
+impl Page for Frame {
+    type Address = PAddr;
+
+    #[inline] fn base(&self) -> Self::Address {
+        self.base_addr()
+    }
+
+    #[inline] fn containing(addr: Self::Address) -> Self {
+        Frame::containing_addr(addr)
+    }
+
+}
+
 impl ops::Add<u64> for Frame {
     type Output = Frame;
 
@@ -67,6 +81,34 @@ impl ops::Add<usize> for Frame {
     }
 }
 
+impl ops::AddAssign for Frame {
+    #[inline(always)]
+    fn add_assign(&mut self, rhs: Self) {
+        self.number += rhs.number as u64
+    }
+}
+
+impl ops::AddAssign<usize> for Frame {
+    #[inline(always)]
+    fn add_assign(&mut self, rhs: usize) {
+        self.number += rhs as u64
+    }
+}
+
+impl ops::SubAssign for Frame {
+    #[inline]
+    fn sub_assign(&mut self, rhs: Self) {
+        self.number -= rhs.number as u64
+    }
+}
+
+impl ops::SubAssign<usize> for Frame {
+    #[inline]
+    fn sub_assign(&mut self, rhs: usize) {
+        self.number -= rhs as u64
+    }
+}
+
 impl Frame {
 
     /// Returns the physical address where this frame starts.
@@ -77,7 +119,7 @@ impl Frame {
 
     /// Returns a new frame containing `addr`
     #[inline]
-    pub const fn containing(addr: PAddr) -> Frame {
+    pub const fn containing_addr(addr: PAddr) -> Frame {
         Frame { number: addr.0 / PAGE_SIZE }
     }
 
@@ -92,45 +134,5 @@ impl Frame {
     pub unsafe fn as_mut_ptr<T>(&self) -> *mut T {
         *self.base_addr() as *mut u8 as *mut T
     }
-
-    /// Returns a `FrameRange`
-    pub const fn range_between(start: Frame, end: Frame) -> FrameRange {
-        FrameRange { start: start, end: end }
-    }
-
-    /// Returns a `FrameRange` on the frames from this frame until the end frame
-    pub const fn range_until(&self, end: Frame) -> FrameRange {
-        FrameRange { start: *self, end: end }
-    }
-
-}
-
-/// A range of frames
-pub struct FrameRange { start: Frame, end: Frame }
-
-impl FrameRange {
-    /// Returns an iterator over this `FrameRange`
-    pub fn iter<'a>(&'a self) -> FrameRangeIter<'a> {
-        FrameRangeIter { range: self, current: self.start.clone() }
-    }
-}
-
-/// An iterator over a range of frames
-pub struct FrameRangeIter<'a> { range: &'a FrameRange, current: Frame }
-
-impl<'a> Iterator for FrameRangeIter<'a> {
-    type Item = Frame;
-
-    fn next(&mut self) -> Option<Frame> {
-      let end = self.range.end.number;
-      assert!(self.range.start.number <= end);
-      if self.current.number < end {
-          let frame = self.current.clone();
-          self.current.number += 1;
-          Some(frame)
-      } else {
-          None
-      }
-  }
 
 }

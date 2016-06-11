@@ -1,5 +1,5 @@
 use ::memory::VAddr;
-use ::memory::paging::{Page, Mapper, FrameAllocator};
+use ::memory::paging::{Page, VirtualPage, Mapper, FrameAllocator};
 
 use super::{Frame, PAddr, PAGE_SIZE};
 use self::table::*;
@@ -30,7 +30,7 @@ impl Mapper for ActivePML4 {
             })
     }
 
-    fn translate_page(&self, page: Page) -> Option<Frame> {
+    fn translate_page(&self, page: VirtualPage) -> Option<Frame> {
         let pdpt = self.pml4().next_table(page.pml4_index());
 
         pdpt.and_then(|pdpt| pdpt.next_table(page.pdpt_index()))
@@ -59,8 +59,11 @@ impl Mapper for ActivePML4 {
     /// + `frame`: the physical `Frame` that `Page` should map to.
     /// + `flags`: the page table entry flags.
     /// + `alloc`: a memory allocator
-    fn map_to<A>( &mut self, page: Page, frame: Frame
-                , flags: EntryFlags, alloc: &mut A)
+    fn map_to<A>( &mut self
+                , page: VirtualPage
+                , frame: Frame
+                , flags: EntryFlags
+                , alloc: &mut A)
     where A: FrameAllocator<Frame> {
 
        // get the page table index of the page to map
@@ -95,7 +98,10 @@ impl Mapper for ActivePML4 {
                    , alloc )
     }
 
-    fn map_to_any<A>(&mut self, page: Page, flags: EntryFlags, alloc: &mut A)
+    fn map_to_any<A>( &mut self
+                    , page: VirtualPage
+                    , flags: EntryFlags
+                    , alloc: &mut A)
     where A: FrameAllocator<Frame> {
         self.map_to( page
                    , alloc.alloc_frame()
