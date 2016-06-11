@@ -74,12 +74,46 @@ where Frame: Page {
 
     unsafe fn allocate(&self) -> Option<Frame>;
     unsafe fn deallocate(&self, frame: Frame);
-    fn borrow(&self) -> Option<BorrowedFrame<Frame, Self>>;
+
+    /// Borrow a `Frame` from this allocator.
+    ///
+    /// The `BorrowedFrame` will live as long as this allocator, and will
+    /// contain a handle on a `Frame` that will be automatically deallocated
+    /// when the `BorrowedFrame` is dropped.
+    ///
+    /// # Returns:
+    /// + `Some(BorrowedFrame)` if there are frames remaining in this
+    ///    allocator.
+    /// + `None` if the allocator is out of frames.
+    fn borrow(&self) -> Option<BorrowedFrame<Frame, Self>> {
+        self.allocate()
+            .map(|frame| BorrowedFrame { frame: frame, allocator: self })
+    }
 
     unsafe fn allocate_range(&self, num: usize) -> Option<PageRange<Frame>>;
     unsafe fn deallocate_range(&self, range: PageRange<Frame>);
+
+    /// Borrow a `FrameRange` from this allocator.
+    ///
+    /// The `BorrowedFrameRange` will live as long as this allocator, and will
+    /// contain a handle on a range of `Frame`s that will be automatically
+    /// deallocated when the `BorrowedFrameRange` is dropped.
+    ///
+    /// # Arguments:
+    /// + `num`: The number of frames to allocate.
+    ///
+    /// # Returns:
+    /// + `Some(BorrowedFrameRange)` if there are enough `Frame`s
+    ///    remaining in the allocator to fulfill the allocation
+    ///    request.
+    /// + `None` if there are not enough frames in the allocator to fulfill the
+    ///   allocation request.
     fn borrow_range(&self, num: usize)
-                    -> Option<BorrowedFrameRange<Frame, Self>>;
+                    -> Option<BorrowedFrameRange<Frame, Self>> {
+        self.allocate_range(num)
+            .map(|range| BorrowedFrameRange { range: range
+                                            , allocator: self })
+    }
 
 
 }
