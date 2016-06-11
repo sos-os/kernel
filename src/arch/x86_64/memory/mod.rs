@@ -47,7 +47,7 @@ pub struct PAddr(u64);
 derive_addr! { PAddr, u64 }
 
 /// A frame (physical page)
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Frame { pub number: u64 }
 
 impl Page for Frame {
