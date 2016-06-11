@@ -130,9 +130,9 @@ impl io::Read for Port {
             Ok(match &mut *buf {
                 // if the length of the buffer is 0, then obviously
                 // no bytes were read
-                []                  => 0
+                &mut []                  => 0
                 // otherwise, read one byte into the head of the buffer
-              , [ref mut head, _..] => { *head = self.in8(); 1 }
+              , &mut [ref mut head, _..] => { *head = self.in8(); 1 }
             })
         }
     }
