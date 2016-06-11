@@ -12,7 +12,7 @@
 //! re-exports memory-related definitions.
 use alloc::buddy;
 
-use core::{ops, cmp, convert};
+use core::{ops, convert};
 
 pub use arch::memory::{PAddr, HEAP_BASE, HEAP_TOP, PAGE_SHIFT, PAGE_SIZE};
 
