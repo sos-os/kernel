@@ -14,7 +14,7 @@ use alloc::buddy;
 
 use core::{ops, cmp, convert};
 
-pub use arch::memory::{PAddr, HEAP_BASE, HEAP_TOP};
+pub use arch::memory::{PAddr, HEAP_BASE, HEAP_TOP, PAGE_SHIFT, PAGE_SIZE};
 
 pub mod paging;
 #[macro_use] pub mod macros;
