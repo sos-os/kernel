@@ -8,12 +8,12 @@
 //
 //! Macros to make our custom address types require a lot less repetitive code.
 
-
-
-//use super::VAddr;
-
-macro_rules! impl_addr {
+macro_rules! derive_addr {
     ($ty:ident, $size:ty) => {
+
+        impl Addr for $ty {
+            type Repr = $size;
+        }
 
         impl $crate::core::convert::Into<$size> for $ty {
             #[inline] fn into(self) -> $size { self.0 }

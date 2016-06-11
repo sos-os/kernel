@@ -33,7 +33,7 @@ pub struct FreeBlock { next: RawLink<FreeBlock>
 
 impl Framesque for FreeBlock {
     #[inline] fn as_ptr(&self) -> *mut u8 {
-        unsafe { mem::transmute(self) } // HOPEFULLY this is good
+        unsafe { mem::transmute(self) }
     }
 }
 

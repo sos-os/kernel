@@ -23,20 +23,15 @@ pub mod paging;
 #[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct VAddr(usize);
 
-pub trait Addr<R>: ops::Add<Self> + ops::Add<R>
-                 + ops::Sub<Self> + ops::Sub<R>
-                 + ops::Mul<Self> + ops::Mul<R>
-                 + ops::Div<Self> + ops::Div<R>
-                 + ops::Shl<Self> + ops::Shl<R>
-                 + ops::Shr<Self> + ops::Shr<R>
-                 + ops::Deref<Target = R>
-                 + convert::From<R> + convert::Into<R>
-                 + convert::From<*mut u8> + convert::From<*const u8>
-                 + Sized { }
+pub trait Addr: ops::Add<Self> + ops::Sub<Self>
+              + ops::Mul<Self> + ops::Div<Self>
+              + ops::Shl<Self> + ops::Shr<Self>
+              + convert::From<*mut u8> + convert::From<*const u8>
+              + Sized {
+    type Repr;
+}
 
-impl Addr<usize> for VAddr { }
-
-impl_addr! { VAddr, usize }
+derive_addr! { VAddr, usize }
 
 impl VAddr {
     #[inline] pub fn from_ptr<T>(ptr: *mut T) -> Self { VAddr(ptr as usize) }
@@ -102,8 +97,7 @@ where Self: Sized
     /// Typically, this is a `PAddr` or `VAddr` (but it could be a "MAddr")
     /// in schemes where we differentiate between physical and machine
     /// addresses. If we ever have those.
-    type Address: Addr<Self::R>;
-    type R;
+    type Address: Addr;
 
     /// Returns a new `Page` containing the given `Address`.
     ///
@@ -112,7 +106,7 @@ where Self: Sized
     /// outside of the `impl` block and then wrap them here.
     fn containing(addr: Self::Address) -> Self;
 
-    /// Returns the base `address` where this page starts.
+    /// Returns the base `Address` where this page starts.
     fn base(&self) -> Self::Address;
 
 

@@ -22,7 +22,6 @@ pub trait FrameAllocator<Frame> {
     fn dealloc_frame(&mut self, frame: Frame);
 }
 
-
 pub trait Mapper {
     type Flags;
     type Frame;
