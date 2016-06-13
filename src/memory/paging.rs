@@ -14,7 +14,8 @@ use core::{ops, cmp};
 pub trait Page
 where Self: Sized
     , Self: ops::AddAssign<usize> + ops::SubAssign<usize>
-    , Self: cmp::PartialEq<Self> + cmp::PartialOrd<Self> {
+    , Self: cmp::PartialEq<Self> + cmp::PartialOrd<Self>
+    , Self: Copy + Clone {
 
     /// The type of address used to address this `Page`.
     ///
@@ -53,7 +54,7 @@ where Self: Sized
 
     /// Returns a `FrameRange` on the frames from this frame until the end frame
     fn range_until(&self, end: Self) -> PageRange<Self> {
-        PageRange { start: self, end: end }
+        PageRange { start: *self, end: end }
     }
 
     //fn number(&self) -> R;
@@ -71,7 +72,7 @@ where P: Page
 
     /// Returns an iterator over this `PageRange`
     pub fn iter<'a>(&'a self) -> PageRangeIter<'a, P> {
-        PageRangeIter { range: self + 0, current: self.start + 0 }
+        PageRangeIter { range: self, current: self.start.clone() }
     }
 }
 
