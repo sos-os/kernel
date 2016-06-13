@@ -1,5 +1,7 @@
+pub mod first_fit;
+
 use super::paging::{Page, PageRange};
-use core::ops;
+use core::{ops, ptr, cmp};
 
 /// A borrowed handle on a frame with a specified lifetime.
 ///
@@ -17,6 +19,7 @@ where F: Page
 
 impl<'a, F, A> ops::Deref for BorrowedFrame<'a, F, A>
 where F: Page
+    , A: FrameAllocator<F>
     , A: 'a {
     type Target = F;
     fn deref(&self) -> &F { &self.frame }
@@ -24,6 +27,7 @@ where F: Page
 
 impl<'a, F, A> ops::DerefMut for BorrowedFrame<'a, F, A>
 where F: Page
+    , A: FrameAllocator<F>
     , A: 'a {
     fn deref_mut(&mut self) -> &mut F { &mut self.frame }
 }
@@ -46,20 +50,22 @@ where F: Page
   , allocator: &'a A
 }
 
-impl<'a, F, A> ops::Deref for BorrowedFrame<'a, F, A>
+impl<'a, F, A> ops::Deref for BorrowedFrameRange<'a, F, A>
 where F: Page
+    , A: FrameAllocator<F>
     , A: 'a {
     type Target = PageRange<F>;
     fn deref(&self) -> &Self::Target { &self.range }
 }
 
-impl<'a, F, A> ops::DerefMut for BorrowedFrame<'a, F, A>
+impl<'a, F, A> ops::DerefMut for BorrowedFrameRange<'a, F, A>
 where F: Page
+    , A: FrameAllocator<F>
     , A: 'a {
     fn deref_mut(&mut self) -> &mut Self::Target { &mut self.range }
 }
 
-impl<'a, F, A> Drop for BorrowedFrame<'a, F, A>
+impl<'a, F, A> Drop for BorrowedFrameRange<'a, F, A>
 where F: Page
     , A: FrameAllocator<F>
     , A: 'a {
@@ -69,7 +75,7 @@ where F: Page
 }
 
 
-pub trait FrameAllocator<Frame>
+pub trait FrameAllocator<Frame>: Sized
 where Frame: Page {
 
     unsafe fn allocate(&self) -> Option<Frame>;
@@ -86,8 +92,9 @@ where Frame: Page {
     ///    allocator.
     /// + `None` if the allocator is out of frames.
     fn borrow(&self) -> Option<BorrowedFrame<Frame, Self>> {
-        self.allocate()
-            .map(|frame| BorrowedFrame { frame: frame, allocator: self })
+        unsafe { self.allocate() }
+                     .map(|frame| BorrowedFrame { frame: frame
+                                                , allocator: self })
     }
 
     unsafe fn allocate_range(&self, num: usize) -> Option<PageRange<Frame>>;
@@ -110,9 +117,9 @@ where Frame: Page {
     ///   allocation request.
     fn borrow_range(&self, num: usize)
                     -> Option<BorrowedFrameRange<Frame, Self>> {
-        self.allocate_range(num)
-            .map(|range| BorrowedFrameRange { range: range
-                                            , allocator: self })
+        unsafe { self.allocate_range(num) }
+                     .map(|range| BorrowedFrameRange { range: range
+                                                     , allocator: self })
     }
 
 
@@ -179,7 +186,7 @@ pub trait Allocator {
             .map(|new_frame| {
                 // If a new frame was allocated, copy all the data from the
                 // old frame into the new frame.
-                ptr::copy(new_frame, old_frame, min(old_size, new_size));
+                ptr::copy(new_frame, old_frame, cmp::min(old_size, new_size));
                 // Then we can deallocate the old frame
                 self.deallocate(old_frame, old_size, align);
                 new_frame
