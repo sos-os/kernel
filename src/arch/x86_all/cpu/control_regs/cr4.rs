@@ -14,8 +14,8 @@ pub fn read() -> Flags {
 /// Write a value to `$cr4`.
 ///
 /// # Unsafe Because:
-///  - Control registers should generally not be modified during normal
-///    operation.
+/// + Control registers should generally not be modified during normal
+///   operation.
 pub unsafe fn write(flags: Flags) {
     asm!(  "mov cr4, $0"
         :: "r"(flags.bits)

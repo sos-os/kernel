@@ -74,8 +74,8 @@ pub fn cr2_read() -> usize {
 /// Write a value to `$cr2`.
 ///
 /// # Unsafe Because:
-///  - Control registers should generally not be modified during normal
-///    operation.
+/// + Control registers should generally not be modified during normal
+///   operation.
 pub unsafe fn cr2_write(value: usize) {
     asm!(  "mov cr2, $0"
         :: "r"(value)
@@ -96,8 +96,8 @@ pub fn cr3_read() -> usize {
 /// Write a value to `$cr3`.
 ///
 /// # Unsafe Because:
-///  - Control registers should generally not be modified during normal
-///    operation.
+/// + Control registers should generally not be modified during normal
+///   operation.
 pub unsafe fn cr3_write(value: usize) {
     asm!(  "mov cr3, $0"
         :: "r"(value)

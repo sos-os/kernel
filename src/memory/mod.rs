@@ -16,6 +16,7 @@ use core::{ops, cmp, convert};
 
 pub use arch::memory::{PAddr, HEAP_BASE, HEAP_TOP};
 
+pub mod alloc;
 pub mod paging;
 #[macro_use] pub mod macros;
 

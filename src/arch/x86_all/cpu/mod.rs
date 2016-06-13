@@ -7,6 +7,10 @@
 //  directory of this repository for more information.
 //
 //! Common functionality for `x86` and `x86_64` CPUs
+//!
+//! Note that while we support both the `x86` and `x86_64` platforms,
+//! we only support 32-bit `x86` machines. SOS is a protected mode or
+//! long mode OS, and will not run on early x86 machines such as 286s.
 use ::{io,util};
 
 macro_rules! cpu_flag {

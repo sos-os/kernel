@@ -10,16 +10,22 @@
 //! binaries.
 //!
 //! For more information on the ELF format, refer to:
-//!  - [Wikipedia](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format)
-//!  - The [OS Dev Wiki](http://wiki.osdev.org/ELF)
-//!  - The [ELF Format Specification](http://www.skyfree.org/linux/references/ELF_Format.pdf)
+//!
+//!  + [Wikipedia](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format)
+//!  + The [OS Dev Wiki](http://wiki.osdev.org/ELF)
+//!  + The [ELF Format Specification](elfspec)
+//!
+//! [elfspec]: http://www.skyfree.org/linux/references/ELF_Format.pdf
 use core::{ intrinsics, ops, mem, slice };
 
 pub mod section;
 pub mod file;
 
+/// An ELF section header.
 pub type Section<'a> = section::Header<'a>;
+/// An ELF header file.
 pub type FileHeader<W> = file::Header<W>;
+
 pub type ElfResult<T> = Result<T, &'static str>;
 
 pub trait ElfWord: Sized + Copy + Clone

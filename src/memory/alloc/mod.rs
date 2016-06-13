@@ -1,3 +1,5 @@
+use core::ptr;
+use core::cmp::min;
 
 /// An `Allocator` implements a particular memory allocation strategy.
 pub trait Allocator {
@@ -5,13 +7,16 @@ pub trait Allocator {
     /// Allocate a new block of size `size` on alignment `align`.
     ///
     /// # Arguments:
-    ///   - `size`: the amount of memory to allocate (in bytes)
-    ///   - `align`: the alignment for the allocation request
+    /// + `size`: the amount of memory to allocate (in bytes)
+    /// + `align`: the alignment for the allocation request
     ///
     /// # Returns:
-    ///   - `Some(*mut u8)` if the request was allocated successfully
-    ///   - `None` if the allocator is out of memory or if the request was
-    ///     invalid.
+    /// + `Some(*mut u8)` if the request was allocated successfully
+    /// + `None` if the allocator is out of memory or if the request was
+    ///          invalid.
+    ///
+    /// # Unsafe Because:
+    /// + The allocated block must be deallocated manually.
     unsafe fn allocate( &mut self
                       , size: usize
                       , align: usize)
@@ -24,9 +29,14 @@ pub trait Allocator {
     /// heap will become corrupted.
     ///
     /// # Arguments:
-    ///   - `frame`: a pointer to the block of memory to deallocate
-    ///   - `size`: the size of the block being deallocated
-    ///   - `align`: the alignment of the block being deallocated
+    /// + `frame`: a pointer to the block of memory to deallocate
+    /// + `size`: the size of the block being deallocated
+    /// + `align`: the alignment of the block being deallocated
+    ///
+    /// # Unsafe Because:
+    /// + Manually deallocates a block.
+    /// + If the `size` and `align` parameters do not match the original
+    ///   layout of the requested block, the heap will become corrupted.
     unsafe fn deallocate( &mut self
                         , frame: *mut u8
                         , size: usize, align: usize);
@@ -38,14 +48,14 @@ pub trait Allocator {
     /// our heap will become corrupted.
     ///
     /// # Arguments:
-    ///   - `old_frame`: a pointer to the frame to be reallocated
-    ///   - `old_size`: the size (in bytes) of the frame being reallocated
-    ///   - `new_size`: the size to reallocate the frame to.
-    ///   - `align`: the alignment for the allocation request
+    /// + `old_frame`: a pointer to the frame to be reallocated
+    /// + `old_size`: the size (in bytes) of the frame being reallocated
+    /// + `new_size`: the size to reallocate the frame to.
+    /// + `align`: the alignment for the allocation request
     ///
     /// # Returns:
-    ///   - `Some(*mut u8)` if the frame was reallocated successfully
-    ///   - `None` if the allocator is out of memory or if the request was
+    /// + `Some(*mut u8)` if the frame was reallocated successfully
+    /// + `None` if the allocator is out of memory or if the request was
     ///     invalid.
     // TODO: Optimization: check if the reallocation request fits in
     // the old frame and return immediately if it does
