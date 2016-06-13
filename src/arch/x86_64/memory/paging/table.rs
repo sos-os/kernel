@@ -6,6 +6,7 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
+//! Page tables.
 use arch::memory::{Frame, PAddr, PAGE_SIZE};
 
 use memory::paging::FrameAllocator;
