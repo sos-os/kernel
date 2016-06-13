@@ -37,6 +37,7 @@
 extern crate collections;
 extern crate rlibc;
 extern crate spin;
+extern crate arrayvec;
 
 extern crate sos_alloc as alloc;
 

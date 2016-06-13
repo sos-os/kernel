@@ -23,6 +23,10 @@ default = []
 rlibc = "0.1.4"
 spin = "0.3.5"
 
+[dependencies.arrayvec]
+version = "0.3.16"
+default-features = false
+
 [dependencies.bitflags]
 version = "0.7"
 
