@@ -61,6 +61,7 @@ impl Page for Frame {
         Frame::containing_addr(addr)
     }
 
+    #[inline] fn number(&self) -> usize { self.number as usize }
 }
 
 impl ops::Add<u64> for Frame {
@@ -80,6 +81,16 @@ impl ops::Add<usize> for Frame {
         Frame { number: self.number + amount as u64 }
     }
 }
+
+impl ops::Sub<usize> for Frame {
+    type Output = Frame;
+
+    #[inline]
+    fn sub(self, amount: usize) -> Frame {
+        Frame { number: self.number - amount as u64 }
+    }
+}
+
 
 impl ops::AddAssign for Frame {
     #[inline(always)]

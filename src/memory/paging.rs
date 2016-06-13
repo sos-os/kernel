@@ -14,6 +14,7 @@ use core::{ops, cmp};
 pub trait Page
 where Self: Sized
     , Self: ops::AddAssign<usize> + ops::SubAssign<usize>
+    , Self: ops::Add<usize, Output=Self> + ops::Sub<usize>
     , Self: cmp::PartialEq<Self> + cmp::PartialOrd<Self>
     , Self: Copy + Clone {
 
@@ -47,17 +48,19 @@ where Self: Sized
     //    mem::transmute(self.base())
     //}
 
-    /// Returns a `PageRange` between two pages
-    fn range_between(start: Self, end: Self) -> PageRange<Self> {
-        PageRange { start: start, end: end }
+    /// Returns a `PageRange` of this `Page` and the next `n` pages.
+    #[inline]
+    fn range_of(&self, n: usize) -> PageRange<Self> {
+        self.range_until(*self + n)
     }
 
-    /// Returns a `FrameRange` on the frames from this frame until the end frame
+    /// Returns a `PageRange` on the frames from this frame until the end frame
+    #[inline]
     fn range_until(&self, end: Self) -> PageRange<Self> {
         PageRange { start: *self, end: end }
     }
 
-    //fn number(&self) -> R;
+    fn number(&self) -> usize;
 
 }
 
@@ -70,9 +73,48 @@ impl<P> PageRange<P>
 where P: Page
     , P: Clone {
 
+    pub const fn start(&self) -> P { self.start }
+
+   /// Returns a `PageRange` between two pages
+   pub const fn between(start: P, end: P) -> PageRange<P> {
+       PageRange { start: start, end: end }
+   }
+
     /// Returns an iterator over this `PageRange`
     pub fn iter<'a>(&'a self) -> PageRangeIter<'a, P> {
         PageRangeIter { range: self, current: self.start.clone() }
+    }
+
+    /// Returns the number of `Page`s in this ranage
+    #[inline]
+    pub fn length(&self) -> usize {
+        self.end.number() - self.start.number()
+    }
+
+    /// Remove `n` pages from the beginning of this `PageRange`
+    pub fn drop_front(&mut self, n: usize) -> &mut Self {
+        assert!(n < self.length());
+        self.start += n;
+        self
+    }
+
+    /// Remove `n` pages from the end of this `PageRange`
+    pub fn drop_back(&mut self, n: usize) -> &mut Self {
+        assert!(n < self.length());
+        self.end -= n;
+        self
+    }
+
+    /// Add `n` pages at the front of this `PageRange`
+    pub fn add_front(&mut self, n: usize) -> &mut Self {
+        self.start -= n;
+        self
+    }
+
+    /// Add `n` pages at the back of this `PageRange`
+    pub fn add_back(&mut self, n: usize) -> &mut Self {
+        self.end += n;
+        self
     }
 }
 
@@ -175,6 +217,25 @@ macro_rules! table_idx {
 #[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct VirtualPage { pub number: usize }
 
+impl ops::Add<usize> for VirtualPage {
+    type Output = Self;
+
+    #[inline]
+    fn add(self, amount: usize) -> Self {
+        VirtualPage { number: self.number + amount }
+    }
+}
+
+impl ops::Sub<usize> for VirtualPage {
+    type Output = Self;
+
+    #[inline]
+    fn sub(self, amount: usize) -> Self {
+        VirtualPage { number: self.number - amount}
+    }
+}
+
+
 impl ops::AddAssign for VirtualPage {
     #[inline(always)]
     fn add_assign(&mut self, rhs: Self) {
@@ -219,6 +280,10 @@ impl Page for VirtualPage {
     #[inline]
     fn base(&self) -> VAddr {
         VAddr::from(self.number << PAGE_SHIFT)
+    }
+
+    #[inline] fn number(&self) -> usize {
+        self.number
     }
 }
 
