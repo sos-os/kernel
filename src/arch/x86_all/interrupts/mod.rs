@@ -323,6 +323,7 @@ pub fn handle_page_fault( _state: &InterruptContext
 #[no_mangle] #[inline(never)]
 pub fn test_handler( state: &InterruptContext) {
     assert_eq!(state.int_id, 0x80);
+    println!("{:<38}{:>40}", "", "[ OKAY ]");
 }
 
 isr! { exception 0, isr_0 }
@@ -365,9 +366,8 @@ pub unsafe fn initialize() {
    // TODO: consider loading double-fault handler before anything else in case
    //       a double fault occurs during init?
     IDT.load();         // Load the IDT pointer
-    print!("Testing interrupt handling...");
     asm!("int $0" :: "N" (0x80));
-    println!("   [DONE]");
+    println!(" . . Testing interrupt handling");
     Idt::enable_interrupts(); // enable interrupts
 
 }
