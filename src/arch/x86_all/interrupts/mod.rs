@@ -246,14 +246,16 @@ pub fn handle_interrupt(state: &InterruptContext) {
         // System timer
         0x20 => { /* TODO: make this work
                     TODO: should this IRQ get its own handler?
-                  */ }
+                  */
+                 println!("timer!");
+                 }
         // Loonix syscall vector
       , 0x80 => { // TODO: currently, we do nothing here, do we want
                   // our syscalls on this vector as well?
         }
       , _ =>  {
           // unknown interrupt. silently do nothing?
-          println!("Unknown interrupt: #{} Sorry!", id)
+          println!("Unknown interrupt: #{} Sorry!", id);
       }
     }
     // send the PICs the end interrupt signal
@@ -262,6 +264,7 @@ pub fn handle_interrupt(state: &InterruptContext) {
 
 #[no_mangle] #[inline(never)]
 pub fn keyboard_handler(state: &InterruptContext) {
+    println!("keyboard happened");
     if let Some(input) = keyboard::read_char() {
         if input == '\r' {
             println!("");
@@ -323,7 +326,7 @@ pub fn handle_page_fault( _state: &InterruptContext
 #[no_mangle] #[inline(never)]
 pub fn test_handler( state: &InterruptContext) {
     assert_eq!(state.int_id, 0x80);
-    println!("{:<38}{:>40}", "", "[ OKAY ]");
+    println!("{:>47}", "[ OKAY ]");
 }
 
 isr! { exception 0, isr_0 }
@@ -366,8 +369,10 @@ pub unsafe fn initialize() {
    // TODO: consider loading double-fault handler before anything else in case
    //       a double fault occurs during init?
     IDT.load();         // Load the IDT pointer
+
+    print!(" . . Testing interrupt handling");
     asm!("int $0" :: "N" (0x80));
-    println!(" . . Testing interrupt handling");
+
     Idt::enable_interrupts(); // enable interrupts
 
 }
