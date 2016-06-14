@@ -1,3 +1,17 @@
+//
+//  SOS: the Stupid Operating System
+//  by Hawk Weisman (hi@hawkweisman.me)
+//
+//  Copyright (c) 2015 Hawk Weisman
+//  Released under the terms of the MIT license. See `LICENSE` in the root
+//  directory of this repository for more information.
+//
+//! Paging
+//!
+//! The `x86_64` architecture uses a four-level page table structure. The top
+//! page table is called the Page Meta-Level 4 (PML4) table, followed by
+//! the Page Directory Pointer Table (PDPT), Page Directory (PD) table, and
+//! finally the bottom-level Page Table (PT).
 use ::memory::VAddr;
 use ::memory::paging::{Page, VirtualPage, Mapper};
 use ::memory::alloc::FrameAllocator;
@@ -111,7 +125,22 @@ impl Mapper for ActivePML4 {
     /// All freed frames are returned to the given `FrameAllocator`.
     fn unmap<A>(&mut self, page: VirtualPage, alloc: &mut A)
     where A: FrameAllocator {
-        unimplemented!()
+        // get the page table entry corresponding to the page.
+        let ref mut entry
+            = self.pml4_mut()
+                  .page_table_mut_for(page) // get the page table for the page
+                  .expect("Could not unmap, huge pages not supported!")
+                  [page.pt_index()];        // index the entry from the table
+
+        // get the pointed frame for the page table entry.
+        let frame = entry.get_frame()
+                         .expect("Could not unmap page that was not mapped!");
+
+        // mark the page table entry as unused and deallocate the frame
+        entry.set_unused();
+        unsafe { alloc.deallocate(frame); }
+        // TODO: check if page tables containing the unmapped page are empty
+        //       and deallocate them too?
     }
 
 }

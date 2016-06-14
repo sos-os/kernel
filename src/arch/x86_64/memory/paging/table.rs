@@ -8,7 +8,7 @@
 //
 use arch::memory::{PhysicalPage, PAddr, PAGE_SIZE};
 
-use memory::paging::Page;
+use memory::paging::{Page, VirtualPage};
 use memory::alloc::FrameAllocator;
 
 use core::marker::PhantomData;
@@ -56,9 +56,22 @@ impl Sublevel for PDLevel {
     type Next = PTLevel;
 }
 
-//impl Table<PML4Level> {
-//    #[inline] fn get_pt
-//}
+impl Table<PML4Level> {
+    #[inline]
+    pub fn page_table_for(&self, page: VirtualPage) -> Option<&Table<PTLevel>> {
+        self.next_table(page.pml4_index())
+            .and_then(|pdpt| pdpt.next_table(page.pdpt_index()))
+            .and_then(|pd| pd.next_table(page.pd_index()))
+    }
+
+    #[inline]
+    pub fn page_table_mut_for(&mut self, page: VirtualPage)
+                             -> Option<&mut Table<PTLevel>> {
+        self.next_table_mut(page.pml4_index())
+            .and_then(|pdpt| pdpt.next_table_mut(page.pdpt_index()))
+            .and_then(|pd| pd.next_table_mut(page.pd_index()))
+    }
+}
 
 impl<L: TableLevel> Index<usize> for Table<L> {
     type Output = Entry;
