@@ -62,7 +62,11 @@ pub fn dump() -> CrState {
 pub mod cr2 {
 
     /// Read the current value from `$cr2`.
-    pub fn read() -> usize {
+    ///
+    /// # Unsafe Because:
+    /// + Reading from control registers while not in kernel mode will cause
+    ///   a general protection fault.
+    pub unsafe fn read() -> usize {
         let result: usize;
         unsafe {
             asm!(   "mov $0, cr2"
@@ -86,6 +90,10 @@ pub mod cr2 {
 
 pub mod cr3 {
     /// Read the current value from `$cr3`.
+    ///
+    /// # Unsafe Because:
+    /// + Reading from control registers while not in kernel mode will cause
+    ///   a general protection fault.
     pub fn read() -> usize {
         let result: usize;
         unsafe {

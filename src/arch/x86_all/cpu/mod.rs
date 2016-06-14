@@ -16,11 +16,11 @@ use ::{io,util};
 macro_rules! cpu_flag {
     ($doc:meta, $flag:ident, $get:ident, $set:ident) => {
         #[$doc]
-        pub fn $get() -> bool {
+        pub unsafe fn $get() -> bool {
             read().contains($flag)
         }
         #[$doc]
-        pub fn $set(set: bool) {
+        pub unsafe fn $set(set: bool) {
             let mut flags: Flags = read();
             if set {
                 flags.insert($flag);
@@ -32,7 +32,7 @@ macro_rules! cpu_flag {
     };
     ($doc:meta, $flag:ident, $get:ident) => {
         #[$doc]
-        pub fn $get() -> bool {
+        pub unsafe fn $get() -> bool {
             read().contains($flag)
         }
     }
