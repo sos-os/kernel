@@ -19,10 +19,6 @@
 
 
 global start
-global heap_base
-global heap_top
-global stack_base
-global stack_top
 
 extern start_64
 
@@ -219,3 +215,15 @@ gdt64:
 ; GDT offset location exported to Rust kernel
 export gdt64_offset
     dq gdt64.code
+
+export stack_base_addr
+    dq stack_base
+
+export stack_top_addr
+    dq stack_top
+
+export heap_base_addr
+    dq heap_base
+
+export heap_top_addr
+    dq heap_top

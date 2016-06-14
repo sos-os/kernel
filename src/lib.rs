@@ -11,7 +11,7 @@
 //!
 //! # SOS: the Stupid Operating System
 //! SOS is a simple, tiny toy OS implemented in Rust. It targets the x86,
-//! x86_64, and ARM v7 CPU architectures. 
+//! x86_64, and ARM v7 CPU architectures.
 //!
 //! I'm writing this mostly for fun, to learn more about OS design and kernel
 //! hacking, so don't expect anything new or exciting out of this project.
@@ -162,8 +162,8 @@ pub extern fn kernel_start(multiboot_addr: PAddr) {
                     . . Heap begins at {:#x} and ends at {:#x}"
                 , " . Intializing heap"
                 , memory::init_heap().unwrap_or("[ FAIL ]")
-                , memory::heap_base_addr()
-                , memory::heap_top_addr());
+                , memory::HEAP_BASE
+                , memory::HEAP_TOP);
     };
     // -- call into kernel main loop ------------------------------------------
     // (currently, this does nothing)
