@@ -7,7 +7,8 @@
 //  directory of this repository for more information.
 //
 //! Non-arch-specific paging.
-use memory::{Addr, VAddr, PAddr, PAGE_SHIFT, PAGE_SIZE };
+use memory::{Addr, VAddr, PAddr, PAGE_SHIFT, PAGE_SIZE};
+use memory::alloc::FrameAllocator;
 use core::{ops, cmp};
 
 /// Trait for a page. These can be virtual pages or physical frames.
@@ -142,27 +143,16 @@ where P: Page
 
 }
 
-/// Trait for a memory allocator which can allocate memory in terms of frames.
-pub trait FrameAllocator<Frame> {
-
-    /// Allocate a new `Frame`
-    //  TODO: do we want to be able to request a frame size?
-    fn alloc_frame(&mut self) -> Option<Frame>;
-
-    /// Deallocate a given `Frame`.
-    fn dealloc_frame(&mut self, frame: Frame);
-}
-
 pub trait Mapper {
     type Flags;
     type Frame: Page;
 
     /// Translates a virtual address to the corresponding physical address.
     ///
-    /// # Return
-    ///  + `Some(PAddr)` containing the physical address corresponding to
+    /// # Returns
+    /// + `Some(PAddr)` containing the physical address corresponding to
     ///       `vaddr`, if it is mapped.
-    ///  + `None`: if the address is not mapped.
+    /// + `None`: if the address is not mapped.
     fn translate(&self, vaddr: VAddr) -> Option<PAddr>;
 
     /// Translates a virtual page to a physical frame.
@@ -175,8 +165,8 @@ pub trait Mapper {
     /// + `frame`: the physical `Frame` that `Page` should map to.
     /// + `flags`: the page table entry flags.
     /// + `alloc`: a memory allocator
-    fn map_to<A>( &mut self, page: VirtualPage, frame: Self::Frame
-                , flags: Self::Flags, alloc: &mut A )
+    fn map<A>( &mut self, page: VirtualPage, frame: Self::Frame
+             , flags: Self::Flags, alloc: &mut A )
     where A: FrameAllocator<Self::Frame>;
 
     /// Identity map a given `frame`.
@@ -189,17 +179,23 @@ pub trait Mapper {
                       , flags: Self::Flags, alloc: &mut A )
     where A: FrameAllocator<Self::Frame>;
 
-    /// Map the given `page` to any free frame.
+    /// Map the given `VirtualPage` to any free frame.
     ///
     /// This is like the fire and forget version of `map_to`: we just pick the
     /// first available free frame and map the page to it.
     ///
     /// # Arguments
-    /// + `page`: the virtual `Page` to map
+    /// + `page`: the`VirtualPage` to map
     /// + `flags`: the page table entry flags.
     /// + `alloc`: a memory allocator
     fn map_to_any<A>( &mut self, page: VirtualPage, flags: Self::Flags
                     , alloc: &mut A)
+    where A: FrameAllocator<Self::Frame>;
+
+    /// Unmap the given `VirtualPage`.
+    ///
+    /// All freed frames are returned to the given `FrameAllocator`.
+    fn unmap<A>(&mut self, page: VirtualPage, alloc: &mut A)
     where A: FrameAllocator<Self::Frame>;
 
 }

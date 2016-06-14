@@ -1,5 +1,6 @@
 use ::memory::VAddr;
-use ::memory::paging::{Page, VirtualPage, Mapper, FrameAllocator};
+use ::memory::paging::{Page, VirtualPage, Mapper};
+use ::memory::alloc::FrameAllocator;
 
 use super::{Frame, PAddr, PAGE_SIZE};
 use self::table::*;
@@ -23,11 +24,9 @@ impl Mapper for ActivePML4 {
     type Frame = Frame;
 
     fn translate(&self, vaddr: VAddr) -> Option<PAddr> {
+        let offset = *vaddr % PAGE_SIZE as usize;
         self.translate_page(Page::containing(vaddr))
-            .map(|frame| {
-                let offset = *vaddr % PAGE_SIZE as usize;
-                PAddr::from(frame.number + offset as u64)
-            })
+            .map(|frame| PAddr::from(frame.number + offset as u64) )
     }
 
     fn translate_page(&self, page: VirtualPage) -> Option<Frame> {
@@ -59,15 +58,12 @@ impl Mapper for ActivePML4 {
     /// + `frame`: the physical `Frame` that `Page` should map to.
     /// + `flags`: the page table entry flags.
     /// + `alloc`: a memory allocator
-    fn map_to<A>( &mut self
-                , page: VirtualPage
-                , frame: Frame
-                , flags: EntryFlags
-                , alloc: &mut A)
+    fn map<A>( &mut self, page: VirtualPage, frame: Frame
+             , flags: EntryFlags, alloc: &mut A)
     where A: FrameAllocator<Frame> {
 
-       // get the page table index of the page to map
-       let idx = page.pt_index();
+        // get the page table index of the page to map
+        let idx = page.pt_index();
 
         // access or create all the lower-level page tables.
         let mut page_table
@@ -92,10 +88,10 @@ impl Mapper for ActivePML4 {
     fn identity_map<A>(&mut self, frame: Frame, flags: EntryFlags
                       , alloc: &mut A)
     where A: FrameAllocator<Frame> {
-        self.map_to( Page::containing(VAddr::from(frame.base_addr().0 as usize))
-                   , frame
-                   , flags
-                   , alloc )
+        self.map( Page::containing(VAddr::from(frame.base_addr().0 as usize))
+                , frame
+                , flags
+                , alloc )
     }
 
     fn map_to_any<A>( &mut self
@@ -103,22 +99,29 @@ impl Mapper for ActivePML4 {
                     , flags: EntryFlags
                     , alloc: &mut A)
     where A: FrameAllocator<Frame> {
-        self.map_to( page
-                   , alloc.alloc_frame()
-                            // TODO: would we rather rewrite this to return
-                            // a `Result`? I think so.
-                           .expect("Couldn't map page, out of frames!")
-                   , flags
-                   , alloc);
+        let frame = unsafe {
+            alloc.allocate()
+             // TODO: would we rather rewrite this to return
+             // a `Result`? I think so.
+                 .expect("Couldn't map page, out of frames!")
+        };
+        self.map(page, frame, flags, alloc);
     }
 
+    /// Unmap the given `VirtualPage`.
+    ///
+    /// All freed frames are returned to the given `FrameAllocator`.
+    fn unmap<A>(&mut self, page: VirtualPage, alloc: &mut A)
+    where A: FrameAllocator<Self::Frame> {
+        unimplemented!()
+    }
 
 }
 
 impl ActivePML4 {
 
     pub unsafe fn new() -> Self {
-        ActivePML4(Unique::new(PML4))
+        ActivePML4(Unique::new(PML4_PTR))
     }
 
     fn pml4(&self) -> &Table<PML4Level> {
