@@ -15,6 +15,11 @@ macro_rules! derive_addr {
             type Repr = $size;
         }
 
+        impl $ty {
+            pub const fn as_mut_ptr<T>(&self) -> *mut T { self.0 as *mut _ }
+            pub const fn as_ptr<T>(&self) -> *const T { self.0 as *const _ }
+        }
+
         impl $crate::core::convert::Into<$size> for $ty {
             #[inline] fn into(self) -> $size { self.0 }
         }
