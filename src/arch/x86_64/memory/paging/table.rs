@@ -6,7 +6,7 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-use arch::memory::{Frame, PAddr, PAGE_SIZE};
+use arch::memory::{PhysicalPage, PAddr, PAGE_SIZE};
 
 use memory::paging::Page;
 use memory::alloc::FrameAllocator;
@@ -113,7 +113,7 @@ impl<L: Sublevel> Table<L> {
     /// Returns the next table, creating it if it does not exist.
     pub fn create_next<A>(&mut self, index: usize, alloc: &mut A)
                          -> &mut Table<L::Next>
-    where A: FrameAllocator<Frame> {
+    where A: FrameAllocator<PhysicalPage> {
         if self.next_table(index).is_none() {
             assert!( !self[index].is_huge()
                    , "Couldn't create next table: huge pages not \
@@ -175,7 +175,7 @@ impl Entry {
 
     // TODO: this is one of the worst names I have ever given a thing
     #[inline]
-    pub fn do_huge(&self, offset: usize) -> Option<Frame> {
+    pub fn do_huge(&self, offset: usize) -> Option<PhysicalPage> {
         if self.is_huge() {
             self.get_frame()
                 .map(|start_frame| {
@@ -213,14 +213,14 @@ impl Entry {
     }
 
     /// Returns the frame in memory pointed to by this page table entry.
-    pub fn get_frame(&self) -> Option<Frame> {
+    pub fn get_frame(&self) -> Option<PhysicalPage> {
         if self.flags().is_present() {
             // If the entry is present, mask out bits 12-51 and
-            Some(Frame::containing(PAddr::from(self.0 & PML4_VADDR)))
+            Some(PhysicalPage::containing(PAddr::from(self.0 & PML4_VADDR)))
         } else { None }
     }
 
-    pub fn set(&mut self, frame: Frame, flags: EntryFlags) {
+    pub fn set(&mut self, frame: PhysicalPage, flags: EntryFlags) {
         let addr: u64 = frame.base_addr().into();
         assert!(addr & !PML4_VADDR == 0);
         self.0 = addr | flags.bits();

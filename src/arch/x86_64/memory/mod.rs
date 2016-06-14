@@ -47,9 +47,9 @@ derive_addr! { PAddr, u64 }
 
 /// A frame (physical page)
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub struct Frame { pub number: u64 }
+pub struct PhysicalPage { pub number: u64 }
 
-impl Page for Frame {
+impl Page for PhysicalPage {
     type Address = PAddr;
 
     #[inline] fn base(&self) -> Self::Address {
@@ -57,69 +57,69 @@ impl Page for Frame {
     }
 
     #[inline] fn containing(addr: Self::Address) -> Self {
-        Frame::containing_addr(addr)
+        PhysicalPage::containing_addr(addr)
     }
 
     #[inline] fn number(&self) -> usize { self.number as usize }
 }
 
-impl ops::Add<u64> for Frame {
-    type Output = Frame;
+impl ops::Add<u64> for PhysicalPage {
+    type Output = PhysicalPage;
 
     #[inline]
-    fn add(self, amount: u64) -> Frame {
-        Frame { number: self.number + amount }
+    fn add(self, amount: u64) -> PhysicalPage {
+        PhysicalPage { number: self.number + amount }
     }
 }
 
-impl ops::Add<usize> for Frame {
-    type Output = Frame;
+impl ops::Add<usize> for PhysicalPage {
+    type Output = PhysicalPage;
 
     #[inline]
-    fn add(self, amount: usize) -> Frame {
-        Frame { number: self.number + amount as u64 }
+    fn add(self, amount: usize) -> PhysicalPage {
+        PhysicalPage { number: self.number + amount as u64 }
     }
 }
 
-impl ops::Sub<usize> for Frame {
-    type Output = Frame;
+impl ops::Sub<usize> for PhysicalPage {
+    type Output = PhysicalPage;
 
     #[inline]
-    fn sub(self, amount: usize) -> Frame {
-        Frame { number: self.number - amount as u64 }
+    fn sub(self, amount: usize) -> PhysicalPage {
+        PhysicalPage { number: self.number - amount as u64 }
     }
 }
 
 
-impl ops::AddAssign for Frame {
+impl ops::AddAssign for PhysicalPage {
     #[inline(always)]
     fn add_assign(&mut self, rhs: Self) {
         self.number += rhs.number as u64
     }
 }
 
-impl ops::AddAssign<usize> for Frame {
+impl ops::AddAssign<usize> for PhysicalPage {
     #[inline(always)]
     fn add_assign(&mut self, rhs: usize) {
         self.number += rhs as u64
     }
 }
 
-impl ops::SubAssign for Frame {
+impl ops::SubAssign for PhysicalPage {
     #[inline]
     fn sub_assign(&mut self, rhs: Self) {
         self.number -= rhs.number as u64
     }
 }
 
-impl ops::SubAssign<usize> for Frame {
+impl ops::SubAssign<usize> for PhysicalPage {
     #[inline]
     fn sub_assign(&mut self, rhs: usize) {
         self.number -= rhs as u64
     }
 }
 
-impl Frame {
+impl PhysicalPage {
 
     /// Returns the physical address where this frame starts.
     #[inline]
@@ -129,8 +129,8 @@ impl Frame {
 
     /// Returns a new frame containing `addr`
     #[inline]
-    pub const fn containing_addr(addr: PAddr) -> Frame {
-        Frame { number: addr.0 / PAGE_SIZE }
+    pub const fn containing_addr(addr: PAddr) -> PhysicalPage {
+        PhysicalPage { number: addr.0 / PAGE_SIZE }
     }
 
     /// Convert the frame into a raw pointer to the frame's base address
