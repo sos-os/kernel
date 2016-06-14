@@ -8,10 +8,6 @@
 //
 //! Macros to make our custom address types require a lot less repetitive code.
 
-
-
-//use super::VAddr;
-
 macro_rules! impl_addr {
     ($ty:ident, $size:ty) => {
 
@@ -34,6 +30,11 @@ macro_rules! impl_addr {
         impl $crate::core::ops::Deref for $ty {
             type Target = $size;
             #[inline] fn deref(&self) -> &Self::Target { &self.0 }
+        }
+
+        impl $ty {
+            pub const fn as_mut_ptr<T>(&self) -> *mut T { self.0 as *mut _ }
+            pub const fn as_ptr<T>(&self) -> *const T { self.0 as *const _ }
         }
 
         impl_ops! {

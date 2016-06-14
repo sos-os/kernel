@@ -6,9 +6,16 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
+//! # SOS VGA
 //! Code for interacting with the system's VGA buffer.
+//!
+//! # Features
+//! This crate exposes the following feature flags:
+//! + `system_term`: Use the VGA buffer as the system terminal. This provides
+//!   implementations of the `print!` and `println!` macros.
+//! + `log`: provides a `log!` macro for kernel log messages.
 #![crate_name = "sos_vga"]
-
+#![crate_type = "lib"]
 #![feature( const_fn
           , slice_patterns
           , unique
@@ -117,12 +124,12 @@ impl Terminal {
     /// Constructs a new `Terminal` for abuffer starting at the given address.
     ///
     /// # Arguments:
-    ///   - `colors`: the default color palette for the terminal
-    ///   - `buffer_start`: the address of the to the memory location where
-    ///      the terminal's VGA buffer begins
+    /// + `colors`: the default color palette for the terminal
+    /// + `buffer_start`: the address of the to the memory location where
+    ///                   the terminal's VGA buffer begins
     ///
     /// # Unsafe due to:
-    ///   - Casting a raw address to an array
+    /// + Casting a raw address to an array
     pub const unsafe fn new( colors: Palette
                            , buffer_start: usize)
                            -> Terminal {
@@ -188,7 +195,7 @@ impl Terminal {
             // otherwise, it's a regular character, so we just set the
             // byte at the current position in the buffer to that
             // character (with the current color palette)
-            // 
+            //
             self.buffer()[self.y][self.x]
                 = Char { ascii: byte
                        , colors: self.colors };
@@ -212,13 +219,13 @@ impl Terminal {
     fn handle_ansi_escape(&self, escape_code: &str) -> Result {
         match escape_code.as_bytes() {
             // `\x1b[3Nm` sets the foreground color to N.
-            [0x1b, b'[', b'3', n, b'm'] => {
+            &[0x1b, b'[', b'3', n, b'm'] => {
                 unsafe { self.colors
                              .set_foreground(mem::transmute(n - 48)); }
                 Ok(())
             }
             // `\x1b[4Nm` sets the background color to N
-          , [0x1b, b'[', b'4', n, b'm'] => {
+          , &[0x1b, b'[', b'4', n, b'm'] => {
                 unsafe { self.colors
                              .set_background(mem::transmute(n - 48)); }
                 Ok(())

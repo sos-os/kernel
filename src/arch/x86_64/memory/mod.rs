@@ -27,21 +27,22 @@ extern {
     // TODO: It would be really nice if there was a less ugly way of doing
     // this... (read: after the Revolution when we add memory regions to the
     // heap programmatically.)
-    #[link_name = "heap_base"]
-    pub static mut HEAP_BASE: u8;
-    #[link_name = "heap_top"]
-    pub static mut HEAP_TOP: u8;
+    #[link_name = "heap_base_addr"]
+    pub static HEAP_BASE: PAddr;
+    #[link_name = "heap_top_addr"]
+    pub static HEAP_TOP: PAddr;
     // Of course, we will still need to export the kernel stack addresses like
     // this, but it would be nice if they could be, i dont know, not mut u8s
     // pointers, like God intended.
-    #[link_name = "stack_base"]
-    pub static mut STACK_BASE: u8;
-    #[link_name = "stack_base"]
-    pub static mut STACK_TOP: u8;
+    #[link_name = "stack_base_addr"]
+    pub static STACK_BASE: PAddr;
+    #[link_name = "stack_top_addr"]
+    pub static STACK_TOP: PAddr;
 }
 
 /// A physical (linear) memory address is a 64-bit unsigned integer
 #[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[repr(C)]
 pub struct PAddr(u64);
 
 impl Addr<u64> for PAddr { }

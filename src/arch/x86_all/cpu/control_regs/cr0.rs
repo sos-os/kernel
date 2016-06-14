@@ -105,7 +105,11 @@ cpu_flag! {
 //}
 
 /// Read the current value from `%cr0`.
-pub fn read() -> Flags {
+///
+/// # Unsafe Because:
+/// + Reading from control registers while not in kernel mode will cause
+///   a general protection fault.
+pub unsafe fn read() -> Flags {
     let result: usize;
     unsafe {
         asm!(   "mov $0, cr0"
@@ -118,8 +122,8 @@ pub fn read() -> Flags {
 /// Write a value to `%cr0`.
 ///
 /// # Unsafe Because:
-///  - Control registers should generally not be modified during normal
-///    operation.
+/// + Control registers should generally not be modified during normal
+///   operation.
 pub unsafe fn write(flags: Flags) {
     asm!(  "mov cr0, $0"
         :: "r"(flags.bits)
