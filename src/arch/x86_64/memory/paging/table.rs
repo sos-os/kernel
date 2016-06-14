@@ -8,7 +8,8 @@
 //
 use arch::memory::{Frame, PAddr, PAGE_SIZE};
 
-use memory::paging::{Page, FrameAllocator};
+use memory::paging::Page;
+use memory::alloc::FrameAllocator;
 
 use core::marker::PhantomData;
 use core::ops::{Index, IndexMut};
@@ -18,14 +19,16 @@ pub const N_ENTRIES: usize = 512;
 /// Size of a page table (in bytes)
 pub const PAGE_TABLE_SIZE: usize = N_ENTRIES * PAGE_SIZE as usize;
 
-/// PML4 table
-pub const PML4: *mut Table<PML4Level>
-    = 0o177777_777_777_777_777_0000 as *mut _;
+/// Base virtual address of the PML4 table
+pub const PML4_VADDR: u64 = 0xfffffffffffff000;
+
+/// A pointer to the PML4 table
+pub const PML4_PTR: *mut Table<PML4Level> = PML4_VADDR as *mut _;
 
 /// A page table
 pub struct Table<L>
 where L: TableLevel { /// The entries in the page table.
-                      pub entries: [Entry; N_ENTRIES]
+                      entries: [Entry; N_ENTRIES]
                     , _level_marker: PhantomData<L>
                     }
 
@@ -52,6 +55,10 @@ impl Sublevel for PDPTLevel {
 impl Sublevel for PDLevel {
     type Next = PTLevel;
 }
+
+//impl Table<PML4Level> {
+//    #[inline] fn get_pt
+//}
 
 impl<L: TableLevel> Index<usize> for Table<L> {
     type Output = Entry;
@@ -112,10 +119,12 @@ impl<L: Sublevel> Table<L> {
                    , "Couldn't create next table: huge pages not \
                       currently supported.");
 
-            let frame = alloc.alloc_frame()
-                             // TODO: would we rather rewrite this to return
-                             // a `Result`? I think so.
-                            .expect("Couldn't map page, out of frames!");
+            let frame = unsafe {
+                alloc.allocate()
+                     // TODO: would we rather rewrite this to return
+                     // a `Result`? I think so.
+                     .expect("Couldn't map page, out of frames!")
+            };
 
             self[index].set(frame, PRESENT | WRITABLE);
             self.next_table_mut(index).unwrap().zero();
@@ -165,6 +174,7 @@ impl EntryFlags {
 impl Entry {
 
     // TODO: this is one of the worst names I have ever given a thing
+    #[inline]
     pub fn do_huge(&self, offset: usize) -> Option<Frame> {
         if self.is_huge() {
             self.get_frame()
@@ -206,14 +216,13 @@ impl Entry {
     pub fn get_frame(&self) -> Option<Frame> {
         if self.flags().is_present() {
             // If the entry is present, mask out bits 12-51 and
-            //
-            Some(Frame::containing(PAddr::from(self.0 & 0x000fffff_fffff000)))
+            Some(Frame::containing(PAddr::from(self.0 & PML4_VADDR)))
         } else { None }
     }
 
     pub fn set(&mut self, frame: Frame, flags: EntryFlags) {
         let addr: u64 = frame.base_addr().into();
-        assert!(addr & !0x000fffff_fffff000 == 0);
+        assert!(addr & !PML4_VADDR == 0);
         self.0 = addr | flags.bits();
     }
 
