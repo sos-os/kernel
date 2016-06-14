@@ -186,7 +186,7 @@ page_table:
 
 ; == kernel stack =============================================================
 stack_base:
-    resb    PAGE_SIZE * 2 ; reserve 2 pages for the kernel stack
+    resb    PAGE_SIZE * 8 ; reserve 2 pages for the kernel stack
     ; for some unspeakable reason, doubling the kernel stack size
     ; magically fixes all of the memory allocator bugs? i suspect
     ; the Malloc Gods interpret the extra stack space as a

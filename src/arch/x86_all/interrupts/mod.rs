@@ -130,16 +130,16 @@ pub static EXCEPTIONS: [ExceptionInfo; 20]
 macro_rules! isr {
    (exception $ex:expr, $name:ident, handler: $handler:ident) => {
        #[inline(never)] #[naked] #[no_mangle]
-       pub unsafe extern "C" fn $name() -> ! {
+       pub unsafe extern fn $name() -> ! {
            asm!(  "push 0
                    push $0"
                :: "i"($ex)
                :: "volatile", "intel" );
            $crate::arch::cpu::Registers::push();
-           asm!( concat!(
-                   "mov rdi, rsp
-                    call ", stringify!($handler))
-               :: :: "volatile", "intel");
+           asm!(  "mov rdi, rsp
+                   call $0"
+               :: "s"($handler as fn(&InterruptContext, usize))
+               :: "volatile", "intel");
            $crate::arch::cpu::Registers::pop();
            asm!( "add rsp, 16
                   iretq"
@@ -150,15 +150,15 @@ macro_rules! isr {
    };
    (error $ex:expr, $name:ident, handler: $handler:ident) => {
        #[inline(never)] #[naked] #[no_mangle]
-       pub unsafe extern "C" fn $name() -> ! {
+       pub unsafe extern fn $name() -> ! {
            asm!(  "push $0"
                :: "i"($ex)
                :: "volatile", "intel" );
            $crate::arch::cpu::Registers::push();
-           asm!( concat!(
-                   "mov rdi, rsp
-                    call ", stringify!($handler))
-               :: :: "volatile", "intel");
+           asm!(  "mov rdi, rsp
+                   call $0"
+               :: "s"($handler as fn(&InterruptContext, usize))
+               :: "volatile", "intel");
            $crate::arch::cpu::Registers::pop();
            asm!( "add rsp, 16
                   iretq"
@@ -168,15 +168,15 @@ macro_rules! isr {
    };
    (interrupt $id:expr, $name:ident, handler: $handler:ident) => {
        #[inline(never)] #[naked] #[no_mangle]
-       pub unsafe extern "C" fn $name() -> ! {
+       pub unsafe extern fn $name() -> ! {
            asm!(  "push $0"
                :: "i"($id)
                :: "volatile", "intel" );
            $crate::arch::cpu::Registers::push();
-           asm!( concat!(
-                   "mov rdi, rsp
-                    call ", stringify!($handler))
-               :: :: "volatile", "intel");
+           asm!(  "mov rdi, rsp
+                   call $0"
+               :: "s"($handler as fn(&InterruptContext))
+               :: "volatile", "intel");
            $crate::arch::cpu::Registers::pop();
            asm!( "add rsp, 8
                   iretq"
@@ -240,7 +240,7 @@ lazy_static! {
 /// the appropriate consumers.
 //  TODO: should this be #[cold]?
 #[no_mangle] #[inline(never)]
-pub unsafe extern "C" fn handle_interrupt(state: &InterruptContext) {
+pub fn handle_interrupt(state: &InterruptContext) {
     let id = state.int_id;
     match id {
         // System timer
@@ -253,15 +253,15 @@ pub unsafe extern "C" fn handle_interrupt(state: &InterruptContext) {
         }
       , _ =>  {
           // unknown interrupt. silently do nothing?
-          //panic!("Unknown interrupt: #{} Sorry!", id)
+          println!("Unknown interrupt: #{} Sorry!", id)
       }
     }
     // send the PICs the end interrupt signal
-    pics::end_pic_interrupt(id as u8);
+    unsafe { pics::end_pic_interrupt(id as u8); }
 }
 
 #[no_mangle] #[inline(never)]
-pub unsafe extern "C" fn keyboard_handler(state: &InterruptContext) {
+pub fn keyboard_handler(state: &InterruptContext) {
     if let Some(input) = keyboard::read_char() {
         if input == '\r' {
             println!("");
@@ -270,14 +270,14 @@ pub unsafe extern "C" fn keyboard_handler(state: &InterruptContext) {
         }
     }
     // send the PICs the end interrupt signal
-    pics::end_pic_interrupt(state.int_id as u8);
+    unsafe { pics::end_pic_interrupt(state.int_id as u8); }
 }
 
 /// Handle a CPU exception with a given interrupt context.
 //  TODO: should this be #[cold]?
 #[no_mangle] #[inline(never)]
-pub extern "C" fn handle_cpu_exception( state: &InterruptContext
-                                      , err_code: usize) -> ! {
+pub fn handle_cpu_exception( state: &InterruptContext
+                           , err_code: usize) {
     let id = state.int_id;
     let ex_info = &EXCEPTIONS[id];
     let cr_state = control_regs::dump();
@@ -307,8 +307,8 @@ pub extern "C" fn handle_cpu_exception( state: &InterruptContext
 
 /// Handles page fault exceptions
 #[no_mangle] #[inline(never)]
-pub extern "C" fn handle_page_fault( _state: &InterruptContext
-                                   , err_code: usize) -> ! {
+pub fn handle_page_fault( _state: &InterruptContext
+                        , err_code: usize) {
     let _ = write!( CONSOLE.lock()
                            .set_colors(Color::White, Color::Blue)
                         //   .clear()
@@ -321,7 +321,7 @@ pub extern "C" fn handle_page_fault( _state: &InterruptContext
 }
 
 #[no_mangle] #[inline(never)]
-pub extern "C" fn test_handler( state: &InterruptContext) {
+pub fn test_handler( state: &InterruptContext) {
     assert_eq!(state.int_id, 0x80);
 }
 
@@ -365,9 +365,9 @@ pub unsafe fn initialize() {
    // TODO: consider loading double-fault handler before anything else in case
    //       a double fault occurs during init?
     IDT.load();         // Load the IDT pointer
-    //print!("Testing interrupt handling...");
-    //asm!("int $0" :: "N" (0x80));
-    //println!("   [DONE]");
+    print!("Testing interrupt handling...");
+    asm!("int $0" :: "N" (0x80));
+    println!("   [DONE]");
     Idt::enable_interrupts(); // enable interrupts
 
 }
