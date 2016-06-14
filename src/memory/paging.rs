@@ -11,6 +11,11 @@ use memory::{Addr, VAddr, PAddr, PAGE_SHIFT, PAGE_SIZE};
 use memory::alloc::FrameAllocator;
 use core::{ops, cmp};
 
+pub use arch::memory::PhysicalPage;
+
+pub type PageRange = Range<VirtualPage>;
+pub type FrameRange = Range<PhysicalPage>;
+
 /// Trait for a page. These can be virtual pages or physical frames.
 pub trait Page
 where Self: Sized
@@ -51,14 +56,14 @@ where Self: Sized
 
     /// Returns a `PageRange` of this `Page` and the next `n` pages.
     #[inline]
-    fn range_of(&self, n: usize) -> PageRange<Self> {
+    fn range_of(&self, n: usize) -> Range<Self> {
         self.range_until(*self + n)
     }
 
     /// Returns a `PageRange` on the frames from this frame until the end frame
     #[inline]
-    fn range_until(&self, end: Self) -> PageRange<Self> {
-        PageRange { start: *self, end: end }
+    fn range_until(&self, end: Self) -> Range<Self> {
+        Range { start: *self, end: end }
     }
 
     fn number(&self) -> usize;
@@ -67,23 +72,23 @@ where Self: Sized
 
 /// A range of `Page`s.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub struct PageRange<P>
+pub struct Range<P>
 where P: Page { start: P, end: P }
 
-impl<P> PageRange<P>
+impl<P> Range<P>
 where P: Page
     , P: Clone {
 
     pub const fn start(&self) -> P { self.start }
 
    /// Returns a `PageRange` between two pages
-   pub const fn between(start: P, end: P) -> PageRange<P> {
-       PageRange { start: start, end: end }
+   pub const fn between(start: P, end: P) -> Range<P> {
+       Range { start: start, end: end }
    }
 
     /// Returns an iterator over this `PageRange`
-    pub fn iter<'a>(&'a self) -> PageRangeIter<'a, P> {
-        PageRangeIter { range: self, current: self.start.clone() }
+    pub fn iter<'a>(&'a self) -> RangeIter<'a, P> {
+        RangeIter { range: self, current: self.start.clone() }
     }
 
     /// Returns the number of `Page`s in this ranage
@@ -120,11 +125,11 @@ where P: Page
 }
 
 /// An iterator over a range of pages
-pub struct PageRangeIter<'a, P>
+pub struct RangeIter<'a, P>
 where P: Page
-    , P: 'a { range: &'a PageRange<P>, current: P }
+    , P: 'a { range: &'a Range<P>, current: P }
 
-impl<'a, P> Iterator for PageRangeIter<'a, P>
+impl<'a, P> Iterator for RangeIter<'a, P>
 where P: Page
     , P: Clone {
     type Item = P;
@@ -145,7 +150,6 @@ where P: Page
 
 pub trait Mapper {
     type Flags;
-    type Frame: Page;
 
     /// Translates a virtual address to the corresponding physical address.
     ///
@@ -156,7 +160,7 @@ pub trait Mapper {
     fn translate(&self, vaddr: VAddr) -> Option<PAddr>;
 
     /// Translates a virtual page to a physical frame.
-    fn translate_page(&self, page: VirtualPage) -> Option<Self::Frame>;
+    fn translate_page(&self, page: VirtualPage) -> Option<PhysicalPage>;
 
     /// Modifies the page tables so that `page` maps to `frame`.
     ///
@@ -165,9 +169,9 @@ pub trait Mapper {
     /// + `frame`: the physical `Frame` that `Page` should map to.
     /// + `flags`: the page table entry flags.
     /// + `alloc`: a memory allocator
-    fn map<A>( &mut self, page: VirtualPage, frame: Self::Frame
+    fn map<A>( &mut self, page: VirtualPage, frame: PhysicalPage
              , flags: Self::Flags, alloc: &mut A )
-    where A: FrameAllocator<Self::Frame>;
+    where A: FrameAllocator;
 
     /// Identity map a given `frame`.
     ///
@@ -175,9 +179,9 @@ pub trait Mapper {
     /// + `frame`: the physical `Frame` to identity map
     /// + `flags`: the page table entry flags.
     /// + `alloc`: a memory allocator
-    fn identity_map<A>( &mut self, frame: Self::Frame
+    fn identity_map<A>( &mut self, frame: PhysicalPage
                       , flags: Self::Flags, alloc: &mut A )
-    where A: FrameAllocator<Self::Frame>;
+    where A: FrameAllocator;
 
     /// Map the given `VirtualPage` to any free frame.
     ///
@@ -188,15 +192,16 @@ pub trait Mapper {
     /// + `page`: the`VirtualPage` to map
     /// + `flags`: the page table entry flags.
     /// + `alloc`: a memory allocator
-    fn map_to_any<A>( &mut self, page: VirtualPage, flags: Self::Flags
+    fn map_to_any<A>( &mut self, page: VirtualPage
+                    , flags: Self::Flags
                     , alloc: &mut A)
-    where A: FrameAllocator<Self::Frame>;
+    where A: FrameAllocator;
 
     /// Unmap the given `VirtualPage`.
     ///
     /// All freed frames are returned to the given `FrameAllocator`.
     fn unmap<A>(&mut self, page: VirtualPage, alloc: &mut A)
-    where A: FrameAllocator<Self::Frame>;
+    where A: FrameAllocator;
 
 }
 

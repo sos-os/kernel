@@ -14,7 +14,10 @@ use alloc::buddy;
 
 use core::{ops, convert};
 
-pub use arch::memory::{PAddr, HEAP_BASE, HEAP_TOP, PAGE_SHIFT, PAGE_SIZE};
+pub use arch::memory::{ PAddr
+                      , PAGE_SHIFT, PAGE_SIZE
+                      , HEAP_BASE, HEAP_TOP
+                      };
 
 pub mod alloc;
 pub mod paging;

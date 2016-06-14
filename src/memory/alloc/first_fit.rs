@@ -1,30 +1,26 @@
 use arrayvec::ArrayVec;
-use memory::paging::{Page, PageRange};
+use memory::paging::{Page, PhysicalPage, FrameRange};
 use super::FrameAllocator;
 use spin::Mutex;
 
 const SIZE: usize = 256;
 
 /// A simple first-fit allocator for allocating page frames.
-pub struct FirstFit<'a, Frame>
-where Frame: Page
-    , Frame: 'a {
-    frames: &'a Mutex<ArrayVec<[PageRange<Frame>; SIZE]>>
+pub struct FirstFit<'a> {
+    frames: &'a Mutex<ArrayVec<[FrameRange; SIZE]>>
 }
 
-impl<'a, Frame> FrameAllocator<Frame> for FirstFit<'a, Frame>
-where Frame: Page
-    , Frame: 'a {
+impl<'a> FrameAllocator for FirstFit<'a> {
 
-    unsafe fn allocate(&self) -> Option<Frame> {
+    unsafe fn allocate(&self) -> Option<PhysicalPage> {
         unimplemented!()
     }
 
-    unsafe fn deallocate(&self, frame: Frame) {
+    unsafe fn deallocate(&self, frame: PhysicalPage) {
         unimplemented!()
     }
 
-    unsafe fn allocate_range(&self, num: usize) -> Option<PageRange<Frame>> {
+    unsafe fn allocate_range(&self, num: usize) -> Option<FrameRange> {
         let mut frames = self.frames.lock();
         frames.iter()
             .position(|range| range.length() >= num)
@@ -39,7 +35,7 @@ where Frame: Page
             })
     }
 
-    unsafe fn deallocate_range(&self, range: PageRange<Frame>) {
+    unsafe fn deallocate_range(&self, range: FrameRange) {
         unimplemented!()
     }
 

@@ -113,7 +113,7 @@ impl<L: Sublevel> Table<L> {
     /// Returns the next table, creating it if it does not exist.
     pub fn create_next<A>(&mut self, index: usize, alloc: &mut A)
                          -> &mut Table<L::Next>
-    where A: FrameAllocator<PhysicalPage> {
+    where A: FrameAllocator {
         if self.next_table(index).is_none() {
             assert!( !self[index].is_huge()
                    , "Couldn't create next table: huge pages not \
