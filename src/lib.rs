@@ -122,6 +122,9 @@ pub fn kernel_main() {
     println!( "TEST: pushed to vec: {:?}", a_vec);
     a_vec.push(2);
     println!( "TEST: pushed to vec: {:?}", a_vec);
+
+    let mut frame_allocator = memory::alloc::first_fit::new();
+    memory::paging::test_paging(&mut frame_allocator);
     loop { }
 }
 

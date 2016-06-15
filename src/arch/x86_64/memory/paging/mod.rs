@@ -24,7 +24,6 @@ use self::table::*;
 pub mod table;
 pub mod tlb;
 
-
 /// Struct representing the currently active PML4 instance.
 ///
 /// The `ActivePML4` is a `Unique` reference to a PML4-level page table. It's
@@ -168,5 +167,25 @@ impl ActivePML4 {
     fn pml4_mut(&mut self) -> &mut Table<PML4Level> {
         unsafe { self.0.get_mut() }
     }
+
+}
+
+pub fn test_paging<A>(alloc: &mut A)
+where A: FrameAllocator {
+
+    let pml4 = ActivePML4::new();
+
+    // address 0 is mapped
+    println!("Some = {:?}", pml4.translate(VAddr::from(0)));
+     // second P1 entry
+    println!("Some = {:?}", pml4.translate(VAddr::from(4096)));
+    // second P2 entry
+    println!("Some = {:?}", pml4.translate(VAddr::from(512 * 4096)));
+    // 300th P2 entry
+    println!("Some = {:?}", pml4.translate(VAddr::from(300 * 512 * 4096)));
+    // second P3 entry
+    println!("None = {:?}", pml4.translate(VAddr::from(512 * 512 * 4096)));
+    // last mapped byte
+    println!("Some = {:?}", pml4.translate(VAddr::from(512 * 512 * 4096 - 1)));
 
 }
