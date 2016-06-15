@@ -1,13 +1,12 @@
 pub mod first_fit;
 
 use super::{PAGE_SIZE, PAddr, VAddr};
-use super::paging::{Page, PhysicalPage, FrameRange};
+use super::paging::{PhysicalPage, FrameRange};
 
-use alloc::buddy::BuddyHeapAllocator;
 use alloc::buddy::system::ALLOC;
 use alloc::Allocator;
 
-use core::{ops, ptr, cmp};
+use core::ops;
 
 /// A borrowed handle on a frame with a specified lifetime.
 ///
