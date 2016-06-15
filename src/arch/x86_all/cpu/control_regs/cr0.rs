@@ -111,11 +111,9 @@ cpu_flag! {
 ///   a general protection fault.
 pub unsafe fn read() -> Flags {
     let result: usize;
-    unsafe {
-        asm!(   "mov $0, cr0"
-            :   "=r"(result)
-            ::: "intel" );
-    }
+    asm!(   "mov $0, cr0"
+        :   "=r"(result)
+        ::: "intel" );
     Flags { bits: result }
 }
 

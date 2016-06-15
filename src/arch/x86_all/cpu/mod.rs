@@ -27,7 +27,7 @@ macro_rules! cpu_flag {
             } else {
                 flags.remove($flag);
             }
-            unsafe { write(flags) }
+            write(flags)
         }
     };
     ($doc:meta, $flag:ident, $get:ident) => {
