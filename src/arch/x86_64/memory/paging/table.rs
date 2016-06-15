@@ -186,6 +186,8 @@ impl EntryFlags {
 
 impl Entry {
 
+    pub const fn new(raw: u64) -> Self { Entry(raw) }
+
     // TODO: this is one of the worst names I have ever given a thing
     #[inline]
     pub fn do_huge(&self, offset: usize) -> Option<PhysicalPage> {

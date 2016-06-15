@@ -143,7 +143,7 @@ impl Mapper for ActivePML4 {
         // deallocate the frame and flush the translation lookaside buffer
         unsafe {
             // this is safe because we're in kernel mode
-            tlb::flush_addr(page.base());
+            page.flush();
             // this is hopefully safe because nobody else should be using an
             // allocated page frame
             alloc.deallocate(frame);
@@ -173,19 +173,36 @@ impl ActivePML4 {
 pub fn test_paging<A>(alloc: &mut A)
 where A: FrameAllocator {
     // This testing code shamelessly stolen from Phil Oppermann.
-    let pml4 = unsafe { ActivePML4::new() };
+    let mut pml4 = unsafe { ActivePML4::new() };
 
     // address 0 is mapped
     println!("Some = {:?}", pml4.translate(VAddr::from(0)));
-     // second P1 entry
+     // second PT entry
     println!("Some = {:?}", pml4.translate(VAddr::from(4096)));
-    // second P2 entry
+    // second PD entry
     println!("Some = {:?}", pml4.translate(VAddr::from(512 * 4096)));
-    // 300th P2 entry
+    // 300th PD entry
     println!("Some = {:?}", pml4.translate(VAddr::from(300 * 512 * 4096)));
-    // second P3 entry
+    // second PDPT entry
     println!("None = {:?}", pml4.translate(VAddr::from(512 * 512 * 4096)));
     // last mapped byte
     println!("Some = {:?}", pml4.translate(VAddr::from(512 * 512 * 4096 - 1)));
+
+
+    let addr = VAddr::from(42 * 512 * 512 * 4096); // 42th PDPT entry
+    let page = VirtualPage::containing(addr);
+    let frame = unsafe { alloc.allocate().expect("no more frames") };
+    println!("None = {:?}, map to {:?}",
+             pml4.translate(addr),
+             frame);
+    pml4.map(page, frame, EntryFlags::empty(), alloc);
+    println!("Some = {:?}", pml4.translate(addr));
+    println!( "next free frame: {:?}"
+            , unsafe { alloc.allocate() });
+
+    //println!("{:#x}", *(Page::containing(addr).as_ptr()));
+
+    pml4.unmap(Page::containing(addr), alloc);
+    println!("None = {:?}", pml4.translate(addr));
 
 }
