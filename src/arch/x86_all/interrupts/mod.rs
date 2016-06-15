@@ -33,10 +33,10 @@ pub struct InterruptContext { /// callee-saved registers
                               pub registers: Registers
                             , /// interrupt ID number
                               pub int_id: usize
-                            //, _pad_1: u32
-                            //, /// error number
-                            //  pub err_no:  u32
-                            //, _pad_2: u32
+                            , _pad_1: u32
+                            , /// error number
+                              pub error_code:  u32
+                            , _pad_2: u32
                             }
 
 //impl InterruptContext {
@@ -81,11 +81,11 @@ pub static EXCEPTIONS: [ExceptionInfo; 20]
                      , source: "UD2 instruction or reserved opcode" }
       , ExceptionInfo { name: "Device Not Available"
                       , mnemonic: "#NM", irq_type: "Fault"
-                      , source: "Floating-point or WAIT/FWAIT instruction\
+                      , source: "Floating-point or WAIT/FWAIT instruction \
                                  (no math coprocessor)" }
       , ExceptionInfo { name: "Double Fault"
                       , mnemonic: "#DF", irq_type: "Abort"
-                      , source: "Any instruction that can generate an\
+                      , source: "Any instruction that can generate an \
                                  exception, a NMI, or an INTR" }
       , ExceptionInfo { name: "Coprocessor Segment Overrun"
                       , mnemonic: "", irq_type: "Fault"
@@ -102,7 +102,7 @@ pub static EXCEPTIONS: [ExceptionInfo; 20]
                       , source: "Stack operations and SS register loads" }
       , ExceptionInfo { name: "General Protection"
                       , mnemonic: "#GP", irq_type: "Fault"
-                      , source: "Any memory reference or other protection\
+                      , source: "Any memory reference or other protection \
                                  checks" }
       , ExceptionInfo { name: "Page Fault"
                       , mnemonic: "#PF", irq_type: "Fault"
@@ -138,7 +138,7 @@ macro_rules! isr {
            $crate::arch::cpu::Registers::push();
            asm!(  "mov rdi, rsp
                    call $0"
-               :: "s"($handler as fn(&InterruptContext, usize))
+               :: "s"($handler as fn(&InterruptContext))
                :: "volatile", "intel");
            $crate::arch::cpu::Registers::pop();
            asm!( "add rsp, 16
@@ -157,7 +157,7 @@ macro_rules! isr {
            $crate::arch::cpu::Registers::push();
            asm!(  "mov rdi, rsp
                    call $0"
-               :: "s"($handler as fn(&InterruptContext, usize))
+               :: "s"($handler as fn(&InterruptContext))
                :: "volatile", "intel");
            $crate::arch::cpu::Registers::pop();
            asm!( "add rsp, 16
@@ -169,7 +169,8 @@ macro_rules! isr {
    (interrupt $id:expr, $name:ident, handler: $handler:ident) => {
        #[inline(never)] #[naked] #[no_mangle]
        pub unsafe extern fn $name() -> ! {
-           asm!(  "push $0"
+           asm!(  "push 0
+                   push $0"
                :: "i"($id)
                :: "volatile", "intel" );
            $crate::arch::cpu::Registers::push();
@@ -178,7 +179,7 @@ macro_rules! isr {
                :: "s"($handler as fn(&InterruptContext))
                :: "volatile", "intel");
            $crate::arch::cpu::Registers::pop();
-           asm!( "add rsp, 8
+           asm!( "add rsp, 16
                   iretq"
                 :::: "volatile", "intel");
            unreachable!();
@@ -259,7 +260,10 @@ pub fn handle_interrupt(state: &InterruptContext) {
       }
     }
     // send the PICs the end interrupt signal
-    unsafe { pics::end_pic_interrupt(id as u8); }
+    unsafe {
+        pics::end_pic_interrupt(id as u8);
+        Idt::enable_interrupts();
+    }
 }
 
 #[no_mangle] #[inline(never)]
@@ -273,14 +277,16 @@ pub fn keyboard_handler(state: &InterruptContext) {
         }
     }
     // send the PICs the end interrupt signal
-    unsafe { pics::end_pic_interrupt(state.int_id as u8); }
+    unsafe {
+        pics::end_pic_interrupt(state.int_id as u8);
+        Idt::enable_interrupts();
+    }
 }
 
 /// Handle a CPU exception with a given interrupt context.
 //  TODO: should this be #[cold]?
 #[no_mangle] #[inline(never)]
-pub fn handle_cpu_exception( state: &InterruptContext
-                           , err_code: usize) {
+pub fn handle_cpu_exception(state: &InterruptContext) {
     let id = state.int_id;
     let ex_info = &EXCEPTIONS[id];
     let cr_state = control_regs::dump();
@@ -291,7 +297,7 @@ pub fn handle_cpu_exception( state: &InterruptContext
                      {} on vector {} with error code {:#x}\n\
                      Source: {}.\nThis is fine.\n\n"
                   , ex_info.mnemonic, ex_info.name, ex_info.irq_type
-                  , id, err_code
+                  , id, state.error_code
                   , ex_info.source );
 
     // TODO: parse error codes
@@ -310,23 +316,28 @@ pub fn handle_cpu_exception( state: &InterruptContext
 
 /// Handles page fault exceptions
 #[no_mangle] #[inline(never)]
-pub fn handle_page_fault( _state: &InterruptContext
-                        , err_code: usize) {
+pub fn handle_page_fault(state: &InterruptContext) {
     let _ = write!( CONSOLE.lock()
                            .set_colors(Color::White, Color::Blue)
                         //   .clear()
                   , "PAGE FAULT EXCEPTION\nCode: {:#x}\n\n{}"
-                  , err_code
-                  , PageFaultErrorCode::from_bits_truncate(err_code as u32) );
+                  , state.error_code
+                  , PageFaultErrorCode::from_bits_truncate(state.error_code)
+                  );
     // TODO: stack dumps please
 
     loop { }
 }
 
 #[no_mangle] #[inline(never)]
-pub fn test_handler( state: &InterruptContext) {
+pub fn test_handler(state: &InterruptContext) {
     assert_eq!(state.int_id, 0x80);
     println!("{:>47}", "[ OKAY ]");
+    // send the PICs the end interrupt signal
+    unsafe {
+        pics::end_pic_interrupt(state.int_id as u8);
+        Idt::enable_interrupts();
+    }
 }
 
 isr! { exception 0, isr_0 }

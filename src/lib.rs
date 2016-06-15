@@ -128,7 +128,10 @@ pub fn kernel_main() {
     println!( "TEST: pushed to vec: {:?}", a_vec);
     a_vec.push(2);
     println!( "TEST: pushed to vec: {:?}", a_vec);
-    loop { }
+    loop {
+        unsafe { asm!("int $0" :: "N" (0x80)) };
+        println!("Test interrupt okay");
+    }
 }
 
 /// Kernel initialization function called from ASM
