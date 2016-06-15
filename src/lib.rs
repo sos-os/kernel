@@ -57,7 +57,8 @@ pub mod arch;
 #[cfg(not(test))] pub mod panic;
 
 use arch::cpu;
-use memory::PAddr;
+use memory::{paging, PAddr};
+use memory::alloc as frame_alloc;
 
 #[macro_use]
 macro_rules! init_log {
@@ -123,8 +124,8 @@ pub fn kernel_main() {
     a_vec.push(2);
     println!( "TEST: pushed to vec: {:?}", a_vec);
 
-    let mut frame_allocator = memory::alloc::first_fit::new();
-    memory::paging::test_paging(&mut frame_allocator);
+    let mut frame_allocator = frame_alloc::BuddyFrameAllocator::new();
+    paging::test_paging(&mut frame_allocator);
     loop { }
 }
 

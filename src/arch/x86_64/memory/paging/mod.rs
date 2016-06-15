@@ -172,8 +172,8 @@ impl ActivePML4 {
 
 pub fn test_paging<A>(alloc: &mut A)
 where A: FrameAllocator {
-
-    let pml4 = ActivePML4::new();
+    // This testing code shamelessly stolen from Phil Oppermann.
+    let pml4 = unsafe { ActivePML4::new() };
 
     // address 0 is mapped
     println!("Some = {:?}", pml4.translate(VAddr::from(0)));
