@@ -89,6 +89,8 @@ pub mod cr2 {
 }
 
 pub mod cr3 {
+    use memory::paging::PhysicalPage;
+
     /// Read the current value from `$cr3`.
     ///
     /// # Unsafe Because:
@@ -113,5 +115,19 @@ pub mod cr3 {
         asm!(  "mov cr3, $0"
             :: "r"(value)
             :: "intel");
+    }
+
+    /// Returns the current Page Directory base frame.
+    #[cfg(target_arch = "x86_64")]
+    pub unsafe fn pd_base_frame() -> PhysicalPage {
+        use memory::PAddr;
+        PhysicalPage::containing_addr(PAddr::from(read() as u64))
+    }
+
+    /// Returns the current Page Directory base frame.
+    #[cfg(target_arch = "x86")]
+    pub unsafe fn pd_base_frame() -> PhysicalPage {
+        use memory::PAddr;
+        PhysicalPage::containing_addr(PAddr::from(read() as u32))
     }
 }
