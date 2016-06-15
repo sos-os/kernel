@@ -12,16 +12,18 @@
 //! page table is called the Page Meta-Level 4 (PML4) table, followed by
 //! the Page Directory Pointer Table (PDPT), Page Directory (PD) table, and
 //! finally the bottom-level Page Table (PT).
+use core::ptr::Unique;
 use ::memory::VAddr;
 use ::memory::paging::{Page, VirtualPage, Mapper};
 use ::memory::alloc::FrameAllocator;
 
 use super::{PhysicalPage, PAddr, PAGE_SIZE};
+
 use self::table::*;
 
-use core::ptr::Unique;
-
 pub mod table;
+pub mod tlb;
+
 
 /// Struct representing the currently active PML4 instance.
 ///
@@ -136,9 +138,17 @@ impl Mapper for ActivePML4 {
         let frame = entry.get_frame()
                          .expect("Could not unmap page that was not mapped!");
 
-        // mark the page table entry as unused and deallocate the frame
+        // mark the page table entry as unused
         entry.set_unused();
-        unsafe { alloc.deallocate(frame); }
+
+        // deallocate the frame and flush the translation lookaside buffer
+        unsafe {
+            // this is safe because we're in kernel mode
+            tlb::flush_addr(page.base());
+            // this is hopefully safe because nobody else should be using an
+            // allocated page frame
+            alloc.deallocate(frame);
+        }
         // TODO: check if page tables containing the unmapped page are empty
         //       and deallocate them too?
     }
