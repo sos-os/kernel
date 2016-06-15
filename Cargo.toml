@@ -29,9 +29,6 @@ bitflags = "0.7"
 version = "0.3.16"
 default-features = false
 
-[dependencies.bitflags]
-version = "0.7"
-
 [dependencies.sos_alloc]
 path = "lib/sos_alloc"
 features = ["buddy_as_system"]

@@ -48,11 +48,6 @@ macro_rules! derive_addr {
             #[inline] fn deref(&self) -> &Self::Target { &self.0 }
         }
 
-        impl $ty {
-            pub const fn as_mut_ptr<T>(&self) -> *mut T { self.0 as *mut _ }
-            pub const fn as_ptr<T>(&self) -> *const T { self.0 as *const _ }
-        }
-
         impl_ops! {
             impl Add, add, + for $ty, $size
             impl Sub, sub, - for $ty, $size
