@@ -16,7 +16,7 @@ impl<'a> FrameAllocator for FirstFit<'a> {
         unimplemented!()
     }
 
-    unsafe fn deallocate(&self, frame: PhysicalPage) {
+    unsafe fn deallocate(&self, _frame: PhysicalPage) {
         unimplemented!()
     }
 
@@ -35,7 +35,7 @@ impl<'a> FrameAllocator for FirstFit<'a> {
             })
     }
 
-    unsafe fn deallocate_range(&self, range: FrameRange) {
+    unsafe fn deallocate_range(&self, _range: FrameRange) {
         unimplemented!()
     }
 

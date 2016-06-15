@@ -151,7 +151,7 @@ impl FrameAllocator for BuddyFrameAllocator {
 
     }
 
-    unsafe fn allocate_range(&self, num: usize) -> Option<FrameRange> {
+    unsafe fn allocate_range(&self, _num: usize) -> Option<FrameRange> {
         unimplemented!()
     }
 
