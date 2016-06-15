@@ -1,3 +1,4 @@
+//! Flags present in the `%eflags`/`%rflags` register on x86 CPUs.
 use super::PrivilegeLevel;
 
 bitflags! {

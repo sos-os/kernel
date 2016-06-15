@@ -22,14 +22,15 @@ bitflags! {
     /// segment descriptor that defines the segment.
     ///
     /// A segment selector contains the following items:
-    ///     - *Requested Privilege Level (RPL)*: bits 0 and 1.
-    ///       Specifies the privelege level of the selector.
-    ///     - *Table Indicator*: bit 2. Specifies which descriptor table to use.
-    ///     - *Index*: bits 3 through 15. Selects one of 8192 descriptors in the
-    ///       GDT or LDT. The processor multiplies the index value by 8 (the number
-    ///       of bytes in a segment descriptor) and adds the result to the base
-    ///       address of the GDT or LDT (from the GDTR or LDTR register,
-    ///       respectively).
+    ///
+    /// + *Requested Privilege Level (RPL)*: bits 0 and 1.
+    ///    Specifies the privelege level of the selector.
+    /// + *Table Indicator*: bit 2. Specifies which descriptor table to use.
+    /// + *Index*: bits 3 through 15. Selects one of 8192 descriptors in the
+    ///    GDT or LDT. The processor multiplies the index value by 8 (the number
+    ///    of bytes in a segment descriptor) and adds the result to the base
+    ///    address of the GDT or LDT (from the `%gdtr` or `%ldtr` register,
+    ///    respectively).
     pub flags Selector: u16 { const RPL_RING_0 = 0b00
                             , const RPL_RING_1 = 0b01
                             , const RPL_RING_2 = 0b10

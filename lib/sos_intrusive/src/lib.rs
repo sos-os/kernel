@@ -6,9 +6,24 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-//! SOS intrusive data structures library
+//! # SOS Intrusive Collections
 //!
-//! These structures are primarily used by the kernel and memory allocator.
+//! _Intrusive_ data structures are data structures whose elements are
+//! "aware" of the structures in which they are stored. That is to say
+//! that data related to the layout and structure of an intrusive collection
+//! is stored by the elements in the collection, rather than internally to
+//! them.
+//!
+//! Intrusive data structures are useful for low-level programming in Rust
+//! since they do not explicitly allocate memory. This means that we can use
+//! intrusive structures to implement the kernel memory allocator and other
+//! kernel subsystems which require structures such as lists prior to
+//! the initialization of the kernel heap.
+//!
+//! This crate currently provides an intrusive linked-list implementation.
+//!
+//! # Features
+//! + `use-std`: use the Rust standard library (`std`), rather than `core`.
 #![crate_name = "sos_intrusive"]
 #![crate_type = "lib"]
 #![feature( const_fn, unique )]

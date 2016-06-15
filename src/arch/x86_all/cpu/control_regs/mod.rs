@@ -59,47 +59,59 @@ pub fn dump() -> CrState {
 
 }
 
+pub mod cr2 {
 
-/// Read the current value from `$cr2`.
-pub fn cr2_read() -> usize {
-    let result: usize;
-    unsafe {
-        asm!(   "mov $0, cr2"
-            :   "=r"(result)
-            ::: "intel" );
+    /// Read the current value from `$cr2`.
+    ///
+    /// # Unsafe Because:
+    /// + Reading from control registers while not in kernel mode will cause
+    ///   a general protection fault.
+    pub unsafe fn read() -> usize {
+        let result: usize;
+        unsafe {
+            asm!(   "mov $0, cr2"
+                :   "=r"(result)
+                ::: "intel" );
+        }
+        result
     }
-    result
-}
 
-/// Write a value to `$cr2`.
-///
-/// # Unsafe Because:
-///  - Control registers should generally not be modified during normal
-///    operation.
-pub unsafe fn cr2_write(value: usize) {
-    asm!(  "mov cr2, $0"
-        :: "r"(value)
-        :: "intel");
-}
-
-/// Read the current value from `$cr3`.
-pub fn cr3_read() -> usize {
-    let result: usize;
-    unsafe {
-        asm!(   "mov $0, cr3"
-            :   "=r"(result)
-            ::: "intel" );
+    /// Write a value to `$cr2`.
+    ///
+    /// # Unsafe Because:
+    /// + Control registers should generally not be modified during normal
+    ///   operation.
+    pub unsafe fn write(value: usize) {
+        asm!(  "mov cr2, $0"
+            :: "r"(value)
+            :: "intel");
     }
-    result
 }
 
-/// Write a value to `$cr3`.
-///
-/// # Unsafe Because:
-///  - Control registers should generally not be modified during normal
-///    operation.
-pub unsafe fn cr3_write(value: usize) {
-    asm!(  "mov cr3, $0"
-        :: "r"(value)
-        :: "intel");
+pub mod cr3 {
+    /// Read the current value from `$cr3`.
+    ///
+    /// # Unsafe Because:
+    /// + Reading from control registers while not in kernel mode will cause
+    ///   a general protection fault.
+    pub fn read() -> usize {
+        let result: usize;
+        unsafe {
+            asm!(   "mov $0, cr3"
+                :   "=r"(result)
+                ::: "intel" );
+        }
+        result
+    }
+
+    /// Write a value to `$cr3`.
+    ///
+    /// # Unsafe Because:
+    /// + Control registers should generally not be modified during normal
+    ///   operation.
+    pub unsafe fn write(value: usize) {
+        asm!(  "mov cr3, $0"
+            :: "r"(value)
+            :: "intel");
+    }
 }

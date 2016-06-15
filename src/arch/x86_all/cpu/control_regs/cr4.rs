@@ -1,7 +1,11 @@
 use core::fmt;
 
 /// Read the current value from `$cr4`.
-pub fn read() -> Flags {
+/// 
+/// # Unsafe Because:
+/// + Reading from control registers while not in kernel mode will cause
+///   a general protection fault.
+pub unsafe fn read() -> Flags {
     let result: usize;
     unsafe {
         asm!(   "mov $0, cr4"
@@ -14,8 +18,8 @@ pub fn read() -> Flags {
 /// Write a value to `$cr4`.
 ///
 /// # Unsafe Because:
-///  - Control registers should generally not be modified during normal
-///    operation.
+/// + Control registers should generally not be modified during normal
+///   operation.
 pub unsafe fn write(flags: Flags) {
     asm!(  "mov cr4, $0"
         :: "r"(flags.bits)

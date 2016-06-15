@@ -33,10 +33,12 @@ pub mod timestamp {
         use arch::cpu::control_regs::cr4;
         use arch::cpu::PrivilegeLevel;
 
-        if cr4::is_timestamp_disabled() {
+        if PrivilegeLevel::current_iopl() != PrivilegeLevel::KernelMode {
+            Err("Reading timestamp register requires kernel mode.")
+        } else if
+            // it's safe to do this since we already know we are in kernel mode.
+            unsafe { cr4::is_timestamp_disabled() } {
             Err("Timestamp Disable bit in %cr4 is set")
-        } else if PrivilegeLevel::current_iopl() != PrivilegeLevel::KernelMode {
-            Err("Insufficient privilege level to get timestamp, must be Ring 0")
         } else { Ok(()) }
     }
 

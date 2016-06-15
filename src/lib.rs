@@ -2,16 +2,22 @@
 //  SOS: the Stupid Operating System
 //  by Hawk Weisman (hi@hawkweisman.me)
 //
-//  Copyright (c) 2015 Hawk Weisman
+//  Copyright (c) 2015-2016 Hawk Weisman
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-//! SOS: the Stupid Operating System
+//! # SOS kernel
+//! This crate contains the kernel for SOS, the Stupid Operating System.
 //!
-//! SOS is a simple, tiny toy OS implemented in Rust.
+//! # SOS: the Stupid Operating System
+//! SOS is a simple, tiny toy OS implemented in Rust. It targets the x86,
+//! x86_64, and ARM v7 CPU architectures.
 //!
 //! I'm writing this mostly for fun, to learn more about OS design and kernel
 //! hacking, so don't expect anything new or exciting out of this project.
+//!
+//! SOS is copyright 2015-2016 Hawk Weisman, and is released under the terms
+//! of the MIT license.
 
 #![crate_name = "sos_kernel"]
 #![crate_type = "staticlib"]
@@ -161,8 +167,8 @@ pub extern fn kernel_start(multiboot_addr: PAddr) {
                     . . Heap begins at {:#x} and ends at {:#x}"
                 , " . Intializing heap"
                 , memory::init_heap().unwrap_or("[ FAIL ]")
-                , memory::heap_base_addr()
-                , memory::heap_top_addr());
+                , memory::HEAP_BASE
+                , memory::HEAP_TOP);
     };
     // -- call into kernel main loop ------------------------------------------
     // (currently, this does nothing)

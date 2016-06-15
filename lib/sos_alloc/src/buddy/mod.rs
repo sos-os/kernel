@@ -76,14 +76,14 @@ impl<'a> BuddyHeapAllocator<'a> {
     /// Construct a new `BuddyHeapAllocator`.
     ///
     /// # Arguments:
-    ///   - `start_addr`: a pointer to the start location of the heap
-    ///   - `free_lists`: an array of `FreeList`s. The cardinality
+    /// + `start_addr`: a pointer to the start location of the heap
+    /// + `free_lists`: an array of `FreeList`s. The cardinality
     ///     of the `free_lists` array should be equal to the maximum
     ///     allocateable order.
-    ///   - `heap_size`: the size of the heap (in bytes)
+    /// + `heap_size`: the size of the heap (in bytes)
     ///
     /// # Returns:
-    ///   - A new `BuddyHeapAllocator`, obviously.
+    /// + A new `BuddyHeapAllocator`, obviously.
     pub unsafe fn new( start_addr: *mut u8
                      , free_lists: &'a mut [FreeList]
                      , heap_size: usize)
@@ -146,12 +146,12 @@ impl<'a> BuddyHeapAllocator<'a> {
     /// Computes the size of an allocation request.
     ///
     /// # Arguments
-    ///   - `size`: A `usize` containing the size of the request
-    ///   - `align`: A `usize` containing the alignment of the request
+    /// + `size`: A `usize` containing the size of the request
+    /// + `align`: A `usize` containing the alignment of the request
     ///
     /// # Returns
-    ///   - `None` if the request is invalid
-    ///   - `Some(usize)` containing the size needed if the request is valid
+    /// + `None` if the request is invalid
+    /// + `Some(usize)` containing the size needed if the request is valid
     #[inline]
     pub fn alloc_size(&self, size: usize, align: usize) -> Option<usize> {
         // Pre-check if this is a valid allocation request:
@@ -243,12 +243,12 @@ impl<'a> BuddyHeapAllocator<'a> {
     /// Finds the buddy block for a given block.
     ///
     /// # Arguments
-    ///   - `order`: the order of the block to find a buddy for
-    ///   - `block`: a pointer to the block to find a buddy for
+    /// + `order`: the order of the block to find a buddy for
+    /// + `block`: a pointer to the block to find a buddy for
     ///
     /// # Returns
-    ///   - `Some(*mut u8)` pointing to the buddy block if a buddy was found
-    ///   - `None` if the block was the size of the entire heap
+    /// + `Some(*mut u8)` pointing to the buddy block if a buddy was found
+    /// + `None` if the block was the size of the entire heap
     pub unsafe fn get_buddy( &self
                            , order: usize
                            , block: *mut u8)
@@ -271,12 +271,12 @@ impl<'a> BuddyHeapAllocator<'a> {
     /// Finds and removes the target block from the free list.
     ///
     /// # Arguments
-    ///   - `order`: the order of the free list to remove the block from_raw
-    ///   - `block`: a pointer to the block to remove
+    /// + `order`: the order of the free list to remove the block from_raw
+    /// + `block`: a pointer to the block to remove
     ///
     /// # Returns
-    ///   - `true` if the block was found and removed from the free List
-    ///   - `false` if the block was not found
+    /// + `true` if the block was found and removed from the free List
+    /// + `false` if the block was not found
     pub fn remove_block(&mut self, order: usize, block: *mut u8) -> bool {
         self.free_lists[order]
             .cursor_mut()
@@ -291,12 +291,12 @@ impl<'a> Allocator for BuddyHeapAllocator<'a> {
     /// Allocate a new block of size `size` on alignment `align`.
     ///
     /// # Arguments:
-    ///   - `size`: the amount of memory to allocate (in bytes)
-    ///   - `align`: the alignment for the allocation request
+    /// + `size`: the amount of memory to allocate (in bytes)
+    /// + `align`: the alignment for the allocation request
     ///
     /// # Returns:
-    ///   - `Some(*mut u8)` if the request was allocated successfully
-    ///   - `None` if the allocator is out of memory or if the request was
+    /// + `Some(*mut u8)` if the request was allocated successfully
+    /// + `None` if the allocator is out of memory or if the request was
     ///     invalid.
     unsafe fn allocate( &mut self
                       , size: usize
@@ -338,9 +338,9 @@ impl<'a> Allocator for BuddyHeapAllocator<'a> {
     /// heap will become corrupted.
     ///
     /// # Arguments:
-    ///   - `frame`: a pointer to the block of memory to deallocate
-    ///   - `size`: the size of the block being deallocated
-    ///   - `align`: the alignment of the block being deallocated
+    /// + `frame`: a pointer to the block of memory to deallocate
+    /// + `size`: the size of the block being deallocated
+    /// + `align`: the alignment of the block being deallocated
     unsafe fn deallocate( &mut self
                         , block: *mut u8
                         , old_size: usize

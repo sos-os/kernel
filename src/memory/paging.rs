@@ -154,9 +154,9 @@ pub trait Mapper {
 
     /// Translates a virtual address to the corresponding physical address.
     ///
-    /// # Returns
+    /// # Return
     /// + `Some(PAddr)` containing the physical address corresponding to
-    ///       `vaddr`, if it is mapped.
+    ///                 `vaddr`, if it is mapped.
     /// + `None`: if the address is not mapped.
     fn translate(&self, vaddr: VAddr) -> Option<PAddr>;
 

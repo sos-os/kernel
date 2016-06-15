@@ -6,9 +6,16 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
+//! # SOS VGA
 //! Code for interacting with the system's VGA buffer.
+//!
+//! # Features
+//! This crate exposes the following feature flags:
+//! + `system_term`: Use the VGA buffer as the system terminal. This provides
+//!   implementations of the `print!` and `println!` macros.
+//! + `log`: provides a `log!` macro for kernel log messages.
 #![crate_name = "sos_vga"]
-
+#![crate_type = "lib"]
 #![feature( const_fn
           , slice_patterns
           , unique
@@ -117,12 +124,12 @@ impl Terminal {
     /// Constructs a new `Terminal` for abuffer starting at the given address.
     ///
     /// # Arguments:
-    ///   - `colors`: the default color palette for the terminal
-    ///   - `buffer_start`: the address of the to the memory location where
-    ///      the terminal's VGA buffer begins
+    /// + `colors`: the default color palette for the terminal
+    /// + `buffer_start`: the address of the to the memory location where
+    ///                   the terminal's VGA buffer begins
     ///
     /// # Unsafe due to:
-    ///   - Casting a raw address to an array
+    /// + Casting a raw address to an array
     pub const unsafe fn new( colors: Palette
                            , buffer_start: usize)
                            -> Terminal {
