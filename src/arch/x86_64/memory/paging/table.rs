@@ -7,12 +7,14 @@
 //  directory of this repository for more information.
 //
 use arch::memory::{PhysicalPage, PAddr, PAGE_SIZE};
+use elf;
 
 use memory::paging::{Page, VirtualPage};
 use memory::alloc::FrameAllocator;
 
 use core::marker::PhantomData;
 use core::ops::{Index, IndexMut};
+use core::convert;
 
 /// The number of entries in a page table.
 pub const N_ENTRIES: usize = 512;
@@ -24,6 +26,9 @@ pub const PML4_VADDR: u64 = 0xfffffffffffff000;
 
 /// A pointer to the PML4 table
 pub const PML4_PTR: *mut Table<PML4Level> = PML4_VADDR as *mut _;
+
+/// Mask to apply to a page table entry to isolate the flags
+pub const ENTRY_FLAGS_MASK: u64 = (PAGE_SIZE as u64 - 1) as u64;
 
 /// A page table
 pub struct Table<L>
@@ -147,8 +152,6 @@ impl<L: Sublevel> Table<L> {
 }
 
 
-/// A page table entry.
-pub struct Entry(u64);
 
 bitflags! {
     pub flags EntryFlags: u64 {
@@ -182,7 +185,30 @@ impl EntryFlags {
     pub fn is_present(&self) -> bool {
         self.contains(PRESENT)
     }
+
+    #[inline]
+    pub fn set_present(&mut self, present: bool) -> &mut Self {
+        if present { self.insert(PRESENT) }
+        else { self.remove(PRESENT) }
+        self
+    }
+
+    #[inline]
+    pub fn set_writable(&mut self, writable: bool) -> &mut Self {
+        if writable { self.insert(WRITABLE) }
+        else { self.remove(WRITABLE) }
+        self
+    }
+
+    #[inline]
+    pub fn set_executable(&mut self, executable: bool) -> &mut Self {
+        if executable { self.remove(NO_EXECUTE) }
+        else { self.insert(NO_EXECUTE) }
+        self
+    }
 }
+
+pub struct Entry(u64);
 
 impl Entry {
 
@@ -241,4 +267,13 @@ impl Entry {
         self.0 = addr | flags.bits();
     }
 
+}
+
+impl<'a> convert::From<&'a elf::Section<'a>> for EntryFlags {
+    fn from(section: &'a elf::Section<'a>) -> Self {
+        *EntryFlags::empty()
+            .set_present(section.is_allocated())
+            .set_writable(section.is_writable())
+            .set_executable(section.is_executable())
+    }
 }
