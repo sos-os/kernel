@@ -275,7 +275,7 @@ impl Page for VirtualPage {
         assert!( *addr < 0x0000_8000_0000_0000 ||
                  *addr >= 0xffff_8000_0000_0000
                , "invalid address: 0x{:x}", addr );
-        VirtualPage { number: *addr / PAGE_SIZE as usize }
+        VirtualPage { number: *addr >> PAGE_SHIFT }
     }
 
     /// Return the start virtual address of this page
