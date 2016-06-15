@@ -172,7 +172,7 @@ page_table:
 
 ; reserve 4mb for the kernel stack space
 stack_base:
-    resb    4096 * 2
+    resb    4096 * 4
     ; for some unspeakable reason, doubling the kernel stack size
     ; magically fixes all of the memory allocator bugs? i suspect
     ; the Malloc Gods interpret the extra stack space as a
