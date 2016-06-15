@@ -24,7 +24,7 @@ pub mod paging;
 #[macro_use] pub mod macros;
 
 /// A virtual address is a machine-sized unsigned integer
-#[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Copy, Clone, Eq, Ord, PartialEq, PartialOrd)]
 pub struct VAddr(usize);
 
 pub trait Addr: ops::Add<Self> + ops::Sub<Self>

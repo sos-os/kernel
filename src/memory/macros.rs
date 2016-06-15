@@ -20,6 +20,13 @@ macro_rules! derive_addr {
             pub const fn as_ptr<T>(&self) -> *const T { self.0 as *const _ }
         }
 
+        impl $crate::core::fmt::Debug for $ty {
+            fn fmt(&self, f: &mut $crate::core::fmt::Formatter)
+                  -> $crate::core::fmt::Result {
+                write!(f, "{}({:#x})", stringify!($ty), self.0)
+            }
+        }
+
         impl $crate::core::convert::Into<$size> for $ty {
             #[inline] fn into(self) -> $size { self.0 }
         }

@@ -41,7 +41,7 @@ extern {
 }
 
 /// A physical (linear) memory address is a 64-bit unsigned integer
-#[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Copy, Clone, Eq, Ord, PartialEq, PartialOrd)]
 pub struct PAddr(u64);
 derive_addr! { PAddr, u64 }
 
