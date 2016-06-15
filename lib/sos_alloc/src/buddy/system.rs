@@ -7,7 +7,7 @@ use super::{BuddyHeapAllocator, FreeList};
 
 pub const NUM_FREE_LISTS: usize = 19;
 
-static ALLOC: Mutex<Option<BuddyHeapAllocator<'static>>>
+pub static ALLOC: Mutex<Option<BuddyHeapAllocator<'static>>>
     = Mutex::new(None);
 
 static mut KERNEL_FREE_LISTS: [FreeList; NUM_FREE_LISTS]

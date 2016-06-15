@@ -130,7 +130,7 @@ impl PhysicalPage {
     /// Returns a new frame containing `addr`
     #[inline]
     pub const fn containing_addr(addr: PAddr) -> PhysicalPage {
-        PhysicalPage { number: addr.0 / PAGE_SIZE }
+        PhysicalPage { number: addr.0 >> PAGE_SHIFT }
     }
 
     /// Convert the frame into a raw pointer to the frame's base address

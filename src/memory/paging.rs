@@ -12,6 +12,7 @@ use memory::alloc::FrameAllocator;
 use core::{ops, cmp};
 
 pub use arch::memory::PhysicalPage;
+pub use arch::memory::paging::*;
 
 pub type PageRange = Range<VirtualPage>;
 pub type FrameRange = Range<PhysicalPage>;
