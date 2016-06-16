@@ -68,11 +68,9 @@ pub mod cr2 {
     ///   a general protection fault.
     pub unsafe fn read() -> usize {
         let result: usize;
-        unsafe {
-            asm!(   "mov $0, cr2"
-                :   "=r"(result)
-                ::: "intel" );
-        }
+        asm!(   "mov $0, cr2"
+            :   "=r"(result)
+            ::: "intel" );
         result
     }
 
@@ -96,13 +94,11 @@ pub mod cr3 {
     /// # Unsafe Because:
     /// + Reading from control registers while not in kernel mode will cause
     ///   a general protection fault.
-    pub fn read() -> usize {
+    pub unsafe fn read() -> usize {
         let result: usize;
-        unsafe {
-            asm!(   "mov $0, cr3"
-                :   "=r"(result)
-                ::: "intel" );
-        }
+        asm!(   "mov $0, cr3"
+            :   "=r"(result)
+            ::: "intel" );
         result
     }
 
