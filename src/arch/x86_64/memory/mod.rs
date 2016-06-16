@@ -42,89 +42,49 @@ extern {
 
 custom_derive! {
     /// A physical (linear) memory address is a 64-bit unsigned integer
-    #[derive(Copy, Clone, Eq, Ord, PartialEq, PartialOrd, Addr(u64))]
+    #[derive(Copy, Clone, Eq, Ord, PartialEq, PartialOrd, Addr(u64) )]
     #[repr(C)]
     pub struct PAddr(u64);
 }
 
+custom_derive! {
+    /// A frame (physical page)
+    #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Page(PAddr) )]
+    pub struct PhysicalPage { pub number: u64 }
+}
+
+impl ops::Add<usize> for PhysicalPage {
+    type Output = Self;
+
+    #[inline] fn add(self, rhs: usize) -> Self {
+        PhysicalPage { number: self.number +  rhs as u64 }
+    }
+}
+
+impl ops::Sub<usize> for PhysicalPage {
+    type Output = Self;
+
+    #[inline] fn sub(self, rhs: usize) -> Self {
+        PhysicalPage { number: self.number -  rhs as u64 }
+    }
+}
+
+impl ops::AddAssign<usize> for PhysicalPage {
+    #[inline] fn add_assign(&mut self, rhs: usize) {
+        self.number += rhs as u64;
+    }
+}
+
+impl ops::SubAssign<usize> for PhysicalPage {
+    #[inline] fn sub_assign(&mut self, rhs: usize) {
+        self.number -= rhs as u64;
+    }
+}
 
 //impl Addr<u64> for PAddr { }
 //
 //impl_addr! { PAddr, u64 }
 
-/// A frame (physical page)
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub struct PhysicalPage { pub number: u64 }
-
-impl Page for PhysicalPage {
-    type Address = PAddr;
-
-    #[inline] fn base(&self) -> Self::Address {
-        self.base_addr()
-    }
-
-    #[inline] fn containing(addr: Self::Address) -> Self {
-        PhysicalPage::containing_addr(addr)
-    }
-
-    #[inline] fn number(&self) -> usize { self.number as usize }
-}
-
-impl ops::Add<u64> for PhysicalPage {
-    type Output = PhysicalPage;
-
-    #[inline]
-    fn add(self, amount: u64) -> PhysicalPage {
-        PhysicalPage { number: self.number + amount }
-    }
-}
-
-impl ops::Add<usize> for PhysicalPage {
-    type Output = PhysicalPage;
-
-    #[inline]
-    fn add(self, amount: usize) -> PhysicalPage {
-        PhysicalPage { number: self.number + amount as u64 }
-    }
-}
-
-impl ops::Sub<usize> for PhysicalPage {
-    type Output = PhysicalPage;
-
-    #[inline]
-    fn sub(self, amount: usize) -> PhysicalPage {
-        PhysicalPage { number: self.number - amount as u64 }
-    }
-}
-
-
-impl ops::AddAssign for PhysicalPage {
-    #[inline(always)]
-    fn add_assign(&mut self, rhs: Self) {
-        self.number += rhs.number as u64
-    }
-}
-
-impl ops::AddAssign<usize> for PhysicalPage {
-    #[inline(always)]
-    fn add_assign(&mut self, rhs: usize) {
-        self.number += rhs as u64
-    }
-}
-
-impl ops::SubAssign for PhysicalPage {
-    #[inline]
-    fn sub_assign(&mut self, rhs: Self) {
-        self.number -= rhs.number as u64
-    }
-}
-
-impl ops::SubAssign<usize> for PhysicalPage {
-    #[inline]
-    fn sub_assign(&mut self, rhs: usize) {
-        self.number -= rhs as u64
-    }
-}
 
 impl PhysicalPage {
 

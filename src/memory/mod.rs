@@ -19,8 +19,6 @@ pub use arch::memory::{ PAddr
                       , HEAP_BASE, HEAP_TOP
                       };
 
-pub mod alloc;
-pub mod paging;
 #[macro_use] pub mod macros;
 
 pub trait Addr: ops::Add<Self> + ops::Sub<Self>
@@ -30,6 +28,13 @@ pub trait Addr: ops::Add<Self> + ops::Sub<Self>
               + Sized {
     type Repr;
 }
+
+pub mod alloc;
+pub mod paging;
+
+//impl Addr<usize> for VAddr { }
+
+//impl_addr! { VAddr, usize }
 
 custom_derive! {
     /// A virtual address is a machine-sized unsigned integer

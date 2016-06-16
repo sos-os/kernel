@@ -21,7 +21,7 @@ pub type FrameRange = Range<PhysicalPage>;
 pub trait Page
 where Self: Sized
     , Self: ops::AddAssign<usize> + ops::SubAssign<usize>
-    , Self: ops::Add<usize, Output=Self> + ops::Sub<usize>
+    , Self: ops::Add<usize, Output=Self> + ops::Sub<usize, Output=Self>
     , Self: cmp::PartialEq<Self> + cmp::PartialOrd<Self>
     , Self: Copy + Clone {
 
@@ -215,79 +215,81 @@ macro_rules! table_idx {
     )*};
 }
 
-/// A virtual page
-#[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct VirtualPage { pub number: usize }
-
-impl ops::Add<usize> for VirtualPage {
-    type Output = Self;
-
-    #[inline]
-    fn add(self, amount: usize) -> Self {
-        VirtualPage { number: self.number + amount }
-    }
+custom_derive!{
+    /// A virtual page
+    #[derive( Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Page(VAddr) )]
+    pub struct VirtualPage { pub number: usize }
 }
+//
+//impl ops::Add<usize> for VirtualPage {
+//    type Output = Self;
+//
+//    #[inline]
+//    fn add(self, amount: usize) -> Self {
+//        VirtualPage { number: self.number + amount }
+//    }
+//}
+//
+//impl ops::Sub<usize> for VirtualPage {
+//    type Output = Self;
+//
+//    #[inline]
+//    fn sub(self, amount: usize) -> Self {
+//        VirtualPage { number: self.number - amount}
+//    }
+//}
+//
+//
+//impl ops::AddAssign for VirtualPage {
+//    #[inline(always)]
+//    fn add_assign(&mut self, rhs: Self) {
+//        self.number += rhs.number
+//    }
+//}
+//
+//impl ops::AddAssign<usize> for VirtualPage {
+//    #[inline(always)]
+//    fn add_assign(&mut self, rhs: usize) {
+//        self.number += rhs
+//    }
+//}
+//
+//impl ops::SubAssign for VirtualPage {
+//    #[inline]
+//    fn sub_assign(&mut self, rhs: Self) {
+//        self.number -= rhs.number
+//    }
+//}
+//
+//impl ops::SubAssign<usize> for VirtualPage {
+//    #[inline]
+//    fn sub_assign(&mut self, rhs: usize) {
+//        self.number -= rhs
+//    }
+//}
 
-impl ops::Sub<usize> for VirtualPage {
-    type Output = Self;
-
-    #[inline]
-    fn sub(self, amount: usize) -> Self {
-        VirtualPage { number: self.number - amount}
-    }
-}
-
-
-impl ops::AddAssign for VirtualPage {
-    #[inline(always)]
-    fn add_assign(&mut self, rhs: Self) {
-        self.number += rhs.number
-    }
-}
-
-impl ops::AddAssign<usize> for VirtualPage {
-    #[inline(always)]
-    fn add_assign(&mut self, rhs: usize) {
-        self.number += rhs
-    }
-}
-
-impl ops::SubAssign for VirtualPage {
-    #[inline]
-    fn sub_assign(&mut self, rhs: Self) {
-        self.number -= rhs.number
-    }
-}
-
-impl ops::SubAssign<usize> for VirtualPage {
-    #[inline]
-    fn sub_assign(&mut self, rhs: usize) {
-        self.number -= rhs
-    }
-}
-
-impl Page for VirtualPage {
-    type Address = VAddr;
-
-    /// Create a new `Page` containing the given virtual address.
-    //  TODO: rewrite this as `up`/`down` using the page shift, instead.
-    fn containing(addr: VAddr) -> Self {
-        assert!( *addr < 0x0000_8000_0000_0000 ||
-                 *addr >= 0xffff_8000_0000_0000
-               , "invalid address: 0x{:x}", addr );
-        VirtualPage { number: *addr >> PAGE_SHIFT }
-    }
-
-    /// Return the start virtual address of this page
-    #[inline]
-    fn base(&self) -> VAddr {
-        VAddr::from(self.number << PAGE_SHIFT)
-    }
-
-    #[inline] fn number(&self) -> usize {
-        self.number
-    }
-}
+//impl Page for VirtualPage {
+//    type Address = VAddr;
+//
+//    /// Create a new `Page` containing the given virtual address.
+//    //  TODO: rewrite this as `up`/`down` using the page shift, instead.
+//    fn containing(addr: VAddr) -> Self {
+//        assert!( *addr < 0x0000_8000_0000_0000 ||
+//                 *addr >= 0xffff_8000_0000_0000
+//               , "invalid address: 0x{:x}", addr );
+//        VirtualPage { number: *addr >> PAGE_SHIFT }
+//    }
+//
+//    /// Return the start virtual address of this page
+//    #[inline]
+//    fn base(&self) -> VAddr {
+//        VAddr::from(self.number << PAGE_SHIFT)
+//    }
+//
+//    #[inline] fn number(&self) -> usize {
+//        self.number
+//    }
+//}
 
 impl VirtualPage {
 
