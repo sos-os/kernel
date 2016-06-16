@@ -25,6 +25,11 @@ spin = "0.3.5"
 once = "0.3.2"
 bitflags = "0.7"
 
+[dependencies.custom_derive]
+git = "https://github.com/DanielKeep/rust-custom-derive.git"
+version = "0.1.6"
+default-features = false
+
 [dependencies.sos_alloc]
 path = "lib/sos_alloc"
 features = ["buddy_as_system"]

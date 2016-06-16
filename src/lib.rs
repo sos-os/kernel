@@ -25,13 +25,13 @@
 #![doc(html_root_url = "https://hawkw.github.io/sos-kernel/")]
 
 #![feature(core_intrinsics)]
-#![feature( lang_items, asm )]
+#![feature( lang_items, asm, naked_functions )]
 #![feature( const_fn
           , slice_patterns
           , associated_consts
           , unique
-          , naked_functions
-          , type_ascription )]
+          , type_ascription
+          , custom_derive )]
 #![feature(collections)]
 #![feature(question_mark)]
 
@@ -40,14 +40,19 @@
 
 #![no_std]
 
+// -- non-SOS dependencies --------------------------------------------------
 extern crate collections;
 extern crate rlibc;
 extern crate spin;
 
+#[macro_use] extern crate bitflags;
+#[macro_use] extern crate custom_derive;
+#[macro_use] extern crate newtype_derive;
+
+// -- SOS dependencies ------------------------------------------------------
 extern crate sos_alloc as alloc;
 
 #[macro_use] extern crate sos_vga as vga;
-#[macro_use] extern crate bitflags;
 
 #[macro_use] pub mod memory;
 #[macro_use] pub mod io;

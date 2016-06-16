@@ -8,8 +8,16 @@
 //
 //! Macros to make our custom address types require a lot less repetitive code.
 
-macro_rules! impl_addr {
-    ($ty:ident, $size:ty) => {
+macro_rules! Addr {
+    (($size:ty) $(pub)* enum $name:ident $($tail:tt)*) => {
+        Addr! { @impl $name, $size }
+    };
+    (($size:ty) $(pub)* struct $name:ident $($tail:tt)*) => {
+        Addr! { @impl $name, $size }
+    };
+    (@impl $ty:ident, $size:ty) => {
+
+        impl Addr<$size> for $ty { }
 
         impl $crate::core::convert::Into<$size> for $ty {
             #[inline] fn into(self) -> $size { self.0 }

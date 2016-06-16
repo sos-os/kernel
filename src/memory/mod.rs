@@ -20,9 +20,8 @@ pub mod alloc;
 pub mod paging;
 #[macro_use] pub mod macros;
 
-/// A virtual address is a machine-sized unsigned integer
-#[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct VAddr(usize);
+
+
 
 pub trait Addr<R>: ops::Add<Self> + ops::Add<R>
                  + ops::Sub<Self> + ops::Sub<R>
@@ -35,9 +34,15 @@ pub trait Addr<R>: ops::Add<Self> + ops::Add<R>
                  + convert::From<*mut u8> + convert::From<*const u8>
                  + Sized { }
 
-impl Addr<usize> for VAddr { }
+//impl Addr<usize> for VAddr { }
 
-impl_addr! { VAddr, usize }
+//impl_addr! { VAddr, usize }
+
+custom_derive! {
+    /// A virtual address is a machine-sized unsigned integer
+    #[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Addr(usize))]
+    pub struct VAddr(usize);
+}
 
 impl VAddr {
     #[inline] pub fn from_ptr<T>(ptr: *mut T) -> Self { VAddr(ptr as usize) }
