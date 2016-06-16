@@ -51,22 +51,22 @@ impl VAddr {
 
     /// Calculate the index in the PML4 table corresponding to this address.
     #[inline] pub fn pml4_index(&self) -> usize {
-        (self >> 39) & 0b111111111
+        *((self >> 39) & 0b111111111 as usize)
     }
 
     /// Calculate the index in the PDPT table corresponding to this address.
     #[inline] pub fn pdpt_index(&self) -> usize {
-        (self >> 30) & 0b111111111
+        *((self >> 30) & 0b111111111)
     }
 
     /// Calculate the index in the PD table corresponding to this address.
     #[inline] pub fn pd_index(&self) -> usize {
-        (self >> 21) & 0b111111111
+        *((self >> 21) & 0b111111111)
     }
 
     /// Calculate the index in the PT table corresponding to this address.
     #[inline] pub fn pt_index(&self) -> usize {
-        (self >> 12) & 0b111111111
+        *((self >> 12) & 0b111111111)
     }
 }
 

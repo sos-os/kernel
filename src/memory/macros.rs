@@ -41,7 +41,9 @@ macro_rules! Addr {
         }
 
         impl $ty {
+            #[inline(always)]
             pub const fn as_mut_ptr<T>(&self) -> *mut T { self.0 as *mut _ }
+            #[inline(always)]
             pub const fn as_ptr<T>(&self) -> *const T { self.0 as *const _ }
         }
 
@@ -53,6 +55,23 @@ macro_rules! Addr {
             Shl, shl, >> for $ty, $size
             Shr, shr, << for $ty, $size
             Rem, rem, % for $ty, $size
+            BitAnd, bitand, & for $ty, $size
+            BitOr, bitor, | for $ty, $size
+            BitXor, bitxor, ^ for $ty, $size
+
+        }
+
+        impl_assign_ops! {
+            AddAssign, add_assign, += for $ty, $size
+            SubAssign, sub_assign, -= for $ty, $size
+            DivAssign, div_assign, /= for $ty, $size
+            MulAssign, mul_assign, *= for $ty, $size
+            ShlAssign, shl_assign, >>= for $ty, $size
+            ShrAssign, shr_assign, <<= for $ty, $size
+            RemAssign, rem_assign, %= for $ty, $size
+            BitAndAssign, bitand_assign, &= for $ty, $size
+            BitOrAssign, bitor_assign, |= for $ty, $size
+            BitXorAssign, bitxor_assign, ^= for $ty, $size
         }
 
         impl_fmt! {
@@ -63,80 +82,5 @@ macro_rules! Addr {
             UpperHex for $ty
         }
 
-        impl $crate::core::ops::BitAnd<$size> for $ty {
-            type Output = $size;
-
-            fn bitand(self, rhs: $size) -> $size {
-                self.0 & rhs
-            }
-        }
     }
-}
-
-macro_rules! forward_ref_binop {
-    ($imp:ident, $method:ident for $t:ty, $u:ty) => {
-        impl<'a> $crate::core::ops::$imp<$u> for &'a $t {
-            type Output = <$t as $crate::core::ops::$imp<$u>>::Output;
-            #[inline]
-            fn $method(self, other: $u)
-                      -> <$t as $crate::core::ops::$imp<$u>>::Output {
-                $crate::core::ops::$imp::$method(*self, other)
-            }
-        }
-
-        impl<'a> $crate::core::ops::$imp<&'a $u> for $t {
-            type Output = <$t as $crate::core::ops::$imp<$u>>::Output;
-            #[inline]
-            fn $method(self, other: &'a $u)
-                      -> <$t as $crate::core::ops::$imp<$u>>::Output {
-                $crate::core::ops::$imp::$method(self, *other)
-            }
-        }
-
-        impl<'a, 'b> $crate::core::ops::$imp<&'a $u> for &'b $t {
-            type Output = <$t as $crate::core::ops::$imp<$u>>::Output;
-
-            #[inline]
-            fn $method(self, other: &'a $u) -> <$t as $crate::core::ops::$imp<$u>>::Output {
-                $crate::core::ops::$imp::$method(*self, *other)
-            }
-        }
-    }
-}
-macro_rules! e { ($e:expr) => { $e } }
-
-macro_rules! impl_ops {
-    ($($name:ident, $fun:ident, $op:tt for $ty:ident, $size:ty)*) => {$(
-        impl $crate::core::ops::$name<$ty> for $ty {
-            type Output = $ty;
-
-            #[inline] fn $fun(self, rhs: $ty) -> $ty {
-                $ty(e!(self.0 $op rhs.0))
-            }
-        }
-        impl $crate::core::ops::$name<$size> for $ty {
-            type Output = $ty;
-
-            #[inline] fn $fun(self, rhs: $size) -> $ty {
-                $ty(e!(self.0 $op rhs))
-            }
-        }
-
-        forward_ref_binop! {
-            $name, $fun for $ty, $ty
-        }
-        forward_ref_binop! {
-            $name, $fun for $ty, $size
-        }
-    )*}
-}
-
-macro_rules! impl_fmt {
-    ($($name:ident for $ty:ty)*) => {$(
-        impl $crate::core::fmt::$name for $ty {
-            fn fmt(&self, f: &mut $crate::core::fmt::Formatter) -> $crate::core::fmt::Result {
-                self.0.fmt(f)
-            }
-        }
-    )*}
 }
