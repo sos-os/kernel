@@ -34,6 +34,8 @@
           , custom_derive )]
 #![feature(collections)]
 #![feature(question_mark)]
+#![feature( zero_one
+          , step_trait )]
 
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]

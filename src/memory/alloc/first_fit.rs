@@ -1,5 +1,5 @@
 use arrayvec::ArrayVec;
-use memory::paging::{Page, PhysicalPage, FrameRange};
+use memory::paging::{Page, MemRange, PhysicalPage, FrameRange};
 use super::FrameAllocator;
 use spin::Mutex;
 
@@ -25,13 +25,12 @@ impl<'a> FrameAllocator for FirstFit<'a> {
         frames.iter()
             .position(|range| range.length() >= num)
             .map(|i| {
-                let mut range = frames[i];
-                if num < range.length() {
-                    range.drop_front(num);
+                if num < frames[i].length() {
+                    frames[i].drop_front(num);
                 } else {
                     frames.remove(i);
                 }
-                range.start().range_of(num)
+                frames[i].start.range_of(num)
             })
     }
 

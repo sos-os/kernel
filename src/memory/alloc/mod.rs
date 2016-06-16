@@ -67,7 +67,7 @@ impl<'a, A> Drop for BorrowedFrameRange<'a, A>
 where A: FrameAllocator
     , A: 'a {
     fn drop(&mut self) {
-        unsafe { self.allocator.deallocate_range(self.range) }
+        unsafe { self.allocator.deallocate_range(self.range.clone()) }
     }
 }
 
@@ -155,7 +155,7 @@ impl FrameAllocator for BuddyFrameAllocator {
     }
 
     unsafe fn deallocate_range(&self, range: FrameRange) {
-        for frame in range.iter() {
+        for frame in range {
             ALLOC.lock().as_mut()
                  .expect("Cannot deallocate frames, no system allocator exists")
                  .deallocate( frame.as_mut_ptr()

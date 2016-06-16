@@ -10,6 +10,7 @@
 use memory::{Addr, VAddr, PAddr, PAGE_SHIFT, PAGE_SIZE};
 use memory::alloc::FrameAllocator;
 use core::{ops, cmp};
+use core::ops::Range;
 
 pub use arch::memory::PhysicalPage;
 pub use arch::memory::paging::*;
@@ -70,56 +71,72 @@ where Self: Sized
     fn number(&self) -> usize;
 
 }
+//
+///// A range of `Page`s.
+//#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+//pub struct Range<P>
+//where P: Page { start: P, end: P }
+//
+pub trait MemRange {
+    /// Returns the number of `Page`s in this ranage
+    #[inline]
+    fn length(&self) -> usize;
 
-/// A range of `Page`s.
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub struct Range<P>
-where P: Page { start: P, end: P }
+    /// Remove `n` pages from the beginning of this `PageRange`
+    fn drop_front(&mut self, n: usize) -> &mut Self;
 
-impl<P> Range<P>
-where P: Page
-    , P: Clone {
+    /// Remove `n` pages from the end of this `PageRange`
+    fn drop_back(&mut self, n: usize) -> &mut Self;
 
-    pub const fn start(&self) -> P { self.start }
+    /// Add `n` pages at the front of this `PageRange`
+    fn add_front(&mut self, n: usize) -> &mut Self;
 
-   /// Returns a `PageRange` between two pages
-   pub const fn between(start: P, end: P) -> Range<P> {
-       Range { start: start, end: end }
-   }
+    /// Add `n` pages at the back of this `PageRange`
+    fn add_back(&mut self, n: usize) -> &mut Self;
+}
+    //pub const fn start(&self) -> P { self.start }
+   //
+   ///// Returns a `PageRange` between two pages
+   //pub const fn between(start: P, end: P) -> Range<P> {
+   //    Range { start: start, end: end }
+   //}
+   //
+   // /// Returns an iterator over this `PageRange`
+   // pub fn iter<'a>(&'a self) -> RangeIter<'a, P> {
+   //     RangeIter { range: self, current: self.start.clone() }
+   // }
 
-    /// Returns an iterator over this `PageRange`
-    pub fn iter<'a>(&'a self) -> RangeIter<'a, P> {
-        RangeIter { range: self, current: self.start.clone() }
-    }
+impl<P> MemRange for Range<P>
+where P: Page {
 
     /// Returns the number of `Page`s in this ranage
     #[inline]
-    pub fn length(&self) -> usize {
+    fn length(&self) -> usize {
         self.end.number() - self.start.number()
     }
 
     /// Remove `n` pages from the beginning of this `PageRange`
-    pub fn drop_front(&mut self, n: usize) -> &mut Self {
+    fn drop_front(&mut self, n: usize) -> &mut Self {
         assert!(n < self.length());
         self.start += n;
         self
     }
 
     /// Remove `n` pages from the end of this `PageRange`
-    pub fn drop_back(&mut self, n: usize) -> &mut Self {
+    fn drop_back(&mut self, n: usize) -> &mut Self {
         assert!(n < self.length());
         self.end -= n;
         self
     }
 
     /// Add `n` pages at the front of this `PageRange`
-    pub fn add_front(&mut self, n: usize) -> &mut Self {
+    fn add_front(&mut self, n: usize) -> &mut Self {
         self.start -= n;
         self
     }
 
     /// Add `n` pages at the back of this `PageRange`
-    pub fn add_back(&mut self, n: usize) -> &mut Self {
+    fn add_back(&mut self, n: usize) -> &mut Self {
         self.end += n;
         self
     }

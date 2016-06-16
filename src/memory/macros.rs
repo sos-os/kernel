@@ -171,6 +171,33 @@ macro_rules! Page {
             }
         }
 
+        impl $crate::core::num::One for $ty {
+            #[inline] fn one() -> Self {
+                $ty { number:
+                    <<$addr as Addr>::Repr as $crate::core::num::One>::one()
+                }
+            }
+        }
+
+        impl $crate::core::iter::Step for $ty {
+            #[inline]
+            fn step(&self, by: &Self) -> Option<Self> {
+                self.number
+                    .step(&by.number)
+                    .map(|s| $ty { number: s})
+            }
+
+            #[inline]
+            #[allow(trivial_numeric_casts)]
+            fn steps_between(start: &$ty, end: &$ty, by: &$ty)
+                            -> Option<usize> {
+                use $crate::core::iter::Step;
+                <<$addr as Addr>::Repr as Step>::steps_between( &start.number
+                                                              , &end.number
+                                                              , &by.number
+                                                              )
+            }
+        }
 
         impl_page_ops! {
             Add, add, + for $ty, <<$ty as Page>::Address as Addr>::Repr
