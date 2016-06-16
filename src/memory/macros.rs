@@ -46,21 +46,21 @@ macro_rules! Addr {
         }
 
         impl_ops! {
-            impl Add, add, + for $ty, $size
-            impl Sub, sub, - for $ty, $size
-            impl Div, div, / for $ty, $size
-            impl Mul, mul, * for $ty, $size
-            impl Shl, shl, >> for $ty, $size
-            impl Shr, shr, << for $ty, $size
-            impl Rem, rem, % for $ty, $size
+            Add, add, + for $ty, $size
+            Sub, sub, - for $ty, $size
+            Div, div, / for $ty, $size
+            Mul, mul, * for $ty, $size
+            Shl, shl, >> for $ty, $size
+            Shr, shr, << for $ty, $size
+            Rem, rem, % for $ty, $size
         }
 
         impl_fmt! {
-            impl Binary for $ty
-            impl Display for $ty
-            impl Octal for $ty
-            impl LowerHex for $ty
-            impl UpperHex for $ty
+            Binary for $ty
+            Display for $ty
+            Octal for $ty
+            LowerHex for $ty
+            UpperHex for $ty
         }
 
         impl $crate::core::ops::BitAnd<$size> for $ty {
@@ -74,7 +74,7 @@ macro_rules! Addr {
 }
 
 macro_rules! forward_ref_binop {
-    (impl $imp:ident, $method:ident for $t:ty, $u:ty) => {
+    ($imp:ident, $method:ident for $t:ty, $u:ty) => {
         impl<'a> $crate::core::ops::$imp<$u> for &'a $t {
             type Output = <$t as $crate::core::ops::$imp<$u>>::Output;
             #[inline]
@@ -106,7 +106,7 @@ macro_rules! forward_ref_binop {
 macro_rules! e { ($e:expr) => { $e } }
 
 macro_rules! impl_ops {
-    ($(impl $name:ident, $fun:ident, $op:tt for $ty:ident, $size:ty)*) => {$(
+    ($($name:ident, $fun:ident, $op:tt for $ty:ident, $size:ty)*) => {$(
         impl $crate::core::ops::$name<$ty> for $ty {
             type Output = $ty;
 
@@ -123,16 +123,16 @@ macro_rules! impl_ops {
         }
 
         forward_ref_binop! {
-            impl $name, $fun for $ty, $ty
+            $name, $fun for $ty, $ty
         }
         forward_ref_binop! {
-            impl $name, $fun for $ty, $size
+            $name, $fun for $ty, $size
         }
     )*}
 }
 
 macro_rules! impl_fmt {
-    ($(impl $name:ident for $ty:ty)*) => {$(
+    ($($name:ident for $ty:ty)*) => {$(
         impl $crate::core::fmt::$name for $ty {
             fn fmt(&self, f: &mut $crate::core::fmt::Formatter) -> $crate::core::fmt::Result {
                 self.0.fmt(f)
