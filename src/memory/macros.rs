@@ -17,10 +17,6 @@ macro_rules! Addr {
     };
     (@impl $ty:ident, $size:ty) => {
 
-        impl Addr for $ty {
-            type Repr = $size;
-        }
-
         impl $crate::core::fmt::Debug for $ty {
             fn fmt(&self, f: &mut $crate::core::fmt::Formatter)
                   -> $crate::core::fmt::Result {
@@ -52,8 +48,15 @@ macro_rules! Addr {
         impl $ty {
             #[inline(always)]
             pub const fn as_mut_ptr<T>(&self) -> *mut T { self.0 as *mut _ }
+
             #[inline(always)]
             pub const fn as_ptr<T>(&self) -> *const T { self.0 as *const _ }
+
+            /// Returns true if this address is aligned on a page boundary.
+            #[inline]
+            pub fn is_page_aligned(&self) -> bool {
+                **self % PAGE_SIZE as <Self as Addr>::Repr == 0 as <Self as Addr>::Repr
+            }
         }
 
         impl_ops! {
@@ -89,6 +92,10 @@ macro_rules! Addr {
             Octal for $ty
             LowerHex for $ty
             UpperHex for $ty
+        }
+
+        impl Addr for $ty {
+            type Repr = $size;
         }
 
     }
