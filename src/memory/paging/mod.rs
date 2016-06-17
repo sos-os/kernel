@@ -9,9 +9,11 @@
 //! Non-arch-specific paging.
 use memory::{Addr, VAddr, PAddr, PAGE_SHIFT};
 use memory::alloc::FrameAllocator;
+
 use core::{ops, cmp};
 use core::ops::Range;
 
+pub mod temp;
 pub use arch::memory::PhysicalPage;
 pub use arch::memory::paging::*;
 
