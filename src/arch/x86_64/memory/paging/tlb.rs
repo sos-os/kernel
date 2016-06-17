@@ -1,6 +1,15 @@
 use memory::VAddr;
 use memory::paging::{Page, VirtualPage};
 
+/// Invalidate the TLB completely by reloading the CR3 register.
+///
+/// # Unsafe Because
+/// + Causes a general protection fault if not executed in kernel mode.
+pub unsafe fn flush_all() {
+    use arch::cpu::control_regs::cr3;
+    cr3::write(cr3::read());
+}
+
 /// Something which may be flushed from the TLB
 pub trait Flush {
     /// Invalidate this object in the TLB using the `invlpg` instruction.
