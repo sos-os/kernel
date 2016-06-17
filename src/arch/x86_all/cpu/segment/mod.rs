@@ -15,6 +15,8 @@
 use core::{fmt, mem};
 use super::PrivilegeLevel;
 
+pub mod gdt;
+
 bitflags! {
     /// A segment selector is a 16-bit identifier for a segment.
     ///
