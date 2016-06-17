@@ -7,7 +7,7 @@
 //  directory of this repository for more information.
 //
 //! Non-arch-specific paging.
-use memory::{Addr, VAddr, PAddr, PAGE_SHIFT, PAGE_SIZE};
+use memory::{Addr, VAddr, PAddr, PAGE_SHIFT};
 use memory::alloc::FrameAllocator;
 use core::{ops, cmp};
 use core::ops::Range;
