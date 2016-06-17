@@ -2,15 +2,22 @@ use super::{PhysicalPage, VirtualPage, FrameRange};
 use memory::alloc::{FrameAllocator, BorrowedFrame};
 use spin::Mutex;
 
-pub struct TempPage  { page: VirtualPage
-                     , alloc: FrameCache
-                        }
+pub struct TempPage { page: VirtualPage
+                    , frames: FrameCache
+                    }
 
 impl TempPage {
+
+    /// Create a new `TempPage`.
+    ///
+    /// # Arguments
+    /// + `number`: the page number for the temporary page
+    /// + `alloc`: a `FrameAllocator` for allocating the frames to use
+    ///            for the temporary page.
     pub fn new<A>(number: usize, alloc: &A) -> Self
     where A: FrameAllocator {
         TempPage { page: VirtualPage { number: number }
-                 , alloc: FrameCache::new(alloc)
+                 , frames: FrameCache::new(alloc)
                  }
     }
 }
