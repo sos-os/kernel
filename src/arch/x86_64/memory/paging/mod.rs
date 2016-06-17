@@ -173,6 +173,11 @@ impl ActivePML4 {
 
 }
 
+/// An inactive page table that the CPU is not currently using
+pub struct InactivePML4 {
+    pml4: Table<PML4Level>
+}
+
 pub fn test_paging<A>(alloc: &mut A)
 where A: FrameAllocator {
     // This testing code shamelessly stolen from Phil Oppermann.
