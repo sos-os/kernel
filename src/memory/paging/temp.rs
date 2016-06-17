@@ -1,5 +1,5 @@
 use super::{PhysicalPage, VirtualPage, FrameRange};
-use memory::alloc::{FrameAllocator, BorrowedFrame};
+use memory::alloc::{FrameAllocator};
 use spin::Mutex;
 
 pub struct TempPage { page: VirtualPage
