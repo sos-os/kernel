@@ -43,24 +43,25 @@ impl Mapper for ActivePML4 {
     }
 
     fn translate_page(&self, page: VirtualPage) -> Option<PhysicalPage> {
-        let pdpt = self.pml4().next_table(page.pml4_index());
+        let addr = page.base();
+        let pdpt = self.pml4().next_table(addr);
 
-        pdpt.and_then(|pdpt| pdpt.next_table(page.pdpt_index()))
-            .and_then(|pd| pd.next_table(page.pd_index()))
-            .and_then(|pt| pt[page.pt_index()].get_frame())
-            .or_else( || {
-                pdpt.and_then(|pdpt| {
-                    let pdpt_entry = &pdpt[page.pdpt_index()];
-                    pdpt_entry.do_huge(page.pd_index() + page.pt_index() )
-                        .or_else(|| {
-                            pdpt.next_table(page.pdpt_index())
-                                .and_then(|pd| {
-                                    let pd_entry = &pd[page.pd_index()];
-                                    pd_entry.do_huge(page.pt_index())
-                                })
-                        })
+        let huge_page = || {
+            pdpt.and_then(|pdpt|
+                pdpt[addr]
+                    .do_huge(PDLevel::index_of(addr) + PTLevel::index_of(addr))
+                    .or_else(|| {
+                        pdpt.next_table(addr).and_then(|pd|
+                            pd[addr].do_huge(PTLevel::index_of(addr))
+                        )
                     })
-                })
+                )
+        };
+
+        pdpt.and_then(|pdpt| pdpt.next_table(addr))
+            .and_then(|pd| pd.next_table(addr))
+            .and_then(|pt| pt[addr].get_frame())
+            .or_else(huge_page)
     }
 
 
@@ -74,28 +75,27 @@ impl Mapper for ActivePML4 {
     fn map<A>( &mut self, page: VirtualPage, frame: PhysicalPage
              , flags: EntryFlags, alloc: &mut A)
     where A: FrameAllocator {
-
-        // get the page table index of the page to map
-        let idx = page.pt_index();
+        // base virtual address of page being mapped
+        let addr = page.base();
 
         // access or create all the lower-level page tables.
         let mut page_table
             // get the PML4
             = self.pml4_mut()
                   // get or create the PDPT table at the page's PML4 index
-                  .create_next(page.pml4_index(), alloc)
+                  .create_next(addr, alloc)
                   // get or create the PD table at the page's PDPT index
-                  .create_next(page.pdpt_index(), alloc)
+                  .create_next(addr, alloc)
                   // get or create the page table at the  page's PD table index
-                  .create_next(idx, alloc);
+                  .create_next(addr, alloc);
 
         // check if the page at that index is not currently in use, as we
         // cannot map a page which is currently in use.
-        assert!(page_table[idx].is_unused()
+        assert!(page_table[addr].is_unused()
                , "Could not map frame {:?}, page table entry {} is already \
-                  in use!", frame, idx);
+                  in use!", frame, PTLevel::index_of(addr));
         // set the page table entry at that index
-        page_table[idx].set(frame, flags | table::PRESENT);
+        page_table[addr].set(frame, flags | table::PRESENT);
     }
 
     fn identity_map<A>(&mut self, frame: PhysicalPage, flags: EntryFlags
@@ -133,7 +133,7 @@ impl Mapper for ActivePML4 {
             = self.pml4_mut()
                   .page_table_mut_for(page) // get the page table for the page
                   .expect("Could not unmap, huge pages not supported!")
-                  [page.pt_index()];        // index the entry from the table
+                  [page.base()];        // index the entry from the table
 
         // get the pointed frame for the page table entry.
         let frame = entry.get_frame()

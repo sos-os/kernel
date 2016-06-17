@@ -18,10 +18,12 @@ pub mod paging;
 use core::ops;
 
 pub const PAGE_SHIFT: u8 = 12;
-/// The size of a page (4mb)
-//  TODO: can we possibly rewrite this so that we can handle pages
-//        in excess of 4 megs?
-pub const PAGE_SIZE: u64 = 1 << PAGE_SHIFT; // 4096
+/// The size of a page (4KiB), in bytes
+pub const PAGE_SIZE: u64 = 1 << PAGE_SHIFT; // 4k
+/// The size of a large page (2MiB) in bytes
+pub const LARGE_PAGE_SIZE: u64 = 1024 * 1024 * 2;
+/// The size of a huge page (2GiB) in bytes
+pub const HUGE_PAGE_SIZE: u64 = 1024 * 1024 * 1024;
 
 extern {
     // TODO: It would be really nice if there was a less ugly way of doing

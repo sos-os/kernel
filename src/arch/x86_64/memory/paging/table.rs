@@ -9,6 +9,7 @@
 use arch::memory::{PhysicalPage, PAddr, PAGE_SIZE};
 use elf;
 
+use memory::VAddr;
 use memory::paging::{Page, VirtualPage};
 use memory::alloc::FrameAllocator;
 
@@ -37,16 +38,26 @@ where L: TableLevel { /// The entries in the page table.
                     , _level_marker: PhantomData<L>
                     }
 
-pub trait TableLevel {}
+pub trait TableLevel {
+    /// How much to shift an address by to find its index in this table.
+    const SHIFT_AMOUNT: usize;
+
+    /// Returns the index in this table for the given virtual address
+    #[inline]
+    fn index_of(addr: VAddr) -> usize {
+        (addr.as_usize() >> Self::SHIFT_AMOUNT) & 0b111111111
+    }
+}
+
 pub enum PML4Level {}
 pub enum PDPTLevel {}
 pub enum PDLevel   {}
 pub enum PTLevel   {}
 
-impl TableLevel for PML4Level {}
-impl TableLevel for PDPTLevel {}
-impl TableLevel for PDLevel   {}
-impl TableLevel for PTLevel   {}
+impl TableLevel for PML4Level { const SHIFT_AMOUNT: usize = 39; }
+impl TableLevel for PDPTLevel { const SHIFT_AMOUNT: usize = 30; }
+impl TableLevel for PDLevel   { const SHIFT_AMOUNT: usize = 21; }
+impl TableLevel for PTLevel   { const SHIFT_AMOUNT: usize = 12; }
 
 pub trait Sublevel: TableLevel {
     type Next: TableLevel;
@@ -64,19 +75,22 @@ impl Sublevel for PDLevel {
 impl Table<PML4Level> {
     #[inline]
     pub fn page_table_for(&self, page: VirtualPage) -> Option<&Table<PTLevel>> {
-        self.next_table(page.pml4_index())
-            .and_then(|pdpt| pdpt.next_table(page.pdpt_index()))
-            .and_then(|pd| pd.next_table(page.pd_index()))
+        let addr = page.base();
+        self.next_table(addr)
+            .and_then(|pdpt| pdpt.next_table(addr))
+            .and_then(|pd| pd.next_table(addr))
     }
 
     #[inline]
     pub fn page_table_mut_for(&mut self, page: VirtualPage)
                              -> Option<&mut Table<PTLevel>> {
-        self.next_table_mut(page.pml4_index())
-            .and_then(|pdpt| pdpt.next_table_mut(page.pdpt_index()))
-            .and_then(|pd| pd.next_table_mut(page.pd_index()))
+        let addr = page.base();
+        self.next_table_mut(addr)
+            .and_then(|pdpt| pdpt.next_table_mut(addr))
+            .and_then(|pd| pd.next_table_mut(addr))
     }
 }
+
 
 impl<L: TableLevel> Index<usize> for Table<L> {
     type Output = Entry;
@@ -92,6 +106,21 @@ impl<L: TableLevel> IndexMut<usize> for Table<L> {
     }
 }
 
+impl<L: TableLevel> Index<VAddr> for Table<L> {
+    type Output = Entry;
+
+    #[inline] fn index(&self, addr: VAddr) -> &Entry {
+        &self.entries[L::index_of(addr)]
+    }
+}
+
+impl<L: TableLevel> IndexMut<VAddr> for Table<L> {
+    #[inline] fn index_mut(&mut self, addr: VAddr) -> &mut Entry {
+        &mut self.entries[L::index_of(addr)]
+    }
+}
+
+
 impl<L: TableLevel> Table<L>  {
 
     /// Zeroes out the page table by setting all entries "unused"
@@ -105,35 +134,36 @@ impl<L: TableLevel> Table<L>  {
 
 impl<L: Sublevel> Table<L> {
 
+
     /// Returns the address of the next table, or None if none exists.
-    fn next_table_addr(&self, index: usize) -> Option<usize> {
-        let flags = self[index].flags();
+    fn next_table_addr(&self, addr: VAddr) -> Option<VAddr> {
+        let flags = self[addr].flags();
         if flags.contains(PRESENT) && !flags.contains(HUGE_PAGE) {
-            Some(((self as *const _ as usize) << 9) | (index << 12))
+            Some((addr << 12) | ((self as *const _ as usize) << 9) )
         } else {
             None
         }
     }
 
     /// Returns the next table, or `None` if none exists
-    pub fn next_table(&self, index: usize) -> Option<&Table<L::Next>> {
-        self.next_table_addr(index)
-            .map(|addr| unsafe { &*(addr as *const _) })
+    pub fn next_table(&self, addr: VAddr) -> Option<&Table<L::Next>> {
+        self.next_table_addr(addr)
+            .map(|table_addr| unsafe { &*(table_addr.as_ptr()) })
     }
 
     /// Mutably borrows the next table.
-    pub fn next_table_mut(&self, index: usize) -> Option<& mut Table<L::Next>> {
-        self.next_table_addr(index)
-            .map(|addr| unsafe { &mut *(addr as *mut _) })
+    pub fn next_table_mut(&self, addr: VAddr) -> Option<& mut Table<L::Next>> {
+        self.next_table_addr(addr)
+            .map(|table_addr| unsafe { &mut *(table_addr.as_mut_ptr()) })
     }
 
 
     /// Returns the next table, creating it if it does not exist.
-    pub fn create_next<A>(&mut self, index: usize, alloc: &mut A)
+    pub fn create_next<A>(&mut self, addr: VAddr, alloc: &mut A)
                          -> &mut Table<L::Next>
     where A: FrameAllocator {
-        if self.next_table(index).is_none() {
-            assert!( !self[index].is_huge()
+        if self.next_table(addr).is_none() {
+            assert!( !self[addr].is_huge()
                    , "Couldn't create next table: huge pages not \
                       currently supported.");
 
@@ -144,10 +174,10 @@ impl<L: Sublevel> Table<L> {
                      .expect("Couldn't map page, out of frames!")
             };
 
-            self[index].set(frame, PRESENT | WRITABLE);
-            self.next_table_mut(index).unwrap().zero();
+            self[addr].set(frame, PRESENT | WRITABLE);
+            self.next_table_mut(addr).unwrap().zero();
         }
-        self.next_table_mut(index).unwrap()
+        self.next_table_mut(addr).unwrap()
     }
 }
 
@@ -212,7 +242,10 @@ pub struct Entry(u64);
 
 impl Entry {
 
-    pub const fn new(raw: u64) -> Self { Entry(raw) }
+    pub fn new(addr: PAddr) -> Self {
+        assert!(addr.is_page_aligned());
+        Entry(*addr)
+    }
 
     // TODO: this is one of the worst names I have ever given a thing
     #[inline]
@@ -253,11 +286,17 @@ impl Entry {
         EntryFlags::from_bits_truncate(self.0)
     }
 
+    /// Returns the physical address pointed to by this page table entry
+    #[inline]
+    pub fn get_addr(&self) -> PAddr {
+        PAddr::from(self.0 & PML4_VADDR)
+    }
+
     /// Returns the frame in memory pointed to by this page table entry.
     pub fn get_frame(&self) -> Option<PhysicalPage> {
         if self.flags().is_present() {
             // If the entry is present, mask out bits 12-51 and
-            Some(PhysicalPage::containing(PAddr::from(self.0 & PML4_VADDR)))
+            Some(PhysicalPage::containing(self.get_addr()))
         } else { None }
     }
 
