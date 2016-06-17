@@ -126,6 +126,8 @@ impl Mapper for ActivePML4 {
     /// All freed frames are returned to the given `FrameAllocator`.
     fn unmap<A>(&mut self, page: VirtualPage, alloc: &mut A)
     where A: FrameAllocator {
+        use self::tlb::Flush;
+
         // get the page table entry corresponding to the page.
         let ref mut entry
             = self.pml4_mut()
@@ -141,9 +143,10 @@ impl Mapper for ActivePML4 {
         entry.set_unused();
 
         // deallocate the frame and flush the translation lookaside buffer
+        // this is safe because we're in kernel mode
+        assert!( page.flush()
+               , "Could not flush TLB, we were not in kernel mode!");
         unsafe {
-            // this is safe because we're in kernel mode
-            page.flush();
             // this is hopefully safe because nobody else should be using an
             // allocated page frame
             alloc.deallocate(frame);

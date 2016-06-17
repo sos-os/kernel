@@ -311,17 +311,6 @@ custom_derive!{
 //}
 
 impl VirtualPage {
-
-    /// Flush the page from memory
-    //  TODO: this is arch-specific, move it to arch
-    pub unsafe fn flush(&self) {
-        asm!( "invlpg [$0]"
-            :
-            : "{rax}"(self.base())
-            : "memory"
-            : "intel", "volatile")
-    }
-
     // TODO: these are arch-specific, move them to `arch`
     table_idx!{
         pml4_index >> 27
