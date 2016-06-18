@@ -12,7 +12,11 @@
 //! page table is called the Page Meta-Level 4 (PML4) table, followed by
 //! the Page Directory Pointer Table (PDPT), Page Directory (PD) table, and
 //! finally the bottom-level Page Table (PT).
+use core::{ops, mem};
 use core::ptr::Unique;
+
+use arch::cpu::control_regs::cr3;
+
 use ::memory::VAddr;
 use ::memory::paging::{Page, VirtualPage, Mapper};
 use ::memory::alloc::FrameAllocator;
@@ -23,6 +27,91 @@ use self::table::*;
 
 pub mod table;
 pub mod tlb;
+pub mod temp;
+
+pub struct ActivePageTable { pml4: ActivePML4 }
+
+impl ops::Deref for ActivePageTable {
+    type Target = ActivePML4;
+
+    fn deref(&self) -> &ActivePML4 {
+        &self.pml4
+    }
+}
+
+impl ops::DerefMut for ActivePageTable {
+    fn deref_mut(&mut self) -> &mut ActivePML4 {
+        &mut self.pml4
+    }
+}
+
+impl ActivePageTable {
+    pub unsafe fn new() -> ActivePageTable {
+        ActivePageTable { pml4: ActivePML4::new() }
+    }
+
+    /// Execute a closure with the recursive mapping temporarily changed to a
+    /// new page table
+    pub fn using<F>( &mut self
+                   , table: &mut InactivePageTable
+                   , temp_page: &mut temp::TempPage
+                   , f: F)
+    where F: FnOnce(&mut ActivePML4) {
+        use self::tlb::flush_all;
+        {
+            // back up the current PML4 frame
+            let prev_pml4_frame = unsafe {
+                // this is safe to execute; we are in kernel mode
+                cr3::current_pagetable_frame()
+            };
+
+            // remap the 511th PML4 entry (the recursive entry) to map to the // frame containing the new PML4.
+            self.pml4_mut()[511]
+                .set(table.pml4_frame, PRESENT | WRITABLE);
+            unsafe {
+                // this is safe to execute; we are in kernel mode
+                flush_all();
+            }
+
+            // execute the closure
+            f(self);
+
+            // remap the 511th entry to point back to the original frame
+            self.pml4_mut()[511]
+                .set(prev_pml4_frame, PRESENT | WRITABLE);
+
+            unsafe {
+                // this is safe to execute; we are in kernel mode
+                flush_all();
+            }
+        }
+        temp_page.unmap(self);
+
+    }
+
+    /// Replace the current `ActivePageTable` with the given `InactivePageTable`
+    ///
+    /// # Arguments:
+    /// + `new_table`: the `InactivePageTable` that will replace the current
+    ///                `ActivePageTable`.
+    ///
+    /// # Returns:
+    /// + the old active page table as an `InactivePageTable`.
+    pub fn replace(&mut self, new_table: &mut InactivePageTable)
+                   -> InactivePageTable {
+        unsafe {
+            // this is safe to execute; we are in kernel mode
+            let old_pml4_frame = cr3::current_pagetable_frame();
+
+            cr3::set_pagetable_frame(new_table.pml4_frame);
+
+            InactivePageTable {
+                pml4_frame: old_pml4_frame
+            }
+        }
+    }
+
+}
 
 /// Struct representing the currently active PML4 instance.
 ///
@@ -73,7 +162,7 @@ impl Mapper for ActivePML4 {
     /// + `flags`: the page table entry flags.
     /// + `alloc`: a memory allocator
     fn map<A>( &mut self, page: VirtualPage, frame: PhysicalPage
-             , flags: EntryFlags, alloc: &mut A)
+             , flags: EntryFlags, alloc: &A)
     where A: FrameAllocator {
         // base virtual address of page being mapped
         let addr = page.base();
@@ -99,7 +188,7 @@ impl Mapper for ActivePML4 {
     }
 
     fn identity_map<A>(&mut self, frame: PhysicalPage, flags: EntryFlags
-                      , alloc: &mut A)
+                      , alloc: &A)
     where A: FrameAllocator {
         self.map( Page::containing(VAddr::from(frame.base_addr().0 as usize))
                 , frame
@@ -110,7 +199,7 @@ impl Mapper for ActivePML4 {
     fn map_to_any<A>( &mut self
                     , page: VirtualPage
                     , flags: EntryFlags
-                    , alloc: &mut A)
+                    , alloc: &A)
     where A: FrameAllocator {
         let frame = unsafe {
             alloc.allocate()
@@ -124,7 +213,7 @@ impl Mapper for ActivePML4 {
     /// Unmap the given `VirtualPage`.
     ///
     /// All freed frames are returned to the given `FrameAllocator`.
-    fn unmap<A>(&mut self, page: VirtualPage, alloc: &mut A)
+    fn unmap<A>(&mut self, page: VirtualPage, alloc: &A)
     where A: FrameAllocator {
         use self::tlb::Flush;
 
@@ -171,14 +260,21 @@ impl ActivePML4 {
         unsafe { self.0.get_mut() }
     }
 
+    /// Returns true if the given page is mapped.
+    #[inline]
+    pub fn is_mapped(&self, page: &VirtualPage) -> bool {
+         self.translate_page(*page).is_some()
+    }
+
+
 }
 
 /// An inactive page table that the CPU is not currently using
-pub struct InactivePML4 {
-    pml4: Table<PML4Level>
+pub struct InactivePageTable {
+    pml4_frame: PhysicalPage
 }
 
-pub fn test_paging<A>(alloc: &mut A)
+pub fn test_paging<A>(alloc: &A)
 where A: FrameAllocator {
     // This testing code shamelessly stolen from Phil Oppermann.
     let mut pml4 = unsafe { ActivePML4::new() };

@@ -23,6 +23,7 @@ pub mod interrupts;
 
 pub mod context;
 pub mod task;
+pub mod msr;
 
 pub use self::context::Registers;
 pub use self::cpu_all::*;

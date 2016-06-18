@@ -1,10 +1,28 @@
-use super::{PhysicalPage, VirtualPage, FrameRange};
-use memory::alloc::{FrameAllocator};
+use ::memory::paging::{Page, PhysicalPage, VirtualPage, FrameRange, Mapper};
+use ::memory::alloc::{FrameAllocator};
+use memory::VAddr;
+
 use spin::Mutex;
 
+use core::ops;
+
+use arch::memory::paging::ActivePageTable;
+
+#[derive(Debug)]
 pub struct TempPage { page: VirtualPage
                     , frames: FrameCache
                     }
+
+// Deref conversions for `TempPage` allow us to pass it to functions expecting
+// a `VirtualPage`.
+impl ops::Deref for TempPage {
+    type Target = VirtualPage;
+    #[inline] fn deref(&self) -> &VirtualPage { &self.page }
+}
+
+impl ops::DerefMut for TempPage {
+    #[inline] fn deref_mut(&mut self) -> &mut VirtualPage { &mut self.page }
+}
 
 impl TempPage {
 
@@ -20,8 +38,34 @@ impl TempPage {
                  , frames: FrameCache::new(alloc)
                  }
     }
+
+    /// Map the `TempPage` to the given frame in the `ActivePageTable`.
+    ///
+    /// # Arguments
+    /// + `frame`: the `PhysicalPage` to map to
+    /// + `table`: the `ActivePageTable`
+    ///
+    /// # Returns
+    /// + The `VAddr` of the mapped page.
+    pub fn map_to( &mut self
+                 , frame: PhysicalPage
+                 , table: &mut ActivePageTable)
+                 -> VAddr {
+        assert!( !table.is_mapped(self)
+                , "Cannot map {:?}, as it is already mapped", self);
+        use super::table::WRITABLE;
+        table.map(self.page, frame, WRITABLE, &self.frames);
+        self.page.base()
+    }
+
+    pub fn unmap(&mut self, table: &mut ActivePageTable) {
+        assert!( table.is_mapped(self)
+                , "Cannot unmap {:?}, as it is not mapped", self);
+        table.unmap(self.page, &self.frames);
+    }
 }
 
+#[derive(Debug)]
 pub struct FrameCache(Mutex<[Option<PhysicalPage>; 3]>);
 
 impl FrameCache {

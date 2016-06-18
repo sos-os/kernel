@@ -130,6 +130,18 @@ impl<L: TableLevel> Table<L>  {
         }
     }
 
+    /// Return the start physical address of this `Table`
+    #[inline]
+    pub fn start_paddr(&self) -> PAddr {
+        PAddr::from(self as *const Self)
+    }
+
+    /// Return the `PhysicalPage` containing this table.
+    #[inline]
+    pub fn frame(&self) -> PhysicalPage {
+        PhysicalPage::containing(self.start_paddr())
+    }
+
 }
 
 impl<L: Sublevel> Table<L> {
@@ -159,7 +171,7 @@ impl<L: Sublevel> Table<L> {
 
 
     /// Returns the next table, creating it if it does not exist.
-    pub fn create_next<A>(&mut self, addr: VAddr, alloc: &mut A)
+    pub fn create_next<A>(&mut self, addr: VAddr, alloc: &A)
                          -> &mut Table<L::Next>
     where A: FrameAllocator {
         if self.next_table(addr).is_none() {
