@@ -98,12 +98,27 @@ pub mod cr3 {
     /// # Unsafe Because:
     /// + Reading from control registers while not in kernel mode will cause
     ///   a general protection fault.
+    #[cfg(target_arch = "x86_64")]
     pub unsafe fn read() -> PAddr {
-        let result: PAddr;
+        let result: u64;
         asm!(   "mov $0, cr3"
             :   "=r"(result)
             ::: "intel" );
-        result
+        PAddr::from(result)
+    }
+
+    /// Read the current value from `$cr3`.
+    ///
+    /// # Unsafe Because:
+    /// + Reading from control registers while not in kernel mode will cause
+    ///   a general protection fault.
+    #[cfg(target_arch = "x86")]
+    pub unsafe fn read() -> PAddr {
+        let result: u32;
+        asm!(   "mov $0, cr3"
+            :   "=r"(result)
+            ::: "intel" );
+        PAddr::from(result)
     }
 
     /// Write a value to `$cr3`.
@@ -111,12 +126,26 @@ pub mod cr3 {
     /// # Unsafe Because:
     /// + Control registers should generally not be modified during normal
     ///   operation.
-    pub unsafe fn write(value: PAddr) {
+    #[cfg(target_arch = "x86_64")]
+    pub unsafe fn write(addr: PAddr) {
+        let value: u64 = addr.into();
         asm!(  "mov cr3, $0"
             :: "r"(value)
             :: "intel");
     }
 
+    /// Write a value to `$cr3`.
+    ///
+    /// # Unsafe Because:
+    /// + Control registers should generally not be modified during normal
+    ///   operation.
+    #[cfg(target_arch = "x86")]
+    pub unsafe fn write(addr: PAddr) {
+        let value: u32 = addr.into();
+        asm!(  "mov cr3, $0"
+            :: "r"(value)
+            :: "intel");
+    }
 
     /// Returns the current Page Meta-Level 4 table
     ///
@@ -127,7 +156,8 @@ pub mod cr3 {
     #[inline]
     pub unsafe fn current_pml4() -> Table<PML4Level> {
         use core::mem::transmute;
-        transmute(current_pagetable_frame())
+        //*read().as_mut_ptr::<Table<PML4Level>>()
+        unimplemented!()
     }
 
     /// Sets the current Page Meta-Level 4 Table
@@ -147,5 +177,15 @@ pub mod cr3 {
     ///   a general protection fault.
     pub unsafe fn current_pagetable_frame() -> PhysicalPage {
         PhysicalPage::containing_addr(read())
+    }
+
+    /// Returns the current Page Directory base frame.
+    ///
+    /// # Unsafe Because:
+    /// + Reading from control registers while not in kernel mode will cause
+    ///   a general protection fault.
+    #[inline]
+    pub unsafe fn set_pagetable_frame(frame: PhysicalPage) {
+        write(frame.base_addr())
     }
 }
