@@ -87,15 +87,19 @@ pub mod cr2 {
 }
 
 pub mod cr3 {
-    use memory::paging::PhysicalPage;
+    use memory::paging::{Page, PhysicalPage};
+    use memory::PAddr;
+
+    #[cfg(target_arch = "x86_64")]
+    use arch::memory::paging::table::{Table, PML4Level};
 
     /// Read the current value from `$cr3`.
     ///
     /// # Unsafe Because:
     /// + Reading from control registers while not in kernel mode will cause
     ///   a general protection fault.
-    pub unsafe fn read() -> usize {
-        let result: usize;
+    pub unsafe fn read() -> PAddr {
+        let result: PAddr;
         asm!(   "mov $0, cr3"
             :   "=r"(result)
             ::: "intel" );
@@ -107,23 +111,41 @@ pub mod cr3 {
     /// # Unsafe Because:
     /// + Control registers should generally not be modified during normal
     ///   operation.
-    pub unsafe fn write(value: usize) {
+    pub unsafe fn write(value: PAddr) {
         asm!(  "mov cr3, $0"
             :: "r"(value)
             :: "intel");
     }
 
-    /// Returns the current Page Directory base frame.
+
+    /// Returns the current Page Meta-Level 4 table
+    ///
+    /// # Unsafe Because:
+    /// + Reading from control registers while not in kernel mode will cause
+    ///   a general protection fault.
     #[cfg(target_arch = "x86_64")]
-    pub unsafe fn pd_base_frame() -> PhysicalPage {
-        use memory::PAddr;
-        PhysicalPage::containing_addr(PAddr::from(read() as u64))
+    #[inline]
+    pub unsafe fn current_pml4() -> Table<PML4Level> {
+        use core::mem::transmute;
+        transmute(current_pagetable_frame())
+    }
+
+    /// Sets the current Page Meta-Level 4 Table
+    ///
+    /// # Unsafe Because:
+    /// + Control registers should generally not be modified during normal
+    ///   operation.
+    #[cfg(target_arch = "x86_64")]
+    pub unsafe fn set_pml4(pml4: Table<PML4Level>) {
+        write(pml4.frame().base_addr())
     }
 
     /// Returns the current Page Directory base frame.
-    #[cfg(target_arch = "x86")]
-    pub unsafe fn pd_base_frame() -> PhysicalPage {
-        use memory::PAddr;
-        PhysicalPage::containing_addr(PAddr::from(read() as u32))
+    ///
+    /// # Unsafe Because:
+    /// + Reading from control registers while not in kernel mode will cause
+    ///   a general protection fault.
+    pub unsafe fn current_pagetable_frame() -> PhysicalPage {
+        PhysicalPage::containing_addr(read())
     }
 }
