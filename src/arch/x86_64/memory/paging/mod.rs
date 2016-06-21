@@ -12,18 +12,21 @@
 //! page table is called the Page Meta-Level 4 (PML4) table, followed by
 //! the Page Directory Pointer Table (PDPT), Page Directory (PD) table, and
 //! finally the bottom-level Page Table (PT).
-use core::{ops, mem};
+use core::ops;
 use core::ptr::Unique;
+
+use multiboot2;
 
 use arch::cpu::control_regs::cr3;
 
-use ::memory::VAddr;
-use ::memory::paging::{Page, VirtualPage, Mapper};
-use ::memory::alloc::FrameAllocator;
+use memory::VAddr;
+use memory::paging::{Page, VirtualPage, Mapper};
+use memory::alloc::FrameAllocator;
 
 use super::{PhysicalPage, PAddr, PAGE_SIZE};
 
 use self::table::*;
+use self::temp::TempPage;
 
 pub mod table;
 pub mod tlb;
@@ -274,6 +277,20 @@ pub struct InactivePageTable {
     pml4_frame: PhysicalPage
 }
 
+impl InactivePageTable {
+    pub fn new( frame: PhysicalPage
+              , active_table: &mut ActivePageTable
+              , temp: &mut TempPage)
+              -> Self {
+        {
+            let table = temp.map_to_table(frame.clone(), active_table)
+                            .zero();
+            table[511].set( frame.clone(), PRESENT | WRITABLE);
+        }
+        unimplemented!()
+    }
+}
+
 pub fn test_paging<A>(alloc: &A)
 where A: FrameAllocator {
     // This testing code shamelessly stolen from Phil Oppermann.
@@ -309,4 +326,30 @@ where A: FrameAllocator {
     pml4.unmap(Page::containing(addr), alloc);
     println!("None = {:?}", pml4.translate(addr));
 
+}
+
+/// Remaps the kernel using 4KiB pages.
+pub fn kernel_remap<A>(info: &multiboot2::Info, alloc: &A) -> ActivePageTable
+where A: FrameAllocator {
+
+    // create a  temporary page for switching page tables
+    // page number chosen fairly arbitrarily.
+    const TEMP_PAGE_NUMBER: usize = 0xDECAF000;
+    let mut temp_page = TempPage::new(TEMP_PAGE_NUMBER, alloc);
+
+    // old and new page tables
+    let mut old_table = unsafe { ActivePageTable::new() };
+    let mut new_table = unsafe {
+        InactivePageTable::new(
+             alloc.allocate().expect("Out of physical pages!")
+          , &mut old_table
+          , &mut temp_page
+          )
+    };
+
+    // actually remap the kernel
+    old_table.using(&mut new_table, &mut temp_page, |pml4| {
+        unimplemented!()
+        });
+    unimplemented!()
 }

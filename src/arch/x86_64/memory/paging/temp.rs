@@ -7,6 +7,7 @@ use spin::Mutex;
 use core::ops;
 
 use arch::memory::paging::ActivePageTable;
+use arch::memory::paging::table::{Table, PTLevel};
 
 #[derive(Debug)]
 pub struct TempPage { page: VirtualPage
@@ -57,6 +58,15 @@ impl TempPage {
         table.map(self.page, frame, WRITABLE, &self.frames);
         self.page.base()
     }
+
+    pub fn map_to_table( &mut self
+                       , frame: PhysicalPage
+                       , table: &mut ActivePageTable)
+                       -> &mut Table<PTLevel> {
+       unsafe {
+           &mut *(self.map_to(frame, table).as_mut_ptr::<Table<PTLevel>>())
+       }
+   }
 
     pub fn unmap(&mut self, table: &mut ActivePageTable) {
         assert!( table.is_mapped(self)

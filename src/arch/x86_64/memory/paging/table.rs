@@ -124,10 +124,11 @@ impl<L: TableLevel> IndexMut<VAddr> for Table<L> {
 impl<L: TableLevel> Table<L>  {
 
     /// Zeroes out the page table by setting all entries "unused"
-    pub fn zero(&mut self) {
+    pub fn zero(&mut self) -> &mut Self {
         for entry in self.entries.iter_mut() {
             entry.set_unused()
         }
+        self
     }
 
     /// Return the start physical address of this `Table`
