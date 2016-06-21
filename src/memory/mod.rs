@@ -32,6 +32,8 @@ pub trait Addr: ops::Add<Self> + ops::Sub<Self>
 pub mod alloc;
 pub mod paging;
 
+pub use self::paging::kernel_remap;
+
 //impl Addr<usize> for VAddr { }
 
 //impl_addr! { VAddr, usize }

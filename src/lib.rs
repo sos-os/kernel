@@ -177,6 +177,17 @@ pub extern fn kernel_start(multiboot_addr: PAddr) {
                 , memory::HEAP_BASE
                 , memory::HEAP_TOP);
     };
+
+    // -- remap the kernel ----------------------------------------------------
+    // TODO: clean this up/move to arch_init() (which should be primary entry
+    //       point)
+    println!(" . Remapping the kernel:");
+    let boot_info
+        = unsafe { multiboot2::Info::from(multiboot_addr)
+                    .expect("Could not unpack multiboot2 information!") };
+    let frame_allocator = frame_alloc::BuddyFrameAllocator::new();
+    memory::kernel_remap(boot_info, &frame_allocator);
+    println!("{:<38}{:>40}", " . Remapping the kernel", "[ OKAY ]");
     // -- call into kernel main loop ------------------------------------------
     // (currently, this does nothing)
     kernel_main()

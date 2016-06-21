@@ -79,5 +79,4 @@ pub fn arch_init(multiboot_addr: PAddr) {
         println!( " . Page no execute bit ENABLED");
     }
 
-
 }
