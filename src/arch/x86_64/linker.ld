@@ -14,7 +14,7 @@ SECTIONS {
     /* Load the kernel reasonably high in memory to avoid special addresses. */
     . = 1M;
 
-    .boot :
+    .rodata
     {
         /* This goes first. */
         KEEP(*(.multiboot))
@@ -45,12 +45,7 @@ SECTIONS {
        . = ALIGN(4K);
      }
 
-    .rodata : {
-       *(.rodata .rodata.*)
-        . = ALIGN(4K);
-    }
-
-    .data.rel.ro : {
+    .data.rel.ro : ALIGN(4K) {
        *(.data.rel.ro.local*) *(.data.rel.ro .data.rel.ro.*)
         . = ALIGN(4K);
     }
