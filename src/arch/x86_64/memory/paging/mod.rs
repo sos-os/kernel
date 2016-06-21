@@ -349,7 +349,28 @@ where A: FrameAllocator {
 
     // actually remap the kernel
     old_table.using(&mut new_table, &mut temp_page, |pml4| {
-        unimplemented!()
-        });
+        let sections
+            = info.elf_sections()
+                  .expect("Can't remap the kernel, no elf sections tag!")
+                  .sections()
+                  .filter(|section| section.is_allocated());
+
+        for section in sections {
+            assert!( section.addr().is_page_aligned()
+                   , "Section address must be page aligned to remap!");
+            println!( "Identity mapping section at {:?} with size {:?}"
+                    , section.addr()
+                    , section.length() );
+
+            let flags = EntryFlags::from(&section);
+            
+            let start_frame = PhysicalPage::from(section.addr());
+            let end_frame = PhysicalPage::from(section.end_addr());
+
+            for frame in start_frame .. end_frame {
+                pml4.identity_map(frame, flags, alloc)
+            }
+        }
+    });
     unimplemented!()
 }

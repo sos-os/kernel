@@ -310,7 +310,9 @@ impl Entry {
         if self.flags().is_present() {
             // If the entry is present, mask out bits 12-51 and
             Some(PhysicalPage::containing(self.get_addr()))
-        } else { None }
+        } else {
+            None
+        }
     }
 
     pub fn set(&mut self, frame: PhysicalPage, flags: EntryFlags) {
