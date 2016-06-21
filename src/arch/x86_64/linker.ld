@@ -14,7 +14,7 @@ SECTIONS {
     /* Load the kernel reasonably high in memory to avoid special addresses. */
     . = 1M;
 
-    .rodata
+    .rodata :
     {
         /* This goes first. */
         KEEP(*(.multiboot))
