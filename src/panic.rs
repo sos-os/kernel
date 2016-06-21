@@ -30,7 +30,6 @@ pub extern "C" fn rust_begin_unwind( args: Arguments
                                    -> ! {
     let _ = write!( term::CONSOLE.lock()
                         .set_colors(Color::White, Color::Red)
-                        .clear()
                   , "Something has gone horribly wrong in {} at line {}. \
                     \n{}\n\
                     This is fine."
