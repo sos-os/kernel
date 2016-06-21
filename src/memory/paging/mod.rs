@@ -10,7 +10,9 @@
 use memory::{Addr, VAddr, PAddr, PAGE_SHIFT};
 use memory::alloc::FrameAllocator;
 
-use core::{ops, cmp};
+use elf;
+
+use core::{ops, cmp, convert};
 use core::ops::Range;
 
 pub use arch::memory::PhysicalPage;
@@ -228,4 +230,26 @@ custom_derive!{
     /// A virtual page
     #[derive( Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Page(VAddr) )]
     pub struct VirtualPage { pub number: usize }
+}
+
+impl convert::From<PAddr> for PhysicalPage {
+    #[inline] fn from(addr: PAddr) -> Self {
+        PhysicalPage::containing(addr)
+    }
+}
+
+impl convert::From<VAddr> for VirtualPage {
+    #[inline] fn from(addr: VAddr) -> Self {
+        VirtualPage::containing(addr)
+    }
+}
+
+impl<'a> convert::From<elf::Section<'a>> for FrameRange {
+    #[inline]
+    fn from(section: elf::Section<'a>) -> Self {
+        let start = PhysicalPage::from(PAddr::from(section.addr()));
+        let end = PhysicalPage::from(PAddr::from(section.addr()));
+        start .. end
+    }
+
 }
