@@ -25,6 +25,15 @@ pub struct Info { pub length: u32
 
 impl Info {
 
+    #[inline]
+    pub fn start_addr(&self) -> PAddr {
+        PAddr::from(self as *const _ as u64)
+    }
+
+    pub fn end_addr(&self) -> PAddr {
+        PAddr::from(self.start_addr() + self.length as u64)
+    }
+
     pub unsafe fn from(addr: PAddr) -> Result<&'static Self, &'static str> {
         let info: &Info = &*(addr.into(): u64 as *const Info);
         if info.has_end() { Ok(info) }

@@ -100,8 +100,8 @@ impl ActivePageTable {
     ///
     /// # Returns:
     /// + the old active page table as an `InactivePageTable`.
-    pub fn replace(&mut self, new_table: &mut InactivePageTable)
-                   -> InactivePageTable {
+    pub fn replace_with(&mut self, new_table: &mut InactivePageTable)
+                       -> InactivePageTable {
         unsafe {
             // this is safe to execute; we are in kernel mode
             let old_pml4_frame = cr3::current_pagetable_frame();
@@ -338,24 +338,24 @@ where A: FrameAllocator {
     let mut temp_page = TempPage::new(TEMP_PAGE_NUMBER, alloc);
 
     // old and new page tables
-    let mut old_table = unsafe { ActivePageTable::new() };
+    let mut current_table = unsafe { ActivePageTable::new() };
     let mut new_table = unsafe {
         InactivePageTable::new(
              alloc.allocate().expect("Out of physical pages!")
-          , &mut old_table
+          , &mut current_table
           , &mut temp_page
           )
     };
 
-    // actually remap the kernel
-    old_table.using(&mut new_table, &mut temp_page, |pml4| {
-        let sections
+    // actually remap the kernel --------------------------------------------
+    current_table.using(&mut new_table, &mut temp_page, |pml4| {
+        let sections // extract allocated ELF sections
             = info.elf_sections()
                   .expect("Can't remap the kernel, no elf sections tag!")
                   .sections()
                   .filter(|section| section.is_allocated());
 
-        for section in sections {
+        for section in sections { // remap ELF secctions
             assert!( section.addr().is_page_aligned()
                    , "Section address must be page aligned to remap!");
             println!( "Identity mapping section at {:?} with size {:?}"
@@ -363,7 +363,7 @@ where A: FrameAllocator {
                     , section.length() );
 
             let flags = EntryFlags::from(&section);
-            
+
             let start_frame = PhysicalPage::from(section.addr());
             let end_frame = PhysicalPage::from(section.end_addr());
 
@@ -371,6 +371,34 @@ where A: FrameAllocator {
                 pml4.identity_map(frame, flags, alloc)
             }
         }
+
+        // remap VGA buffer
+        println!( "Identity mapping VGA buffer" );
+        let vga_buffer_frame = PhysicalPage::from(PAddr::from(0xb8000));
+        pml4.identity_map(vga_buffer_frame, WRITABLE, alloc);
+
+        // remap Multiboot info
+        println!( "Identity mapping multiboot info" );
+        let multiboot_start = PhysicalPage::from(info.start_addr());
+        let multiboot_end = PhysicalPage::from(info.end_addr());
+
+        for frame in multiboot_start .. multiboot_end {
+            pml4.identity_map(frame, PRESENT, alloc)
+        }
+
     });
-    unimplemented!()
+
+    // switch page tables ---------------------------------------------------
+    let old_table = current_table.replace_with(&mut new_table);
+    println!("Successfully switched to remapped page table!");
+
+    // create guard page at the location of the old PML4 table
+    let old_pml4_page
+        = VirtualPage::containing(
+            VAddr::from(*(old_table.pml4_frame.base()) as usize)
+        );
+    current_table.unmap(old_pml4_page, alloc);
+    println!("Unmapped guard page at {:?}", old_pml4_page.base());
+
+    current_table
 }
