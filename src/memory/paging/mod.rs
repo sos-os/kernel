@@ -247,8 +247,8 @@ impl convert::From<VAddr> for VirtualPage {
 impl<'a> convert::From<elf::Section<'a>> for FrameRange {
     #[inline]
     fn from(section: elf::Section<'a>) -> Self {
-        let start = PhysicalPage::from(PAddr::from(section.addr()));
-        let end = PhysicalPage::from(PAddr::from(section.addr()));
+        let start = PhysicalPage::from(section.addr());
+        let end = PhysicalPage::from(section.end_addr());
         start .. end
     }
 
