@@ -84,8 +84,8 @@ impl Info {
     /// Returns true if the multiboot structure has a valid end tag.
     fn has_end(&self) -> bool {
         let end_tag_addr
-            = (self as *const _) as usize +
-              (self.length - END_TAG_LEN) as usize;
+            = self as *const _ as usize +
+              (self.length as usize - END_TAG_LEN as usize);
         let end_tag = unsafe {&*(end_tag_addr as *const Tag)};
         end_tag.ty == TagType::End && end_tag.length == 8
     }
