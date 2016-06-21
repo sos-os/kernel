@@ -12,12 +12,13 @@ pub mod drivers;
 pub mod memory;
 
 use memory::PAddr;
-use multiboot2;
 
 pub const ARCH_BITS: u8 = 64;
 
 /// Entry point for architecture-specific kernel init
 pub fn arch_init(multiboot_addr: PAddr) {
+    use multiboot2;
+    use self::cpu::{control_regs, msr};
 
     // -- Unpack multiboot tag ------------------------------------------------
     let boot_info
@@ -68,5 +69,15 @@ pub fn arch_init(multiboot_addr: PAddr) {
 
     println!( " . . Multiboot info begins at {:#x} and ends at {:#x}."
              , multiboot_addr, multiboot_end);
+
+    // enable flags needed for paging
+    unsafe {
+        control_regs::cr0::enable_write_protect(true);
+        println!( " . Page write protect ENABED" );
+
+        msr::enable_nxe();
+        println!( " . Page no execute bit ENABLED");
+    }
+
 
 }
