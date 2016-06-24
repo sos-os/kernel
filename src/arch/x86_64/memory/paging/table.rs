@@ -23,7 +23,7 @@ pub const N_ENTRIES: usize = 512;
 pub const PAGE_TABLE_SIZE: usize = N_ENTRIES * PAGE_SIZE as usize;
 
 /// Base virtual address of the PML4 table
-pub const PML4_VADDR: u64 = 0xfffffffffffff000;
+pub const PML4_VADDR: u64 =  0xffffffff_fffff000;
 
 /// A pointer to the PML4 table
 pub const PML4_PTR: *mut Table<PML4Level> = PML4_VADDR as *mut _;
@@ -95,13 +95,13 @@ impl Table<PML4Level> {
 impl<L: TableLevel> Index<usize> for Table<L> {
     type Output = Entry;
 
-    #[inline] fn index(&self, index: usize) -> &Entry {
+    fn index(&self, index: usize) -> &Entry {
         &self.entries[index]
     }
 }
 
 impl<L: TableLevel> IndexMut<usize> for Table<L> {
-    #[inline] fn index_mut(&mut self, index: usize) -> &mut Entry {
+    fn index_mut(&mut self, index: usize) -> &mut Entry {
         &mut self.entries[index]
     }
 }
@@ -110,13 +110,13 @@ impl<L: TableLevel> Index<VAddr> for Table<L> {
     type Output = Entry;
 
     #[inline] fn index(&self, addr: VAddr) -> &Entry {
-        &self.entries[L::index_of(addr)]
+        self.index(L::index_of(addr))
     }
 }
 
 impl<L: TableLevel> IndexMut<VAddr> for Table<L> {
     #[inline] fn index_mut(&mut self, addr: VAddr) -> &mut Entry {
-        &mut self.entries[L::index_of(addr)]
+        self.index_mut(L::index_of(addr))
     }
 }
 
@@ -124,11 +124,12 @@ impl<L: TableLevel> IndexMut<VAddr> for Table<L> {
 impl<L: TableLevel> Table<L>  {
 
     /// Zeroes out the page table by setting all entries "unused"
-    pub fn zero(&mut self) -> &mut Self {
-        for entry in self.entries.iter_mut() {
-            entry.set_unused()
+    pub fn zero(&mut self) {
+        println!("zeroing");
+        for i in 0..self.entries.len() {
+            self[i].set_unused();
+            println!("zeroed {}", i);
         }
-        self
     }
 
     /// Return the start physical address of this `Table`
@@ -152,7 +153,8 @@ impl<L: Sublevel> Table<L> {
     fn next_table_addr(&self, addr: VAddr) -> Option<VAddr> {
         let flags = self[addr].flags();
         if flags.contains(PRESENT) && !flags.contains(HUGE_PAGE) {
-            Some((addr << 12) | ((self as *const _ as usize) << 9) )
+            let table_addr = VAddr::from(self as *const _ as usize);
+            Some((table_addr << 9) | (addr << 12))
         } else {
             None
         }
@@ -175,20 +177,24 @@ impl<L: Sublevel> Table<L> {
     pub fn create_next<A>(&mut self, addr: VAddr, alloc: &A)
                          -> &mut Table<L::Next>
     where A: FrameAllocator {
+        //println!("in create_next");
         if self.next_table(addr).is_none() {
             assert!( !self[addr].is_huge()
                    , "Couldn't create next table: huge pages not \
                       currently supported.");
-
+            //print!("allocating...");
             let frame = unsafe {
                 alloc.allocate()
                      // TODO: would we rather rewrite this to return
                      // a `Result`? I think so.
                      .expect("Couldn't map page, out of frames!")
             };
+            //println!("done.");
 
             self[addr].set(frame, PRESENT | WRITABLE);
+            //println!("setted.");
             self.next_table_mut(addr).unwrap().zero();
+            println!("zeroed");
         }
         self.next_table_mut(addr).unwrap()
     }
@@ -251,6 +257,7 @@ impl EntryFlags {
     }
 }
 
+#[derive(Debug)]
 pub struct Entry(u64);
 
 impl Entry {
@@ -282,7 +289,7 @@ impl Entry {
     }
 
     /// Sets this entry to be unused
-    #[inline]
+    #[inline(never)]
     pub fn set_unused(&mut self) {
         self.0 = 0;
     }
@@ -317,7 +324,7 @@ impl Entry {
 
     pub fn set(&mut self, frame: PhysicalPage, flags: EntryFlags) {
         let addr: u64 = frame.base_addr().into();
-        assert!(addr & !PML4_VADDR == 0);
+        assert!(addr & !0x000fffff_fffff000 == 0);
         self.0 = addr | flags.bits();
     }
 

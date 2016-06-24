@@ -32,6 +32,7 @@ pub mod table;
 pub mod tlb;
 pub mod temp;
 
+
 pub struct ActivePageTable { pml4: ActivePML4 }
 
 impl ops::Deref for ActivePageTable {
@@ -121,7 +122,6 @@ impl ActivePageTable {
 /// The `ActivePML4` is a `Unique` reference to a PML4-level page table. It's
 /// unique because, well, there can only be one active PML4 at a given time.
 ///
-///
 pub struct ActivePML4(Unique<Table<PML4Level>>);
 
 /// The active PML4 table is the single point of entry for page mapping.
@@ -180,7 +180,7 @@ impl Mapper for ActivePML4 {
                   .create_next(addr, alloc)
                   // get or create the page table at the  page's PD table index
                   .create_next(addr, alloc);
-
+        println!(" . . Map: Got page table");
         // check if the page at that index is not currently in use, as we
         // cannot map a page which is currently in use.
         assert!(page_table[addr].is_unused()
@@ -283,11 +283,15 @@ impl InactivePageTable {
               , temp: &mut TempPage)
               -> Self {
         {
-            let table = temp.map_to_table(frame.clone(), active_table)
-                            .zero();
+            let table = temp.map_to_table(frame.clone(), active_table);
+            println!( " . . . Mapped temp page to table frame.");
+            table.zero();
+            println!( " . . . Zeroed inactive table frame.");
             table[511].set( frame.clone(), PRESENT | WRITABLE);
+            println!(" . . . Set active table to point to new inactive table.")
         }
         temp.unmap(active_table);
+        println!(" . . Unmapped temp page.");
 
         InactivePageTable { pml4_frame: frame }
     }
@@ -336,7 +340,7 @@ where A: FrameAllocator {
 
     // create a  temporary page for switching page tables
     // page number chosen fairly arbitrarily.
-    const TEMP_PAGE_NUMBER: usize = 0xDECAF000;
+    const TEMP_PAGE_NUMBER: usize = 0xcafebabe;
     let mut temp_page = TempPage::new(TEMP_PAGE_NUMBER, alloc);
     println!(" . . Created temporary page.");
 

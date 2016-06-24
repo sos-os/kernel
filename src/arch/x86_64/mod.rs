@@ -12,15 +12,17 @@ pub mod drivers;
 pub mod memory;
 
 use memory::PAddr;
-
 pub const ARCH_BITS: u8 = 64;
 
 /// Entry point for architecture-specific kernel init
 pub fn arch_init(multiboot_addr: PAddr) {
     use multiboot2;
     use self::cpu::{control_regs, msr};
+    use core::mem;
+    use alloc::buddy;
+    use memory::paging::{Page, PhysicalPage};
 
-    // -- Unpack multiboot tag ------------------------------------------------
+    // -- Unpack multiboot tag -----------------------------------------------
     let boot_info
         = unsafe { multiboot2::Info::from(multiboot_addr)
                     .expect("Could not unpack multiboot2 information!") };
@@ -68,15 +70,39 @@ pub fn arch_init(multiboot_addr: PAddr) {
     let multiboot_end = multiboot_addr + boot_info.length as u64;
 
     println!( " . . Multiboot info begins at {:#x} and ends at {:#x}."
-             , multiboot_addr, multiboot_end);
+           , multiboot_addr, multiboot_end);
 
-    // enable flags needed for paging
-    unsafe {
-        control_regs::cr0::enable_write_protect(true);
-        println!( " . Page write protect ENABED" );
+     // -- enable flags needed for paging ------------------------------------
+     unsafe {
+         control_regs::cr0::enable_write_protect(true);
+         println!( " . Page write protect ENABED" );
 
-        msr::enable_nxe();
-        println!( " . Page no execute bit ENABLED");
-    }
+         msr::enable_nxe();
+         println!( " . Page no execute bit ENABLED");
+     }
+
+     println!(" . . Preparing to initialize heap. ");
+     // -- initialize the heap -----------------------------------------------
+     let heap_base
+        = PhysicalPage::containing_addr(PAddr::from(multiboot_addr + boot_info.length as u64)).base();
+     unsafe {
+         buddy::system::init_heap(heap_base.as_mut_ptr(), ::memory::HEAP_SIZE);
+         println!( "{:<38}{:>40}\n \
+                     . . Heap begins at {:#x} and ends at {:#x}"
+                 , " . Intializing heap"
+                // , ::memory::init_heap(heap_base.as_mut_ptr())
+                //            .unwrap_or("[ FAIL ]")
+                 , "[ OKAY ]"
+                 , heap_base
+                 , heap_base + ::memory::HEAP_SIZE as u64);
+     };
+
+    // -- remap the kernel ----------------------------------------------------
+    println!(" . Remapping the kernel:");
+
+    let frame_allocator = ::memory::alloc::BuddyFrameAllocator::new();
+    ::memory::kernel_remap(&boot_info, &frame_allocator);
+    println!("{:<38}{:>40}", " . Remapping the kernel", "[ OKAY ]");
+
 
 }

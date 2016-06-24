@@ -34,6 +34,8 @@ pub mod paging;
 
 pub use self::paging::kernel_remap;
 
+pub const HEAP_SIZE: usize = 4 * 1024 * 1024;
+
 //impl Addr<usize> for VAddr { }
 
 //impl_addr! { VAddr, usize }
@@ -73,10 +75,13 @@ impl VAddr {
 
 /// Initialise the kernel heap.
 //  TODO: this is the Worst Thing In The Universe. De-stupid-ify it.
-pub unsafe fn init_heap<'a>() -> Result<&'a str, &'a str> {
-    let heap_base_ptr = HEAP_BASE.as_mut_ptr();
-    let heap_size: u64 = (HEAP_TOP - HEAP_BASE).into();
-    buddy::system::init_heap(heap_base_ptr, heap_size as usize);
+#[inline]
+pub unsafe fn init_heap<'a>(heap_base_ptr: *mut u8)
+                            -> Result<&'a str, &'a str> {
+    //let heap_base_ptr = HEAP_BASE.as_mut_ptr();
+    //let heap_size: u64 = (HEAP_TOP - HEAP_BASE).into();
+    println!("calling buddy::init_heap()");
+    buddy::system::init_heap(heap_base_ptr, 0xdecafbad);
     Ok("[ OKAY ]")
 }
 //

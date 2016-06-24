@@ -22,7 +22,6 @@ static mut KERNEL_FREE_LISTS: [FreeList; NUM_FREE_LISTS]
       , ];
 
 pub unsafe fn init_heap(start_addr: *mut u8, heap_size: usize ) {
-    trace!("init_heap() was called.");
     *(ALLOC.lock())
         = Some(BuddyHeapAllocator::new( start_addr
                                       , &mut KERNEL_FREE_LISTS

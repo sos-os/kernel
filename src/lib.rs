@@ -158,9 +158,6 @@ pub extern fn kernel_start(multiboot_addr: PAddr) {
 
     println!("Hello from the kernel!");
 
-    // -- jump to architecture-specific init ---------------------------------
-    arch::arch_init(multiboot_addr);
-
     // -- initialize interrupts ----------------------------------------------
     unsafe {
         println!(" . Enabling interrupts:");
@@ -168,26 +165,10 @@ pub extern fn kernel_start(multiboot_addr: PAddr) {
         println!("{:<38}{:>40}", " . Enabling interrupts", "[ OKAY ]");
     };
 
-    // -- initialize the heap ------------------------------------------------
-    unsafe {
-        println!( "{:<38}{:>40}\n \
-                    . . Heap begins at {:#x} and ends at {:#x}"
-                , " . Intializing heap"
-                , memory::init_heap().unwrap_or("[ FAIL ]")
-                , memory::HEAP_BASE
-                , memory::HEAP_TOP);
-    };
 
-    // -- remap the kernel ----------------------------------------------------
-    // TODO: clean this up/move to arch_init() (which should be primary entry
-    //       point)
-    println!(" . Remapping the kernel:");
-    let boot_info
-        = unsafe { multiboot2::Info::from(multiboot_addr)
-                    .expect("Could not unpack multiboot2 information!") };
-    let frame_allocator = frame_alloc::BuddyFrameAllocator::new();
-    memory::kernel_remap(boot_info, &frame_allocator);
-    println!("{:<38}{:>40}", " . Remapping the kernel", "[ OKAY ]");
+    // -- jump to architecture-specific init ---------------------------------
+    arch::arch_init(multiboot_addr);
+
     // -- call into kernel main loop ------------------------------------------
     // (currently, this does nothing)
     kernel_main()

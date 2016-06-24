@@ -52,9 +52,10 @@ impl TempPage {
                  , frame: PhysicalPage
                  , table: &mut ActivePageTable)
                  -> VAddr {
-        assert!( !table.is_mapped(self)
-                , "Cannot map {:?}, as it is already mapped", self);
+        //assert!( !table.is_mapped(self)
+                //, "Cannot map {:?}, as it is already mapped", self);
         use super::table::WRITABLE;
+        println!(" . . TempPage::map_to({:?})", frame);
         table.map(self.page, frame, WRITABLE, &self.frames);
         self.page.base()
     }
