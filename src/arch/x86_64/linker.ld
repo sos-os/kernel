@@ -27,11 +27,6 @@ SECTIONS {
         *(.text .text.*)
         . = ALIGN(4K);
     }
-    .text :
-     {
-       *(.text .text.*)
-       . = ALIGN(4K);
-     }
 
      .data :
      {

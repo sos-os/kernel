@@ -12,6 +12,7 @@
 //! for more information.
 //  TODO: this is x86-only and should move to `arch`
 use memory::PAddr;
+use memory::paging::{PhysicalPage, FrameRange};
 use elf::section::{Sections, HeaderRepr};
 
 const END_TAG_LEN: u32 = 8;
@@ -88,6 +89,23 @@ impl Info {
               (self.length as usize - END_TAG_LEN as usize);
         let end_tag = unsafe {&*(end_tag_addr as *const Tag)};
         end_tag.ty == TagType::End && end_tag.length == 8
+    }
+
+    /// Returns the kernel frame range from the Multiboot 2 ELF Sections
+    pub fn kernel_frames(&self) -> Result<FrameRange, &'static str> {
+        let sections_tag = self.elf_sections()
+                               .ok_or("ELF sections tag required!")?;
+
+        let kernel_start = sections_tag.sections()
+                              .map(|s| s.addr())
+                              .min()
+                              .ok_or("Couldn't find kernel start section!")?;
+        let kernel_end = sections_tag.sections()
+                              .map(|s| s.addr())
+                              .max()
+                              .ok_or("Couldn't find kernel end section!")?;
+
+        Ok(PhysicalPage::from(kernel_start) .. PhysicalPage::from(kernel_end))
     }
 }
 
