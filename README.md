@@ -1,4 +1,4 @@
-#Stupid Operating System [![Build Status](https://travis-ci.org/hawkw/sos-kernel.svg?branch=master)](https://travis-ci.org/hawkw/sos-kernel) [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://github.com/hawkw/sos-kernel/LICENSE-MIT) [![Latest RustDoc](https://img.shields.io/badge/rustdoc-latest-orange.svg)](https://hawkweisman.me/sos-kernel)
+#Stupid Operating System [![Build Status](https://travis-ci.org/MxLinux/sos-kernel.svg?branch=master)](https://travis-ci.org/hawkw/sos-kernel) [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://github.com/hawkw/sos-kernel/LICENSE-MIT) [![Latest RustDoc](https://img.shields.io/badge/rustdoc-latest-orange.svg)](https://hawkweisman.me/sos-kernel)
 
 
 
@@ -25,7 +25,7 @@ This project includes Git submodules; you will want to clone it using `git clone
 
 #### You will need:
 
-+ Rust; I strongly recommend installing it using [rustup](https:/www./rustup.rs)
++ Rust; I strongly recommend installing it using [rustup](https://www.rustup.rs)
 + `nasm`
 + `grub-mkrescue` and possibly `xorriso` depending on whether your system considers it to be part of the `mkrescue` package (ugh)
 + `qemu`, specifically `qemu-system-x86_64`; unless you want to try SOS on bare metal (which I cannot possibly endorse)
@@ -34,7 +34,7 @@ Alternatively, if you want to use Vagrant to get a working development environme
 
 #### Setting up
 You only need to run these steps once
-+ `$ rustup override nightly`
++ `$ rustup override set nightly`
 + `$ make runtime` compiles the patched `libcore`, and the Rust `libcollections`, and `liballoc` libraries (it will need to be run every time you change Rust versions)
 
 #### Running the OS
