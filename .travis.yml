@@ -1,7 +1,6 @@
 language: rust
 rust:
 - nightly
-sudo: false
 notifications:
   email:
     on_success: never
@@ -14,6 +13,7 @@ addons:
     - nasm
     - build-essential
     - xorriso
+    - libssh2-1
 before_script:
 - |
   pip install 'travis-cargo<0.2' --user &&
