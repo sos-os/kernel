@@ -19,7 +19,6 @@ before_script:
   pip install 'travis-cargo<0.2' --user &&
   export PATH=$HOME/.local/bin:$PATH
 install:
-- sudo apt-get install grub-common
 - export PATH="$PATH:$(rustc --print sysroot)/cargo/bin"
 - curl -sf "https://raw.githubusercontent.com/japaric/rust-everywhere/master/install.sh" | bash -s -- --from japaric/xargo
 script:
