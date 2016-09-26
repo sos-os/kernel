@@ -18,6 +18,7 @@ panic = "abort"
 
 [features]
 default = []
+trace = []
 
 [dependencies]
 rlibc = "0.1.4"

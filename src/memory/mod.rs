@@ -20,9 +20,6 @@ pub mod alloc;
 pub mod paging;
 #[macro_use] pub mod macros;
 
-
-
-
 pub trait Addr<R>: ops::Add<Self> + ops::Add<R>
                  + ops::Sub<Self> + ops::Sub<R>
                  + ops::Mul<Self> + ops::Mul<R>

@@ -26,7 +26,7 @@ iso: $(iso)
 
 cargo:
 	@echo CARGO
-	@cargo build --target $(target)
+	@xargo build --target $(target)
 
 $(iso): $(kernel) $(grub_cfg)
 	@mkdir -p build/isofiles/boot/grub
