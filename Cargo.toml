@@ -6,6 +6,7 @@ authors = [ # hacked around by
           , # based on code by
             "Philipp Oppermann <dev@phil-opp.com>"
           ]
+build = "build.rs"
 
 [lib]
 crate-type = ["staticlib"]
@@ -42,3 +43,6 @@ features = ["system_term"]
 [dependencies.clippy]
 version = "0.0.60"
 optional = true
+
+[build-dependencies]
+nasm-rs = { git = "https://github.com/medek/nasm-rs" }
