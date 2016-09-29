@@ -8,8 +8,8 @@ authors = [ # hacked around by
           ]
 build = "build.rs"
 
-[lib]
-crate-type = ["staticlib"]
+# [lib]
+# crate-type = ["staticlib"]
 
 [profile.dev]
 panic = "abort"
