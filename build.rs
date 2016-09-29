@@ -1,6 +1,6 @@
 extern crate nasm_rs;
 // use std::process::Command;
-// use std::env;
+use std::env;
 // use std::path::Path;
 //
 // enum Arch { X86_64
@@ -75,7 +75,7 @@ extern crate nasm_rs;
 // }
 
 fn main() {
-    // let out_dir = Path::new(env::var("OUT_DIR").unwrap());
+    let out_dir = env::var("OUT_DIR").unwrap();
     //
     // let maybe_target = env::var("TARGET");
     //
@@ -114,11 +114,18 @@ fn main() {
     //         nasm("multiboot").unwrap();
     // };
     //
-    // println!("cargo:rustc-link-search=native={}", out_dir);
     nasm_rs::compile_library_args( "libboot.a"
                                  , &[ "src/arch/x86_64/multiboot.asm"
-                                    , "src/arch/x86_64/boot.asm" ]
+                                    , "src/arch/x86_64/boot.asm"
+                                    , "src/arch/x86_64/interrupt_handlers.asm"]
                                  , &[ "-felf64" ]);
-     println!("cargo:rustc-link-lib=static=boot");
-    //  println!("cargo:rerun-if-changed=/src/asm/boot.asm");
+
+    println!("cargo:rustc-link-search=native={}", out_dir);
+    println!("cargo:rustc-link-lib=static=boot");
+
+    println!("cargo:rerun-if-changed=src/arch/x86_64/linker.ld");
+    println!("cargo:rerun-if-changed=src/arch/x86_64/multiboot.asm");
+    println!("cargo:rerun-if-changed=src/arch/x86_64/boot.asm");
+    println!("cargo:rerun-if-changed=src/arch/x86_64/interrupt_handlers.asm");
+
 }
