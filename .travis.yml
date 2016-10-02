@@ -1,7 +1,6 @@
 language: rust
 rust:
 - nightly
-sudo: false
 notifications:
   email:
     on_success: never
@@ -14,13 +13,14 @@ addons:
     - nasm
     - build-essential
     - xorriso
+    - libssh2-1
 before_script:
 - |
   pip install 'travis-cargo<0.2' --user &&
   export PATH=$HOME/.local/bin:$PATH
 install:
-- git submodule foreach git pull origin master
-- make runtime
+- export PATH="$PATH:$(rustc --print sysroot)/cargo/bin"
+- curl -sf "https://raw.githubusercontent.com/japaric/rust-everywhere/master/install.sh" | bash -s -- --from japaric/xargo
 script:
 - cd lib/sos_alloc && cargo test
 - cd ../.. && cargo test -p sos_intrusive
