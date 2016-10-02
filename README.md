@@ -21,36 +21,10 @@ Design goals
 Building & Running
 ------------------
 
-This project includes Git submodules; you will want to clone it using `git clone --recursive` or run `git submodule update --init` after cloning.
+#### setting up your development environment
+In order to build SOS, you'll need to properly configure your development environment. I'm working on including a shell script to automate the setup process, but for now, you'll need to follow the instructions in BUILDING.md.
 
-#### You will need:
-
-+ Rust; I strongly recommend installing it using [rustup](https:/www./rustup.rs)
-+ `nasm`
-+ `grub-mkrescue` and possibly `xorriso` depending on whether your system considers it to be part of the `mkrescue` package (ugh)
-+ `qemu`, specifically `qemu-system-x86_64`; unless you want to try SOS on bare metal (which I cannot possibly endorse)
-
-Alternatively, if you want to use Vagrant to get a working development environment right out of the box, all you need is Vagrant installed. The Vagrantfile in this repo will take care of automatically provisioning a dev environment with everything you need to build the OS.
-
-#### Setting up
-You only need to run these steps once
-+ `$ rustup override nightly`
-+ `$ make runtime` compiles the patched `libcore`, and the Rust `libcollections`, and `liballoc` libraries (it will need to be run every time you change Rust versions)
-
-#### Running the OS
+#### building & running the OS
+  + `$ make kernel` compiles & links the kernel binary
+  + `$ make iso` makes the kernel and builds a bootable ISO image
   + `$ make run` compiles the kernel, makes the ISO, and boots QEMU from the ISO
-
-#### Using Vagrant
-
-To avoid tooling and dependency hell (especially on Macs), I'm using a Vagrant config written by @raphael-enochian based on one by @ashleygwilliams (see her repo [here](https://github.com/ashleygwilliams/x86-kernel)). Vagrant will ensure you have a dev environment with everything necessary to build SOS right out of the box.
-
-To run using vagrant (from the repo root directory):
-
- + `$ vagrant up`
- + `$ vagrant ssh -- -Y`
- + `$ cd /vagrant`
- + Follow the instructions from above
-
-#### Updating Rust Versions
-
-If you update your Rust version to a new nightly (i.e. by running `$ rustup update nightly`), you must also update the Rust library submodules. This can be done by running the command `$ git submodule foreach git pull origin`.
