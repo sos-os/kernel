@@ -1,5 +1,18 @@
-setting up a dev environment
+setting up a build environment
 ============================
+
+Unfortunately, one of the unescapable truths of OS development is that building a kernel is a pain. Even though Rust's toolchain makes building SOS much _less_ of a pain than if the kernel were written in C, setting up a build environment to build SOS is still a fairly complex process.
+
+In order to make this a bit easier, I've written some shell scripts to help install and configure SOS's build dependencies. You can run these scripts with the following `make` target:
+```
+$ make env
+```
+Once you've run `make env`, you should have a correctly configured build environment, and you should be ready to build SOS.
+
+**NOTE:** right now, there are only automatic install scripts for macOS. This is because the setup process on macOS is the most complex, and so providing scripts to automate it is a priority. Automatic setup scripts for Linux are coming soon.
+
+
+If you'd rather install and configure everything yourself, or your system isn't supported by the automatic install scripts,  you can follow these instructions to set up a suitable environment for building SOS:
 
 installing Rust
 ---------------
@@ -24,8 +37,8 @@ $ rustup override nightly
 ```
 in the SOS root directory, to set the nightly release channel as the default for SOS.
 
-installing dev dependencies
----------------------------
+installing build dependencies
+-----------------------------
 
 Once you have Rust installed, you will need the following additional dependencies:
 + `nasm`
@@ -63,12 +76,10 @@ $ brew tap Homebrew/bundle
 $ brew bundle
 ```
 
-Once you've installed the `Brewfile`, you'll need to cross-compile `binutils`. Right now, the best way to go about that is to run [this shell script](http://intermezzos.github.io/book/appendix/osx-install.html) by Steve Klabnik. I'm working on further automating the dev environment setup process on OS X, so this may get easier soon.
+Once you've installed the `Brewfile`, you'll need to cross-compile `binutils`. Right now, the best way to go about that is to run the shell script included in this repo:
 
-Once the script is complete, add the following to `~/.cargo/config`:
-```yaml
-[target.x86_64-unknown-sos-gnu]
-linker = "/Users/yourusername/opt/bin/x86_64-pc-elf-gcc"
+```
+$ ./scripts/install-mac.sh
 ```
 
 ### windows
