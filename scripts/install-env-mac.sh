@@ -34,7 +34,6 @@ mkdir -p $PREFIX
 
 # dependencies installable with brew
 echo "${bold}install:${normal} Installing dependencies using Homebrew..."
-cd ..
 brew update
 brew tap Homebrew/bundle
 brew bundle
