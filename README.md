@@ -21,14 +21,14 @@ design goals
 building & running
 ------------------
 
-I've included a simple [`Makefile`](blob/master/Makefile) to automate building and running SOS. This README lists most of the important make targets, but there's also a `$ make help` command, which will print a list of all available targets.
+I've included a simple [`Makefile`](Makefile) to automate building and running SOS. This README lists most of the important make targets, but there's also a `$ make help` command, which will print a list of all available targets.
 
 ### setting up your build environment
 In order to build SOS, you'll need to properly configure your build environment. Since this process is fairly complex, I've provided some automatic installation shell scripts to make it a bit more painless.
 
 + `$ make env` will install and configure build dependencies
 
-If you don't trust the scripts, or if you're curious to know what they're doing, you can also follow the manual install instructions in [`BUILDING.md`](blob/master/BUILDING.md).
+If you don't trust the scripts, or if you're curious to know what they're doing, you can also follow the manual install instructions in [`BUILDING.md`](BUILDING.md).
 
 ### building & running the OS
   + `$ make kernel` compiles & links the kernel binary
