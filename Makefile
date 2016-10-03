@@ -7,24 +7,46 @@ isofiles := target/$(target)/release/isofiles
 
 grub_cfg := src/arch/$(arch)/grub.cfg
 
-.PHONY: all clean run iso cargo
+#COLORS
+GREEN  := $(shell tput -Txterm setaf 2)
+WHITE  := $(shell tput -Txterm setaf 7)
+YELLOW := $(shell tput -Txterm setaf 3)
+RESET  := $(shell tput -Txterm sgr0)
 
-all: $(kernel)
+# Add the following 'help' target to your Makefile
+# And add help text after each target name starting with '\#\#'
+# A category can be added with @category
+HELP_FUN = \
+    %help; \
+    while(<>) { push @{$$help{$$2 // 'options'}}, [$$1, $$3] if /^([a-zA-Z\-]+)\s*:.*\#\#(?:@([a-zA-Z\-]+))?\s(.*)$$/ }; \
+    print "usage: make [target]\n\n"; \
+    for (sort keys %help) { \
+    print "${WHITE}$$_:${RESET}\n"; \
+    for (@{$$help{$$_}}) { \
+    $$sep = " " x (32 - length $$_->[0]); \
+    print "  ${YELLOW}$$_->[0]${RESET}$$sep${GREEN}$$_->[1]${RESET}\n"; \
+    }; \
+    print "\n"; }
 
-env:
+.PHONY: all clean kernel run iso cargo help
+
+help: ##@miscellaneous Show this help.
+	@perl -e '$(HELP_FUN)' $(MAKEFILE_LIST)
+
+all: kernel
+
+env: ##@utilities Install dev environment dependencies
 	./scripts/install-env.sh
 
-clean:
-	@rm -r build
+clean: ##@utilities Delete all build artefacts.
 	@cargo clean
 
-run: $(iso)
+kernel: $(kernel) ##@build Compile the kernel binary
+
+iso: $(iso) ##@build Compile the kernel binary and make an ISO image
+
+run: $(iso) ##@build Make the kernel ISO image and boot QEMU from it.
 	@qemu-system-x86_64 -hda $(iso)
-
-iso: $(iso)
-
-cargo:
-	@xargo build --release --target $(target)
 
 $(iso): $(kernel) $(grub_cfg)
 	@mkdir -p $(isofiles)/boot/grub
@@ -33,4 +55,5 @@ $(iso): $(kernel) $(grub_cfg)
 	@grub-mkrescue -o $(iso) $(isofiles)/
 	@rm -r $(isofiles)
 
-$(kernel): cargo
+$(kernel):
+	@xargo build --release --target $(target)
