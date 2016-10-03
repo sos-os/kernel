@@ -55,7 +55,7 @@ if [[ $? -eq 0 ]]; then
     fi
 else
     echo ""
-    echo "${bold}install:${normal} nstalling Rust"
+    echo "${bold}install:${normal} installing Rust"
     echo ""
     curl https://sh.rustup.rs -sSf | sh
 fi
@@ -63,18 +63,18 @@ fi
 
 echo "${bold}install:${normal} Updating Rust version"
 rustup update nightly
-echo "${bold}install:${normal} Setting default Rust to nightly"
-rustup override nightly
+echo "${bold}install:${normal} Overriding default Rust to nightly for SOS"
+rustup override add nightly
 
 echo ""
 echo "${bold}install:${normal} Installing platform-specific dependencies."
 echo ""
 case $platform in
-    darwin)
+    Darwin)
         echo "${bold}install:${normal} Detected OS as macOS."
         ./scripts/install-env-mac.sh
         ;;
-    linux)
+    Linux)
         echo "${bold}install:${normal} Detected OS as Linux."
         ./scripts/install-env-linux.sh
         ;;
