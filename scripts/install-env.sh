@@ -66,9 +66,7 @@ rustup update nightly
 echo "${bold}install:${normal} Overriding default Rust to nightly for SOS"
 rustup override add nightly
 
-echo ""
 echo "${bold}install:${normal} Installing platform-specific dependencies."
-echo ""
 case $platform in
     Darwin)
         echo "${bold}install:${normal} Detected OS as macOS."

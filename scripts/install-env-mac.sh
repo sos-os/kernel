@@ -33,9 +33,7 @@ mkdir -p $HOME/src
 mkdir -p $PREFIX
 
 # dependencies installable with brew
-echo ""
 echo "${bold}install:${normal} Installing dependencies using Homebrew..."
-echo ""
 cd ..
 brew update
 brew tap Homebrew/bundle
@@ -87,9 +85,7 @@ fi
 cd $HOME/src
 
 if [ ! -d "objconv" ]; then
-  echo ""
   echo "${bold}install:${normal} Installing \`objconv\`..."
-  echo ""
   curl http://www.agner.org/optimize/objconv.zip > objconv.zip
   mkdir -p build-objconv
   unzip objconv.zip -d build-objconv
@@ -122,9 +118,7 @@ else
     echo "${bold}install:${normal}  \`grub\` is already installed, skipping."
 fi
 
-echo ""
 echo "${bold}install:${normal}  Adding target linker to ~/.cargo/config..."
-echo ""
 
 echo "" >> $HOME/.cargo/config
 echo "[target.x86_64-unknown-sos-gnu]" >> $HOME/.cargo/config
