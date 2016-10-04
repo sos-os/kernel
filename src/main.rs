@@ -46,15 +46,14 @@ extern crate collections;
 extern crate rlibc;
 extern crate spin;
 
+
+#[macro_use] extern crate lazy_static;
 #[macro_use] extern crate bitflags;
 #[macro_use] extern crate custom_derive;
-
 // -- SOS dependencies ------------------------------------------------------
 extern crate sos_alloc as alloc;
 
 #[macro_use] extern crate sos_vga as vga;
-#[macro_use] extern crate bitflags;
-#[macro_use] extern crate lazy_static;
 
 #[macro_use] pub mod macros;
 #[macro_use] pub mod memory;
