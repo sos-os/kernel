@@ -1,6 +1,10 @@
 extern crate nasm_rs;
 // use std::process::Command;
 use std::env;
+use std::path::{Path, PathBuf};
+use std::fs::DirEntry;
+use std::io;
+use std::ffi::OsStr;
 // use std::path::Path;
 //
 // enum Arch { X86_64
@@ -76,8 +80,34 @@ use std::env;
 
 fn main() {
     let out_dir = env::var("OUT_DIR").unwrap();
-    //
-    // let maybe_target = env::var("TARGET");
+
+    let target = env::var("TARGET").unwrap();
+
+    let arch_name = target.split("-").next()
+                          .expect("Couldn't parse target triple!");
+
+    let src_path = env::var("CARGO_MANIFEST_DIR")
+                    .map(|path| PathBuf::from(path).join("src") )
+                    .unwrap();
+
+    let asm_dir = src_path.as_path()
+                    .join("arch")
+                    .join(arch_name);
+
+    let asm_files = asm_dir.read_dir().unwrap()
+                        .filter(|entry| match entry {
+                            &Ok(ref file) =>
+                                if let Some(ext) = file.path().extension() {
+                                    "asm" == ext
+                                } else {
+                                    false
+                                }
+                          , &Err(_) => false
+                        })
+                        .map(|entry| entry.unwrap().path())
+                        .collect::<Vec<PathBuf>>();
+
+
     //
     // let arch = maybe_target.map(Arch::from_triple).unwrap();
     // let arch_nasm_flags = arch.nasm_flag();
@@ -114,18 +144,22 @@ fn main() {
     //         nasm("multiboot").unwrap();
     // };
     //
+
     nasm_rs::compile_library_args( "libboot.a"
-                                 , &[ "src/arch/x86_64/multiboot.asm"
-                                    , "src/arch/x86_64/boot.asm"
-                                    , "src/arch/x86_64/interrupt_handlers.asm"]
+                                //  , &[ "src/arch/x86_64/multiboot.asm"
+                                //     , "src/arch/x86_64/boot.asm"
+                                //     , "src/arch/x86_64/interrupt_handlers.asm"]
+                                 , asm_files.iter()
+                                            .map(|path| path.to_str().unwrap())
+                                            .collect::<Vec<&str>>()
+                                            .as_slice()
                                  , &[ "-felf64" ]);
 
     println!("cargo:rustc-link-search=native={}", out_dir);
     println!("cargo:rustc-link-lib=static=boot");
 
-    println!("cargo:rerun-if-changed=src/arch/x86_64/linker.ld");
-    println!("cargo:rerun-if-changed=src/arch/x86_64/multiboot.asm");
-    println!("cargo:rerun-if-changed=src/arch/x86_64/boot.asm");
-    println!("cargo:rerun-if-changed=src/arch/x86_64/interrupt_handlers.asm");
+    for asm_file in asm_files {
+        println!("cargo:rerun-if-changed={}", asm_file.to_str().unwrap());
+    }
 
 }
