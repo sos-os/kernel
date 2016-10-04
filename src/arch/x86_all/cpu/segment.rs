@@ -164,7 +164,7 @@ impl Selector {
                 iret
                 1:"
             :: "r"(self.bits as u64)
-            :  "{rax}", "memory"
+            :  "rax", "memory"
             :  "intel");
     }
 

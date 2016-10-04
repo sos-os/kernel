@@ -1,17 +1,15 @@
 use core::fmt;
 
 /// Read the current value from `$cr4`.
-/// 
+///
 /// # Unsafe Because:
 /// + Reading from control registers while not in kernel mode will cause
 ///   a general protection fault.
 pub unsafe fn read() -> Flags {
     let result: usize;
-    unsafe {
-        asm!(   "mov $0, cr4"
-            :   "=r"(result)
-            ::: "intel" );
-    }
+    asm!(   "mov $0, cr4"
+        :   "=r"(result)
+        ::: "intel" );
     Flags { bits: result }
 }
 

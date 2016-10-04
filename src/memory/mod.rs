@@ -20,10 +20,6 @@ pub mod alloc;
 pub mod paging;
 #[macro_use] pub mod macros;
 
-/// A virtual address is a machine-sized unsigned integer
-#[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct VAddr(usize);
-
 pub trait Addr<R>: ops::Add<Self> + ops::Add<R>
                  + ops::Sub<Self> + ops::Sub<R>
                  + ops::Mul<Self> + ops::Mul<R>
@@ -35,9 +31,15 @@ pub trait Addr<R>: ops::Add<Self> + ops::Add<R>
                  + convert::From<*mut u8> + convert::From<*const u8>
                  + Sized { }
 
-impl Addr<usize> for VAddr { }
+//impl Addr<usize> for VAddr { }
 
-impl_addr! { VAddr, usize }
+//impl_addr! { VAddr, usize }
+
+custom_derive! {
+    /// A virtual address is a machine-sized unsigned integer
+    #[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Addr(usize))]
+    pub struct VAddr(usize);
+}
 
 impl VAddr {
     #[inline] pub fn from_ptr<T>(ptr: *mut T) -> Self { VAddr(ptr as usize) }
@@ -46,22 +48,22 @@ impl VAddr {
 
     /// Calculate the index in the PML4 table corresponding to this address.
     #[inline] pub fn pml4_index(&self) -> usize {
-        (self >> 39) & 0b111111111
+        *((self >> 39) & 0b111111111 as usize)
     }
 
     /// Calculate the index in the PDPT table corresponding to this address.
     #[inline] pub fn pdpt_index(&self) -> usize {
-        (self >> 30) & 0b111111111
+        *((self >> 30) & 0b111111111)
     }
 
     /// Calculate the index in the PD table corresponding to this address.
     #[inline] pub fn pd_index(&self) -> usize {
-        (self >> 21) & 0b111111111
+        *((self >> 21) & 0b111111111)
     }
 
     /// Calculate the index in the PT table corresponding to this address.
     #[inline] pub fn pt_index(&self) -> usize {
-        (self >> 12) & 0b111111111
+        *((self >> 12) & 0b111111111)
     }
 }
 
