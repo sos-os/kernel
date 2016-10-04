@@ -46,10 +46,10 @@ extern crate collections;
 extern crate rlibc;
 extern crate spin;
 
-
 #[macro_use] extern crate lazy_static;
 #[macro_use] extern crate bitflags;
 #[macro_use] extern crate custom_derive;
+
 // -- SOS dependencies ------------------------------------------------------
 extern crate sos_alloc as alloc;
 
