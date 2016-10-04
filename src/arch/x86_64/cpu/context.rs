@@ -13,6 +13,8 @@
 
 use core::mem;
 use core::fmt;
+use super::flags::Flags;
+use super::segment;
 
 /// Registers pushed to the stack when handling an interrupt or context switch.
 #[repr(C, packed)]
@@ -99,7 +101,32 @@ pub struct Registers { pub rsi: u64
               , self.r10, self.r9,  self.r8
               , self.rdx, self.rcx, self.rax)
      }
- }
+}
+
+
+#[derive(Debug)]
+#[repr(C)]
+pub struct InterruptFrame {
+    //  this is the actual value of the interrupt stack frame context,
+    //  not the old one (which is wrong). note that the old one seems to cause
+    //  stack misalignment.
+    //          -- eliza, october 4th, 2016
+    /// Value of the instruction pointer (`$rip`) register
+    pub rip: u64
+  , __pad_1: u32
+  , __pad_2: u16
+  , /// Value of the code segment (`$cs`) register
+    pub cs: segment::Selector
+  , /// Value of the CPU flags (`$rflags`) register
+    pub rflags: Flags
+  , /// Value of the stack pointer (`$rsp`) register
+    //  TODO: should this actually be a pointer?
+    pub rsp: u64
+  , __pad_3: u32
+  , __pad_4: u16
+  , /// Value of the stack segment (`$ss`) register
+    pub ss: segment::Selector
+}
 
 /// Thread execution context
 #[repr(C, packed)]
