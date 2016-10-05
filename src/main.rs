@@ -46,6 +46,7 @@ extern crate collections;
 extern crate rlibc;
 extern crate spin;
 
+#[macro_use] extern crate lazy_static;
 #[macro_use] extern crate bitflags;
 #[macro_use] extern crate custom_derive;
 
@@ -133,7 +134,10 @@ pub fn kernel_main() {
     println!( "TEST: pushed to vec: {:?}", a_vec);
     a_vec.push(2);
     println!( "TEST: pushed to vec: {:?}", a_vec);
-    loop { }
+    loop {
+        unsafe { asm!("int $0" :: "N" (0x80)) };
+        println!("Test interrupt okay");
+    }
 }
 
 /// Kernel initialization function called from ASM

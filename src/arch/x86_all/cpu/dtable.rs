@@ -62,5 +62,5 @@ pub trait DTable: Sized {
     fn entry_count(&self) -> usize;
 
     /// Load the descriptor table with the appropriate load instruction
-    unsafe fn load(&self);
+    fn load(&'static self);
 }
