@@ -112,7 +112,7 @@ pub struct InterruptFrame {
     //  stack misalignment.
     //          -- eliza, october 4th, 2016
     /// Value of the instruction pointer (`$rip`) register
-    pub rip: u64
+    pub rip: *const u8
   , /// Value of the code segment (`$cs`) register
     pub cs: segment::Selector
   , __pad_1: u32
@@ -121,7 +121,7 @@ pub struct InterruptFrame {
     pub rflags: RFlags
   , /// Value of the stack pointer (`$rsp`) register
     //  TODO: should this actually be a pointer?
-    pub rsp: u64
+    pub rsp: *const u8
   , /// Value of the stack segment (`$ss`) register
     pub ss: segment::Selector
   , __pad_3: u32
@@ -143,10 +143,10 @@ impl fmt::Debug for InterruptFrame {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!( f
               , "Interrupt Frame: \
-                \n   instruction pointer: {:#018x} \
+                \n   instruction pointer: {:p} \
                 \n   code segment:        {} \
                 \n   rflags:              {:?} \
-                \n   stack pointer:       {:#018x} \
+                \n   stack pointer:       {:p} \
                 \n   stack segment:       {}"
              , self.rip
             //  , self.__pad_1, self.__pad_2
