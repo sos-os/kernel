@@ -14,7 +14,6 @@
 use core::fmt;
 use core::fmt::Write;
 
-use arch::cpu::{control_regs, Registers};
 use arch::cpu::dtable::DTable;
 use arch::cpu::context::InterruptFrame;
 
@@ -151,6 +150,7 @@ macro_rules! isr {
                    add rsp, 8   // un-align stack pointer"
                 :: "s"($handler as extern "C" fn( *const context::InterruptFrame
                                                 , u64))
+                //  , "i"(size_of::<context::Registers>())
                 : "rsi", "rdi"
                 : "volatile", "intel");
 
@@ -178,6 +178,7 @@ macro_rules! isr {
                    call $0
                    sti"
                :: "s"($handler as extern "C" fn(*const context::InterruptFrame))
+                // , "i"(size_of::<context::Registers>())
                : "rdi" : "volatile", "intel");
 
             // Idt::enable_interrupts();
