@@ -11,19 +11,11 @@
 //! This module provides support for interrupt handling on both `x86` and
 //! `x86_64` as a black box. Code that depends on this can use the same API
 //! regardless of system word size.
-use core::fmt;
-use core::fmt::Write;
-
 use arch::cpu::dtable::DTable;
-use arch::cpu::context::InterruptFrame;
-
-use io::term::CONSOLE;
-use io::keyboard;
-
-use vga::Color;
 
 pub mod idt;
 pub mod pics;
+pub mod handlers;
 
 use self::idt::Idt;
 
@@ -133,8 +125,8 @@ macro_rules! isr {
    (error: $handler:ident) => {{
        #[inline(never)] #[naked]
        unsafe extern "C" fn isr() -> ! {
-            use $crate::arch::cpu::{Registers, context};
-            use core::mem::size_of;
+            use $crate::arch::cpu::Registers;
+            use $crate::arch::cpu::interrupts::handlers::ErrorCodeHandler;
 
             Registers::push();
 
@@ -148,8 +140,7 @@ macro_rules! isr {
                    sti
 
                    add rsp, 8   // un-align stack pointer"
-                :: "s"($handler as extern "C" fn( *const context::InterruptFrame
-                                                , u64))
+                :: "s"($handler as ErrorCodeHandler)
                 //  , "i"(size_of::<context::Registers>())
                 : "rsi", "rdi"
                 : "volatile", "intel");
@@ -163,11 +154,10 @@ macro_rules! isr {
        isr
    }};
    (interrupt: $handler:ident) => {{
-       #[inline(never)] #[naked]
-       unsafe extern "C" fn isr() -> ! {
-            use $crate::arch::cpu::{Registers, context};
-            use core::mem::size_of;
-
+        #[inline(never)] #[naked]
+        unsafe extern "C" fn isr() -> ! {
+            use $crate::arch::cpu::Registers;
+            use $crate::arch::cpu::interrupts::handlers::InterruptHandler;
             Registers::push();
             // Idt::disable_interrupts();
 
@@ -177,7 +167,7 @@ macro_rules! isr {
                    cli
                    call $0
                    sti"
-               :: "s"($handler as extern "C" fn(*const context::InterruptFrame))
+               :: "s"($handler as InterruptHandler)
                 // , "i"(size_of::<context::Registers>())
                : "rdi" : "volatile", "intel");
 
@@ -191,108 +181,40 @@ macro_rules! isr {
    }};
 }
 
-macro_rules! make_handlers {
-    ( $(ex $ex_num:expr, $name:ident),+ ) => {
-        $(
-            #[no_mangle]
-            pub extern "C" fn $name(frame: *const InterruptFrame) {
-                unsafe {
-                    let ex_info = &EXCEPTIONS[$ex_num];
-                    // let cr_state = control_regs::dump();
-                    let _ = write!( CONSOLE.lock()
-                                           .set_colors(Color::White, Color::Blue)
-                                  , "{} EXCEPTION: {}\n\
-                                     {} on vector {}\n\
-                                     Source: {}.\nThis is fine.\n\n\
-                                     {:?}"
-                                     , ex_info.name, ex_info.mnemonic
-                                     , ex_info.irq_type
-                                     , $ex_num
-                                     , ex_info.source
-                                     , *frame);
-                    loop { }
-                }
-            }
-        )+
-    };
-    ( $(err $ex_num:expr, $name:ident) ,+ ) => {
-        $(
-            #[no_mangle]
-            pub extern "C" fn $name( frame: *const InterruptFrame
-                                   , err_code: u64) {
-                unsafe {
-                    let ex_info = &EXCEPTIONS[$ex_num];
-                    // let cr_state = control_regs::dump();
-                    let _ = write!( CONSOLE.lock()
-                                           .set_colors(Color::White, Color::Blue)
-                                  , "{} EXCEPTION: {}\n\
-                                     {} on vector {} with error code {:#x}\n\
-                                     Source: {}.\nThis is fine.\n\n\
-                                     {:?}"
-                                  , ex_info.name, ex_info.mnemonic
-                                  , ex_info.irq_type
-                                  , $ex_num, err_code
-                                  , ex_info.source
-                                  , *frame);
-                    loop { }
-                }
-            }
-        )+
-    };
-}
-make_handlers! { ex 0, ex0_handler
-               , ex 1, ex1_handler
-               , ex 2, ex2_handler
-                // ex 3 is breakpoint
-               , ex 4, ex4_handler
-               , ex 5, ex5_handler
-               , ex 6, ex6_handler
-               , ex 7, ex7_handler
-               , ex 16, ex16_handler
-               , ex 18, ex18_handler
-               , ex 19, ex19_handler
-               }
-make_handlers! { err 8, ex8_handler
-               , err 10, ex10_handler
-               , err 11, ex11_handler
-               , err 12, ex12_handler
-               , err 13, ex13_handler
-               , err 17, ex17_handler }
-
-
 //==--------------------------------------------------------------------------==
 // Top-level interrupt handling
 lazy_static! {
     static ref IDT: Idt = {
         let mut idt = Idt::new();
+        use self::handlers::*;
 
         // fill the IDT with empty ISRs so we don't throw faults
         // for i in 0..idt::ENTRIES {
         //     idt.add_handler(i, isr!() );
         // }
 
-        idt .add_handler(0, isr!(interrupt: ex0_handler))
-            .add_handler(1, isr!(interrupt: ex1_handler))
-            .add_handler(2, isr!(interrupt: ex2_handler))
+        idt .add_handler(0, isr!(interrupt: ex0))
+            .add_handler(1, isr!(interrupt: ex1))
+            .add_handler(2, isr!(interrupt: ex2))
             // ISR 3 reserved for breakpoints
-            .add_handler(4, isr!(interrupt: ex4_handler))
-            .add_handler(5, isr!(interrupt: ex5_handler))
-            .add_handler(6, isr!(interrupt: ex6_handler))
-            .add_handler(7, isr!(interrupt: ex7_handler))
-            .add_handler(8, isr!(error: ex8_handler))
+            .add_handler(4, isr!(interrupt: ex4))
+            .add_handler(5, isr!(interrupt: ex5))
+            .add_handler(6, isr!(interrupt: ex6))
+            .add_handler(7, isr!(interrupt: ex7))
+            .add_handler(8, isr!(error: ex8))
              // ISR 9 is reserved in x86_64
-            .add_handler(10, isr!(error: ex10_handler))
-            .add_handler(11, isr!(error: ex11_handler))
-            .add_handler(12, isr!(error: ex12_handler))
-            .add_handler(13, isr!(error: ex13_handler))
-            .add_handler(14, isr!(error: page_fault_handler))
+            .add_handler(10, isr!(error: ex10))
+            .add_handler(11, isr!(error: ex11))
+            .add_handler(12, isr!(error: ex12))
+            .add_handler(13, isr!(error: ex13))
+            .add_handler(14, isr!(error: page_fault))
              // ISR 15: reserved
-            .add_handler(16,  isr!(interrupt: ex16_handler))
-            .add_handler(17,  isr!(error: ex17_handler))
-            .add_handler(18,  isr!(interrupt: ex18_handler))
-            .add_handler(19,  isr!(interrupt: ex19_handler))
-            .add_handler(0x21, isr!(interrupt: keyboard_handler))
-            .add_handler(0xff, isr!(interrupt: test_handler));
+            .add_handler(16,  isr!(interrupt: ex16))
+            .add_handler(17,  isr!(error: ex17))
+            .add_handler(18,  isr!(interrupt: ex18))
+            .add_handler(19,  isr!(interrupt: ex19))
+            .add_handler(0x21, isr!(interrupt: keyboard))
+            .add_handler(0xff, isr!(interrupt: test));
 
         println!("{:<38}{:>40}", " . . Adding interrupt handlers to IDT"
              , "[ OKAY ]");
@@ -331,51 +253,6 @@ lazy_static! {
 //     }
 // }
 
-#[no_mangle] #[inline(never)]
-pub extern "C" fn keyboard_handler(state: *const InterruptFrame) {
-    println!("keyboard happened");
-    if let Some(input) = keyboard::read_char() {
-        if input == '\r' {
-            println!("");
-        } else {
-            print!("{}", input);
-        }
-    }
-    // send the PICs the end interrupt signal
-    unsafe {
-        pics::end_pic_interrupt(0x21);
-    }
-}
-
-
-/// Handles page fault exceptions
-#[no_mangle] #[inline(never)]
-pub extern "C" fn page_fault_handler( state: *const InterruptFrame
-                                    , error_code: u64) {
-    let _ = write!( CONSOLE.lock()
-                           .set_colors(Color::White, Color::Blue)
-                        //   .clear()
-                  , "PAGE FAULT EXCEPTION\nCode: {:#x}\n\n{}"
-                  , error_code
-                  , PageFaultErrorCode::from_bits_truncate(error_code as u32)
-                  );
-    // TODO: stack dumps please
-
-    loop { }
-}
-
-#[no_mangle] #[inline(never)]
-pub extern "C" fn test_handler(state: *const InterruptFrame) {
-    // assert_eq!(state.int_id, 0x80);
-    println!("{:>47}", "[ OKAY ]");
-    // send the PICs the end interrupt signal
-    unsafe {
-        pics::end_pic_interrupt(0xff);
-    }
-}
-
-
-
 
 /// Initialize interrupt handling.
 ///
@@ -397,39 +274,4 @@ pub unsafe fn initialize() {
 
     Idt::enable_interrupts(); // enable interrupts
 
-}
-
-bitflags! {
-    flags PageFaultErrorCode: u32 {
-        /// If 1, the error was caused by a page that was present.
-        /// Otherwise, the page was non-present.
-        const PRESENT = 1 << 0
-      , /// If 1, the error was caused by a read. If 0, the cause was a write.
-        const READ_WRITE = 1 << 1
-      , /// If 1, the error was caused during user-mode execution.
-        /// If 0, the processor was in kernel mode.
-        const USER_MODE = 1 << 2
-      , /// If 1, the fault was caused by reserved bits set to 1 during a fetch.
-        const RESERVED = 1 << 3
-      , /// If 1, the fault was caused during an instruction fetch.
-        const INST_FETCH = 1 << 4
-      , /// If 1, there was a protection key violation.
-        const PROTECTION = 1 << 5
-    }
-}
-
-impl fmt::Display for PageFaultErrorCode {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!( f, "Caused by {}{}{} during a {}{} executing in {} mode."
-              , if self.contains(PRESENT) { "a present page" }
-                else { "a non-present page" }
-              , if self.contains(PROTECTION) { " protection-key violation" }
-                else { "" }
-              , if self.contains(RESERVED) { " reserved bits set to one "}
-                else { "" }
-              , if self.contains(READ_WRITE) { "read" } else { "write" }
-              , if self.contains(INST_FETCH) { " in an instruction fetch"}
-                else { "" }
-              , if self.contains(USER_MODE) { "user" } else { "kernel" }            )
-    }
 }
