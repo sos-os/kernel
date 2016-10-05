@@ -139,18 +139,17 @@ macro_rules! isr {
 
             Registers::push();
 
-            asm!( "mov rsi, [rsp + ($0 * 8)]  // pop error code into rsi
+            asm!( "mov rsi, [rsp + 9*8)]  // pop error code into rsi
                    mov rdi, rsp
-                   add rdi, ($0 + 1) * 8
+                   add rdi, 10*8
                    sub rsp, 8   // align stack pointer
 
                    cli
-                   call $1
+                   call $0
                    sti
 
                    add rsp, 8   // un-align stack pointer"
-                :: "i"(size_of::<Registers>())
-                 , "s"($handler as extern "C" fn( *const context::InterruptFrame
+                :: "s"($handler as extern "C" fn( *const context::InterruptFrame
                                                 , u64))
                 : "rsi", "rdi"
                 : "volatile", "intel");
@@ -173,13 +172,12 @@ macro_rules! isr {
             // Idt::disable_interrupts();
 
            asm!(  "mov rdi, rsp
-                   add rdi, $0
+                   add rdi, 9*8
 
                    cli
-                   call $1
+                   call $0
                    sti"
-               :: "i"(size_of::<Registers>() * 8)
-                , "s"($handler as extern "C" fn(*const context::InterruptFrame))
+               :: "s"($handler as extern "C" fn(*const context::InterruptFrame))
                : "rdi" : "volatile", "intel");
 
             // Idt::enable_interrupts();
