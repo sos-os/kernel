@@ -189,9 +189,9 @@ lazy_static! {
         use self::handlers::*;
 
         // fill the IDT with empty ISRs so we don't throw faults
-        // for i in 0..idt::ENTRIES {
-        //     idt.add_handler(i, isr!() );
-        // }
+        for i in 0..idt::ENTRIES {
+            idt.add_handler(i, isr!(interrupt: empty_handler) );
+        }
 
         idt .add_handler(0, isr!(interrupt: ex0))
             .add_handler(1, isr!(interrupt: ex1))

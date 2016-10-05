@@ -39,7 +39,7 @@
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
 #![no_std]
-#![no_main]
+#![cfg_attr(not(test), no_main)]
 
 // -- non-SOS dependencies --------------------------------------------------
 extern crate collections;
@@ -134,10 +134,10 @@ pub fn kernel_main() {
     println!( "TEST: pushed to vec: {:?}", a_vec);
     a_vec.push(2);
     println!( "TEST: pushed to vec: {:?}", a_vec);
-    loop {
-        unsafe { asm!("int $0" :: "N" (0x80)) };
-        println!("Test interrupt okay");
-    }
+    // loop {
+    //     unsafe { asm!("int $0" :: "N" (0x80)) };
+    //     println!("Test interrupt okay");
+    // }
 }
 
 /// Kernel initialization function called from ASM
@@ -178,4 +178,11 @@ pub extern "C" fn kernel_start(multiboot_addr: PAddr) {
     // -- call into kernel main loop ------------------------------------------
     // (currently, this does nothing)
     kernel_main()
+}
+
+
+/// This fake `main` function exists only to placate `cargo test`.
+#[cfg(test)]
+fn main() {
+
 }

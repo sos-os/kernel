@@ -6,10 +6,12 @@ authors = [ # hacked around by
           , # based on code by
             "Philipp Oppermann <dev@phil-opp.com>"
           ]
-build = "build.rs"
+
+          build = "build.rs"
 
 # [lib]
 # crate-type = ["staticlib"]
+#
 
 [profile.dev]
 panic = "abort"
