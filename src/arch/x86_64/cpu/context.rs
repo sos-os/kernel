@@ -105,7 +105,7 @@ impl fmt::Debug for Registers {
 
 
 
-#[repr(C)]
+#[repr(C, packed)]
 pub struct InterruptFrame {
     //  this is the actual value of the interrupt stack frame context,
     //  not the old one (which is wrong). note that the old one seems to cause
@@ -113,19 +113,30 @@ pub struct InterruptFrame {
     //          -- eliza, october 4th, 2016
     /// Value of the instruction pointer (`$rip`) register
     pub rip: u64
-  // , __pad_1: u32
-  // , __pad_2: u16
   , /// Value of the code segment (`$cs`) register
-    pub cs: u64
+    pub cs: segment::Selector
+  , __pad_1: u32
+  , __pad_2: u16
   , /// Value of the CPU flags (`$rflags`) register
     pub rflags: u64
   , /// Value of the stack pointer (`$rsp`) register
     //  TODO: should this actually be a pointer?
     pub rsp: u64
-  // , __pad_3: u32
-  // , __pad_4: u16
   , /// Value of the stack segment (`$ss`) register
-    pub ss: u64
+    pub ss: segment::Selector
+  , __pad_3: u32
+  , __pad_4: u16
+}
+
+#[cfg(test)]
+mod test {
+    #[test]
+    fn test_interrupt_frame_correct_size() {
+        use core::mem::size_of;
+        use super::InterruptFrame;
+
+        assert_eq!(size_of::<InterruptFrame>(), 32);
+    }
 }
 
 impl fmt::Debug for InterruptFrame {
@@ -133,11 +144,17 @@ impl fmt::Debug for InterruptFrame {
         write!( f
               , "Interrupt Frame: \
                 \n   instruction pointer: {:#018x} \
-                \n   code segment selector: {:#018x} \
+                \n   code segment: {} \
                 \n   rflags: {:#018x} \
                 \n   stack pointer: {:#018x} \
-                \n   stack segment selector: {:#018x}"
-             , self.rip, self.cs, self.rflags, self.rsp, self.ss)
+                \n   stack segment: {}"
+             , self.rip
+            //  , self.__pad_1, self.__pad_2
+             , self.cs
+             , self.rflags
+             , self.rsp
+            //  , self.__pad_3, self.__pad_4
+             , self.ss)
     }
 }
 
