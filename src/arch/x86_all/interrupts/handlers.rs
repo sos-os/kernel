@@ -127,11 +127,17 @@ impl fmt::Display for PageFaultErrorCode {
    }
 }
 
+pub extern "C" fn timer(_frame: *const InterruptFrame) {
+    // do nothing, just signal the pics to end the IRQ
+    // println!("timer!");
+    unsafe { end_pic_interrupt(0x21); }
+}
+
 #[no_mangle] #[inline(never)]
 pub extern "C" fn keyboard(_frame: *const InterruptFrame) {
     use io::keyboard;
 
-    println!("keyboard happened");
+    // println!("keyboard happened");
     if let Some(input) = keyboard::read_char() {
         if input == '\r' {
             println!("");
