@@ -2,7 +2,6 @@ use arch::cpu::context::InterruptFrame;
 use super::pics::end_pic_interrupt;
 
 use io::term::CONSOLE;
-use io::keyboard;
 
 use vga::Color;
 
@@ -130,14 +129,16 @@ impl fmt::Display for PageFaultErrorCode {
 
 #[no_mangle] #[inline(never)]
 pub extern "C" fn keyboard(_frame: *const InterruptFrame) {
-   println!("keyboard happened");
-   if let Some(input) = keyboard::read_char() {
-       if input == '\r' {
-           println!("");
-       } else {
-           print!("{}", input);
-       }
-   }
+    use io::keyboard;
+
+    println!("keyboard happened");
+    if let Some(input) = keyboard::read_char() {
+        if input == '\r' {
+            println!("");
+        } else {
+            print!("{}", input);
+        }
+    }
    // send the PICs the end interrupt signal
    unsafe {
        end_pic_interrupt(0x21);
@@ -147,14 +148,19 @@ pub extern "C" fn keyboard(_frame: *const InterruptFrame) {
 
 /// Handles page fault exceptions
 #[no_mangle] #[inline(never)]
-pub extern "C" fn page_fault( _frame: *const InterruptFrame, error_code: usize) {
-   let _ = write!( CONSOLE.lock()
+pub extern "C" fn page_fault( frame: *const InterruptFrame, error_code: usize) {
+   unsafe {
+       let _ = write!( CONSOLE.lock()
                           .set_colors(Color::White, Color::Blue)
                        //   .clear()
-                 , "PAGE FAULT EXCEPTION\nCode: {:#x}\n\n{}"
+                 , "IT'S NOT MY FAULT: Page Fault at {:p} \
+                    \nError code: {:#x}\n\n{}\n{:?}"
+                 , (*frame).rip
                  , error_code
                  , PageFaultErrorCode::from_bits_truncate(error_code as u32)
+                 , *frame
                  );
+    }
    // TODO: stack dumps please
 
    loop { }
@@ -171,6 +177,17 @@ pub extern "C" fn test(_frame: *const InterruptFrame) {
 }
 
 
+#[no_mangle] #[inline(never)]
+pub extern "C" fn empty_handler(_frame: *const InterruptFrame) {
+   // assert_eq!(state.int_id, 0x80);
+   println!("interrupt");
+   // send the PICs the end interrupt signal
+   // unsafe {
+   //     end_pic_interrupt(0xff);
+   // }
+}
+
+
 macro_rules! make_handlers {
     ( $(ex $ex_num:expr, $name:ident),+ ) => {
         $(
@@ -181,12 +198,12 @@ macro_rules! make_handlers {
                     // let cr_state = control_regs::dump();
                     let _ = write!( CONSOLE.lock()
                                            .set_colors(Color::White, Color::Blue)
-                                  , "{} EXCEPTION: {}\n\
-                                     {} on vector {}\n\
+                                  , "EVERYTHING IS FINE: {}{} at {:p}\n\
+                                     Exception on vector {}.\n\
                                      Source: {}.\nThis is fine.\n\n\
                                      {:?}"
-                                     , ex_info.name, ex_info.mnemonic
-                                     , ex_info.irq_type
+                                     , ex_info.name, ex_info.irq_type
+                                     , (*frame).rip
                                      , $ex_num
                                      , ex_info.source
                                      , *frame);
@@ -205,12 +222,12 @@ macro_rules! make_handlers {
                     // let cr_state = control_regs::dump();
                     let _ = write!( CONSOLE.lock()
                                            .set_colors(Color::White, Color::Blue)
-                                  , "{} EXCEPTION: {}\n\
-                                     {} on vector {} with error code {:#x}\n\
+                                  , "EVERYTHING IS FINE: {}{} at {:p}\n\
+                                     Exception on vector {} with error code {:#x}.\n\
                                      Source: {}.\nThis is fine.\n\n\
                                      {:?}"
-                                  , ex_info.name, ex_info.mnemonic
-                                  , ex_info.irq_type
+                                  , ex_info.name, ex_info.irq_type
+                                  , (*frame).rip
                                   , $ex_num, err_code
                                   , ex_info.source
                                   , *frame);
