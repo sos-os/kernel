@@ -13,7 +13,7 @@
 
 use core::mem;
 use core::fmt;
-use super::flags::Flags;
+use super::flags::{Flags as RFlags};
 use super::segment;
 
 /// Registers pushed to the stack when handling an interrupt or context switch.
@@ -118,7 +118,7 @@ pub struct InterruptFrame {
   , __pad_1: u32
   , __pad_2: u16
   , /// Value of the CPU flags (`$rflags`) register
-    pub rflags: u64
+    pub rflags: RFlags
   , /// Value of the stack pointer (`$rsp`) register
     //  TODO: should this actually be a pointer?
     pub rsp: u64
@@ -144,10 +144,10 @@ impl fmt::Debug for InterruptFrame {
         write!( f
               , "Interrupt Frame: \
                 \n   instruction pointer: {:#018x} \
-                \n   code segment: {} \
-                \n   rflags: {:#018x} \
-                \n   stack pointer: {:#018x} \
-                \n   stack segment: {}"
+                \n   code segment:        {} \
+                \n   rflags:              {:?} \
+                \n   stack pointer:       {:#018x} \
+                \n   stack segment:       {}"
              , self.rip
             //  , self.__pad_1, self.__pad_2
              , self.cs
