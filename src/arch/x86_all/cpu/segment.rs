@@ -180,7 +180,7 @@ impl fmt::Display for Selector {
                    else { unreachable!() };
         let table = if self.contains(TI_GDT) { "GDT" }
                     else { "LDT" };
-        write!(f, "Index {} in {} at Ring {}", self.index(), table, ring)
+        write!(f, "{}[{}], Ring {}", table, self.index(), ring)
     }
 }
 
