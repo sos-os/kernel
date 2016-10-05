@@ -91,7 +91,7 @@ pub struct Registers { pub rsi: u64
      }
  }
 
- impl fmt::Debug for Registers {
+impl fmt::Debug for Registers {
      fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
          write!( f
                , "    RSI: {:#018x} RDI: {:#018x} R11: {:#018x}\n    \
@@ -104,7 +104,7 @@ pub struct Registers { pub rsi: u64
 }
 
 
-#[derive(Debug)]
+
 #[repr(C)]
 pub struct InterruptFrame {
     //  this is the actual value of the interrupt stack frame context,
@@ -113,19 +113,32 @@ pub struct InterruptFrame {
     //          -- eliza, october 4th, 2016
     /// Value of the instruction pointer (`$rip`) register
     pub rip: u64
-  , __pad_1: u32
-  , __pad_2: u16
+  // , __pad_1: u32
+  // , __pad_2: u16
   , /// Value of the code segment (`$cs`) register
-    pub cs: segment::Selector
+    pub cs: u64
   , /// Value of the CPU flags (`$rflags`) register
-    pub rflags: Flags
+    pub rflags: u64
   , /// Value of the stack pointer (`$rsp`) register
     //  TODO: should this actually be a pointer?
     pub rsp: u64
-  , __pad_3: u32
-  , __pad_4: u16
+  // , __pad_3: u32
+  // , __pad_4: u16
   , /// Value of the stack segment (`$ss`) register
-    pub ss: segment::Selector
+    pub ss: u64
+}
+
+impl fmt::Debug for InterruptFrame {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!( f
+              , "Interrupt Frame: \
+                \n   instruction pointer: {:#018x} \
+                \n   code segment selector: {:#018x} \
+                \n   rflags: {:#018x} \
+                \n   stack pointer: {:#018x} \
+                \n   stack segment selector: {:#018x}"
+             , self.rip, self.cs, self.rflags, self.rsp, self.ss)
+    }
 }
 
 /// Thread execution context
