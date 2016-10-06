@@ -1,15 +1,38 @@
+//
+//  SOS: the Stupid Operating System
+//  by Eliza Weisman (hi@hawkweisman.me)
+//
+//  Copyright (c) 2015 Eliza Weisman
+//  Released under the terms of the MIT license. See `LICENSE` in the root
+//  directory of this repository for more information.
+//
+//! Serial port driver
+//!
+//! Create new serial ports by calling `PortNum::new()`. If the system supports
+//! that port, `Some(SerialPort)` will be returned. Otherwise, if the system
+//! does not have that port number (such as `COM3` and `COM4`) on many machines,
+//! `PortNum::new()` returns `None`.
+//!
+//! See [the OS Dev wiki](http://wiki.osdev.org/Serial_Ports) for more
+//! information.
+
 use super::{Read, Write, Port};
 use ::util;
 
+/// Available serial ports.
+///
+/// These are used to create new serial ports, so that serial ports
+/// cannot be created for an arbitrary memory location.
+///
 #[derive(Debug, Copy, Clone)]
 #[repr(usize)]
-pub enum Serial { Com1 = 0
+pub enum PortNum { Com1 = 0
                 , Com2 = 1
                 , Com3 = 2
                 , Com4 = 3
                 }
 
-impl Serial {
+impl PortNum {
     #[inline]
     fn get_port_addr(&self) -> Option<u16> {
         match BDA_SERIAL_INFO[*self as usize] {
@@ -21,12 +44,18 @@ impl Serial {
     /// Returns `Some(SerialPort)` if this port exists, `None` if it does not
     pub fn new(&self) -> Option<SerialPort> {
         self.get_port_addr().map(|port| {
+             // Disable all interrupts
             Port::<u8>::new(port + 1).write(0x00);
+            // Enable DLAB (set baud rate divisor)
             Port::<u8>::new(port + 3).write(0x80);
-            Port::<u8>::new(port + 0).write(0x03);
-            Port::<u8>::new(port + 1).write(0x00);
+            // Set divisor to 38400 baud
+            Port::<u8>::new(port + 0).write(0x03); // divisor hi byte
+            Port::<u8>::new(port + 1).write(0x00); // divisor lo byte
+            // 8 bits, no parity, one stop bit
             Port::<u8>::new(port + 3).write(0x03);
+            // Enable FIFO, clear them, with 14-byte threshold
             Port::<u8>::new(port + 2).write(0xC7);
+            // IRQs enabled, RTS/DSR set
             Port::<u8>::new(port + 4).write(0x0B);
             Port::<u8>::new(port + 1).write(0x01);
 
@@ -47,6 +76,7 @@ lazy_static! {
 
 }
 
+/// A serial port
 pub struct SerialPort { data_port: Port<u8>
                       , status_port: Port<u8>
                       }
