@@ -19,107 +19,6 @@ pub mod handlers;
 
 use self::idt::Idt;
 
-
-/// State stored when handling an interrupt.
-#[repr(C, packed)]
-// pub struct InterruptContext { /// callee-saved registers
-//                               pub registers: Registers
-//                             , /// interrupt ID number
-//                               pub int_id: usize
-//                             , _pad_1: u32
-//                             , /// error number
-//                               pub error_code:  u32
-//                             , _pad_2: u32
-//                             }
-
-
-//impl InterruptContext {
-//    /// Fetches the corresponding CPU exception for this interrupt, if this
-//    /// interrupt is a CPU exception.
-//    #[inline]
-//
-//}
-
-#[derive(Debug)]
-pub struct ExceptionInfo { pub name: &'static str
-                         , pub mnemonic: &'static str
-                         , pub irq_type: &'static str
-                         , pub source: &'static str
-                         }
-
-/// x86 exceptions.
-///
-/// Taken from the list at
-/// [http://wiki.osdev.org/Exceptions](http://wiki.osdev.org/Exceptions)
-pub static EXCEPTIONS: [ExceptionInfo; 20]
-    = [ ExceptionInfo { name: "Divide-By-Zero Error"
-                      , mnemonic: "#DE", irq_type: "Fault"
-                      , source: "DIV or IDIV instruction" }
-      , ExceptionInfo { name: "RESERVED"
-                      , mnemonic: "#DB", irq_type: "Fault/trap"
-                      , source: "Reserved for Intel use" }
-      , ExceptionInfo { name: "Non-Maskable Interrupt"
-                      , mnemonic: "NMI", irq_type: "Interrupt"
-                      , source: "Non-maskable external interrupt" }
-      , ExceptionInfo { name: "Breakpoint"
-                      , mnemonic: "#BP", irq_type: "Trap"
-                      , source: "INT 3 instruction" }
-      , ExceptionInfo { name: "Overflow"
-                      , mnemonic: "#OF", irq_type: "Trap"
-                      , source: "INTO instruction" }
-      , ExceptionInfo { name: "BOUND Range Exceeded"
-                      , mnemonic: "#BR", irq_type: "Fault"
-                      , source: "BOUND instruction" }
-      , ExceptionInfo { name: "Undefined Opcode"
-                     , mnemonic: "#UD", irq_type: "Fault"
-                     , source: "UD2 instruction or reserved opcode" }
-      , ExceptionInfo { name: "Device Not Available"
-                      , mnemonic: "#NM", irq_type: "Fault"
-                      , source: "Floating-point or WAIT/FWAIT instruction \
-                                 (no math coprocessor)" }
-      , ExceptionInfo { name: "Double Fault"
-                      , mnemonic: "#DF", irq_type: "Abort"
-                      , source: "Any instruction that can generate an \
-                                 exception, a NMI, or an INTR" }
-      , ExceptionInfo { name: "Coprocessor Segment Overrun"
-                      , mnemonic: "", irq_type: "Fault"
-                      , source: "Any floating-point instruction" }
-      , ExceptionInfo { name: "Invalid TSS"
-                      , mnemonic: "#TS", irq_type: "Fault"
-                      , source: "Task switch or TSS access" }
-      , ExceptionInfo { name: "Segment Not Present"
-                      , mnemonic: "#NP", irq_type: "Fault"
-                      , source: "Loading segment registers or accessing\
-                                 system segments" }
-      , ExceptionInfo { name: "Stack-Segment Fault"
-                      , mnemonic: "#SS", irq_type: "Fault"
-                      , source: "Stack operations and SS register loads" }
-      , ExceptionInfo { name: "General Protection"
-                      , mnemonic: "#GP", irq_type: "Fault"
-                      , source: "Any memory reference or other protection \
-                                 checks" }
-      , ExceptionInfo { name: "Page Fault"
-                      , mnemonic: "#PF", irq_type: "Fault"
-                      , source: "Any memory reference" }
-      , ExceptionInfo { name: "RESERVED"
-                      , mnemonic: "", irq_type: ""
-                      , source: "RESERVED FOR INTEL USE \n This should never \
-                                 happen. Something is very wrong." }
-      , ExceptionInfo { name: "x87 FPU Floating-Point Error (Math Fault)"
-                      , mnemonic: "#MF", irq_type: "Fault"
-                      , source: "x87 FPU floating-point or WAIT/FWAIT\
-                                 instruction" }
-      , ExceptionInfo { name: "Alignment Check"
-                      , mnemonic: "#AC", irq_type: "Fault"
-                      , source: "Any data reference in memory" }
-      , ExceptionInfo { name: "Machine Check"
-                      , mnemonic: "#MC", irq_type: "Abort"
-                      , source: "Model-dependent" }
-      , ExceptionInfo { name: "SIMD Floating-Point Exception"
-                      , mnemonic: "#XM", irq_type: "Fault"
-                      , source: "SSE/SSE2/SSE3 floating-point instructions" }
-       ];
-
 /// Macro for making Interrupt Service Routines
 macro_rules! isr {
    (error: $handler:ident) => {{
@@ -213,6 +112,7 @@ lazy_static! {
             .add_handler(17,  isr!(error: ex17))
             .add_handler(18,  isr!(interrupt: ex18))
             .add_handler(19,  isr!(interrupt: ex19))
+            .add_handler(0x20, isr!(interrupt: timer))
             .add_handler(0x21, isr!(interrupt: keyboard))
             .add_handler(0xff, isr!(interrupt: test));
 
@@ -222,37 +122,6 @@ lazy_static! {
     };
 }
 
-// /// Kernel interrupt-handling function.
-// ///
-// /// Assembly ISRs call into this, and it dispatches interrupts to
-// /// the appropriate consumers.
-// //  TODO: should this be #[cold]?
-// #[no_mangle] #[inline(never)]
-// pub fn handle_interrupt(state: &InterruptFrame) {
-//     let id = state.int_id;
-//     match id {
-//         // System timer
-//         0x20 => { /* TODO: make this work
-//                     TODO: should this IRQ get its own handler?
-//                   */
-//                  println!("timer!");
-//                  }
-//         // Loonix syscall vector
-//       , 0x80 => { // TODO: currently, we do nothing here, do we want
-//                   // our syscalls on this vector as well?
-//         }
-//       , _ =>  {
-//           // unknown interrupt. silently do nothing?
-//           println!("Unknown interrupt: #{} Sorry!", id);
-//       }
-//     }
-//     // send the PICs the end interrupt signal
-//     unsafe {
-//         pics::end_pic_interrupt(id as u8);
-//         Idt::enable_interrupts();
-//     }
-// }
-
 
 /// Initialize interrupt handling.
 ///
@@ -261,9 +130,7 @@ lazy_static! {
 ///
 /// This is called from the kernel during the init process.
 pub unsafe fn initialize() {
-   // println!(" . Enabling interrupts:" );
-   // println!( " . . Initialising PICs {:>40}"
-   //         , pics::initialize().unwrap_or("[ FAIL ]") );
+
     pics::initialize();
    // TODO: consider loading double-fault handler before anything else in case
    //       a double fault occurs during init?
