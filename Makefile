@@ -65,5 +65,5 @@ $(kernel): $(kernel)_full $(kernel).debug
 	@strip -g -o $(kernel) $(kernel)_full
 	@objcopy --add-gnu-debuglink=$(kernel).debug $(kernel)
 
-gdb: $(kernel) $(kernel).debug
+gdb: $(kernel) $(kernel).debug ##@utilities Connect to a running QEMU instance with gdb.
 	@rust-gdb -ex "target remote tcp:127.0.0.1:1234" $(kernel)
