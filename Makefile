@@ -28,7 +28,7 @@ HELP_FUN = \
     }; \
     print "\n"; }
 
-.PHONY: all clean kernel run iso cargo help
+.PHONY: all clean kernel run iso cargo help gdb
 
 help: ##@miscellaneous Show this help.
 	@perl -e '$(HELP_FUN)' $(MAKEFILE_LIST)
