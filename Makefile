@@ -59,11 +59,11 @@ $(kernel)_full:
 	@xargo build --release --target $(target)
 
 $(kernel).debug: $(kernel)_full
-	@objcopy --only-keep-debug $(kernel)_full $(kernel).debug
+	@x86_64-elf-objcopy --only-keep-debug $(kernel)_full $(kernel).debug
 
 $(kernel): $(kernel)_full $(kernel).debug
-	@strip -g -o $(kernel) $(kernel)_full
-	@objcopy --add-gnu-debuglink=$(kernel).debug $(kernel)
+	@x86_64-elf-strip -g -o $(kernel) $(kernel)_full
+	@x86_64-elf-objcopy --add-gnu-debuglink=$(kernel).debug $(kernel)
 
 gdb: $(kernel) $(kernel).debug ##@utilities Connect to a running QEMU instance with gdb.
 	@rust-gdb -ex "target remote tcp:127.0.0.1:1234" $(kernel)
