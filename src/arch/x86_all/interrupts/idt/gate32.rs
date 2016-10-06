@@ -82,15 +82,16 @@ impl convert::From<Handler> for Gate {
     /// The `handler` function must have been created with valid interrupt
     /// calling conventions.
     fn from(handler: Handler) -> Self {
-        // trust me on this, `mem::transmute()` is glorious black magic
-        let (low, mid): (u16, u16) = unsafe { mem::transmute(handler) };
+        unsafe {
+            let (low, mid): (u16, u16) = mem::transmute(handler);
 
-        Gate { offset_lower: low
-             , selector: segment::Selector::from_raw(GDT_OFFSET)
-             , _zero: 0
-             , type_attr: GateFlags::new_interrupt()
-             , offset_upper: high
-             , _reserved: 0
-             }
+            Gate { offset_lower: low
+                 , selector: segment::Selector::from_raw(GDT_OFFSET)
+                 , _zero: 0
+                 , type_attr: GateFlags::new_interrupt()
+                 , offset_upper: high
+                 , _reserved: 0
+                 }
+        }
     }
 }

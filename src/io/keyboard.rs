@@ -19,8 +19,9 @@ pub struct Scancode(u8);
 impl Scancode {
     fn to_ascii(&self) -> Option<u8> {
         match self.0 {
-            0x01 ... 0x1c => Some(TO_ASCII_LOW[self.0 as usize - 0x01])
-          , 0x1e ... 0x28 => Some(TO_ASCII_MID[self.0 as usize - 0x1e])
+            0x01 ... 0x0e => Some(TO_ASCII_LOW[self.0 as usize - 0x01])
+          , 0x0f ... 0x1c => Some(TO_ASCII_MID1[self.0 as usize - 0x0f])
+          , 0x1e ... 0x28 => Some(TO_ASCII_MID2[self.0 as usize - 0x1e])
           , 0x2c ... 0x35 => Some(TO_ASCII_HIGH[self.0 as usize - 0x2c])
           , 0x39 => Some(b' ')
           , _ => None
@@ -44,18 +45,16 @@ impl Keyboard {
 }
 
 /// Scancodes range 0x01 ... 0x1c
-const TO_ASCII_LOW: &'static [u8; 31]
-    = b"\x1B1234567890-=\0x02\tqwertyuiop[]\r";
+const TO_ASCII_LOW: &'static [u8; 17]
+    = b"\x1B1234567890-=\0x02";
+
+const TO_ASCII_MID1: &'static [u8; 14] = b"\tqwertyuiop[]\r";
 
 /// Scancodes range 0x1E ... 0x28
-const TO_ASCII_MID: &'static [u8; 11] = b"asdfghjkl;'";
+const TO_ASCII_MID2: &'static [u8; 11] = b"asdfghjkl;'";
 
 /// Scancodes range 0x2C ... 0x35
 const TO_ASCII_HIGH: &'static [u8; 10] = b"zxcvbnm,./";
-
-impl Keyboard {
-
-}
 
 
 bitflags! {
@@ -121,6 +120,7 @@ impl Modifiers {
 }
 
 /// Our global keyboard state, protected by a mutex.
+//  TODO: can this be thread local?
 static KEYBOARD: Mutex<Keyboard> = Mutex::new(Keyboard {
     data_port: unsafe { Port::new(0x60) }
   , state: Modifiers::new()

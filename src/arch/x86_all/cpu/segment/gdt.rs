@@ -27,9 +27,11 @@ impl DTable for Gdt {
     #[inline(always)] fn entry_count(&self) -> usize { GDT_SIZE }
 
     /// Load the GDT table with the `lgdt` instruction.
-    #[inline] unsafe fn load(&self) {
-        asm!(  "lgdt ($0)"
+    #[inline] fn load(&self) {
+        unsafe {
+            asm!(  "lgdt ($0)"
             :: "r"(&self.get_ptr())
             :  "memory" );
+        }
     }
 }

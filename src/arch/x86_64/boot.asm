@@ -20,7 +20,7 @@
 
 global start
 
-extern start_64
+extern kernel_start
 
 section .text
 bits 32
@@ -55,7 +55,7 @@ start:
     ; 6. print `OK` to screen and jump to the 64-bit boot subroutine.
     mov     dword [0xb8000], 0x2f4b2f4f
 
-    jmp     gdt64.code:start_64
+    jmp     gdt64.code:kernel_start
 
 ; == Tests whether or not multiboot is enabled ==============================
 is_multiboot:

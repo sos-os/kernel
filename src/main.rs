@@ -19,8 +19,8 @@
 //! SOS is copyright 2015-2016 Hawk Weisman, and is released under the terms
 //! of the MIT license.
 
-#![crate_name = "sos_kernel"]
-#![crate_type = "staticlib"]
+// #![crate_name = "sos_kernel"]
+// #![crate_type = "staticlib"]
 
 #![doc(html_root_url = "https://hawkw.github.io/sos-kernel/")]
 
@@ -41,6 +41,7 @@
 #![cfg_attr(feature="clippy", plugin(clippy))]
 
 #![no_std]
+#![cfg_attr(not(test), no_main)]
 
 // -- non-SOS dependencies --------------------------------------------------
 extern crate collections;
@@ -48,6 +49,7 @@ extern crate rlibc;
 extern crate spin;
 extern crate arrayvec;
 
+#[macro_use] extern crate lazy_static;
 #[macro_use] extern crate bitflags;
 #[macro_use] extern crate custom_derive;
 
@@ -153,7 +155,7 @@ pub fn kernel_main() {
 //  we then want the kernel entry point to be `arch_init`. we can then
 //  call into `kernel_init`.
 #[no_mangle]
-pub extern fn kernel_start(multiboot_addr: PAddr) {
+pub extern "C" fn kernel_start(multiboot_addr: PAddr) {
     io::term::CONSOLE.lock().clear();
 
     println!("Hello from the kernel!");
@@ -172,4 +174,11 @@ pub extern fn kernel_start(multiboot_addr: PAddr) {
     // -- call into kernel main loop ------------------------------------------
     // (currently, this does nothing)
     kernel_main()
+}
+
+
+/// This fake `main` function exists only to placate `cargo test`.
+#[cfg(test)]
+fn main() {
+
 }

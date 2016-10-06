@@ -97,20 +97,20 @@ impl convert::From<Handler> for Gate {
     /// The `handler` function must have been created with valid interrupt
     /// calling conventions.
     fn from(handler: Handler) -> Self {
-        let (low, mid, high): (u16, u16, u32)
-            // trust me on this, `mem::transmute()` is glorious black magic
-            = unsafe { mem::transmute(handler) };
+        unsafe { // trust me on this, `mem::transmute()` is glorious black magic
+                let (low, mid, high): (u16, u16, u32) = mem::transmute(handler);
 
-        Gate { offset_lower: low
-             , selector: segment::Selector::from_raw(GDT_OFFSET)
-             , _zero: 0
-             // Bit 7 is the present bit
-             // Bits 4-0 indicate this is an interrupt gate
-             , flags: GateFlags::new_interrupt()
-             , offset_mid: mid
-             , offset_upper: high
-             , _reserved: 0
-             }
+            Gate { offset_lower: low
+                 , selector: segment::Selector::from_raw(GDT_OFFSET)
+                 , _zero: 0
+                 // Bit 7 is the present bit
+                 // Bits 4-0 indicate this is an interrupt gate
+                 , flags: GateFlags::new_interrupt()
+                 , offset_mid: mid
+                 , offset_upper: high
+                 , _reserved: 0
+                 }
+        }
     }
 }
 
@@ -126,19 +126,19 @@ impl convert::From<*const u8> for Gate {
     //        after the Revolution, once handlers are created in Rust-land with
     //        naked functions...
     fn from(handler: *const u8) -> Self {
-        let (low, mid, high): (u16, u16, u32)
-            // trust me on this, `mem::transmute()` is glorious black magic
-            = unsafe { mem::transmute(handler) };
+        unsafe {
+            let (low, mid, high): (u16, u16, u32) = mem::transmute(handler);
 
-        Gate { offset_lower: low
-             , selector: segment::Selector::from_raw(GDT_OFFSET)
-             , _zero: 0
-             // Bit 7 is the present bit
-             // Bits 4-0 indicate this is an interrupt gate
-             , flags: GateFlags::new_interrupt()
-             , offset_mid: mid
-             , offset_upper: high
-             , _reserved: 0
-             }
+            Gate { offset_lower: low
+                 , selector: segment::Selector::from_raw(GDT_OFFSET)
+                 , _zero: 0
+                 // Bit 7 is the present bit
+                 // Bits 4-0 indicate this is an interrupt gate
+                 , flags: GateFlags::new_interrupt()
+                 , offset_mid: mid
+                 , offset_upper: high
+                 , _reserved: 0
+                 }
+        }
     }
 }

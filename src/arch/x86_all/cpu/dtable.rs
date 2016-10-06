@@ -21,6 +21,11 @@ pub struct Pointer { /// the length of the descriptor table
                      pub base: PAddr
                    }
 
+// pub struct Handle<T: DTable> {
+//     pointer: Pointer
+//   , table: T
+// }
+
 /// A descriptor table (IDT or GDT)
 pub trait DTable: Sized {
     type Entry: Sized;
@@ -62,5 +67,5 @@ pub trait DTable: Sized {
     fn entry_count(&self) -> usize;
 
     /// Load the descriptor table with the appropriate load instruction
-    unsafe fn load(&self);
+    fn load(&'static self);
 }

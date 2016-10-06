@@ -199,11 +199,11 @@ impl BothPICs {
         // helper macro to avoid writing repetitive code
         macro_rules! send {
             (pic0 => $data:expr) => {
-                self.0.send_data($data)
+                self.0.send_data($data);
                 wait();
             };
             (pic1 => $data:expr) => {
-                self.1.send_data($data)
+                self.1.send_data($data);
                 wait();
             };
         }

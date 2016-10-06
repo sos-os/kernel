@@ -13,6 +13,8 @@
 
 use core::mem;
 use core::fmt;
+use super::flags::{Flags as RFlags};
+use super::segment;
 
 /// Registers pushed to the stack when handling an interrupt or context switch.
 #[repr(C, packed)]
@@ -89,7 +91,7 @@ pub struct Registers { pub rsi: u64
      }
  }
 
- impl fmt::Debug for Registers {
+impl fmt::Debug for Registers {
      fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
          write!( f
                , "    RSI: {:#018x} RDI: {:#018x} R11: {:#018x}\n    \
@@ -99,7 +101,62 @@ pub struct Registers { pub rsi: u64
               , self.r10, self.r9,  self.r8
               , self.rdx, self.rcx, self.rax)
      }
- }
+}
+
+
+
+#[repr(C, packed)]
+pub struct InterruptFrame {
+    //  this is the actual value of the interrupt stack frame context,
+    //  not the old one (which is wrong). note that the old one seems to cause
+    //  stack misalignment.
+    //          -- eliza, october 4th, 2016
+    /// Value of the instruction pointer (`$rip`) register
+    pub rip: *const u8
+  , /// Value of the code segment (`$cs`) register
+    pub cs: segment::Selector
+  , __pad_1: u32
+  , __pad_2: u16
+  , /// Value of the CPU flags (`$rflags`) register
+    pub rflags: RFlags
+  , /// Value of the stack pointer (`$rsp`) register
+    //  TODO: should this actually be a pointer?
+    pub rsp: *const u8
+  , /// Value of the stack segment (`$ss`) register
+    pub ss: segment::Selector
+  , __pad_3: u32
+  , __pad_4: u16
+}
+
+#[cfg(test)]
+mod test {
+    #[test]
+    fn test_interrupt_frame_correct_size() {
+        use core::mem::size_of;
+        use super::InterruptFrame;
+
+        assert_eq!(size_of::<InterruptFrame>(), 32);
+    }
+}
+
+impl fmt::Debug for InterruptFrame {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!( f
+              , "Interrupt Frame: \
+                \n   instruction pointer: {:p} \
+                \n   code segment:        {} \
+                \n   rflags:              {:?} \
+                \n   stack pointer:       {:p} \
+                \n   stack segment:       {}"
+             , self.rip
+            //  , self.__pad_1, self.__pad_2
+             , self.cs
+             , self.rflags
+             , self.rsp
+            //  , self.__pad_3, self.__pad_4
+             , self.ss)
+    }
+}
 
 /// Thread execution context
 #[repr(C, packed)]

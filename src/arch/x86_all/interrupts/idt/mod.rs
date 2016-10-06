@@ -8,17 +8,10 @@
 //
 //! Common functionality for the `x86` and `x86_64` Interrupt Descriptor Table.
 
-use core::{ptr, mem};
+use core::mem;
 
 use arch::cpu::dtable::DTable;
 use arch::cpu::PrivilegeLevel;
-
-extern {
-    /// Array of interrupt handlers exported by ASM
-    //  TODO: hopefully, we will not need this much longer.
-    #[link_name = "isrs"]
-    static ISRs: [*const u8; ENTRIES];
-}
 
 /// An interrupt handler function.
 pub type Handler = unsafe extern "C" fn() -> !;
@@ -108,22 +101,29 @@ impl Idt {
     pub unsafe fn disable_interrupts() { asm!("cli") }
 
     /// Add a new interrupt gate pointing to the given handler
-    pub fn add_gate(&mut self, idx: usize, handler: Handler) {
-        self.0[idx] = Gate::from(handler)
+    #[inline]
+    pub fn add_handler(&mut self, idx: usize, handler: Handler) -> &mut Self {
+        self.add_gate(idx, Gate::from(handler))
     }
 
-    /// Add interrupt handlers exported by assembly to the IDT.
-    pub unsafe fn add_handlers(&mut self) -> &mut Self {
-        for (i, &handler_ptr) in ISRs.iter()
-            .enumerate()
-            .filter(|&(_, &ptr)| ptr != ptr::null() ) {
-                self.0[i] = Gate::from(handler_ptr)
-        }
-
-        println!("{:<38}{:>40}", " . . Adding interrupt handlers to IDT"
-             , "[ OKAY ]");
+    #[inline]
+    pub fn add_gate(&mut self, idx: usize, gate: Gate) -> &mut Self {
+        self.0[idx] = gate;
         self
     }
+
+    ///// Add interrupt handlers exported by assembly to the IDT.
+    //pub unsafe fn add_handlers(&mut self) -> &mut Self {
+    //    for (i, &handler_ptr) in ISRs.iter()
+    //        .enumerate()
+    //        .filter(|&(_, &ptr)| ptr != ptr::null() ) {
+    //            self.0[i] = Gate::from(handler_ptr)
+    //    }
+    //
+    //    println!("{:<38}{:>40}", " . . Adding interrupt handlers to IDT"
+    //         , "[ OKAY ]");
+    //    self
+    //}
 
 }
 
@@ -132,10 +132,12 @@ impl DTable for Idt {
 
     #[inline] fn entry_count(&self) -> usize { ENTRIES }
 
-    #[inline] unsafe fn load(&self) {
-        asm!(  "lidt ($0)"
-            :: "r"(&self.get_ptr())
-            :  "memory" );
+    #[inline] fn load(&'static self) {
+        unsafe {
+            asm!(  "lidt ($0)"
+                :: "r"(&self.get_ptr())
+                :  "memory" );
+        }
         println!("{:<38}{:>40}", " . . Loading IDT", "[ OKAY ]");
     }
 }
