@@ -138,6 +138,7 @@ pub fn kernel_main() {
     //     unsafe { asm!("int $0" :: "N" (0x80)) };
     //     println!("Test interrupt okay");
     // }
+    loop { }
 }
 
 /// Kernel initialization function called from ASM
