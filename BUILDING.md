@@ -76,11 +76,14 @@ $ brew tap Homebrew/bundle
 $ brew bundle
 ```
 
-Once you've installed the `Brewfile`, you'll need to cross-compile `binutils`. Right now, the best way to go about that is to run the shell script included in this repo:
+Once you've installed the `Brewfile`, you'll need to cross-compile `binutils`.
 
+I've included a script to automatically download and cross-compile `binutils`, which you can run by typing:
 ```
 $ ./scripts/install-mac.sh
 ```
+
+Alternatively, if you want to do it manually, Phil Oppermann has a tutorial [here](http://os.phil-opp.com/cross-compile-binutils.html).
 
 ### windows
 Seriously?
