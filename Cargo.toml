@@ -9,6 +9,9 @@ authors = [ # hacked around by
 
           build = "build.rs"
 
+[[bin]]
+name = "sos_kernel_full"
+
 # [lib]
 # crate-type = ["staticlib"]
 #
@@ -18,6 +21,7 @@ panic = "abort"
 
 [profile.release]
 panic = "abort"
+debug = true
 
 [features]
 default = []
