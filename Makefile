@@ -46,7 +46,7 @@ kernel: $(kernel) ##@build Compile the kernel binary
 iso: $(iso) ##@build Compile the kernel binary and make an ISO image
 
 run: $(iso) ##@build Make the kernel ISO image and boot QEMU from it.
-	@qemu-system-x86_64 -hda $(iso)
+	@qemu-system-x86_64 -s -hda $(iso)
 
 $(iso): $(kernel) $(grub_cfg)
 	@mkdir -p $(isofiles)/boot/grub
@@ -55,5 +55,15 @@ $(iso): $(kernel) $(grub_cfg)
 	@grub-mkrescue -o $(iso) $(isofiles)/
 	@rm -r $(isofiles)
 
-$(kernel):
+$(kernel)_full:
 	@xargo build --release --target $(target)
+
+$(kernel).debug: $(kernel)_full
+	@objcopy --only-keep-debug $(kernel)_full $(kernel).debug
+
+$(kernel): $(kernel)_full $(kernel).debug
+	@strip -g -o $(kernel) $(kernel)_full
+	@objcopy --add-gnu-debuglink=$(kernel).debug $(kernel)
+
+gdb: $(kernel) $(kernel).debug
+	@rust-gdb -ex "target remote tcp:127.0.0.1:1234" $(kernel)
