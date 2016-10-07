@@ -12,8 +12,12 @@
 //! implementation.
 pub mod term;
 pub mod keyboard;
-use core::ops;
-use core::fmt;
+pub mod serial;
+
+use arch::cpu;
+
+use core::{ ops, fmt };
+use core::marker::PhantomData;
 
 macro_rules! println {
     ($fmt:expr) => (print!(concat!($fmt, "\n")));
@@ -140,3 +144,44 @@ where E: fmt::Debug {
         self
     }
 }
+
+/// Safe typed port wrapper
+pub struct Port<T> { raw_port: cpu::Port
+                   , typ: PhantomData<T>
+                   }
+
+macro_rules! make_ports {
+    ( $( $t:ty, $read:ident, $out:ident ),+ ) => {
+        $(
+            impl Port<$t> {
+                #[inline]
+                pub const fn new(number: u16) -> Self {
+                    // TODO: can we check if the port number is valid
+                    unsafe {
+                        Port { raw_port: cpu::Port::new(number)
+                             , typ: PhantomData::<$t>
+                             }
+                    }
+                }
+
+                #[inline]
+                pub fn read(&self) -> $t {
+                    unsafe { self.raw_port.$read() }
+                }
+
+                #[inline]
+                pub fn write(&self, data: $t) {
+                    unsafe { self.raw_port.$out(data) }
+                }
+            }
+        )+
+    }
+}
+
+make_ports! { u8, in8, out8
+            , u16, in16, out16
+            , u32, in32, out32
+            }
+
+#[cfg(arch="x86_64")]
+make_ports! { u64, in64, out64 }
