@@ -204,6 +204,26 @@ macro_rules! Page {
                                                               , &by.number
                                                               )
             }
+
+            #[inline]
+            fn steps_between_by_one(start: &$ty, end: &$ty) -> Option<usize> {
+                use $crate::core::iter::Step;
+                <<$addr as Addr>::Repr as Step>::steps_between( &start.number
+                                                              , &end.number
+                                                              , &1
+                                                              )
+            }
+
+            #[inline] fn sub_one(&self) -> Self { self - 1 }
+
+            #[inline] fn add_one(&self) -> Self { self + 1 }
+
+            #[inline] fn replace_one(&mut self) -> Self { unimplemented!() }
+
+            #[inline] fn replace_zero(&mut self) -> Self { unimplemented!() }
+
+            #[inline] fn is_negative(&self) -> bool { unimplemented!(); }
+
         }
 
         impl_page_ops! {
