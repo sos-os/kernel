@@ -28,9 +28,9 @@
 #[cfg(feature = "system_term")]
 extern crate spin;
 
-use core::mem;
+use core::{mem, ptr};
 use core::fmt::{Write, Result};
-use core::ptr::Unique;
+// use core::ptr::Unique;
 
 #[cfg(feature = "system_term")]
 use spin::Mutex;
@@ -114,7 +114,13 @@ pub struct Char { pub ascii: u8
                 , pub colors: Palette
                 }
 
-pub struct Terminal { buffer: Unique<Buffer>
+impl Char {
+    pub const fn empty() -> Self {
+        Char { ascii: 0, colors: Palette(0) }
+    }
+}
+
+pub struct Terminal { buffer: ptr::Unique<Buffer>
                     , x: usize
                     , y: usize
                     , colors: Palette
@@ -135,7 +141,7 @@ impl Terminal {
                            -> Terminal {
         Terminal { x: 0, y: 0
                  , colors: colors
-                 , buffer: Unique::new(buffer_start as *mut _)
+                 , buffer: ptr::Unique::new(buffer_start as *mut _)
                  }
     }
 
@@ -169,16 +175,37 @@ impl Terminal {
         // }
         let buffer: &mut _ = self.buffer();
         for row in 1..Y_MAX {
-            buffer[row - 1] = buffer[row];
+            for col in 0 .. X_MAX {
+                unsafe {
+                    let last = ptr::read_volatile(&buffer[row][col]);
+                    ptr::write_volatile( &mut buffer[row - 1][col], last);
+                }
+            }
         }
         // empty the last line in the buffer
-        unsafe { buffer[Y_MAX - 1] = mem::zeroed() }
+        unsafe {
+            for col in 0..X_MAX {
+                ptr::write_volatile(&mut buffer[Y_MAX - 1][col], Char::empty());
+            }
+        }
     }
 
     /// Clear the terminal
     pub fn clear(&mut self) -> &mut Self {
         // to clear the terminal, we just zero out the whole buffer.
-        unsafe { *(self.buffer()) = mem::zeroed(); }
+        {
+            let buffer: &mut _ =self.buffer();
+            for row in 0..Y_MAX {
+                for col in 0 .. X_MAX {
+                    unsafe {
+                        ptr::write_volatile(
+                            &mut buffer[row][col], Char::empty()
+                        );
+                    }
+                }
+            }
+        }
+
         self.x = 0;
         self.y = 0;
         self
@@ -196,9 +223,13 @@ impl Terminal {
             // byte at the current position in the buffer to that
             // character (with the current color palette)
             //
-            self.buffer()[self.y][self.x]
-                = Char { ascii: byte
-                       , colors: self.colors };
+            let y = self.y;
+            let x = self.x;
+            unsafe {
+                ptr::write_volatile( &mut (self.buffer()[y][x])
+                                   , Char { ascii: byte, colors: self.colors }
+                                   );
+            }
             // and advance our column position by one
             self.x += 1;
 
