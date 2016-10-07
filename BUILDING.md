@@ -63,6 +63,19 @@ And on Fedora with
 ```
 $ sudo dnf install nasm xorriso qemu
 ```
+On Gentoo it's
+```
+$ sudo emerge app-emulation/qemu dev-lang/nasm dev-libs/libisoburn sys-boot/grub
+```
+
+You will also need `x86_64-elf-objcopy` and `x86_64-elf-strip`.
+On x86_64 Linux you can simply symlink them to your regular `objcopy` and `strip`.
+
+If you are on Gentoo but on another architecture you can build a cross-compiled version of `binutils` (which contains `objcopy` and `strip`) with
+```
+$ sudo emerge sys-devel/crossdev
+$ sudo crossdev -s0 --target x86_64-elf
+```
 
 ### macOS
 
