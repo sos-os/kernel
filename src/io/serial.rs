@@ -17,7 +17,32 @@
 //! information.
 
 use super::{Read, Write, Port};
+
+use core::ops;
+use spin::Mutex;
+
 use ::util;
+
+/// Address of the BIOS Data Area (BDA)
+/// where the serial port addresses are stored.
+const BDA_ADDR: usize = 0x400;
+
+lazy_static! {
+    static ref BDA_SERIAL_INFO: [u16; 4]
+        = unsafe { *(BDA_ADDR as *const [u16; 4]) };
+
+    pub static ref COM1: Option<Mutex<SerialPort>>
+        = PortNum::Com1.initialize().map(Mutex::new);
+
+    pub static ref COM2: Option<Mutex<SerialPort>>
+        = PortNum::Com2.initialize().map(Mutex::new);
+
+    pub static ref COM3: Option<Mutex<SerialPort>>
+        = PortNum::Com3.initialize().map(Mutex::new);
+
+    pub static ref COM4: Option<Mutex<SerialPort>>
+        = PortNum::Com4.initialize().map(Mutex::new);
+}
 
 /// Available serial ports.
 ///
@@ -26,11 +51,11 @@ use ::util;
 ///
 #[derive(Debug, Copy, Clone)]
 #[repr(usize)]
-pub enum PortNum { Com1 = 0
-                , Com2 = 1
-                , Com3 = 2
-                , Com4 = 3
-                }
+enum PortNum { Com1 = 0
+             , Com2 = 1
+             , Com3 = 2
+             , Com4 = 3
+             }
 
 impl PortNum {
     #[inline]
@@ -42,7 +67,7 @@ impl PortNum {
     }
 
     /// Returns `Some(SerialPort)` if this port exists, `None` if it does not
-    pub fn new(&self) -> Option<SerialPort> {
+    fn initialize(&self) -> Option<SerialPort> {
         self.get_port_addr().map(|port| {
              // Disable all interrupts
             Port::<u8>::new(port + 1).write(0x00);
@@ -66,15 +91,6 @@ impl PortNum {
     }
 }
 
-/// Address of the BIOS Data Area (BDA)
-/// where the serial port addresses are stored.
-const BDA_ADDR: usize = 0x400;
-
-lazy_static! {
-    static ref BDA_SERIAL_INFO: [u16; 4]
-        = unsafe { *(BDA_ADDR as *const [u16; 4]) };
-
-}
 
 /// A serial port
 pub struct SerialPort { data_port: Port<u8>
