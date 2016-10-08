@@ -64,6 +64,13 @@ pub mod multiboot2;
 pub mod elf;
 pub mod arch;
 
+/// SOS version number
+pub const VERSION_STRING: &'static str
+    = concat!("Stupid Operating System v", env!("CARGO_PKG_VERSION"));
+
+// pub const BUILD_STRING: &'static str
+//     = concat!("Built with ", env!("RUST_VERSION"));
+//
 // Since the test module contains lang items, it can't be compiled when
 // running tests.
 #[cfg(not(test))] pub mod panic;
@@ -176,9 +183,12 @@ pub extern "C" fn kernel_start(multiboot_addr: PAddr) {
                 , memory::HEAP_BASE
                 , memory::HEAP_TOP);
     };
+
+    println!("\n{} {}-bit\n", VERSION_STRING, arch::ARCH_BITS);
     // -- call into kernel main loop ------------------------------------------
     // (currently, this does nothing)
     kernel_main()
+
 }
 
 
