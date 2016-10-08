@@ -36,6 +36,7 @@ use core::fmt::{Write, Result};
 use spin::Mutex;
 
 /// The system's global VGA terminal
+/// TODO: should this live in the kernel instead?
 #[cfg(feature = "system_term")]
 pub static CONSOLE: Mutex<Terminal>
     = Mutex::new(unsafe { Terminal::new(
