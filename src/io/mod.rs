@@ -12,7 +12,6 @@
 //! implementation.
 pub mod term;
 pub mod keyboard;
-pub mod serial;
 
 use arch::cpu;
 

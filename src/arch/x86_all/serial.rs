@@ -16,11 +16,11 @@
 //! See [the OS Dev wiki](http://wiki.osdev.org/Serial_Ports) for more
 //! information.
 
-use super::{Read, Write, Port};
-
-use core::ops;
 use spin::Mutex;
 
+use super::bda;
+
+use ::io::{Read, Write, Port};
 use ::util;
 
 /// Address of the BIOS Data Area (BDA)
@@ -60,7 +60,7 @@ enum PortNum { Com1 = 0
 impl PortNum {
     #[inline]
     fn get_port_addr(&self) -> Option<u16> {
-        match BDA_SERIAL_INFO[*self as usize] {
+        match bda::PORTS.com_ports[*self as usize] {
             n if n > 0 => Some(n)
           , _ => None
         }
