@@ -12,18 +12,53 @@
 //! (http://wiki.osdev.org/Memory_Map_(x86)#BIOS_Data_Area_.28BDA.29)
 //! for more information.
 
-const PORTS_ADDR: 0x0400;
+type Word = u16;
 
-/// BIOS Data Area that stores the addresses of serial and parallel ports
-pub static PORTS: *const Ports
-    = unsafe { PORTS_ADDR as *const PORTS };
+pub mod ports {
+    use super::Word;
+    const PORTS_ADDR: usize = 0x0400;
 
-/// Addresses of ports stored in the BIOS Data Area.
-///
-#[repr(C)]
-pub struct Ports {
-    /// Addresses of the `COM1`, `COM2`, `COM3`, and `COM4` serial ports
-    pub com_ports: [u16; 4]
-  , /// Addresses of the `LPT1`, `LPT2`, and `LPT3` parallel ports
-    pub lpt_ports: [u16, 3]
+    lazy_static! {
+        /// BIOS Data Area that stores the addresses of serial and parallel ports
+        static ref PORTS: &'static Ports
+            = unsafe { &*(PORTS_ADDR as *const Ports) };
+    }
+
+    unsafe impl Send for Ports {}
+    unsafe impl Sync for Ports {}
+
+    /// Addresses of ports stored in the BIOS Data Area.
+    ///
+    #[repr(C)]
+    struct Ports {
+        /// Port address of the `COM1` serial port
+        com1: Word
+      , /// Port address of the `COM2` serial port
+        com2: Word
+      , /// Port address of the `COM3` serial port
+        com3: Word
+      , /// Port address of the `COM4` serial port
+        com4: Word
+      , /// Port address of the `LPT1` parallel port
+        lpt1: Word
+      , /// Port address of the `LPT2` parallel port
+        lpt2: Word
+      , /// Port address of the `LPT3` parallel port
+        lpt3: Word
+    }
+    macro_rules! port_addr {
+        ( $($name: ident),+ ) => { $(
+            #[inline]
+            pub fn $name() -> Option<u16> {
+                    match PORTS.$name {
+                        0 => None
+                      , n => Some(n)
+                    }
+                }
+        )+ }
+    }
+
+    port_addr! { com1, com2, com3, com4, lpt1, lpt2, lpt3 }
+
+
 }

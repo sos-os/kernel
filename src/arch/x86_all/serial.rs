@@ -9,7 +9,7 @@
 //! Serial port driver
 //!
 //! Create new serial ports by calling `PortNum::new()`. If the system supports
-//! that port, `Some(SerialPort)` will be returned. Otherwise, if the system
+//! that port, `Some(Port)` will be returned. Otherwise, if the system
 //! does not have that port number (such as `COM3` and `COM4`) on many machines,
 //! `PortNum::new()` returns `None`.
 //!
@@ -22,74 +22,28 @@ use super::bda;
 
 use ::io::{Read, Write, Port};
 use ::util;
-
-/// Address of the BIOS Data Area (BDA)
-/// where the serial port addresses are stored.
-const BDA_ADDR: usize = 0x400;
+//
+// /// Address of the BIOS Data Area (BDA)
+// /// where the serial port addresses are stored.
+// const BDA_ADDR: usize = 0x400;
 
 lazy_static! {
-    static ref BDA_SERIAL_INFO: [u16; 4]
-        = unsafe { *(BDA_ADDR as *const [u16; 4]) };
+    // static ref BDA_SERIAL_INFO: [u16; 4]
+    //     = unsafe { *(BDA_ADDR as *const [u16; 4]) };
 
     pub static ref COM1: Option<Mutex<SerialPort>>
-        = PortNum::Com1.initialize().map(Mutex::new);
+        = bda::ports::com1().map(SerialPort::new).map(Mutex::new);
 
     pub static ref COM2: Option<Mutex<SerialPort>>
-        = PortNum::Com2.initialize().map(Mutex::new);
+        = bda::ports::com2().map(SerialPort::new).map(Mutex::new);
 
     pub static ref COM3: Option<Mutex<SerialPort>>
-        = PortNum::Com3.initialize().map(Mutex::new);
+        = bda::ports::com3().map(SerialPort::new).map(Mutex::new);
 
     pub static ref COM4: Option<Mutex<SerialPort>>
-        = PortNum::Com4.initialize().map(Mutex::new);
+        = bda::ports::com4().map(SerialPort::new).map(Mutex::new);
 }
 
-/// Available serial ports.
-///
-/// These are used to create new serial ports, so that serial ports
-/// cannot be created for an arbitrary memory location.
-///
-#[derive(Debug, Copy, Clone)]
-#[repr(usize)]
-enum PortNum { Com1 = 0
-             , Com2 = 1
-             , Com3 = 2
-             , Com4 = 3
-             }
-
-impl PortNum {
-    #[inline]
-    fn get_port_addr(&self) -> Option<u16> {
-        match bda::PORTS.com_ports[*self as usize] {
-            n if n > 0 => Some(n)
-          , _ => None
-        }
-    }
-
-    /// Returns `Some(SerialPort)` if this port exists, `None` if it does not
-    fn initialize(&self) -> Option<SerialPort> {
-        self.get_port_addr().map(|port| {
-             // Disable all interrupts
-            Port::<u8>::new(port + 1).write(0x00);
-            // Enable DLAB (set baud rate divisor)
-            Port::<u8>::new(port + 3).write(0x80);
-            // Set divisor to 38400 baud
-            Port::<u8>::new(port + 0).write(0x03); // divisor hi byte
-            Port::<u8>::new(port + 1).write(0x00); // divisor lo byte
-            // 8 bits, no parity, one stop bit
-            Port::<u8>::new(port + 3).write(0x03);
-            // Enable FIFO, clear them, with 14-byte threshold
-            Port::<u8>::new(port + 2).write(0xC7);
-            // IRQs enabled, RTS/DSR set
-            Port::<u8>::new(port + 4).write(0x0B);
-            Port::<u8>::new(port + 1).write(0x01);
-
-            SerialPort { data_port: Port::<u8>::new(port)
-                       , status_port: Port::<u8>::new(port + 5)
-                       }
-        })
-    }
-}
 
 
 /// A serial port
@@ -98,6 +52,28 @@ pub struct SerialPort { data_port: Port<u8>
                       }
 
 impl SerialPort {
+
+    fn new(port: u16) -> SerialPort {
+         // Disable all interrupts
+        Port::<u8>::new(port + 1).write(0x00);
+        // Enable DLAB (set baud rate divisor)
+        Port::<u8>::new(port + 3).write(0x80);
+        // Set divisor to 38400 baud
+        Port::<u8>::new(port + 0).write(0x03); // divisor hi byte
+        Port::<u8>::new(port + 1).write(0x00); // divisor lo byte
+        // 8 bits, no parity, one stop bit
+        Port::<u8>::new(port + 3).write(0x03);
+        // Enable FIFO, clear them, with 14-byte threshold
+        Port::<u8>::new(port + 2).write(0xC7);
+        // IRQs enabled, RTS/DSR set
+        Port::<u8>::new(port + 4).write(0x0B);
+        Port::<u8>::new(port + 1).write(0x01);
+
+        SerialPort { data_port: Port::<u8>::new(port)
+                   , status_port: Port::<u8>::new(port + 5)
+                   }
+    }
+
     /// Returns true if the serial port has recieved data
     #[inline]
     pub fn has_byte(&self) -> bool {
