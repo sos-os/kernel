@@ -60,7 +60,7 @@ extern crate sos_alloc as alloc;
 #[macro_use] pub mod io;
 
 pub mod util;
-pub mod multiboot2;
+// pub mod multiboot2;
 pub mod elf;
 pub mod arch;
 

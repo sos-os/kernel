@@ -12,9 +12,9 @@ pub mod drivers;
 pub mod memory;
 
 #[path = "../x86_all/bda.rs"] pub mod bda;
+#[path = "../x86_all/multiboot2.rs"] mod multiboot2;
 
 use memory::PAddr;
-use multiboot2;
 
 pub const ARCH_BITS: u8 = 64;
 
