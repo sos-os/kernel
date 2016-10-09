@@ -30,7 +30,10 @@ use ::util;
 lazy_static! {
     // static ref BDA_SERIAL_INFO: [u16; 4]
     //     = unsafe { *(BDA_ADDR as *const [u16; 4]) };
-
+    // TODO: serial ports are currently behind a mutex; can they be read-write
+    //       locked instead? I think multiple threads should be able to read
+    //       from a serial port at the same time without causing trouble?
+    //          - eliza, 10/9/2016
     pub static ref COM1: Option<Mutex<SerialPort>>
         = bda::ports::com1().map(SerialPort::new).map(Mutex::new);
 
