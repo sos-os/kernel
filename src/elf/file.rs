@@ -69,7 +69,7 @@ impl Header<u64> {
               , Class::Elf32 => Err("Cannot parse 32-bit section from 64-bit \
                                      ELF file.")
               , Class::Elf64 => unsafe {
-                    Ok(mem::transmute(raw as *const [u8] as *const u8 as *const Section))
+                    Ok(&*(raw as *const [u8] as *const u8 as *const Section))
                 }
             }
         }
@@ -96,7 +96,7 @@ impl Header<u32> {
             match self.ident.class {
                 Class::None => Err("Invalid ELF class (ELFCLASSNONE).")
               , Class::Elf32 => unsafe {
-                    Ok(mem::transmute(raw as *const [u8] as *const u8 as *const Section))
+                    Ok(&*(raw as *const [u8] as *const u8 as *const Section))
                 }
               , Class::Elf64 => Err("Cannot parse 64-bit section from 32-bit \
                                      ELF file.")
