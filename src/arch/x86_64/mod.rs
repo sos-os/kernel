@@ -11,8 +11,7 @@ pub mod cpu;
 pub mod drivers;
 pub mod memory;
 
-#[path = "../x86_all/bda.rs"] mod bda;
-#[path = "../x86_all/serial.rs"] mod serial;
+#[path = "../x86_all/bda.rs"] pub mod bda;
 
 use memory::PAddr;
 use multiboot2;

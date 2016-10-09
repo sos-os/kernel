@@ -18,7 +18,7 @@
 
 use spin::Mutex;
 
-use super::bda;
+use ::arch::bda;
 
 use ::io::{Read, Write, Port};
 use ::util;
