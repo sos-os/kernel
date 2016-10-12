@@ -20,6 +20,7 @@ use core::{ intrinsics, ops, mem, slice };
 
 pub mod section;
 pub mod file;
+pub mod program;
 
 /// An ELF section header.
 pub type Section<'a> = section::Header<'a>;
@@ -37,9 +38,10 @@ impl ElfWord for u32 { }
 
 /// A handle on an ELF binary
 #[derive(Debug)]
-pub struct Binary<'a, Word>
+pub struct Image<'a, Word>
 where Word: ElfWord + 'a {
-    pub header: &'a FileHeader<Word>
+    pub header: &'a file::Header<Word>
+  , pub sections: &'a [section::Header<'a>]
   , binary: &'a [u8]
 }
 
