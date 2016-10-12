@@ -9,7 +9,7 @@
 //! The Global Descriptor Table (GDT) is used for configuring segmentation.
 //!
 //! As we use paging rather than segmentation for memory management, we do
-//! not actually use the GDT, but some x86 functionality still require it
+//! not actually use the GDT, but some x86 functionality still require itg
 //! to be properly configured.
 use arch::cpu::segment;
 

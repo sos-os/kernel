@@ -12,7 +12,7 @@ pub mod drivers;
 pub mod memory;
 
 #[path = "../x86_all/bda.rs"] pub mod bda;
-#[path = "../x86_all/multiboot2.rs"] mod multiboot2;
+#[path = "../x86_all/multiboot2.rs"] pub mod multiboot2;
 
 use memory::PAddr;
 
