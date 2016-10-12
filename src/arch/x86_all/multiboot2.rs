@@ -10,12 +10,43 @@
 //!
 //! Consult the [Multiboot Specification](http://nongnu.askapache.com/grub/phcoder/multiboot.pdf)
 //! for more information.
-//  TODO: this is x86-only and should move to `arch`
 use memory::PAddr;
+
 use elf::section::{Sections, HeaderRepr};
 
 const END_TAG_LEN: u32 = 8;
 
+const HEADER_LEN: u32 = 24;
+
+pub const MAGIC: u32 = 0xe85250d6;
+
+#[repr(u32)]
+pub enum HeaderArch {
+      I386 = 0
+    , Mips = 4
+}
+
+#[repr(C)]
+pub struct Header {
+      pub magic: u32
+    , pub arch: HeaderArch
+    , pub header_length: u32
+    , pub checksum: u32
+    , pub end_tag: Tag
+}
+
+// #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+#[linkage = "external"]
+#[link_section = ".multiboot_header"]
+pub static HEADER: Header = Header {
+    magic: MAGIC
+  , arch: HeaderArch::I386
+  , header_length: HEADER_LEN
+  , checksum: -((MAGIC + 0 + HEADER_LEN) as i32) as u32
+  , end_tag: Tag { ty: TagType::End
+                 , length: END_TAG_LEN
+                 }
+};
 
 #[repr(C)]
 pub struct Info { pub length: u32
