@@ -10,7 +10,6 @@
 //!
 //! Consult the [Multiboot Specification](http://nongnu.askapache.com/grub/phcoder/multiboot.pdf)
 //! for more information.
-//  TODO: this is x86-only and should move to `arch`
 use memory::PAddr;
 use elf::section::{Sections, HeaderRepr};
 
