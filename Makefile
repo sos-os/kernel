@@ -1,5 +1,5 @@
 arch ?= x86_64
-target ?= $(arch)-unknown-sos-gnu
+target ?= $(arch)-sos-kernel-gnu
 
 iso := target/$(target)/release/sos-$(arch).iso
 kernel := target/$(target)/release/sos_kernel
