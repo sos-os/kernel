@@ -1,8 +1,8 @@
 //
 //  SOS: the Stupid Operating System
-//  by Hawk Weisman (hi@hawkweisman.me)
+//  by Eliza Weisman (hi@hawkweisman.me)
 //
-//  Copyright (c) 2015 Hawk Weisman
+//  Copyright (c) 2016 Eliza Weisman
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
@@ -14,6 +14,20 @@
 //! manual.
 use core::{fmt, mem};
 use super::PrivilegeLevel;
+
+#[cfg(target_arch = "x86_64")]
+pub const GDT_SIZE: usize = 3;
+
+#[cfg(target_arch = "x86")]
+pub const GDT_SIZE: usize = 512;
+
+pub type Gdt = [Descriptor; GDT_SIZE];
+
+extern {
+    #[cfg(target_arch = "x86_64")]
+    #[link_section = ".gdt64"]
+    static GDT: Gdt;
+}
 
 bitflags! {
     /// A segment selector is a 16-bit identifier for a segment.

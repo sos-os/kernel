@@ -202,7 +202,8 @@ heap_base:
 heap_top:
 
 section .rodata
-gdt64:
+
+export gdt64
     dq 0 ; zero entry
 .code: equ $ - gdt64 ; new
     dq (1<<44) | (1<<47) | (1<<41) | (1<<43) | (1<<53) ; code segment
