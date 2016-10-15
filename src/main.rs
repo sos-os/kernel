@@ -26,6 +26,7 @@
 
 #![feature(core_intrinsics)]
 #![feature( lang_items, asm, naked_functions )]
+#![feature( linkage )]
 #![feature( const_fn
           , slice_patterns
           , associated_consts
