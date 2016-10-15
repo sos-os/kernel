@@ -1,5 +1,3 @@
-use super::ElfWord;
-
 /// The type field of an ELF program header
 #[repr(u32)]
 #[derive(Copy, Clone, Debug)]
