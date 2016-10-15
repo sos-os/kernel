@@ -12,6 +12,12 @@
 //! Software Developer’s Manual_, Vol. 3A, section 3.2, "Using Segments".
 //! Some of the documentation present in this module was taken from the Intel
 //! manual.
+//!
+
+// because some extern types have bitflags members, which cannot
+// be marked repr(C) but should compile down to an unsigned integer
+#![allow(improper_ctypes)]
+
 use core::{fmt, mem};
 use super::PrivilegeLevel;
 
@@ -21,12 +27,10 @@ pub const GDT_SIZE: usize = 3;
 #[cfg(target_arch = "x86")]
 pub const GDT_SIZE: usize = 512;
 
-pub type Gdt = [Descriptor; GDT_SIZE];
-
 extern {
     #[cfg(target_arch = "x86_64")]
     #[link_section = ".gdt64"]
-    static GDT: Gdt;
+    pub static GDT: [Descriptor; GDT_SIZE];
 }
 
 bitflags! {
@@ -45,6 +49,7 @@ bitflags! {
     ///    of bytes in a segment descriptor) and adds the result to the base
     ///    address of the GDT or LDT (from the `%gdtr` or `%ldtr` register,
     ///    respectively).
+    #[repr(C)]
     pub flags Selector: u16 { const RPL_RING_0 = 0b00
                             , const RPL_RING_1 = 0b01
                             , const RPL_RING_2 = 0b10
@@ -207,6 +212,7 @@ impl fmt::Display for Selector {
 /// application programs.
 ///
 #[repr(C, packed)]
+
 pub struct Descriptor { /// The last 8 bits of the base address
                         pub base_high: u8
                       , /// The next 16 bits are bitflags

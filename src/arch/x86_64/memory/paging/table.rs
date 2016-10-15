@@ -1,12 +1,18 @@
 //
 //  SOS: the Stupid Operating System
-//  by Hawk Weisman (hi@hawkweisman.me)
+//  by Eliza Weisman (hi@hawkweisman.me)
 //
-//  Copyright (c) 2015 Hawk Weisman
+//  Copyright (c) 2016 Eliza Weisman
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
 //! Page tables.
+//!
+
+// because some extern types have bitflags members, which cannot
+// be marked repr(C) but should compile down to an unsigned integer
+#![allow(improper_ctypes)]
+
 use arch::memory::{Frame, PAddr, PAGE_SIZE};
 
 use memory::paging::FrameAllocator;
@@ -19,11 +25,15 @@ pub const N_ENTRIES: usize = 512;
 /// Size of a page table (in bytes)
 pub const PAGE_TABLE_SIZE: usize = N_ENTRIES * PAGE_SIZE as usize;
 
-/// PML4 table
-pub const PML4: *mut Table<PML4Level>
-    = 0o177777_777_777_777_777_0000 as *mut _;
+
+extern {
+    /// PML4 table
+    #[link_section = ".pml4_table_addr"]
+    pub static PML4: *mut Table<PML4Level>;
+}
 
 /// A page table
+#[repr(C)]
 pub struct Table<L>
 where L: TableLevel { /// The entries in the page table.
                       pub entries: [Entry; N_ENTRIES]

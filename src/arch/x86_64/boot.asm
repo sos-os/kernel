@@ -228,3 +228,6 @@ export heap_base_addr
 
 export heap_top_addr
     dq heap_top
+
+export pml4_table_addr
+    dq pml4_table

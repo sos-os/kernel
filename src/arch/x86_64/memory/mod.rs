@@ -16,7 +16,6 @@ pub mod paging;
 
 use core::ops;
 
-
 pub const PAGE_SHIFT: u8 = 12;
 /// The size of a page (4mb)
 //  TODO: can we possibly rewrite this so that we can handle pages
