@@ -43,11 +43,11 @@ version = "0.2.*"
 features = ["spin_no_std"]
 
 [dependencies.sos_alloc]
-path = "lib/sos_alloc"
+path = "sos_alloc"
 features = ["buddy_as_system"]
 
 [dependencies.sos_vga]
-path = "lib/sos_vga"
+path = "sos_vga"
 features = ["system_term"]
 
 [dependencies.clippy]
