@@ -22,8 +22,7 @@ install:
 - export PATH="$PATH:$(rustc --print sysroot)/cargo/bin"
 - curl -sf "https://raw.githubusercontent.com/japaric/rust-everywhere/master/install.sh" | bash -s -- --from japaric/xargo
 script:
-- cd lib/sos_alloc && cargo test
-- cd ../.. && cargo test -p sos_intrusive
+- make test
 - make
 after_success:
 - travis-cargo doc && travis-cargo doc-upload
