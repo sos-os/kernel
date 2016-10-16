@@ -49,8 +49,8 @@ run: $(iso) ##@build Make the kernel ISO image and boot QEMU from it.
 	@qemu-system-x86_64 -s -hda $(iso)
 
 test: ##@build Test crate dependencies
-	@xargo test -p sos_alloc
 	@xargo test -p sos_intrusive
+	@cd sos_alloc && xargo test
 
 $(iso): $(kernel) $(grub_cfg)
 	@mkdir -p $(isofiles)/boot/grub
