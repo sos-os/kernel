@@ -22,7 +22,7 @@ use core::ptr::Unique;
 use intrusive::list::{List, Node};
 use intrusive::rawlink::RawLink;
 
-#[cfg(target-os = "linux")]
+#[cfg(target_os = "linux")]
 #[cfg(test)]
 mod test;
 

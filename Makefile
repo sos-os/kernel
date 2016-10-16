@@ -28,7 +28,7 @@ HELP_FUN = \
     }; \
     print "\n"; }
 
-.PHONY: all clean kernel run iso cargo help gdb
+.PHONY: all clean kernel run iso cargo help gdb test
 
 help: ##@miscellaneous Show this help.
 	@perl -e '$(HELP_FUN)' $(MAKEFILE_LIST)
@@ -47,6 +47,10 @@ iso: $(iso) ##@build Compile the kernel binary and make an ISO image
 
 run: $(iso) ##@build Make the kernel ISO image and boot QEMU from it.
 	@qemu-system-x86_64 -s -hda $(iso)
+
+test: ##@build Test crate dependencies
+	@xargo test -p sos_alloc
+	@xargo test -p sos_intrusive
 
 $(iso): $(kernel) $(grub_cfg)
 	@mkdir -p $(isofiles)/boot/grub
