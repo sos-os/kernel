@@ -19,7 +19,7 @@
 //! SOS is copyright 2015-2016 Eliza Weisman, and is released under the terms
 //! of the MIT license.
 
-// #![crate_name = "sos_kernel"]
+#![crate_name = "sos_kernel"]
 // #![crate_type = "staticlib"]
 
 #![doc(html_root_url = "https://hawkw.github.io/sos-kernel/")]

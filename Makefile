@@ -47,7 +47,7 @@ clean: ##@utilities Delete all build artefacts.
 	@cargo clean
 	# @rm serial-*.log
 
-kernel: $(kernel) ##@build Compile the kernel binary
+kernel: $(kernel).bin ##@build Compile the kernel binary
 
 iso: $(iso) ##@build Compile the kernel binary and make an ISO image
 
@@ -61,22 +61,22 @@ test: ##@build Test crate dependencies
 	@xargo test -p sos_intrusive
 	@cd sos_alloc && xargo test
 
-$(iso): $(kernel) $(grub_cfg)
+$(iso): $(kernel).bin $(grub_cfg)
 	@mkdir -p $(isofiles)/boot/grub
-	@cp $(kernel) $(isofiles)/boot/
+	@cp $(kernel).bin $(isofiles)/boot/
 	@cp $(grub_cfg) $(isofiles)/boot/grub
 	@grub-mkrescue -o $(iso) $(isofiles)/
 	@rm -r $(isofiles)
 
-$(kernel)_full:
-	@xargo build --release --target $(target)
+$(kernel):
+	@xargo build --release --target $(target) 
 
-$(kernel).debug: $(kernel)_full
-	@x86_64-elf-objcopy --only-keep-debug $(kernel)_full $(kernel).debug
+$(kernel).debug: $(kernel)
+	@x86_64-elf-objcopy --only-keep-debug $(kernel) $(kernel).debug
 
-$(kernel): $(kernel)_full $(kernel).debug
-	@x86_64-elf-strip -g -o $(kernel) $(kernel)_full
+$(kernel).bin: $(kernel) $(kernel).debug
+	@x86_64-elf-strip -g -o $(kernel).bin $(kernel)
 	@x86_64-elf-objcopy --add-gnu-debuglink=$(kernel).debug $(kernel)
 
-gdb: $(kernel) $(kernel).debug ##@utilities Connect to a running QEMU instance with gdb.
+gdb: $(kernel).bin $(kernel).debug ##@utilities Connect to a running QEMU instance with gdb.
 	@rust-gdb -ex "target remote tcp:127.0.0.1:1234" $(kernel)

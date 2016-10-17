@@ -9,8 +9,8 @@ authors = [ # hacked around by
 
           build = "build.rs"
 
-[[bin]]
-name = "sos_kernel_full"
+# [[bin]]
+# name = "sos_kernel_full"
 
 # [lib]
 # crate-type = ["staticlib"]
