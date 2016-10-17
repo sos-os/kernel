@@ -136,7 +136,7 @@ pub unsafe fn initialize() {
    //       a double fault occurs during init?
     IDT.load();         // Load the IDT pointer
 
-    infoln!(dots: " . . ", "Testing interrupt handling");
+    debug!("Testing interrupt handling");
     asm!("int $0" :: "N" (0xff));
 
     Idt::enable_interrupts(); // enable interrupts
