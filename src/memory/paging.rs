@@ -73,7 +73,6 @@ pub trait Mapper {
 
 }
 
-
 macro_rules! table_idx {
     ( $($name:ident >> $shift:expr)* ) => {$(
         pub fn $name(&self) -> usize {

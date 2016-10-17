@@ -62,6 +62,7 @@ extern crate sos_alloc as alloc;
 #[macro_use] pub mod io;
 
 pub mod util;
+pub mod params;
 // pub mod multiboot2;
 pub mod elf;
 pub mod arch;
@@ -78,7 +79,7 @@ pub const VERSION_STRING: &'static str
 #[cfg(not(test))] pub mod panic;
 
 use arch::cpu;
-use memory::PAddr;
+use params::InitParams;
 
 #[macro_use]
 macro_rules! init_log {
@@ -136,7 +137,7 @@ macro_rules! init_try {
 }
 
 /// Kernel main loop
-pub fn kernel_main() {
+pub fn kernel_main() -> ! {
     let mut a_vec = collections::vec::Vec::<usize>::new();
     println!( "TEST: Created a vector in kernel space! {:?}", a_vec);
     a_vec.push(1);
@@ -160,14 +161,8 @@ pub fn kernel_main() {
 //  TODO: since multiboot2 is x86-specific, this needs to move to `arch`.
 //  we then want the kernel entry point to be `arch_init`. we can then
 //  call into `kernel_init`.
-#[no_mangle]
-pub extern "C" fn kernel_start(multiboot_addr: PAddr) {
-    io::term::CONSOLE.lock().clear();
-
+pub fn kernel_init(params: InitParams) {
     println!("Hello from the kernel!");
-
-    // -- jump to architecture-specific init ---------------------------------
-    arch::arch_init(multiboot_addr);
 
     // -- initialize interrupts ----------------------------------------------
     unsafe {
@@ -181,9 +176,9 @@ pub extern "C" fn kernel_start(multiboot_addr: PAddr) {
         println!( "{:<38}{:>40}\n \
                     . . Heap begins at {:#x} and ends at {:#x}"
                 , " . Intializing heap"
-                , memory::init_heap().unwrap_or("[ FAIL ]")
-                , memory::HEAP_BASE
-                , memory::HEAP_TOP);
+                , memory::init_heap(&params).unwrap_or("[ FAIL ]")
+                , params.heap_base
+                , params.heap_top );
     };
 
     println!("\n{} {}-bit\n", VERSION_STRING, arch::ARCH_BITS);

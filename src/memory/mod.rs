@@ -11,10 +11,11 @@
 //! This module contains all of the non-arch-specific paging code, and
 //! re-exports memory-related definitions.
 use alloc::buddy;
+use ::params::InitParams;
 
 use core::{ops, cmp, convert};
 
-pub use arch::memory::{PAddr, HEAP_BASE, HEAP_TOP};
+pub use arch::memory::PAddr;
 
 pub mod alloc;
 pub mod paging;
@@ -76,9 +77,9 @@ impl VAddr {
 
 /// Initialise the kernel heap.
 //  TODO: this is the Worst Thing In The Universe. De-stupid-ify it.
-pub unsafe fn init_heap<'a>() -> Result<&'a str, &'a str> {
-    let heap_base_ptr = HEAP_BASE.as_mut_ptr();
-    let heap_size: u64 = (HEAP_TOP - HEAP_BASE).into();
+pub unsafe fn init_heap<'a>(params: &InitParams) -> Result<&'a str, &'a str> {
+    let heap_base_ptr = params.heap_base.as_mut_ptr();
+    let heap_size: u64 = (params.heap_top - params.heap_base).into();
     buddy::system::init_heap(heap_base_ptr, heap_size as usize);
     Ok("[ OKAY ]")
 }

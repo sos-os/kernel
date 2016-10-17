@@ -15,11 +15,21 @@ pub mod memory;
 #[path = "../x86_all/multiboot2.rs"] pub mod multiboot2;
 
 use memory::PAddr;
+use params::InitParams;
+use ::kernel_init;
 
 pub const ARCH_BITS: u8 = 64;
 
 /// Entry point for architecture-specific kernel init
-pub fn arch_init(multiboot_addr: PAddr) {
+///
+/// This expects to be passed the address of a valid
+/// Multiboot 2 info struct. It's the bootloader's responsibility to ensure
+/// that this is passed in the correct register as expected by the calling
+/// convention (`edi` on x86). If this isn't there, you can expect to have a
+/// bad problem and not go to space today.
+#[no_mangle]
+pub extern "C" fn arch_init(multiboot_addr: PAddr) {
+    ::io::term::CONSOLE.lock().clear();
 
     // -- Unpack multiboot tag ------------------------------------------------
     let boot_info
@@ -71,4 +81,10 @@ pub fn arch_init(multiboot_addr: PAddr) {
     println!( " . . Multiboot info begins at {:#x} and ends at {:#x}."
              , multiboot_addr, multiboot_end);
 
+    let params = InitParams { kernel_base: kernel_begin
+                            , kernel_top:  kernel_end
+                            , heap_base:   unsafe { memory::HEAP_BASE }
+                            , heap_top:    unsafe { memory::HEAP_TOP }
+                            };
+    kernel_init(params);
 }
