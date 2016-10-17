@@ -28,7 +28,10 @@ HELP_FUN = \
     }; \
     print "\n"; }
 
-.PHONY: all clean kernel run iso cargo help gdb test
+.PHONY: all clean kernel run iso cargo help gdb test doc
+
+doc: ##@utilities Make RustDoc documentation
+	@xargo doc
 
 help: ##@miscellaneous Show this help.
 	@perl -e '$(HELP_FUN)' $(MAKEFILE_LIST)
