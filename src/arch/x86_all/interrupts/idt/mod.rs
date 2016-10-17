@@ -138,6 +138,6 @@ impl DTable for Idt {
                 :: "r"(&self.get_ptr())
                 :  "memory" );
         }
-        println!("{:<38}{:>40}", " . . Loading IDT", "[ OKAY ]");
+        info!(dots: " . . ", "Loading IDT", "[ OKAY ]");
     }
 }

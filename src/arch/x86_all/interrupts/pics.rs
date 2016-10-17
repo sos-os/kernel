@@ -261,7 +261,7 @@ static PICS: Mutex<BothPICs>
 pub unsafe fn initialize() {
     PICS.lock()
         .initialize();
-    println!("{:<38}{:>40}", " . . Initializing PICs", "[ OKAY ]")
+    info!(dots: " . . ", "Initializing PICs", "[ OKAY ]")
 
 }
 

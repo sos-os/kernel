@@ -116,7 +116,7 @@ lazy_static! {
             .add_handler(0x21, isr!(interrupt: keyboard))
             .add_handler(0xff, isr!(interrupt: test));
 
-        println!("{:<38}{:>40}", " . . Adding interrupt handlers to IDT"
+        log!(dots: " . . ", "Adding interrupt handlers to IDT"
              , "[ OKAY ]");
         idt
     };
@@ -136,7 +136,7 @@ pub unsafe fn initialize() {
    //       a double fault occurs during init?
     IDT.load();         // Load the IDT pointer
 
-    print!(" . . Testing interrupt handling");
+    log!(dots: " . . ", "Testing interrupt handling");
     asm!("int $0" :: "N" (0xff));
 
     Idt::enable_interrupts(); // enable interrupts
