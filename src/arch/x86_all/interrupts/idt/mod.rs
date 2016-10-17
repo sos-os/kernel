@@ -138,6 +138,6 @@ impl DTable for Idt {
                 :: "r"(&self.get_ptr())
                 :  "memory" );
         }
-        info!(dots: " . . ", "Loading IDT", "[ OKAY ]");
+        infoln!(dots: " . . ", "Loading IDT", status: "[ OKAY ]");
     }
 }

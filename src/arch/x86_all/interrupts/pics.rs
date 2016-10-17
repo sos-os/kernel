@@ -261,7 +261,7 @@ static PICS: Mutex<BothPICs>
 pub unsafe fn initialize() {
     PICS.lock()
         .initialize();
-    info!(dots: " . . ", "Initializing PICs", "[ OKAY ]")
+    infoln!(dots: " . . ", "Initializing PICs", status: "[ OKAY ]");
 
 }
 

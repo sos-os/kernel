@@ -57,6 +57,89 @@ extern crate sos_alloc as alloc;
 
 #[macro_use] extern crate sos_vga as vga;
 
+
+// #[cfg(debug_assertions)]
+#[macro_use]
+macro_rules! debug {
+    ( $($args:tt)* ) => {
+        { use core::fmt::Write;
+        // TODO: only do this if we're in debug mode?
+        write!( $crate::arch::drivers::serial::COM1.lock()
+              , "[debug][{}]{}:{}]: {}\n"
+              , module_path!()
+              , file!(), line!()
+              , format_args!($($args)*)); }
+    }
+}
+
+#[macro_use]
+macro_rules! info {
+    ( dots: $dots:expr, $msg:expr, status: $status:expr ) => {
+        use core::fmt::Write;
+        // TODO: only do this if we're in debug mode?
+        write!( $crate::arch::drivers::serial::COM1.lock()
+              , "[info][{}][{}:{}]: {} {}"
+              , module_path!()
+              , file!(), line!()
+              , $msg, $status);
+        print!("{:<38}{:>40}", concat!($dots, $msg), $status );
+    };
+    ( dots: $dots:expr, $($args:tt)* ) => {
+        { use core::fmt::Write;
+        // TODO: only do this if we're in debug mode?
+        write!( $crate::arch::drivers::serial::COM1.lock()
+              , "[info][{}][{}:{}]: {}"
+              , module_path!()
+              , file!(), line!()
+              , format_args!($($args)*));
+        print!("{}{}", $dots, format_args!($($args)*)); }
+    };
+    ( $($args:tt)* ) => {
+        { use core::fmt::Write;
+        // TODO: only do this if we're in debug mode?
+        write!( $crate::arch::drivers::serial::COM1.lock()
+              , "[info][{}][{}:{}]: {}"
+              , module_path!()
+              , file!(), line!()
+              , format_args!($($args)*));
+        print!( $($args)* ); }
+    };
+}
+
+#[macro_use]
+macro_rules! infoln {
+    ( dots: $dots:expr, $msg:expr, status: $status:expr ) => {
+        use core::fmt::Write;
+        // TODO: only do this if we're in debug mode?
+        write!( $crate::arch::drivers::serial::COM1.lock()
+              , "[info][{}][{}:{}]: {} {}\n"
+              , module_path!()
+              , file!(), line!()
+              , $msg, $status);
+        println!("{:<38}{:>40}", concat!($dots, $msg), $status );
+    };
+    ( dots: $dots:expr, $($args:tt)* ) => {
+        { use core::fmt::Write;
+        // TODO: only do this if we're in debug mode?
+        write!( $crate::arch::drivers::serial::COM1.lock()
+              , "[info][{}][{}:{}]: {}\n"
+              , module_path!()
+              , file!(), line!()
+              , format_args!($($args)*));
+        println!("{}{}", $dots, format_args!($($args)*)); }
+    };
+    ( $($args:tt)* ) => {
+        { use core::fmt::Write;
+        // TODO: only do this if we're in debug mode?
+        write!( $crate::arch::drivers::serial::COM1.lock()
+              , "[info][{}][{}:{}]: {}\n"
+              , module_path!()
+              , file!(), line!()
+              , format_args!($($args)*));
+        println!( $($args)* ); }
+    };
+}
+
 #[macro_use] pub mod macros;
 #[macro_use] pub mod memory;
 #[macro_use] pub mod io;
@@ -80,51 +163,7 @@ pub const VERSION_STRING: &'static str
 
 use arch::cpu;
 use params::InitParams;
-use core::fmt::Write;
-
-// #[cfg(debug_assertions)]
-#[macro_use]
-macro_rules! debug {
-    ( $($args:tt)* ) => {
-        // TODO: only do this if we're in debug mode?
-        write!( arch::drivers::serial::COM1.lock()
-              , "[debug][{}]{}:{}]: {}\n"
-              , module_path!()
-              , file!(), line!()
-              , format_args!($($args)*));
-    }
-}
-
-#[macro_use]
-macro_rules! info {
-    ( dots: $dots:expr, $msg:expr, $status:expr ) => {
-        // TODO: only do this if we're in debug mode?
-        write!( arch::drivers::serial::COM1.lock()
-              , "[info][{}][{}:{}]: {} {}\n"
-              , module_path!()
-              , file!(), line!()
-              , $msg, $status);
-        println!("{}{:<38}{:>40}", $dots, $msg, $status );
-    };
-    ( dots: $dots:expr, $($args:tt)* ) => {
-        // TODO: only do this if we're in debug mode?
-        write!( arch::drivers::serial::COM1.lock()
-              , "[info][{}][{}:{}]: {}\n"
-              , module_path!()
-              , file!(), line!()
-              , format_args!($($args)*));
-        println!("{}{}", $dots, format_args!($($args)*));
-    };
-    ( $($args:tt)* ) => {
-        // TODO: only do this if we're in debug mode?
-        write!( arch::drivers::serial::COM1.lock()
-              , "[info][{}][{}:{}]: {}\n"
-              , module_path!()
-              , file!(), line!()
-              , format_args!($($args)*));
-        println!( $($args)* );
-    };
-}
+// use core::fmt::Write;
 
 //
 // #[cfg(not(debug_assertions))]
@@ -165,22 +204,22 @@ pub fn kernel_main() -> ! {
 //  we then want the kernel entry point to be `arch_init`. we can then
 //  call into `kernel_init`.
 pub fn kernel_init(params: InitParams) {
-    info!("Hello from the kernel!");
+    infoln!("Hello from the kernel!");
 
     // -- initialize interrupts ----------------------------------------------
-    info!(dots: " . ", "Initializing interrupts:");
+    infoln!(dots: " . ", "Initializing interrupts:");
     unsafe {
         cpu::interrupts::initialize();
     };
 
-    info!(dots: " . ", "Enabling interrupts", "[ OKAY ]");
+    infoln!(dots: " . ", "Enabling interrupts", status: "[ OKAY ]");
 
     // -- initialize the heap ------------------------------------------------
     unsafe {
-        info!( dots: " . ", "Intializing heap"
-             , memory::init_heap(&params).unwrap_or("[ FAIL ]")
+        infoln!( dots: " . ", "Intializing heap"
+             , status: memory::init_heap(&params).unwrap_or("[ FAIL ]")
              );
-        info!( dots: " . . "
+        infoln!( dots: " . . "
              , "Heap begins at {:#x} and ends at {:#x}"
              , params.heap_base, params.heap_top);
     };

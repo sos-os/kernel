@@ -40,9 +40,9 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
         = boot_info.mem_map()
                    .expect("Memory map tag required!");
 
-    println!(" . Detected memory areas:");
+    infoln!(dots: " . ", "Detected memory areas:");
     for a in mmap_tag.areas() {
-        println!(" . . start: {:#08x}, end: {:#08x}"
+        infoln!(dots: " . . ", "start: {:#08x}, end: {:#08x}"
                 , a.base, a.length );
     }
 
@@ -50,12 +50,13 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
         = boot_info.elf_sections()
                    .expect("ELF sections tag required!");
 
-    println!(" . Detecting kernel ELF sections:");
+    infoln!(dots: " . ", "Detecting kernel ELF sections:");
 
     let kernel_begin    // Extract kernel ELF sections from  multiboot info
         = elf_sections_tag.sections()
             .map(|s| {
-                println!(" . . address: {:#08x}, size: {:#08x}, flags: {:#08x}"
+                infoln!( dots: " . . "
+                     , "address: {:#08x}, size: {:#08x}, flags: {:#08x}"
                         , s.addr()
                         , s.length()
                         , s.flags() );
@@ -72,13 +73,13 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
             .expect("Could not find kernel end section!\
                     \nSomething is deeply wrong.");
 
-    println!( " . Detected {} kernel ELF sections.", n_elf_sections);
-    println!( " . . Kernel begins at {:#x} and ends at {:#x}."
+    infoln!( dots: " . ", "Detected {} kernel ELF sections.", n_elf_sections);
+    infoln!(dots: " . . ", "Kernel begins at {:#x} and ends at {:#x}."
              , kernel_begin, kernel_end );
 
     let multiboot_end = multiboot_addr + boot_info.length as u64;
 
-    println!( " . . Multiboot info begins at {:#x} and ends at {:#x}."
+    infoln!(dots: " . . ", "Multiboot info begins at {:#x} and ends at {:#x}."
              , multiboot_addr, multiboot_end);
 
     let params = InitParams { kernel_base: kernel_begin
