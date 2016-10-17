@@ -55,7 +55,7 @@ run: $(iso) ##@build Make the kernel ISO image and boot QEMU from it.
 	@qemu-system-x86_64 -s -hda $(iso)
 
 debug: $(iso) ##@build Run the kernel, redirecting serial output to a logfile.
-	@qemu-system-x86_64 -s -hda $(iso) -serial file:serial-$(TIMESTAMP).log
+	@qemu-system-x86_64 -s -hda $(iso) -serial file:$(CURDIR)/target/$(target)/serial-$(TIMESTAMP).log
 
 test: ##@build Test crate dependencies
 	@xargo test -p sos_intrusive
@@ -69,7 +69,7 @@ $(iso): $(kernel).bin $(grub_cfg)
 	@rm -r $(isofiles)
 
 $(kernel):
-	@xargo build --release --target $(target) 
+	@xargo build --release --target $(target)
 
 $(kernel).debug: $(kernel)
 	@x86_64-elf-objcopy --only-keep-debug $(kernel) $(kernel).debug
