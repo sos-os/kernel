@@ -7,6 +7,8 @@ isofiles := target/$(target)/release/isofiles
 
 grub_cfg := src/arch/$(arch)/grub.cfg
 
+TIMESTAMP := $(shell /bin/date "+%Y-%m-%d-%H:%M:%S")
+
 #COLORS
 GREEN  := $(shell tput -Txterm setaf 2)
 WHITE  := $(shell tput -Txterm setaf 7)
@@ -50,6 +52,9 @@ iso: $(iso) ##@build Compile the kernel binary and make an ISO image
 
 run: $(iso) ##@build Make the kernel ISO image and boot QEMU from it.
 	@qemu-system-x86_64 -s -hda $(iso)
+
+debug: $(iso) ##@build Run the kernel, redirecting serial output to a logfile.
+	@qemu-system-x86_64 -s -hda $(iso) -serial file:serial-$(TIMESTAMP).log
 
 test: ##@build Test crate dependencies
 	@xargo test -p sos_intrusive

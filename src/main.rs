@@ -80,10 +80,37 @@ pub const VERSION_STRING: &'static str
 
 use arch::cpu;
 use params::InitParams;
+use core::fmt::Write;
+
+// #[cfg(debug_assertions)]
+#[macro_use]
+macro_rules! log {
+    ($descriptor:expr, $($args:tt)*) => {
+        // TODO: only do this if we're in debug mode?
+        write!( arch::drivers::serial::COM1.lock()
+              , "{}: {}\n"
+              , $descriptor
+              , format_args!($($args)*));
+        println!("{}", format_args!($($args)*))
+    }
+
+}
+//
+// #[cfg(not(debug_assertions))]
+// #[macro_use]
+// macro_rules! log {
+//     ($descriptor:expr, $dots:expr, $msg:expr) => (
+//         // arch::drivers::serial::COM1.map(|com1|
+//         //     write!(com1.lock(), "{}: {}" descriptor, msg)
+//         // );
+//         println!("{}{}", $dots, $msg)
+//     )
+// }
+//
 
 #[macro_use]
 macro_rules! init_log {
-    (f$dots:expr, $task:expr, $msg:expr) => (
+    ($dots:expr, $task:expr, $msg:expr) => (
         println!( "{task:<40}{res:>38}\n{msg:>.width$}"
                 , task = format!("{:>.width$}", $task, width = $dots)
                 , res = "[ FAIL ]"
@@ -162,18 +189,20 @@ pub fn kernel_main() -> ! {
 //  we then want the kernel entry point to be `arch_init`. we can then
 //  call into `kernel_init`.
 pub fn kernel_init(params: InitParams) {
-    println!("Hello from the kernel!");
+    log!("kernel_init", "Hello from the kernel!");
 
     // -- initialize interrupts ----------------------------------------------
+    log!("kernel_init", " . Initializing interrupts:");
     unsafe {
-        println!(" . Enabling interrupts:");
         cpu::interrupts::initialize();
-        println!("{:<38}{:>40}", " . Enabling interrupts", "[ OKAY ]");
     };
+
+    log!("kernel_init", "{:<38}{:>40}", " . Enabling interrupts", "[ OKAY ]");
 
     // -- initialize the heap ------------------------------------------------
     unsafe {
-        println!( "{:<38}{:>40}\n \
+        log!( "kernel_init"
+            , "{:<38}{:>40}\n \
                     . . Heap begins at {:#x} and ends at {:#x}"
                 , " . Intializing heap"
                 , memory::init_heap(&params).unwrap_or("[ FAIL ]")
