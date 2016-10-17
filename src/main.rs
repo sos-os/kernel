@@ -1,8 +1,8 @@
 //
 //  SOS: the Stupid Operating System
-//  by Hawk Weisman (hi@hawkweisman.me)
+//  by Eliza Weisman (hi@hawkweisman.me)
 //
-//  Copyright (c) 2015-2016 Hawk Weisman
+//  Copyright (c) 2015-2016 Eliza Weisman
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
@@ -16,7 +16,7 @@
 //! I'm writing this mostly for fun, to learn more about OS design and kernel
 //! hacking, so don't expect anything new or exciting out of this project.
 //!
-//! SOS is copyright 2015-2016 Hawk Weisman, and is released under the terms
+//! SOS is copyright 2015-2016 Eliza Weisman, and is released under the terms
 //! of the MIT license.
 
 // #![crate_name = "sos_kernel"]
@@ -35,7 +35,7 @@
           , custom_derive )]
 #![feature( collections )]
 #![feature( question_mark )]
-#![warn( missing_docs )]
+// #![warn( missing_docs )]
 
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]

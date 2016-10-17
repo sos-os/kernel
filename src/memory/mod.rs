@@ -20,6 +20,7 @@ pub mod alloc;
 pub mod paging;
 #[macro_use] pub mod macros;
 
+/// Trait representing an address, whether physical or virtual.
 pub trait Addr<R>: ops::Add<Self> + ops::Add<R>
                  + ops::Sub<Self> + ops::Sub<R>
                  + ops::Mul<Self> + ops::Mul<R>
@@ -42,8 +43,13 @@ custom_derive! {
 }
 
 impl VAddr {
+    /// Convert this virtual address to a pointer
     #[inline] pub fn from_ptr<T>(ptr: *mut T) -> Self { VAddr(ptr as usize) }
+
+    /// Convert a `usize` to a virtual address
     #[inline] pub const fn from_usize(u: usize) -> Self { VAddr(u) }
+
+    /// Convert this virtual address to a `usize`.
     #[inline] pub const fn as_usize(&self) -> usize { self.0 }
 
     /// Calculate the index in the PML4 table corresponding to this address.
@@ -95,6 +101,7 @@ where Self: Sized
     /// in schemes where we differentiate between physical and machine
     /// addresses. If we ever have those.
     type Address: Addr<Self::R>;
+    /// The numeric type representing `Self::Address`.
     type R;
 
     /// Returns a new `Page` containing the given `Address`.
@@ -159,6 +166,7 @@ where P: Page
     , P: Clone {
     type Item = P;
 
+    ///
     fn next(&mut self) -> Option<P> {
         let end = self.range.end;
       assert!(self.range.start <= end);
