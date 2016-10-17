@@ -7,7 +7,7 @@ authors = [ # hacked around by
             "Philipp Oppermann <dev@phil-opp.com>"
           ]
 
-          build = "build.rs"
+build = "build.rs"
 
 # [[bin]]
 # name = "sos_kernel_full"
@@ -17,11 +17,18 @@ authors = [ # hacked around by
 #
 
 [profile.dev]
+opt-level = 3
+debug = true
+rpath = false
+lto = false
+debug-assertions = true
+codegen-units = 1
 panic = "abort"
 
 [profile.release]
+
 panic = "abort"
-debug = true
+debug = false
 
 [features]
 default = []

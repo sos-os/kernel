@@ -1,9 +1,9 @@
 arch ?= x86_64
 target ?= $(arch)-sos-kernel-gnu
 
-iso := target/$(target)/release/sos-$(arch).iso
-kernel := target/$(target)/release/sos_kernel
-isofiles := target/$(target)/release/isofiles
+iso := target/$(target)/debug/sos-$(arch).iso
+kernel := target/$(target)/debug/sos_kernel
+isofiles := target/$(target)/debug/isofiles
 
 grub_cfg := src/arch/$(arch)/grub.cfg
 
@@ -44,8 +44,7 @@ env: ##@utilities Install dev environment dependencies
 	./scripts/install-env.sh
 
 clean: ##@utilities Delete all build artefacts.
-	@cargo clean
-	# @rm serial-*.log
+	@xargo clean
 
 kernel: $(kernel).bin ##@build Compile the kernel binary
 
@@ -69,7 +68,7 @@ $(iso): $(kernel).bin $(grub_cfg)
 	@rm -r $(isofiles)
 
 $(kernel):
-	@xargo build --release --target $(target)
+	@xargo build --target $(target)
 
 $(kernel).debug: $(kernel)
 	@x86_64-elf-objcopy --only-keep-debug $(kernel) $(kernel).debug
