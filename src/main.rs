@@ -65,9 +65,9 @@ macro_rules! debug {
         { use core::fmt::Write;
         // TODO: only do this if we're in debug mode?
         write!( $crate::arch::drivers::serial::COM1.lock()
-              , "[debug][{}]{}:{}]: {}\n"
-              , module_path!()
+              , "[debug][{}:{}] {}: {}\n"
               , file!(), line!()
+              , module_path!()
               , format_args!($($args)*)); }
     }
 }
@@ -78,9 +78,8 @@ macro_rules! info {
         use core::fmt::Write;
         // TODO: only do this if we're in debug mode?
         write!( $crate::arch::drivers::serial::COM1.lock()
-              , "[info][{}][{}:{}]: {} {}"
+              , "[info] {}: {} {}"
               , module_path!()
-              , file!(), line!()
               , $msg, $status);
         print!("{:<38}{:>40}", concat!($dots, $msg), $status );
     };
@@ -88,9 +87,8 @@ macro_rules! info {
         { use core::fmt::Write;
         // TODO: only do this if we're in debug mode?
         write!( $crate::arch::drivers::serial::COM1.lock()
-              , "[info][{}][{}:{}]: {}"
+              , "[info] {}: {}"
               , module_path!()
-              , file!(), line!()
               , format_args!($($args)*));
         print!("{}{}", $dots, format_args!($($args)*)); }
     };
@@ -98,9 +96,8 @@ macro_rules! info {
         { use core::fmt::Write;
         // TODO: only do this if we're in debug mode?
         write!( $crate::arch::drivers::serial::COM1.lock()
-              , "[info][{}][{}:{}]: {}"
+              , "[info] {}: {}"
               , module_path!()
-              , file!(), line!()
               , format_args!($($args)*));
         print!( $($args)* ); }
     };
@@ -112,9 +109,8 @@ macro_rules! infoln {
         use core::fmt::Write;
         // TODO: only do this if we're in debug mode?
         write!( $crate::arch::drivers::serial::COM1.lock()
-              , "[info][{}][{}:{}]: {} {}\n"
+              , "[info] {}: {} {}\n"
               , module_path!()
-              , file!(), line!()
               , $msg, $status);
         println!("{:<38}{:>40}", concat!($dots, $msg), $status );
     };
@@ -122,9 +118,8 @@ macro_rules! infoln {
         { use core::fmt::Write;
         // TODO: only do this if we're in debug mode?
         write!( $crate::arch::drivers::serial::COM1.lock()
-              , "[info][{}][{}:{}]: {}\n"
+              , "[info] {}: {}\n"
               , module_path!()
-              , file!(), line!()
               , format_args!($($args)*));
         println!("{}{}", $dots, format_args!($($args)*)); }
     };
@@ -132,9 +127,8 @@ macro_rules! infoln {
         { use core::fmt::Write;
         // TODO: only do this if we're in debug mode?
         write!( $crate::arch::drivers::serial::COM1.lock()
-              , "[info][{}][{}:{}]: {}\n"
+              , "[info] {}: {}\n"
               , module_path!()
-              , file!(), line!()
               , format_args!($($args)*));
         println!( $($args)* ); }
     };
