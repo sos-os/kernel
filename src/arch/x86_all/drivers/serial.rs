@@ -28,6 +28,20 @@ use ::util;
 // /// Address of the BIOS Data Area (BDA)
 // /// where the serial port addresses are stored.
 // const BDA_ADDR: usize = 0x400;
+//
+
+pub struct Serial(Option<SerialPort>);
+
+impl fmt::Write for Serial {
+    #[inline]
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        if let Some(ref mut p) = self.0 {
+            p.write_str(s)
+        } else {
+            Err(fmt::Error)
+        }
+    }
+}
 
 lazy_static! {
     // static ref BDA_SERIAL_INFO: [u16; 4]
@@ -36,17 +50,17 @@ lazy_static! {
     //       locked instead? I think multiple threads should be able to read
     //       from a serial port at the same time without causing trouble?
     //          - eliza, 10/9/2016
-    pub static ref COM1: Option<Mutex<SerialPort>>
-        = bda::ports::com1().map(SerialPort::new).map(Mutex::new);
+    pub static ref COM1: Mutex<Serial>
+        = Mutex::new(Serial(bda::ports::com1().map(SerialPort::new)));
 
-    pub static ref COM2: Option<Mutex<SerialPort>>
-        = bda::ports::com2().map(SerialPort::new).map(Mutex::new);
+    pub static ref COM2: Mutex<Serial>
+        = Mutex::new(Serial(bda::ports::com2().map(SerialPort::new)));
 
-    pub static ref COM3: Option<Mutex<SerialPort>>
-        = bda::ports::com3().map(SerialPort::new).map(Mutex::new);
+    pub static ref COM3: Mutex<Serial>
+        = Mutex::new(Serial(bda::ports::com3().map(SerialPort::new)));
 
-    pub static ref COM4: Option<Mutex<SerialPort>>
-        = bda::ports::com4().map(SerialPort::new).map(Mutex::new);
+    pub static ref COM4: Mutex<Serial>
+        = Mutex::new(Serial(bda::ports::com4().map(SerialPort::new)));
 }
 
 
