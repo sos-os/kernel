@@ -84,17 +84,48 @@ use core::fmt::Write;
 
 // #[cfg(debug_assertions)]
 #[macro_use]
-macro_rules! log {
-    ($descriptor:expr, $($args:tt)*) => {
+macro_rules! debug {
+    ( $($args:tt)* ) => {
         // TODO: only do this if we're in debug mode?
         write!( arch::drivers::serial::COM1.lock()
-              , "{}: {}\n"
-              , $descriptor
+              , "[debug][{}]{}:{}]: {}\n"
+              , module_path!()
+              , file!(), line!()
               , format_args!($($args)*));
-        println!("{}", format_args!($($args)*))
     }
-
 }
+
+#[macro_use]
+macro_rules! info {
+    ( dots: $dots:expr, $msg:expr, $status:expr ) => {
+        // TODO: only do this if we're in debug mode?
+        write!( arch::drivers::serial::COM1.lock()
+              , "[info][{}][{}:{}]: {} {}\n"
+              , module_path!()
+              , file!(), line!()
+              , $msg, $status);
+        println!("{}{:<38}{:>40}", $dots, $msg, $status );
+    };
+    ( dots: $dots:expr, $($args:tt)* ) => {
+        // TODO: only do this if we're in debug mode?
+        write!( arch::drivers::serial::COM1.lock()
+              , "[info][{}][{}:{}]: {}\n"
+              , module_path!()
+              , file!(), line!()
+              , format_args!($($args)*));
+        println!("{}{}", $dots, format_args!($($args)*));
+    };
+    ( $($args:tt)* ) => {
+        // TODO: only do this if we're in debug mode?
+        write!( arch::drivers::serial::COM1.lock()
+              , "[info][{}][{}:{}]: {}\n"
+              , module_path!()
+              , file!(), line!()
+              , format_args!($($args)*));
+        println!( $($args)* );
+    };
+}
+
 //
 // #[cfg(not(debug_assertions))]
 // #[macro_use]
@@ -107,61 +138,6 @@ macro_rules! log {
 //     )
 // }
 //
-
-#[macro_use]
-macro_rules! init_log {
-    ($dots:expr, $task:expr, $msg:expr) => (
-        println!( "{task:<40}{res:>38}\n{msg:>.width$}"
-                , task = format!("{:>.width$}", $task, width = $dots)
-                , res = "[ FAIL ]"
-                , msg = $msg
-                , width = $dots + 1
-                )
-    );
-    (fail: $dots:expr, $task:expr) => (
-            println!( "{task:<40}{res:>38}"
-                    , task = format!("{:>.width$}", $task, width = $dots)
-                    , res = "[ FAIL ]"
-                    )
-    );
-    (okay: $dots:expr, $task:expr, $msg:expr) => (
-        println!( "{task:<40}{res:>38}\n{msg:>.width$}"
-                , task = format!("{:>.width$}", $task, width = $dots)
-                , res = "[ OKAY ]"
-                , msg = $msg
-                , width = $dots + 1
-                )
-    );
-    (okay: $dots:expr, $task:expr) => (
-            println!( "{task:<40}{res:>38}"
-                    , task = format!("{:>.width$}", $task, width = $dots)
-                    , res = "[ OKAY ]"
-                    )
-    );
-}
-
-macro_rules! init_try {
-    ($dots:expr, $task:expr, $result:expr) => (
-        match $result {
-            Ok(value) => {
-                println!( "{task:<40}{res:>38}"
-                        , task = format!("{:>.width$}", $task, width = $dots)
-                        , res = "[ OKAY ]"
-                        );
-                value
-            }
-          , Err(why) => {
-                println!( "{task:<40}{res:>38}\n\n{msg:>.width$}"
-                        , task = format!("{:>.width$}", $task, width = $dots)
-                        , res = "[ FAIL ]"
-                        , msg = why
-                        , width = $dots + 1
-                        );
-                return $expr
-            }
-        }
-    )
-}
 
 /// Kernel main loop
 pub fn kernel_main() -> ! {
@@ -189,25 +165,24 @@ pub fn kernel_main() -> ! {
 //  we then want the kernel entry point to be `arch_init`. we can then
 //  call into `kernel_init`.
 pub fn kernel_init(params: InitParams) {
-    log!("kernel_init", "Hello from the kernel!");
+    info!("Hello from the kernel!");
 
     // -- initialize interrupts ----------------------------------------------
-    log!("kernel_init", " . Initializing interrupts:");
+    info!(dots: " . ", "Initializing interrupts:");
     unsafe {
         cpu::interrupts::initialize();
     };
 
-    log!("kernel_init", "{:<38}{:>40}", " . Enabling interrupts", "[ OKAY ]");
+    info!(dots: " . ", "Enabling interrupts", "[ OKAY ]");
 
     // -- initialize the heap ------------------------------------------------
     unsafe {
-        log!( "kernel_init"
-            , "{:<38}{:>40}\n \
-                    . . Heap begins at {:#x} and ends at {:#x}"
-                , " . Intializing heap"
-                , memory::init_heap(&params).unwrap_or("[ FAIL ]")
-                , params.heap_base
-                , params.heap_top );
+        info!( dots: " . ", "Intializing heap"
+             , memory::init_heap(&params).unwrap_or("[ FAIL ]")
+             );
+        info!( dots: " . . "
+             , "Heap begins at {:#x} and ends at {:#x}"
+             , params.heap_base, params.heap_top);
     };
 
     println!("\n{} {}-bit\n", VERSION_STRING, arch::ARCH_BITS);
