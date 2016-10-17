@@ -18,9 +18,11 @@
 
 use spin::Mutex;
 
-use ::arch::bda;
+use core::fmt;
 
-use ::io::{Read, Write, Port};
+use ::arch::bda;
+use ::io::Port;
+use ::io;
 use ::util;
 //
 // /// Address of the BIOS Data Area (BDA)
@@ -101,7 +103,7 @@ impl SerialPort {
     }
 }
 
-impl Read for SerialPort {
+impl io::Read for SerialPort {
     type Error = util::Void;
 
     /// Reads a single byte into the given buffer
@@ -129,7 +131,7 @@ impl Read for SerialPort {
     }
 }
 
-impl Write for SerialPort {
+impl io::Write for SerialPort {
     type Error = util::Void;
 
     fn write(&mut self, buf: &[u8]) -> Result<usize, Self::Error> {
@@ -142,5 +144,15 @@ impl Write for SerialPort {
             written_bytes += 1;
         }
         Ok(written_bytes)
+    }
+}
+
+impl fmt::Write for SerialPort {
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        for byte in s.bytes() {
+            // TODO: more robust error handling here
+            self.write_byte(byte);
+        }
+        Ok(())
     }
 }
