@@ -45,6 +45,7 @@ env: ##@utilities Install dev environment dependencies
 
 clean: ##@utilities Delete all build artefacts.
 	@cargo clean
+	@rm serial-*.log
 
 kernel: $(kernel) ##@build Compile the kernel binary
 
