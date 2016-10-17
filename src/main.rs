@@ -24,7 +24,7 @@
 
 #![doc(html_root_url = "https://hawkw.github.io/sos-kernel/")]
 
-#![feature(core_intrinsics)]
+#![feature( core_intrinsics )]
 #![feature( lang_items, asm, naked_functions )]
 #![feature( linkage )]
 #![feature( const_fn
@@ -33,8 +33,9 @@
           , unique
           , type_ascription
           , custom_derive )]
-#![feature(collections)]
-#![feature(question_mark)]
+#![feature( collections )]
+#![feature( question_mark )]
+#![warn( missing_docs )]
 
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
