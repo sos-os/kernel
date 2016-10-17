@@ -5,6 +5,10 @@ iso := target/$(target)/debug/sos-$(arch).iso
 kernel := target/$(target)/debug/sos_kernel
 isofiles := target/$(target)/debug/isofiles
 
+release_iso := target/$(target)/release/sos-$(arch).iso
+release_kernel := target/$(target)/release/sos_kernel
+release_isofiles := target/$(target)/release/isofiles
+
 grub_cfg := src/arch/$(arch)/grub.cfg
 
 TIMESTAMP := $(shell /bin/date "+%Y-%m-%d-%H:%M:%S")
@@ -30,7 +34,7 @@ HELP_FUN = \
     }; \
     print "\n"; }
 
-.PHONY: all clean kernel run iso cargo help gdb test doc
+.PHONY: all clean kernel run iso cargo help gdb test doc release-iso release-run release-kernel
 
 doc: ##@utilities Make RustDoc documentation
 	@xargo doc
@@ -38,7 +42,7 @@ doc: ##@utilities Make RustDoc documentation
 help: ##@miscellaneous Show this help.
 	@perl -e '$(HELP_FUN)' $(MAKEFILE_LIST)
 
-all: kernel
+all: help
 
 env: ##@utilities Install dev environment dependencies
 	./scripts/install-env.sh
@@ -46,12 +50,20 @@ env: ##@utilities Install dev environment dependencies
 clean: ##@utilities Delete all build artefacts.
 	@xargo clean
 
-kernel: $(kernel).bin ##@build Compile the kernel binary
+
+kernel: $(kernel).bin ##@build Compile the debug kernel binary
 
 iso: $(iso) ##@build Compile the kernel binary and make an ISO image
 
 run: $(iso) ##@build Make the kernel ISO image and boot QEMU from it.
 	@qemu-system-x86_64 -s -hda $(iso)
+
+release-kernel: $(release_kernel).bin ##@release Compile the release kernel binary
+
+release-iso: $(release_iso) ##@release Compile the release kernel binary and make an ISO image
+
+release-run: $(release_iso) ##@release Make the release kernel ISO image and boot QEMU from it.
+	@qemu-system-x86_64 -s -hda $(release_iso)
 
 debug: $(iso) ##@build Run the kernel, redirecting serial output to a logfile.
 	@qemu-system-x86_64 -s -hda $(iso) -serial file:$(CURDIR)/target/$(target)/serial-$(TIMESTAMP).log
@@ -66,6 +78,19 @@ $(iso): $(kernel).bin $(grub_cfg)
 	@cp $(grub_cfg) $(isofiles)/boot/grub
 	@grub-mkrescue -o $(iso) $(isofiles)/
 	@rm -r $(isofiles)
+
+$(release_kernel):
+	@xargo build --target $(target) --release
+
+$(release_kernel).bin: $(release_kernel)
+	@cp $(release_kernel) $(release_kernel).bin
+
+$(release_iso): $(release_kernel).bin $(grub_cfg)
+	@mkdir -p $(release_isofiles)/boot/grub
+	@cp $(release_kernel).bin $(release_isofiles)/boot/
+	@cp $(grub_cfg) $(release_isofiles)/boot/grub
+	@grub-mkrescue -o $(release_iso) $(release_isofiles)/
+	@rm -r $(release_isofiles)
 
 $(kernel):
 	@xargo build --target $(target)
