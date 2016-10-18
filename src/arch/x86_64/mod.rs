@@ -16,6 +16,7 @@ pub mod interrupts;
 #[path = "../x86_all/multiboot2.rs"] pub mod multiboot2;
 
 use memory::PAddr;
+use memory::arch::{HEAP_BASE, HEAP_TOP};
 use params::InitParams;
 use ::kernel_init;
 
@@ -85,8 +86,8 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
 
     let params = InitParams { kernel_base: kernel_begin
                             , kernel_top:  kernel_end
-                            , heap_base:   unsafe { memory::HEAP_BASE }
-                            , heap_top:    unsafe { memory::HEAP_TOP }
+                            , heap_base:   HEAP_BASE
+                            , heap_top:    HEAP_TOP
                             };
     kernel_init(params);
 }
