@@ -20,7 +20,7 @@
 //! used by CPU exceptions. Therefore, we must remap the PIC vectors so that
 //! PIC1 starts at 32 and PIC2 at 40.
 
-use ::Port;
+use Port;
 use spin::Mutex;
 
 use core::mem::transmute;
@@ -95,22 +95,18 @@ impl PIC {
 
     /// Construct a new leader PIC
     pub const fn leader() -> PIC {
-        unsafe {
-            PIC { offset: OFFSET
-                , command_port: Port::<u8>::new(LEADER_CMD_PORT)
-                , data_port: Port::<u8>::new(LEADER_CMD_PORT + 1)
-                }
-        }
+        PIC { offset: OFFSET
+            , command_port: Port::<u8>::new(LEADER_CMD_PORT)
+            , data_port: Port::<u8>::new(LEADER_CMD_PORT + 1)
+            }
     }
 
     /// Construct a new follower PIC
     pub const fn follower() -> PIC {
-        unsafe {
-            PIC { offset: OFFSET + 8
-                , command_port: Port::<u8>::new(FOLLOWER_CMD_PORT)
-                , data_port: Port::<u8>::new(FOLLOWER_CMD_PORT + 1)
-                }
-        }
+        PIC { offset: OFFSET + 8
+            , command_port: Port::<u8>::new(FOLLOWER_CMD_PORT)
+            , data_port: Port::<u8>::new(FOLLOWER_CMD_PORT + 1)
+            }
     }
 
     /// Returns true if this PIC is the leader PIC
@@ -129,10 +125,8 @@ impl PIC {
     /// Send a byte of data to the PIC
     #[inline]
     pub fn send_data(&self, data: u8) {
-        unsafe {
-            self.data_port
-                .write(data)
-        }
+        self.data_port
+            .write(data)
     }
 
     /// Send the "initialize" command to this PIC
@@ -151,10 +145,8 @@ impl PIC {
 /// Read the contents of the IRR (Interrupt Request Register) from this PIC
     #[inline]
     pub fn read_irr(&self) -> u8 {
-        unsafe {
-            self.send_command(Command::ReadIRR);
-            self.data_port.read()
-        }
+        self.send_command(Command::ReadIRR);
+        self.data_port.read()
     }
 
 }
@@ -174,7 +166,7 @@ impl IRQHandler for PIC {
     }
 
     fn end_interrupt(&self, _: IRQ) {
-        unsafe { let _ = self.send_command(Command::EndIRQ); }
+        let _ = self.send_command(Command::EndIRQ);
     }
 }
 

@@ -30,7 +30,6 @@
 #![feature( const_fn
           , slice_patterns
           , associated_consts
-          , unique
           , type_ascription
           , custom_derive )]
 #![feature( collections )]

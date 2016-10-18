@@ -15,9 +15,6 @@ pub mod keyboard;
 
 // use arch::cpu;
 
-use core::{ ops, fmt };
-use core::marker::PhantomData;
-
 // macro_rules! println {
 //     ($fmt:expr) => (print!(concat!($fmt, "\n")));
 //     ($fmt:expr, $($arg:tt)*) => (print!(concat!($fmt, "\n"), $($arg)*));

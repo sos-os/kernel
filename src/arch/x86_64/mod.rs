@@ -16,7 +16,6 @@ pub mod interrupts;
 #[path = "../x86_all/multiboot2.rs"] pub mod multiboot2;
 
 use memory::PAddr;
-use memory::arch::{HEAP_BASE, HEAP_TOP};
 use params::InitParams;
 use ::kernel_init;
 
@@ -31,6 +30,8 @@ pub const ARCH_BITS: u8 = 64;
 /// bad problem and not go to space today.
 #[no_mangle]
 pub extern "C" fn arch_init(multiboot_addr: PAddr) {
+    use memory::arch::{HEAP_BASE, HEAP_TOP};
+
     ::io::term::CONSOLE.lock().clear();
 
     // -- Unpack multiboot tag ------------------------------------------------
@@ -86,8 +87,8 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
 
     let params = InitParams { kernel_base: kernel_begin
                             , kernel_top:  kernel_end
-                            , heap_base:   HEAP_BASE
-                            , heap_top:    HEAP_TOP
+                            , heap_base:   unsafe { HEAP_BASE }
+                            , heap_top:    unsafe { HEAP_TOP }
                             };
     kernel_init(params);
 }
