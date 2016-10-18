@@ -1,0 +1,33 @@
+[package]
+name = "cpu"
+version = "0.0.1"
+authors = [ "Eliza Weisman <hi@hawkweisman.me>" ]
+
+[profile.dev]
+opt-level = 3
+debug = true
+rpath = false
+lto = false
+debug-assertions = true
+codegen-units = 1
+panic = "abort"
+
+[profile.release]
+opt-level = 3
+debug = true
+rpath = false
+lto = false
+panic = "abort"
+
+[dependencies]
+util = { path = "../util" }
+bitflags = "0.7"
+spin = "0.3.5"
+
+[dependencies.vga]
+path = "../vga"
+features = ["log"]
+
+[dependencies.lazy_static]
+version = "0.2.*"
+features = ["spin_no_std"]

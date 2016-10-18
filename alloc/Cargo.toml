@@ -1,0 +1,30 @@
+[package]
+name = "alloc"
+version = "0.1.0"
+authors = ["Eliza Weisman <hi@hawkweisman.me>"]
+
+[features]
+default = ["buddy"]
+# simple = ["multiboot"]
+trace = ["vga"]
+buddy = ["sos_intrusive"]
+as_system = []
+buddy_as_system = ["spin", "as_system"]
+# multiboot = ["sos_multiboot2"]
+#
+# [dependencies.sos_multiboot2]
+# path = "../sos_multiboot2"
+# optional = true
+
+[dependencies.spin]
+version = "0.3.5"
+optional = true
+
+[dependencies.vga]
+path = "../vga"
+features = ["log"]
+optional = true
+
+[dependencies.sos_intrusive]
+path = "../sos_intrusive"
+optional = true

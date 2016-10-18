@@ -1,10 +1,12 @@
 //
 //  SOS: the Stupid Operating System
-//  by Eliza Weisman (hi@hawkweisman.me)
+//  by Hawk Weisman (hi@hawkweisman.me)
 //
-//  Copyright (c) 2016 Eliza eisman
+//  Copyright (c) 2015 Hawk Weisman
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-pub mod serial;
-pub mod vga;
+//!  ARM v7 architecture-specific implementation
+//  TODO: NYI
+
+pub const ARCH_BITS: u8 = 64;

@@ -50,17 +50,20 @@ extern crate spin;
 
 #[macro_use] extern crate lazy_static;
 #[macro_use] extern crate bitflags;
-#[macro_use] extern crate custom_derive;
+// #[macro_use] extern crate custom_derive;
 
 // -- SOS dependencies ------------------------------------------------------
-extern crate sos_alloc as alloc;
-#[macro_use] extern crate sos_vga as vga;
+#[macro_use] extern crate vga;
+#[macro_use] extern crate cpu;
+extern crate util;
+extern crate alloc;
+extern crate memory;
 
-#[macro_use] pub mod macros;
-#[macro_use] pub mod memory;
+// #[macro_use] pub mod macros;
+// #[macro_use] pub mod memory;
 #[macro_use] pub mod io;
 
-pub mod util;
+pub mod heap;
 pub mod params;
 // pub mod multiboot2;
 pub mod elf;
@@ -75,9 +78,9 @@ pub const VERSION_STRING: &'static str
 //
 // Since the test module contains lang items, it can't be compiled when
 // running tests.
-#[cfg(not(test))] pub mod panic;
+// #[cfg(not(test))] pub mod panic;
 
-use arch::cpu;
+// use arch::cpu;
 use params::InitParams;
 // use core::fmt::Write;
 
@@ -125,7 +128,7 @@ pub fn kernel_init(params: InitParams) {
     // -- initialize interrupts ----------------------------------------------
     infoln!(dots: " . ", "Initializing interrupts:");
     unsafe {
-        cpu::interrupts::initialize();
+        arch::interrupts::initialize();
     };
 
     infoln!(dots: " . ", "Enabling interrupts", status: "[ OKAY ]");
@@ -133,7 +136,7 @@ pub fn kernel_init(params: InitParams) {
     // -- initialize the heap ------------------------------------------------
     unsafe {
         infoln!( dots: " . ", "Intializing heap"
-             , status: memory::init_heap(&params).unwrap_or("[ FAIL ]")
+             , status: heap::initialize(&params).unwrap_or("[ FAIL ]")
              );
         infoln!( dots: " . . "
              , "Heap begins at {:#x} and ends at {:#x}"

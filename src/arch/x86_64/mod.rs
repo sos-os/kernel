@@ -7,9 +7,10 @@
 //  directory of this repository for more information.
 //
 //! `x86_64` architecture-specific implementation.
-pub mod cpu;
+// pub mod cpu;
 pub mod drivers;
-pub mod memory;
+pub mod interrupts;
+// pub mod memory;
 
 #[path = "../x86_all/bda.rs"] pub mod bda;
 #[path = "../x86_all/multiboot2.rs"] pub mod multiboot2;
