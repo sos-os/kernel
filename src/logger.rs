@@ -37,14 +37,14 @@ impl log::Log for SerialLogger {
             LogLevel::Trace if self.enabled(meta) => {
                 let location = record.location();
                 write!( *serial::COM1.lock()
-                      , "[ trace ][ {} ][ {}:{} ] {}"
+                      , "[ TRACE ][ {} ][ {}:{} ] {}\n"
                       , meta.target()
                       , location.module_path(), location.line()
                       , record.args() );
             }
           , LogLevel::Debug if self.enabled(meta) => {
                 write!( *serial::COM1.lock()
-                      , "[ debug ] {}: {}"
+                      , "[ TRACE ] {}: {}\n"
                       , meta.target()
                       , record.args() );
             }
@@ -52,7 +52,7 @@ impl log::Log for SerialLogger {
                 let target = meta.target();
                 let args = record.args();
                 write!( *serial::COM1.lock()
-                      , "[ {} ] {}: {}"
+                      , "[ {} ] {}: {}\n"
                       , level, target, args );
                 // println!("{}: {}", target, args );
             }
