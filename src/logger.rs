@@ -9,15 +9,15 @@ struct SerialLogger;
 pub fn initialize() -> Result<(), log::SetLoggerError> {
     unsafe {
         log::set_logger_raw(|max_log_level| {
-            static LOGGER: SerialLogger = SerialLogger;
+            // static LOGGER: SerialLogger = SerialLogger;
             max_log_level.set(LogLevelFilter::Trace);
             &SerialLogger
         })
     }
 }
 pub fn shutdown() -> Result<(), log::ShutdownLoggerError> {
-    log::shutdown_logger_raw().map(|logger| {
-        let logger = unsafe { &*(logger as *const SerialLogger) };
+    log::shutdown_logger_raw().map(|_logger| {
+        // let logger = unsafe { &*(logger as *const SerialLogger) };
         // logger.flush();
     })
 }
@@ -26,7 +26,7 @@ pub fn shutdown() -> Result<(), log::ShutdownLoggerError> {
 #[cfg(debug_assertions)]
 impl log::Log for SerialLogger {
 
-    #[inline] fn enabled(&self, metadata: &LogMetadata) -> bool {
+    #[inline] fn enabled(&self, _metadata: &LogMetadata) -> bool {
         true // TODO: for now?
     }
 
@@ -36,24 +36,24 @@ impl log::Log for SerialLogger {
         match record.level() {
             LogLevel::Trace if self.enabled(meta) => {
                 let location = record.location();
-                write!( *serial::COM1.lock()
-                      , "[ TRACE ][ {}:{} ] {}: {}\n"
-                      , location.module_path(), location.line()
-                      , meta.target()
-                      , record.args() );
+                let _ = write!( *serial::COM1.lock()
+                              , "[ TRACE ][ {}:{} ] {}: {}\n"
+                              , location.module_path(), location.line()
+                              , meta.target()
+                              , record.args() );
             }
           , LogLevel::Debug if self.enabled(meta) => {
-                write!( *serial::COM1.lock()
-                      , "[ DEBUG ] {}: {}\n"
-                      , meta.target()
-                      , record.args() );
+                let _ = write!( *serial::COM1.lock()
+                              , "[ DEBUG ] {}: {}\n"
+                              , meta.target()
+                              , record.args() );
             }
           , level => {
                 let target = meta.target();
                 let args = record.args();
-                write!( *serial::COM1.lock()
-                      , "[ {} ] {}: {}\n"
-                      , level, target, args );
+                let _ = write!( *serial::COM1.lock()
+                              , "[ {} ] {}: {}\n"
+                              , level, target, args );
                 // println!("{}: {}", target, args );
             }
         }

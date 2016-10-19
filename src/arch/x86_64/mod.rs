@@ -33,7 +33,8 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
     use memory::arch::{HEAP_BASE, HEAP_TOP};
 
     ::io::term::CONSOLE.lock().clear();
-    ::logger::initialize();
+    ::logger::initialize()
+        .expect("Could not initialize logger!");
 
     // -- Unpack multiboot tag ------------------------------------------------
     let boot_info
