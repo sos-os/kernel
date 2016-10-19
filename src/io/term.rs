@@ -11,10 +11,3 @@ extern {
 }
 /// The system's global VGA terminal
 pub use vga::CONSOLE;
-
-
-// pub static CONSOLE: Mutex<Terminal>
-//     = Mutex::new(unsafe { Terminal::new(
-//          Palette::new(Color::LightGrey, Color::Black )
-//        , 0xB8000
-//     )});

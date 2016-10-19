@@ -17,7 +17,6 @@ struct SerialLogger;
 pub fn initialize() -> Result<(), log::SetLoggerError> {
     unsafe {
         log::set_logger_raw(|max_log_level| {
-            // static LOGGER: SerialLogger = SerialLogger;
             max_log_level.set(LogLevelFilter::Trace);
             &SerialLogger
         })
@@ -25,8 +24,6 @@ pub fn initialize() -> Result<(), log::SetLoggerError> {
 }
 pub fn shutdown() -> Result<(), log::ShutdownLoggerError> {
     log::shutdown_logger_raw().map(|_logger| {
-        // let logger = unsafe { &*(logger as *const SerialLogger) };
-        // logger.flush();
     })
 }
 

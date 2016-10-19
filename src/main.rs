@@ -58,13 +58,10 @@ extern crate util;
 extern crate alloc;
 extern crate memory;
 
-// #[macro_use] pub mod macros;
-// #[macro_use] pub mod memory;
 #[macro_use] pub mod io;
 
 pub mod heap;
 pub mod params;
-// pub mod multiboot2;
 pub mod elf;
 pub mod arch;
 pub mod logger;
@@ -73,29 +70,7 @@ pub mod logger;
 pub const VERSION_STRING: &'static str
     = concat!("Stupid Operating System v", env!("CARGO_PKG_VERSION"));
 
-// pub const BUILD_STRING: &'static str
-//     = concat!("Built with ", env!("RUST_VERSION"));
-//
-// Since the test module contains lang items, it can't be compiled when
-// running tests.
-// #[cfg(not(test))] pub mod panic;
-
-// use arch::cpu;
 use params::InitParams;
-// use core::fmt::Write;
-
-//
-// #[cfg(not(debug_assertions))]
-// #[macro_use]
-// macro_rules! log {
-//     ($descriptor:expr, $dots:expr, $msg:expr) => (
-//         // arch::drivers::serial::COM1.map(|com1|
-//         //     write!(com1.lock(), "{}: {}" descriptor, msg)
-//         // );
-//         println!("{}{}", $dots, $msg)
-//     )
-// }
-//
 
 /// Kernel main loop
 pub fn kernel_main() -> ! {
@@ -105,10 +80,7 @@ pub fn kernel_main() -> ! {
     info!(target: "test", "pushed to vec: {:?}", a_vec);
     a_vec.push(2);
     info!(target: "test", "pushed to vec: {:?}", a_vec);
-    // loop {
-    //     unsafe { asm!("int $0" :: "N" (0x80)) };
-    //     println!("Test interrupt okay");
-    // }
+
     loop { }
 }
 
