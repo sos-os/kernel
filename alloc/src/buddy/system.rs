@@ -2,7 +2,7 @@
 use spin::Mutex;
 use core::ptr;
 
-use ::Allocator;
+use memory::alloc::Allocator;
 use super::{BuddyHeapAllocator, FreeList};
 
 pub const NUM_FREE_LISTS: usize = 19;

@@ -12,7 +12,7 @@ mod math;
 #[cfg(feature = "buddy_as_system")]
 pub mod system;
 
-use super::{ Framesque, Allocator };
+use super::Framesque;
 use self::math::PowersOf2;
 
 use core::mem;
@@ -21,6 +21,9 @@ use core::ptr::Unique;
 
 use intrusive::list::{List, Node};
 use intrusive::rawlink::RawLink;
+
+use memory::alloc::Allocator;
+use memory::arch::PAGE_SIZE;
 
 #[cfg(target_os = "linux")]
 #[cfg(test)]
@@ -98,7 +101,7 @@ impl<'a> BuddyHeapAllocator<'a> {
                 , "Heap start address cannot be null." );
         assert!( n_free_lists > 0
                , "Allocator must have at least one free list.");
-        assert!( start_addr as usize & (::PAGE_SIZE-1) == 0
+        assert!( start_addr as usize & (PAGE_SIZE-1) as usize == 0
                , "Heap start address must be aligned on a 4k boundary.");
 
         let min_block_size = heap_size >> (n_free_lists - 1);
@@ -162,7 +165,7 @@ impl<'a> BuddyHeapAllocator<'a> {
         //  - we cannot allocate requests with alignments greater than the
         //    base alignment of the heap without jumping through a bunch of
         //    hoops.
-        if !align.is_pow2() || align > ::PAGE_SIZE {
+        if !align.is_pow2() || align > PAGE_SIZE as usize {
             None
         // If the request is valid, compute the size we need to allocate
         } else {
