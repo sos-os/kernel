@@ -6,8 +6,11 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-extern {
-    pub static __vga_buffer: u8;
-}
-/// The system's global VGA terminal
-pub use vga::CONSOLE;
+//! `x86` architecture-specific implementation.
+//!
+//! This module contains code for `x86` 32-bit protected-mode systems.
+pub mod cpu;
+pub mod memory;
+// pub mod keyboard;
+
+pub const ARCH_BITS: u8 = 32;

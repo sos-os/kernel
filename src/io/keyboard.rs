@@ -7,7 +7,7 @@
 //  directory of this repository for more information.
 //
 //! PS/2 keyboard driver
-use arch::cpu::Port;
+use cpu::Port;
 use spin::Mutex;
 
 use core::default::Default;
@@ -31,7 +31,7 @@ impl Scancode {
 
 /// A PS/2 keyboard state
 pub struct Keyboard { /// Port for reading data from the keyboard
-                      data_port: Port
+                      data_port: Port<u8>
                     // , /// Port for sending control signals to the keyboard
                     //   control_port: Port
                     , /// The keyboard's modifier keys
@@ -40,7 +40,7 @@ pub struct Keyboard { /// Port for reading data from the keyboard
 
 impl Keyboard {
     #[inline] pub fn read_scancode(&self) -> Scancode {
-        unsafe { Scancode(self.data_port.in8()) }
+        Scancode(self.data_port.read())
     }
 }
 
@@ -122,7 +122,7 @@ impl Modifiers {
 /// Our global keyboard state, protected by a mutex.
 //  TODO: can this be thread local?
 static KEYBOARD: Mutex<Keyboard> = Mutex::new(Keyboard {
-    data_port: unsafe { Port::new(0x60) }
+    data_port: Port::<u8>::new(0x60)
   , state: Modifiers::new()
 });
 

@@ -6,8 +6,10 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-extern {
-    pub static __vga_buffer: u8;
-}
-/// The system's global VGA terminal
-pub use vga::CONSOLE;
+
+#![allow(missing_docs)]
+#[macro_export]
+macro_rules! expr { ($e:expr) => { $e } }
+
+#[macro_use] pub mod newtype_impl;
+// #[macro_use] pub mod log;

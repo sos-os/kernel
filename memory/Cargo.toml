@@ -1,0 +1,43 @@
+[package]
+name = "memory"
+version = "0.0.1"
+authors = [ "Eliza Weisman <hi@hawkweisman.me>" ]
+
+[profile.dev]
+opt-level = 3
+debug = true
+rpath = false
+lto = false
+debug-assertions = true
+codegen-units = 1
+panic = "abort"
+
+[profile.release]
+opt-level = 3
+debug = true
+rpath = false
+lto = false
+panic = "abort"
+
+[dependencies]
+util = { path = "../util" }
+bitflags = "0.7"
+spin = "0.3.5"
+
+[dependencies.vga]
+path = "../vga"
+features = ["kinfo"]
+
+[dependencies.lazy_static]
+version = "0.2.*"
+features = ["spin_no_std"]
+
+[dependencies.custom_derive]
+git = "https://github.com/DanielKeep/rust-custom-derive.git"
+version = "0.1.6"
+default-features = false
+
+[dependencies.log]
+version = "0.3.6"
+default-features = false
+features = ["release_max_level_info"]

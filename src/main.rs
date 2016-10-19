@@ -20,22 +20,18 @@
 //! of the MIT license.
 
 #![crate_name = "sos_kernel"]
-// #![crate_type = "staticlib"]
 
 #![doc(html_root_url = "https://hawkw.github.io/sos-kernel/")]
 
-#![feature( core_intrinsics )]
 #![feature( lang_items, asm, naked_functions )]
 #![feature( linkage )]
 #![feature( const_fn
           , slice_patterns
           , associated_consts
-          , unique
           , type_ascription
           , custom_derive )]
 #![feature( collections )]
 #![feature( question_mark )]
-// #![warn( missing_docs )]
 
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
@@ -44,68 +40,45 @@
 #![cfg_attr(not(test), no_main)]
 
 // -- non-SOS dependencies --------------------------------------------------
+#[macro_use] extern crate lazy_static;
+#[macro_use] extern crate bitflags;
+#[macro_use] extern crate log;
+
 extern crate collections;
 extern crate rlibc;
 extern crate spin;
 
-#[macro_use] extern crate lazy_static;
-#[macro_use] extern crate bitflags;
-#[macro_use] extern crate custom_derive;
-
 // -- SOS dependencies ------------------------------------------------------
-extern crate sos_alloc as alloc;
-#[macro_use] extern crate sos_vga as vga;
+#[macro_use] extern crate vga;
+#[macro_use] extern crate cpu;
 
-#[macro_use] pub mod macros;
-#[macro_use] pub mod memory;
+extern crate util;
+extern crate alloc;
+extern crate memory;
+extern crate elf;
+
 #[macro_use] pub mod io;
 
-pub mod util;
+pub mod heap;
 pub mod params;
-// pub mod multiboot2;
-pub mod elf;
 pub mod arch;
+pub mod logger;
 
 /// SOS version number
 pub const VERSION_STRING: &'static str
     = concat!("Stupid Operating System v", env!("CARGO_PKG_VERSION"));
 
-// pub const BUILD_STRING: &'static str
-//     = concat!("Built with ", env!("RUST_VERSION"));
-//
-// Since the test module contains lang items, it can't be compiled when
-// running tests.
-#[cfg(not(test))] pub mod panic;
-
-use arch::cpu;
 use params::InitParams;
-// use core::fmt::Write;
-
-//
-// #[cfg(not(debug_assertions))]
-// #[macro_use]
-// macro_rules! log {
-//     ($descriptor:expr, $dots:expr, $msg:expr) => (
-//         // arch::drivers::serial::COM1.map(|com1|
-//         //     write!(com1.lock(), "{}: {}" descriptor, msg)
-//         // );
-//         println!("{}{}", $dots, $msg)
-//     )
-// }
-//
 
 /// Kernel main loop
 pub fn kernel_main() -> ! {
     let mut a_vec = collections::vec::Vec::<usize>::new();
-    println!( "TEST: Created a vector in kernel space! {:?}", a_vec);
+    info!(target: "test", "Created a vector in kernel space! {:?}", a_vec);
     a_vec.push(1);
-    println!( "TEST: pushed to vec: {:?}", a_vec);
+    info!(target: "test", "pushed to vec: {:?}", a_vec);
     a_vec.push(2);
-    println!( "TEST: pushed to vec: {:?}", a_vec);
-    // loop {
-    //     unsafe { asm!("int $0" :: "N" (0x80)) };
-    //     println!("Test interrupt okay");
-    // }
+    info!(target: "test", "pushed to vec: {:?}", a_vec);
+
     loop { }
 }
 
@@ -120,25 +93,29 @@ pub fn kernel_main() -> ! {
 //  we then want the kernel entry point to be `arch_init`. we can then
 //  call into `kernel_init`.
 pub fn kernel_init(params: InitParams) {
-    infoln!("Hello from the kernel!");
+    kinfoln!("Hello from the kernel!");
 
     // -- initialize interrupts ----------------------------------------------
-    infoln!(dots: " . ", "Initializing interrupts:");
+    kinfoln!(dots: " . ", "Initializing interrupts:");
     unsafe {
-        cpu::interrupts::initialize();
+        arch::interrupts::initialize();
     };
-
-    infoln!(dots: " . ", "Enabling interrupts", status: "[ OKAY ]");
+    kinfoln!(dots: " . ", target: "Enabling interrupts", "[ OKAY ]");
 
     // -- initialize the heap ------------------------------------------------
-    unsafe {
-        infoln!( dots: " . ", "Intializing heap"
-             , status: memory::init_heap(&params).unwrap_or("[ FAIL ]")
-             );
-        infoln!( dots: " . . "
-             , "Heap begins at {:#x} and ends at {:#x}"
-             , params.heap_base, params.heap_top);
-    };
+
+    if let Ok(_) =  unsafe { heap::initialize(&params) } {
+        kinfoln!( dots: " . ", target: "Intializing heap"
+                , "[ OKAY ]"
+                );
+        kinfoln!( dots: " . . "
+                , "Heap begins at {:#x} and ends at {:#x}"
+                , params.heap_base, params.heap_top);
+    } else {
+        kinfoln!( dots: " . ", target: "Intializing heap"
+                , "[ FAIL ]"
+                );
+    }
 
     println!("\n{} {}-bit\n", VERSION_STRING, arch::ARCH_BITS);
     // -- call into kernel main loop ------------------------------------------

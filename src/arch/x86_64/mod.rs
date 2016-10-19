@@ -7,9 +7,10 @@
 //  directory of this repository for more information.
 //
 //! `x86_64` architecture-specific implementation.
-pub mod cpu;
+// pub mod cpu;
 pub mod drivers;
-pub mod memory;
+pub mod interrupts;
+// pub mod memory;
 
 #[path = "../x86_all/bda.rs"] pub mod bda;
 #[path = "../x86_all/multiboot2.rs"] pub mod multiboot2;
@@ -29,7 +30,11 @@ pub const ARCH_BITS: u8 = 64;
 /// bad problem and not go to space today.
 #[no_mangle]
 pub extern "C" fn arch_init(multiboot_addr: PAddr) {
+    use memory::arch::{HEAP_BASE, HEAP_TOP};
+
     ::io::term::CONSOLE.lock().clear();
+    ::logger::initialize()
+        .expect("Could not initialize logger!");
 
     // -- Unpack multiboot tag ------------------------------------------------
     let boot_info
@@ -40,9 +45,9 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
         = boot_info.mem_map()
                    .expect("Memory map tag required!");
 
-    infoln!(dots: " . ", "Detected memory areas:");
+    kinfoln!(dots: " . ", "Detected memory areas:");
     for a in mmap_tag.areas() {
-        infoln!(dots: " . . ", "start: {:#08x}, end: {:#08x}"
+        kinfoln!(dots: " . . ", "start: {:#08x}, end: {:#08x}"
                 , a.base, a.length );
     }
 
@@ -50,12 +55,12 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
         = boot_info.elf_sections()
                    .expect("ELF sections tag required!");
 
-    infoln!(dots: " . ", "Detecting kernel ELF sections:");
+    kinfoln!(dots: " . ", "Detecting kernel ELF sections:");
 
     let kernel_begin    // Extract kernel ELF sections from  multiboot info
         = elf_sections_tag.sections()
             .map(|s| {
-                infoln!( dots: " . . "
+                kinfoln!( dots: " . . "
                      , "address: {:#08x}, size: {:#08x}, flags: {:#08x}"
                         , s.addr()
                         , s.length()
@@ -73,19 +78,19 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
             .expect("Could not find kernel end section!\
                     \nSomething is deeply wrong.");
 
-    infoln!( dots: " . ", "Detected {} kernel ELF sections.", n_elf_sections);
-    infoln!(dots: " . . ", "Kernel begins at {:#x} and ends at {:#x}."
+    kinfoln!( dots: " . ", "Detected {} kernel ELF sections.", n_elf_sections);
+    kinfoln!(dots: " . . ", "Kernel begins at {:#x} and ends at {:#x}."
              , kernel_begin, kernel_end );
 
     let multiboot_end = multiboot_addr + boot_info.length as u64;
 
-    infoln!(dots: " . . ", "Multiboot info begins at {:#x} and ends at {:#x}."
+    kinfoln!(dots: " . . ", "Multiboot info begins at {:#x} and ends at {:#x}."
              , multiboot_addr, multiboot_end);
 
     let params = InitParams { kernel_base: kernel_begin
                             , kernel_top:  kernel_end
-                            , heap_base:   unsafe { memory::HEAP_BASE }
-                            , heap_top:    unsafe { memory::HEAP_TOP }
+                            , heap_base:   unsafe { HEAP_BASE }
+                            , heap_top:    unsafe { HEAP_TOP }
                             };
     kernel_init(params);
 }

@@ -6,8 +6,7 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-extern {
-    pub static __vga_buffer: u8;
-}
-/// The system's global VGA terminal
-pub use vga::CONSOLE;
+//!  ARM v7 architecture-specific implementation
+//  TODO: NYI
+
+pub const ARCH_BITS: u8 = 64;

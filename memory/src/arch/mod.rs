@@ -6,8 +6,11 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-extern {
-    pub static __vga_buffer: u8;
-}
-/// The system's global VGA terminal
-pub use vga::CONSOLE;
+// 64-bit x86_64 (long mode)
+#[cfg(target_arch="x86_64")] mod x86_64;
+#[cfg(target_arch="x86_64")] pub use self::x86_64::*;
+
+// 32-bit x86 (protected mode)
+// TODO: NYI
+#[cfg(target_arch = "x86")] mod x86;
+#[cfg(target_arch = "x86")] pub use self::x86::*;
