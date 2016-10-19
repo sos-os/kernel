@@ -39,7 +39,6 @@ impl log::Log for SerialLogger {
                 write!( *serial::COM1.lock()
                       , "[ TRACE ][ {}:{} ] {}: {}\n"
                       , location.module_path(), location.line()
-
                       , meta.target()
                       , record.args() );
             }
