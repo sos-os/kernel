@@ -23,7 +23,6 @@
 
 #![doc(html_root_url = "https://hawkw.github.io/sos-kernel/")]
 
-#![feature( core_intrinsics )]
 #![feature( lang_items, asm, naked_functions )]
 #![feature( linkage )]
 #![feature( const_fn
@@ -33,7 +32,6 @@
           , custom_derive )]
 #![feature( collections )]
 #![feature( question_mark )]
-// #![warn( missing_docs )]
 
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
@@ -42,27 +40,27 @@
 #![cfg_attr(not(test), no_main)]
 
 // -- non-SOS dependencies --------------------------------------------------
+#[macro_use] extern crate lazy_static;
+#[macro_use] extern crate bitflags;
+#[macro_use] extern crate log;
+
 extern crate collections;
 extern crate rlibc;
 extern crate spin;
 
-#[macro_use] extern crate lazy_static;
-#[macro_use] extern crate bitflags;
-#[macro_use] extern crate log;
-// #[macro_use] extern crate custom_derive;
-
 // -- SOS dependencies ------------------------------------------------------
 #[macro_use] extern crate vga;
 #[macro_use] extern crate cpu;
+
 extern crate util;
 extern crate alloc;
 extern crate memory;
+extern crate elf;
 
 #[macro_use] pub mod io;
 
 pub mod heap;
 pub mod params;
-pub mod elf;
 pub mod arch;
 pub mod logger;
 

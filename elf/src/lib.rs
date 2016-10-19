@@ -16,6 +16,13 @@
 //!  + The [ELF Format Specification](elfspec)
 //!
 //! [elfspec]: http://www.skyfree.org/linux/references/ELF_Format.pdf
+#![feature(core_intrinsics)]
+#![no_std]
+
+#[macro_use] extern crate bitflags;
+
+extern crate memory;
+
 use core::{ intrinsics, ops, mem, slice };
 
 pub mod section;
