@@ -70,7 +70,7 @@ debug: $(iso) ##@build Run the kernel, redirecting serial output to a logfile.
 
 test: ##@build Test crate dependencies
 	@xargo test -p sos_intrusive
-	@cd alloc && xargo testg
+	@cd alloc && xargo test
 
 $(iso): $(kernel).bin $(grub_cfg)
 	@mkdir -p $(isofiles)/boot/grub
