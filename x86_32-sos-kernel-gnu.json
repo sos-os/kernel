@@ -1,0 +1,21 @@
+{
+    "llvm-target": "i386-unknown-none-gnu",
+    "executables": true,
+    "target-endian": "little",
+    "target-word-size": "32",
+    "target-pointer-width": "32",
+    "data-layout": "e-m:e-p:32:32-f64:32:64-f80:32-n8:16:32-S128",
+    "code-model":"kernel",
+    "os": "sos",
+    "arch": "x86",
+    "linker": "no-linker",
+    "features": "-mmx,-sse,-sse2,+soft-float",
+    "relocation-model": "static",
+    "disable-redzone": true,
+    "eliminate-frame-pointer": false,
+    "no-compiler-rt": true,
+    "linker-is-gnu": true,
+    "pre-link-args": [],
+    "post-link-args": [],
+    "archive-format": "gnu"
+}
