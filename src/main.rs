@@ -20,7 +20,6 @@
 //! of the MIT license.
 
 #![crate_name = "sos_kernel"]
-// #![crate_type = "staticlib"]
 
 #![doc(html_root_url = "https://hawkw.github.io/sos-kernel/")]
 
