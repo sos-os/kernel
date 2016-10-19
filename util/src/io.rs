@@ -8,7 +8,6 @@
 //
 
 
-
 /// The `Read` trait allows for reading bytes from a source.
 ///
 /// Implementors of the `Read` trait are sometimes called 'readers'.
