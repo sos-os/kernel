@@ -40,9 +40,6 @@ extern crate memory;
 #[macro_use]
 extern crate log;
 
-#[cfg(test)] #[macro_use]
-extern crate std;
-
 
 /// Trait for something that is like a frame.
 ///
