@@ -19,6 +19,7 @@
 
 #[macro_use] extern crate bitflags;
 #[macro_use] extern crate custom_derive;
+#[macro_use] extern crate log;
 
 #[macro_use] extern crate util;
 #[macro_use] extern crate vga;

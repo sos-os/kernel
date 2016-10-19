@@ -156,7 +156,7 @@ pub extern "C" fn page_fault( frame: *const InterruptFrame, error_code: usize) {
 #[no_mangle] #[inline(never)]
 pub extern "C" fn test(_frame: *const InterruptFrame) {
    // assert_eq!(state.int_id, 0x80);
-   infoln!(dots: " . . ", "Testing interrupt handling:", status: "[ OKAY ]");
+   kinfoln!(dots: " . . ", target: "Testing interrupt handling:", "[ OKAY ]");
    // send the PICs the end interrupt signal
    unsafe {
        end_pic_interrupt(0xff);

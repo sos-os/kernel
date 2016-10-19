@@ -28,6 +28,9 @@
 #[cfg(feature = "system_term")]
 extern crate spin;
 
+#[cfg(feature = "kinfo")]
+#[macro_use] extern crate log;
+
 use core::{mem, ptr};
 use core::fmt::{Write, Result};
 // use core::ptr::Unique;
@@ -74,8 +77,8 @@ macro_rules! print {
 }
 
 
-#[cfg(feature = "log")]
-#[macro_use] pub mod log;
+#[cfg(feature = "kinfo")]
+#[macro_use] pub mod kinfo;
 
 /// The system's global VGA terminal
 /// TODO: should this live in the kernel instead?

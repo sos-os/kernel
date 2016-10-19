@@ -8,35 +8,9 @@
 //
 //! Macros for kernel-level logging
 
-#[cfg(debug_assertions)]
 #[macro_export]
-macro_rules! debug {
-    ( $($args:tt)* ) => {
-        // TODO: workaround for logging
-        // {
-        //     use core::fmt::Write;
-        //     // suppress warnings because we don't care if there's no serial port
-        //     let _ = write!( $crate::arch::drivers::serial::COM1.lock()
-        //                   , "[debug][{}:{}] {}: {}\n"
-        //                   , file!(), line!()
-        //                   , module_path!()
-        //                   , format_args!($($args)*));
-        // }
-    }
-}
-
-#[cfg(not(debug_assertions))]
-#[macro_export]
-macro_rules! debug {
-    ( $($args:tt)* ) => {
-        // do nothing
-    }
-}
-
-#[cfg(debug_assertions)]
-#[macro_export]
-macro_rules! info {
-    ( dots: $dots:expr, $msg:expr, status: $status:expr ) => {
+macro_rules! kinfo {
+    ( dots: $dots:expr, target: $target:expr, $status:expr ) => {
         // {
         //     use core::fmt::Write;
         //
@@ -45,7 +19,8 @@ macro_rules! info {
         //                   , "[info] {}: {} {}"
         //                   , module_path!()
         //                   , $msg, $status);
-            print!("{:<38}{:>40}", concat!($dots, $msg), $status );
+            print!("{:<38}{:>40}", concat!($dots, $target), $status );
+            info!(target: $target, $status);
         // }
     };
     ( dots: $dots:expr, $($args:tt)* ) => {
@@ -58,6 +33,7 @@ macro_rules! info {
         //                   , module_path!()
         //                   , format_args!($($args)*));
             print!("{}{}", $dots, format_args!($($args)*));
+            info!( ($args)* );
         // }
     };
     ( $($args:tt)* ) => {
@@ -70,23 +46,23 @@ macro_rules! info {
     //                       , module_path!()
     //                       , format_args!($($args)*));
             print!( $($args)* );
+            info!( $($args)* );
         // }
     };
 }
-
-#[cfg(debug_assertions)]
 #[macro_export]
-macro_rules! infoln {
-    ( dots: $dots:expr, $msg:expr, status: $status:expr ) => {
+macro_rules! kinfoln {
+    ( dots: $dots:expr, target: $target:expr, $status:expr ) => {
         // {
         //     use core::fmt::Write;
         //
         //     // suppress warnings because we don't care if there's no serial port
         //     let _ = write!( $crate::arch::drivers::serial::COM1.lock()
-        //                   , "[info] {}: {} {}\n"
+        //                   , "[info] {}: {} {}"
         //                   , module_path!()
         //                   , $msg, $status);
-            println!("{:<38}{:>40}", concat!($dots, $msg), $status );
+            println!("{:<38}{:>40}", concat!($dots, $target), $status );
+            info!(target: $target, $status);
         // }
     };
     ( dots: $dots:expr, $($args:tt)* ) => {
@@ -95,51 +71,24 @@ macro_rules! infoln {
         //
         //     // suppress warnings because we don't care if there's no serial port
         //     let _ = write!( $crate::arch::drivers::serial::COM1.lock()
-        //                   , "[info] {}: {}\n"
-        //                   , module_path!()
-        //                  , format_args!($($args)*));
-            println!("{}{}", $dots, format_args!($($args)*));
-        // }
-    };
-    ( $($args:tt)* ) => {
-        // {
-        //     use core::fmt::Write;
-        //
-        //     // suppress warnings because we don't care if there's no serial port
-        //     let _ = write!( $crate::arch::drivers::serial::COM1.lock()
-        //                   , "[info] {}: {}\n"
+        //                   , "[info] {}: {}"
         //                   , module_path!()
         //                   , format_args!($($args)*));
-            println!( $($args)* );
+            println!("{}{}", $dots, format_args!($($args)*));
+            info!( $($args)* );
         // }
     };
-}
-
-
-#[cfg(not(debug_assertions))]
-#[macro_export]
-macro_rules! info {
-    ( dots: $dots:expr, $msg:expr, status: $status:expr ) => {
-        print!("{:<38}{:>40}", concat!($dots, $msg), $status );
-    };
-    ( dots: $dots:expr, $($args:tt)* ) => {
-        print!("{}{}", $dots, format_args!($($args)*));
-    };
     ( $($args:tt)* ) => {
-        print!( $($args)* );
-    };
-}
-
-#[cfg(not(debug_assertions))]
-#[macro_export]
-macro_rules! infoln {
-    ( dots: $dots:expr, $msg:expr, status: $status:expr ) => {
-        println!("{:<38}{:>40}", concat!($dots, $msg), $status );
-    };
-    ( dots: $dots:expr, $($args:tt)* ) => {
-        println!("{}{}", $dots, format_args!($($args)*));
-    };
-    ( $($args:tt)* ) => {
-        println!( $($args)* );
+    //     {
+    //         use core::fmt::Write;
+    //
+    //         // suppress warnings because we don't care if there's no serial port
+    //         let _ = write!( $crate::arch::drivers::serial::COM1.lock()
+    //                       , "[info] {}: {}"
+    //                       , module_path!()
+    //                       , format_args!($($args)*));
+            println!( $($args)* );
+            info!( $($args)* );
+        // }
     };
 }

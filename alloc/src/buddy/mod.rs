@@ -192,10 +192,11 @@ impl<'a> BuddyHeapAllocator<'a> {
     /// allocation.
     #[inline]
     pub fn alloc_order(&self, size: usize, align: usize) -> Option<usize> {
-        trace!("TRACE: alloc_order() called");
+        trace!(target: "alloc", "TRACE: alloc_order() called");
         self.alloc_size(size, align)
             .map(|s| {
-                trace!("TRACE in alloc_order(): alloc_size() returned {}", s);
+                trace!(target: "alloc"
+                      , "in alloc_order(): alloc_size() returned {}", s);
                 s.log2() - self.min_block_size.log2()
             })
     }
@@ -225,7 +226,8 @@ impl<'a> BuddyHeapAllocator<'a> {
                          , block: *mut u8
                          , old_order: usize
                          , new_order: usize ) {
-        trace!("split_block() was called, target order: {}.", new_order);
+        trace!( target: "alloc"
+              , "split_block() was called, target order: {}.", new_order);
 
         assert!( new_order < old_order
                , "Cannot split a block larger than its current order!");
@@ -240,7 +242,8 @@ impl<'a> BuddyHeapAllocator<'a> {
             // let split_size = self.order_alloc_size(order);
             self.push_block(block.offset(split_size as isize), order);
 
-            trace!( "split block successfully, order: {}, split size: {}"
+            trace!( target: "alloc"
+                  , "split block successfully, order: {}, split size: {}"
                   , order, split_size );
 
         }
@@ -308,7 +311,7 @@ impl<'a> Allocator for BuddyHeapAllocator<'a> {
                       , size: usize
                       , align: usize)
                       -> Option<*mut u8> {
-        trace!("allocate() was called!");
+        trace!(target: "alloc", "allocate() was called!");
         // First, compute the allocation order for this request
         self.alloc_order(size, align)
             .and_then(|order| if order > self.free_lists.len() - 1 { None }
@@ -316,18 +319,21 @@ impl<'a> Allocator for BuddyHeapAllocator<'a> {
             // If the allocation order is defined, then we try to allocate
             // a block of that order. Otherwise, the request is invalid.
             .and_then(|min_order| {
-                trace!("in allocate(): min alloc order is {}", min_order);
+                trace!( target: "alloc"
+                      , "in allocate(): min alloc order is {}", min_order);
                 // Starting at the minimum possible order...
                 // TODO: this is ugly and not FP, rewrite.
                 for order in min_order..self.free_lists.len() {
                     if let Some(block) = self.pop_block(order) {
-                        trace!( "in allocate(): found block");
+                        trace!(target: "alloc", "in allocate(): found block");
                         if order > min_order {
-                            trace!( "in allocate(): order {} is less than \
+                            trace!( target: "alloc"
+                                  , "in allocate(): order {} is less than \
                                      minimum ({}), splitting."
                                   , order, min_order);
                             self.split_block(block, order, min_order);
-                            trace!("in allocate(): split_block() done");
+                            trace!( target: "alloc"
+                                  , "in allocate(): split_block() done");
 
                         }
                         return Some(block)

@@ -5,17 +5,16 @@ authors = ["Eliza Weisman <hi@hawkweisman.me>"]
 
 [features]
 default = ["buddy"]
-# simple = ["multiboot"]
 trace = ["vga"]
 buddy = ["sos_intrusive"]
 as_system = []
 buddy_as_system = ["spin", "as_system"]
-# multiboot = ["sos_multiboot2"]
-#
-# [dependencies.sos_multiboot2]
-# path = "../sos_multiboot2"
-# optional = true
-#
+
+[dependencies.log]
+version = "0.3.6"
+default-features = false
+features = ["release_max_level_info"]
+
 [dependencies.memory]
 path = "../memory"
 
@@ -25,7 +24,7 @@ optional = true
 
 [dependencies.vga]
 path = "../vga"
-features = ["log"]
+features = ["kinfo"]
 optional = true
 
 [dependencies.sos_intrusive]

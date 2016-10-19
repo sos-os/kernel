@@ -33,29 +33,15 @@
 
 #[cfg(feature = "buddy")]
 extern crate sos_intrusive as intrusive;
-// #[cfg(feature = "multiboot")]
-// extern crate sos_multiboot2 as multiboot;
 #[cfg(feature = "buddy_as_system")]
 extern crate spin;
-#[cfg(feature = "trace")] #[macro_use]
-extern crate sos_vga;
-
 extern crate memory;
+
+#[macro_use]
+extern crate log;
 
 #[cfg(test)] #[macro_use]
 extern crate std;
-
-#[cfg(feature = "trace")]
-macro_rules! trace {
-    ($fmt:expr, $($arg:tt)*) => (log!(level: "TRACE", $fmt, $($arg)* ));
-    ($fmt:expr) => (log!(level: "TRACE", $fmt));
-}
-
-#[cfg(not(feature = "trace"))]
-macro_rules! trace {
-    ($fmt:expr) => ();
-    ($fmt:expr, $($arg:tt)*) => ();
-}
 
 
 /// Trait for something that is like a frame.

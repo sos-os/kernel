@@ -55,17 +55,17 @@ features = ["release_max_level_info"]
 # version = "0.1.6"
 # default-features = false
 
-[dependencies.alloc]
-path = "alloc"
-features = ["buddy_as_system"]
-
 [dependencies.lazy_static]
 version = "0.2.*"
 features = ["spin_no_std"]
 
 [dependencies.vga]
 path = "vga"
-features = ["system_term"]
+features = ["kinfo"]
+
+[dependencies.alloc]
+path = "alloc"
+features = ["buddy_as_system"]
 
 [dependencies.clippy]
 version = "0.0.60"

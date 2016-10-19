@@ -61,8 +61,10 @@ lazy_static! {
             .add_handler(0x21, isr!(interrupt: keyboard))
             .add_handler(0xff, isr!(interrupt: test));
 
-        infoln!( dots: " . . ", "Adding interrupt handlers to IDT"
-             , status: "[ OKAY ]");
+
+
+        kinfoln!( dots: " . . ", target: "Adding interrupt handlers to IDT"
+                , "[ OKAY ]");
         idt
     };
 }

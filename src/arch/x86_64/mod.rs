@@ -33,6 +33,7 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
     use memory::arch::{HEAP_BASE, HEAP_TOP};
 
     ::io::term::CONSOLE.lock().clear();
+    ::logger::initialize();
 
     // -- Unpack multiboot tag ------------------------------------------------
     let boot_info
@@ -43,9 +44,9 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
         = boot_info.mem_map()
                    .expect("Memory map tag required!");
 
-    infoln!(dots: " . ", "Detected memory areas:");
+    kinfoln!(dots: " . ", "Detected memory areas:");
     for a in mmap_tag.areas() {
-        infoln!(dots: " . . ", "start: {:#08x}, end: {:#08x}"
+        kinfoln!(dots: " . . ", "start: {:#08x}, end: {:#08x}"
                 , a.base, a.length );
     }
 
@@ -53,12 +54,12 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
         = boot_info.elf_sections()
                    .expect("ELF sections tag required!");
 
-    infoln!(dots: " . ", "Detecting kernel ELF sections:");
+    kinfoln!(dots: " . ", "Detecting kernel ELF sections:");
 
     let kernel_begin    // Extract kernel ELF sections from  multiboot info
         = elf_sections_tag.sections()
             .map(|s| {
-                infoln!( dots: " . . "
+                kinfoln!( dots: " . . "
                      , "address: {:#08x}, size: {:#08x}, flags: {:#08x}"
                         , s.addr()
                         , s.length()
@@ -76,13 +77,13 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
             .expect("Could not find kernel end section!\
                     \nSomething is deeply wrong.");
 
-    infoln!( dots: " . ", "Detected {} kernel ELF sections.", n_elf_sections);
-    infoln!(dots: " . . ", "Kernel begins at {:#x} and ends at {:#x}."
+    kinfoln!( dots: " . ", "Detected {} kernel ELF sections.", n_elf_sections);
+    kinfoln!(dots: " . . ", "Kernel begins at {:#x} and ends at {:#x}."
              , kernel_begin, kernel_end );
 
     let multiboot_end = multiboot_addr + boot_info.length as u64;
 
-    infoln!(dots: " . . ", "Multiboot info begins at {:#x} and ends at {:#x}."
+    kinfoln!(dots: " . . ", "Multiboot info begins at {:#x} and ends at {:#x}."
              , multiboot_addr, multiboot_end);
 
     let params = InitParams { kernel_base: kernel_begin

@@ -49,6 +49,7 @@ extern crate spin;
 
 #[macro_use] extern crate lazy_static;
 #[macro_use] extern crate bitflags;
+#[macro_use] extern crate log;
 // #[macro_use] extern crate custom_derive;
 
 // -- SOS dependencies ------------------------------------------------------
@@ -67,6 +68,7 @@ pub mod params;
 // pub mod multiboot2;
 pub mod elf;
 pub mod arch;
+pub mod logger;
 
 /// SOS version number
 pub const VERSION_STRING: &'static str
@@ -99,11 +101,11 @@ use params::InitParams;
 /// Kernel main loop
 pub fn kernel_main() -> ! {
     let mut a_vec = collections::vec::Vec::<usize>::new();
-    println!( "TEST: Created a vector in kernel space! {:?}", a_vec);
+    info!(target: "test", "Created a vector in kernel space! {:?}", a_vec);
     a_vec.push(1);
-    println!( "TEST: pushed to vec: {:?}", a_vec);
+    info!(target: "test", "pushed to vec: {:?}", a_vec);
     a_vec.push(2);
-    println!( "TEST: pushed to vec: {:?}", a_vec);
+    info!(target: "test", "pushed to vec: {:?}", a_vec);
     // loop {
     //     unsafe { asm!("int $0" :: "N" (0x80)) };
     //     println!("Test interrupt okay");
@@ -122,25 +124,29 @@ pub fn kernel_main() -> ! {
 //  we then want the kernel entry point to be `arch_init`. we can then
 //  call into `kernel_init`.
 pub fn kernel_init(params: InitParams) {
-    infoln!("Hello from the kernel!");
+    kinfoln!("Hello from the kernel!");
 
     // -- initialize interrupts ----------------------------------------------
-    infoln!(dots: " . ", "Initializing interrupts:");
+    kinfoln!(dots: " . ", "Initializing interrupts:");
     unsafe {
         arch::interrupts::initialize();
     };
-
-    infoln!(dots: " . ", "Enabling interrupts", status: "[ OKAY ]");
+    kinfoln!(dots: " . ", target: "Enabling interrupts", "[ OKAY ]");
 
     // -- initialize the heap ------------------------------------------------
-    unsafe {
-        infoln!( dots: " . ", "Intializing heap"
-             , status: heap::initialize(&params).unwrap_or("[ FAIL ]")
-             );
-        infoln!( dots: " . . "
-             , "Heap begins at {:#x} and ends at {:#x}"
-             , params.heap_base, params.heap_top);
-    };
+
+    if let Ok(_) =  unsafe { heap::initialize(&params) } {
+        kinfoln!( dots: " . ", target: "Intializing heap"
+                , "[ OKAY ]"
+                );
+        kinfoln!( dots: " . . "
+                , "Heap begins at {:#x} and ends at {:#x}"
+                , params.heap_base, params.heap_top);
+    } else {
+        kinfoln!( dots: " . ", target: "Intializing heap"
+                , "[ FAIL ]"
+                );
+    }
 
     println!("\n{} {}-bit\n", VERSION_STRING, arch::ARCH_BITS);
     // -- call into kernel main loop ------------------------------------------

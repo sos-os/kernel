@@ -13,7 +13,8 @@
 #![feature(slice_patterns)]
 #![no_std]
 
-#[macro_use]extern crate bitflags;
+#[macro_use] extern crate log;
+#[macro_use] extern crate bitflags;
 extern crate spin;
 
 extern crate util;

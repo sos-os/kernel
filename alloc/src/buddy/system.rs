@@ -22,7 +22,7 @@ static mut KERNEL_FREE_LISTS: [FreeList; NUM_FREE_LISTS]
       , ];
 
 pub unsafe fn init_heap(start_addr: *mut u8, heap_size: usize ) {
-    trace!("init_heap() was called.");
+    trace!(target: "alloc", "init_heap() was called.");
     *(ALLOC.lock())
         = Some(BuddyHeapAllocator::new( start_addr
                                       , &mut KERNEL_FREE_LISTS
@@ -37,7 +37,8 @@ pub extern "C" fn __rust_allocate(size: usize, align: usize) -> *mut u8 {
              .expect("Cannot allocate memory, no system allocator exists!")
              .allocate(size, align)
              .map(|blck| {
-                 trace!("__rust_allocate: allocatedd {:?}", blck);
+                 trace!( target: "alloc"
+                       , "__rust_allocate: allocatedd {:?}", blck);
                  blck })
              .unwrap_or(ptr::null_mut())
     }
