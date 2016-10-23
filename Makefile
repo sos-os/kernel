@@ -4,10 +4,12 @@ target ?= $(arch)-sos-kernel-gnu
 iso := target/$(target)/debug/sos-$(arch).iso
 kernel := target/$(target)/debug/sos_kernel
 isofiles := target/$(target)/debug/isofiles
+boot := boot/target/x86_32-sos-bootstrap-gnu/debug/libboot.a
 
 release_iso := target/$(target)/release/sos-$(arch).iso
 release_kernel := target/$(target)/release/sos_kernel
 release_isofiles := target/$(target)/release/isofiles
+release_boot := boot/target/x86_32-sos-bootstrap-gnu/release/libboot.a
 
 grub_cfg := src/arch/$(arch)/grub.cfg
 
@@ -49,7 +51,7 @@ env: ##@utilities Install dev environment dependencies
 
 clean: ##@utilities Delete all build artefacts.
 	@xargo clean
-
+	@cd bootstrap && xargo clean
 
 kernel: $(kernel).bin ##@build Compile the debug kernel binary
 
@@ -79,6 +81,13 @@ $(iso): $(kernel).bin $(grub_cfg)
 	@grub-mkrescue -o $(iso) $(isofiles)/
 	@rm -r $(isofiles)
 
+$(boot):
+	@cd boot && xargo rustc --target x86_32-sos-bootstrap-gnu -- --emit=obj
+	# Place 32-bit bootstrap code into a 64-bit ELF
+	@x86_64-elf-objcopy -O elf64-x86-64 $(boot) $(boot)
+	# Strip all but the entry symbol `setup_long_mode` so they don't conflict with 64-bit kernel symbols
+	@x86_64-elf-objcopy --strip-debug -G setup_long_mode $(boot)
+
 $(release_kernel):
 	@xargo build --target $(target) --release
 
@@ -92,7 +101,7 @@ $(release_iso): $(release_kernel).bin $(grub_cfg)
 	@grub-mkrescue -o $(release_iso) $(release_isofiles)/
 	@rm -r $(release_isofiles)
 
-$(kernel):
+$(kernel): $(boot)
 	@xargo build --target $(target)
 
 $(kernel).debug: $(kernel)

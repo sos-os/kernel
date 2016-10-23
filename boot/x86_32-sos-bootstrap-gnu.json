@@ -1,5 +1,5 @@
 {
-    "llvm-target": "i386-unknown-none-gnu",
+    "llvm-target": "i386-unknown-unknown-elf",
     "executables": true,
     "target-endian": "little",
     "target-word-size": "32",
