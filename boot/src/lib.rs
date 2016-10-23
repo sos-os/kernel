@@ -7,13 +7,22 @@
 //  directory of this repository for more information.
 //
 //! Initial 32-bit bootloader for x86_64
-#![crate_name = "bootstrap"]
+#![crate_name = "boot"]
+#![crate_type = "staticlib"]
 #![feature(asm)]
+#![feature(lang_items)]
 #![no_std]
 
 const TABLE_LENGTH: usize = 512;
 
 type Table = [u64; TABLE_LENGTH];
+
+use core::fmt::Arguments;
+
+#[lang = "panic_fmt"]
+extern fn panic_fmt(fmt: Arguments, file: &'static str, line: u32) -> ! {
+	loop {}
+}
 
 extern {
 	static mut pml4_table: Table;
