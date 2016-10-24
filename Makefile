@@ -56,7 +56,7 @@ env: ##@utilities Install dev environment dependencies
 
 clean: ##@utilities Delete all build artefacts.
 	@xargo clean
-	@cd bootstrap && xargo clean
+	@cd boot && xargo clean
 
 kernel: $(kernel).bin ##@build Compile the debug kernel binary
 
