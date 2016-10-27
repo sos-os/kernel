@@ -3,17 +3,19 @@ target ?= $(arch)-sos-kernel-gnu
 
 iso := target/$(target)/debug/sos-$(arch).iso
 kernel := target/$(target)/debug/sos_kernel
-isofiles := target/$(target)/debug/isofiles
 boot := boot/target/x86_32-sos-bootstrap-gnu/debug/libboot.a
 
 release_iso := target/$(target)/release/sos-$(arch).iso
 release_kernel := target/$(target)/release/sos_kernel
-release_isofiles := target/$(target)/release/isofiles
-release_boot := boot/target/x86_32-sos-bootstrap-gnu/release/libboot.a
 
 grub_cfg := src/arch/$(arch)/grub.cfg
 
 TIMESTAMP := $(shell /bin/date "+%Y-%m-%d-%H:%M:%S")
+
+# wildcard paths
+wild_iso := target/$(target)/%/sos-$(arch).iso
+wild_kernel := target/$(target)/%/sos_kernel
+wild_isofiles := target/$(target)/%/isofiles
 
 #COLORS
 GREEN  := $(shell tput -Txterm setaf 2)
@@ -57,15 +59,13 @@ kernel: $(kernel).bin ##@build Compile the debug kernel binary
 
 iso: $(iso) ##@build Compile the kernel binary and make an ISO image
 
-run: $(iso) ##@build Make the kernel ISO image and boot QEMU from it.
-	@qemu-system-x86_64 -s -hda $(iso)
+run: run-debug ##@build Make the kernel ISO image and boot QEMU from it.
 
 release-kernel: $(release_kernel).bin ##@release Compile the release kernel binary
 
 release-iso: $(release_iso) ##@release Compile the release kernel binary and make an ISO image
 
-release-run: $(release_iso) ##@release Make the release kernel ISO image and boot QEMU from it.
-	@qemu-system-x86_64 -s -hda $(release_iso)
+release-run: run-release ##@release Make the release kernel ISO image and boot QEMU from it.
 
 debug: $(iso) ##@build Run the kernel, redirecting serial output to a logfile.
 	@qemu-system-x86_64 -s -hda $(iso) -serial file:$(CURDIR)/target/$(target)/serial-$(TIMESTAMP).log
@@ -74,12 +74,17 @@ test: ##@build Test crate dependencies
 	@xargo test -p sos_intrusive
 	#@cd alloc && xargo test
 
-$(iso): $(kernel).bin $(grub_cfg)
-	@mkdir -p $(isofiles)/boot/grub
-	@cp $(kernel).bin $(isofiles)/boot/
-	@cp $(grub_cfg) $(isofiles)/boot/grub
-	@grub-mkrescue -o $(iso) $(isofiles)/
-	@rm -r $(isofiles)
+run-%: $(wild_iso)
+	@qemu-system-x86_64 -s -hda $<
+
+$(wild_iso): $(wild_kernel).bin $(wild_isofiles) $(grub_cfg)
+	@cp $< $(word 2,$^)/boot/
+	@cp $(grub_cfg) $(word 2,$^)/boot/grub
+	@grub-mkrescue -o $@ $(word 2,$^)/
+	@rm -r $(word 2,$^)
+
+$(wild_isofiles):
+	@mkdir -p $@/boot/grub
 
 $(boot):
 	@cd boot && xargo rustc --target x86_32-sos-bootstrap-gnu -- --emit=obj
@@ -94,14 +99,7 @@ $(release_kernel):
 $(release_kernel).bin: $(release_kernel)
 	@cp $(release_kernel) $(release_kernel).bin
 
-$(release_iso): $(release_kernel).bin $(grub_cfg)
-	@mkdir -p $(release_isofiles)/boot/grub
-	@cp $(release_kernel).bin $(release_isofiles)/boot/
-	@cp $(grub_cfg) $(release_isofiles)/boot/grub
-	@grub-mkrescue -o $(release_iso) $(release_isofiles)/
-	@rm -r $(release_isofiles)
-
-$(kernel): $(boot)
+$(kernel):
 	@xargo build --target $(target)
 
 $(kernel).debug: $(kernel)
