@@ -17,13 +17,17 @@
 // because some extern types have bitflags members, which cannot
 // be marked repr(C) but should compile down to an unsigned integer
 #![allow(improper_ctypes)]
+#![warn(missing_docs)]
 
 use core::{fmt, mem};
 use super::PrivilegeLevel;
 
+/// The number of entries in the GDT
 #[cfg(target_arch = "x86_64")]
 pub const GDT_SIZE: usize = 3;
 
+
+/// The number of entries in the GDT
 #[cfg(target_arch = "x86")]
 pub const GDT_SIZE: usize = 512;
 
@@ -50,16 +54,20 @@ bitflags! {
     ///    address of the GDT or LDT (from the `%gdtr` or `%ldtr` register,
     ///    respectively).
     #[repr(C)]
-    pub flags Selector: u16 { const RPL_RING_0 = 0b00
-                            , const RPL_RING_1 = 0b01
-                            , const RPL_RING_2 = 0b10
-                            , const RPL_RING_3 = 0b11
+    pub flags Selector: u16 { /// Set if the RPL is in Ring 0
+                              const RPL_RING_0 = 0b00
+                            , /// Set if the RPL is in Ring 1
+                              const RPL_RING_1 = 0b01
+                            , /// Set if the RPL is in Ring 2
+                              const RPL_RING_2 = 0b10
+                            , /// Set if the RPL is in Ring 3
+                              const RPL_RING_3 = 0b11
 
-                            , /// Requested Prrivelege Level (RPL)
+                            , /// Requested Privelege Level (RPL) bits
                               const RPL = RPL_RING_0.bits
-                               | RPL_RING_1.bits
-                               | RPL_RING_2.bits
-                               | RPL_RING_3.bits
+                                        | RPL_RING_1.bits
+                                        | RPL_RING_2.bits
+                                        | RPL_RING_3.bits
 
                             , /// If the Table Indicator (TI) is 0, use the GDT
                               const TI_GDT = 0 << 3
