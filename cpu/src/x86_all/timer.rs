@@ -6,8 +6,10 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-
+//! Code for interacting with the system timer & timestamp register.
+#![warn(missing_docs)]
 pub mod timestamp {
+    //! x86 Timestamp register
     use core::mem;
 
 

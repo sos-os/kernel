@@ -7,7 +7,7 @@
 //  directory of this repository for more information.
 //
 //! Common functionality for the `x86` and `x86_64` Interrupt Descriptor Table.
-
+#![warn(missing_docs)]
 use core::mem;
 
 use ::dtable::DTable;
@@ -34,29 +34,42 @@ bitflags! {
         /// General Protection Fault.
         const PRESENT       = 0b1000_0000
 
-      , const DPL_RING_0    = 0b0000_0000
-      , const DPL_RING_1    = 0b0010_0000
-      , const DPL_RING_2    = 0b0100_0000
-      , const DPL_RING_3    = 0b0110_0000
-      , const DPL           = DPL_RING_0.bits | DPL_RING_1.bits |
+      , /// Bit indicating that the descriptor priveliege level is Ring 0
+        const DPL_RING_0    = 0b0000_0000
+      , /// Bit indicating that the descriptor priveliege level is Ring 1
+        const DPL_RING_1    = 0b0010_0000
+      , /// Bit indicating that the descriptor priveliege level is Ring 2
+        const DPL_RING_2    = 0b0100_0000
+      , /// Bit indicating that the descriptor priveliege level is Ring 0
+        const DPL_RING_3    = 0b0110_0000
+      , /// Descriptor priveliege level bitfield.
+        const DPL           = DPL_RING_0.bits | DPL_RING_1.bits |
                               DPL_RING_2.bits | DPL_RING_3.bits
 
       , const SEGMENT       = 0b0001_0000
-      , const LONG_MODE     = 0b0000_1000
+      , /// Set if this `Gate` points to a 32-bit ISR.
+        const LONG_MODE     = 0b0000_1000
 
-      , const INT_GATE_16   = 0b0000_0110
-      , const INT_GATE_32   = INT_GATE_16.bits | LONG_MODE.bits
-      , const TRAP_GATE_16  = 0b0000_0111
-      , const TRAP_GATE_32  = TRAP_GATE_16.bits | LONG_MODE.bits
-      , const TASK_GATE_32  = 0b0000_0101 | LONG_MODE.bits
+      , /// Set if this is an interrupt gate.
+        const INT_GATE_16   = 0b0000_0110
+      , /// Set if this is an interrupt gate and points to a 32-bit ISR.
+        const INT_GATE_32   = INT_GATE_16.bits | LONG_MODE.bits
+      , /// Set if this is a trap gate.
+        const TRAP_GATE_16  = 0b0000_0111
+      , /// Set if this is a trap gate that points to a 32-bit ISR
+        const TRAP_GATE_32  = TRAP_GATE_16.bits | LONG_MODE.bits
+      , /// Set if this is a 32-bit task gate.
+        const TASK_GATE_32  = 0b0000_0101 | LONG_MODE.bits
     }
 }
 
 impl GateFlags {
+    /// Returns true if this `Gate` is a trap gate
     #[inline] pub fn is_trap(&self) -> bool {
         self.contains(TRAP_GATE_16)
     }
 
+    /// Returns true if this `Gate` points to a present ISR
     #[inline] pub fn is_present(&self) -> bool {
         self.contains(PRESENT)
     }
@@ -106,24 +119,12 @@ impl Idt {
         self.add_gate(idx, Gate::from(handler))
     }
 
+    /// Add a [`Gate`](struct.Gate.html) to the IDT.
     #[inline]
     pub fn add_gate(&mut self, idx: usize, gate: Gate) -> &mut Self {
         self.0[idx] = gate;
         self
     }
-
-    ///// Add interrupt handlers exported by assembly to the IDT.
-    //pub unsafe fn add_handlers(&mut self) -> &mut Self {
-    //    for (i, &handler_ptr) in ISRs.iter()
-    //        .enumerate()
-    //        .filter(|&(_, &ptr)| ptr != ptr::null() ) {
-    //            self.0[i] = Gate::from(handler_ptr)
-    //    }
-    //
-    //    println!("{:<38}{:>40}", " . . Adding interrupt handlers to IDT"
-    //         , "[ OKAY ]");
-    //    self
-    //}
 
 }
 

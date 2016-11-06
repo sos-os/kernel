@@ -5,9 +5,13 @@
 //  Copyright (c) 2015-2016 Eliza Weisman
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
-//
 //! `x86` and `x86_64` descriptor tables (IDT, GDT, or LDT)
+//!
+//! For more information, refer to the _Intel® 64 and IA-32 Architectures
+//! Software Developer’s Manual_, Vol. 3A, section 3.2, "Using Segments", and
+//! section 6.10, "Interrupt Descriptor Table (IDT)".
 
+#![deny(missing_docs)]
 // use memory::PAddr;
 use core::mem::size_of;
 
@@ -21,13 +25,29 @@ pub struct Pointer<T: DTable> { /// the length of the descriptor table
                      pub base: *const T
                    }
 
-// pub struct Handle<T: DTable> {
-//     pointer: Pointer
-//   , table: T
-// }
-
-/// A descriptor table (IDT or GDT)
+/// A descriptor table (IDT or GDT).
+///
+/// The IA32 architecture uses two descriptor table structures, the GDT
+/// (Global Descriptor Table), which is used for configuring segmentation,
+/// and the IDT (Interrupt Descriptor Table), which tells the CPU where
+/// interrupt service routines are located.
+///
+/// As SOS relies on paging rather than segmentation for memory protection on
+/// both 32-bit and 64-bit systems, we use the GDT only minimally. However, the
+/// CPU still requires a correctly configured GDT to run in protected mode, even
+/// if it is not actually used.
+///
+/// This trait specifies base functionality common to both types of descriptor
+/// table.
 pub trait DTable: Sized {
+    /// The type of an entry in this descriptor table.
+    ///
+    /// For an IDT, these are
+    /// interrupt [`Gate`](../interrupts/idt/gate/struct.Gate.html)s,
+    /// while for a GDT or LDT, they are segment
+    /// [`Descriptor`](../segment/struct.Descriptor.html)s.
+    //  TODO: can there be a trait for DTable entries?
+    //      - eliza, 10/06/2016
     type Entry: Sized;
 
     /// Get the IDT pointer struct to pass to `lidt` or `lgdt`
