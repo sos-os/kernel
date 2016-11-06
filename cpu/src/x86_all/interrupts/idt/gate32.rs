@@ -33,9 +33,9 @@ pub struct Gate { /// bits 0 - 15 of the offset
                  _zero: u8
                , /// indicates the gate's type and attributes.
                  /// the second half indicates the type:
-                 ///   + `0b1100`: Call gate
-                 ///   + `0b1110`: Interrupt gate
-                 ///   + `0b1111`: Trap Gate
+                 /// + `0b1100`: Call gate
+                 /// + `0b1110`: Interrupt gate
+                 /// + `0b1111`: Trap Gate
                  pub flags: GateFlags
                , /// bits 16 - 31 of the offset
                  pub offset_upper: u16

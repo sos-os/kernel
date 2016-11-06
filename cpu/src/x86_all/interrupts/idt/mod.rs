@@ -28,7 +28,41 @@ pub const ENTRIES: usize = 256;
 pub use self::gate::*;
 
 bitflags! {
+    /// Bitflags field in an IDT gate.
+    ///
+    /// The structure of the flags field is as follows:
+    ///
+    /// ```ignore
+    ///   7                           0
+    /// +---+---+---+---+---+---+---+---+
+    /// | P |  DPL  | S |    GateType   |
+    /// +---+---+---+---+---+---+---+---+
+    /// ```
+    ///
+    /// Fields have the following meanings:
+    ///
+    ///  + `P`: One bit, indicating if the ISR is present. Set to 0 for unused
+    ///         interrupts.
+    ///  + `DPL`: Two bits, indicating the escriptor's priveliege level as an
+    ///           integer, with zero being Ring 0.
+    ///  + `S`: One bit, set if the descriptor refers to an interrupt in the
+    ///         storage segment.
+    ///  + `GateType`: Four bits, indicating the type of the interrupt with the
+    ///               following values (architecture-dependent):
+    ///    - `0101`: 80386 32-bit task gate
+    ///    - `0110`: 80286 16-bit interrupt gate
+    ///    - `0111`: 80286 16-bit trap gate
+    ///    - `1110`: 80386 32-bit interrupt gate
+    ///    - `1111`: 80386 32-bit trap gate
+    ///    
+    /// For more information, refer to the _Intel® 64 and IA-32 Architectures
+    /// Software Developer’s Manual_, Vol. 3A, section 6.11, "IDT Descriptors";
+    /// and to the OS Dev Wiki
+    /// [article](http://wiki.osdev.org/Interrupts_Descriptor_Table)
+    /// "Interrupts Descriptor Table".
     pub flags GateFlags: u8 {
+        /// Set to 0 for unused interrupts.
+        ///
         /// Indicates whether or not this gate is present.
         /// An interrupt on a non-present gate will trigger a
         /// General Protection Fault.
@@ -40,13 +74,16 @@ bitflags! {
         const DPL_RING_1    = 0b0010_0000
       , /// Bit indicating that the descriptor priveliege level is Ring 2
         const DPL_RING_2    = 0b0100_0000
-      , /// Bit indicating that the descriptor priveliege level is Ring 0
+      , /// Bit indicating that the descriptor priveliege level is Ring 3
         const DPL_RING_3    = 0b0110_0000
       , /// Descriptor priveliege level bitfield.
         const DPL           = DPL_RING_0.bits | DPL_RING_1.bits |
                               DPL_RING_2.bits | DPL_RING_3.bits
 
-      , const SEGMENT       = 0b0001_0000
+      , /// Storage segment flag.
+        ///
+        /// Set to 0 for interrupt gates.
+        const SEGMENT       = 0b0001_0000
       , /// Set if this `Gate` points to a 32-bit ISR.
         const LONG_MODE     = 0b0000_1000
 
