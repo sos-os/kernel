@@ -1,12 +1,23 @@
 language: rust
+
+os:
+  - linux
+  - osx
+
 rust:
-- nightly
+  - nightly
+
+matrix:
+  allow_failures:
+    - os: osx
+
 notifications:
   email:
     on_success: never
     on_failure: change
   slack:
     secure: CTfCGsKzNyb7SqEGeXYCnwE0jZLcANMjgdZpnpDMHtyBzOb0EJ1VXe5FpCVZ74jPD0De/eWwxT3aVnxZGnIn24gIB4K+3km4s+mSiecfhtP6lhHKaxy25NNKqcVJMt+52GgBYRvF9lPDdQR/I+YPznKeKkGCI8KMK8Y61RTMF1gWHezqsDirVemS+qp4YP8MrtcUk8W0yw+K522MuCLBFBy/LX1LrkZjkM1yyDIWmS7UerU1A0mWmDgiwfO33jJPtJKj64HrVwbOjl9ZH9SkEMeHumBsocxZ+3EPx8qygzJfEAMbWV6nu816e5Jg58UBsKrm5rPKdHmSshrvme7L79mGgfaROKF94OzIL67HFs+3vFXG5GspQz6myA+HtQMCO03dS7VydB6//Tpr9okWHsCBGgRgDnuvXWk/HG2kSP1uSDhrxqmBya/kTSaOa+QRqUnF6XxknxX5DCbGKIVY9fN5+IxDBVnigVYAlHe+NreT3xNeLd7E3p1TL865SYpU4szJ1KLtq+JX+DAAYF94UoIt4fD/kQ0tYhwKSJtUNfFRs5MubqewNpkw/Pt2d9gPIw9+hP7c6w/4gd3lDuVfMwhZwsXfRX9OvEemFET4dK+VHy5DqH00DJ/3tQaJ2dDeIHUtFMq1V93aVjspMDj+dwVctQ5DhIXHaYKmrc4yQkA=
+
 addons:
   apt:
     packages:
@@ -14,18 +25,26 @@ addons:
     - build-essential
     - xorriso
     - libssh2-1
-before_script:
-- |
-  pip install 'travis-cargo<0.2' --user &&
-  export PATH=$HOME/.local/bin:$PATH
+
+before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then make env; fi
+
 install:
-- export PATH="$PATH:$(rustc --print sysroot)/cargo/bin"
-- curl -sf "https://raw.githubusercontent.com/japaric/rust-everywhere/master/install.sh" | bash -s -- --from japaric/xargo
+  - export PATH="$PATH:$(rustc --print sysroot)/cargo/bin"
+  - curl -sf "https://raw.githubusercontent.com/japaric/rust-everywhere/master/install.sh" | bash -s -- --from japaric/xargo
+
+before_script:
+  - |
+    pip install 'travis-cargo<0.2' --user &&
+    export PATH=$HOME/.local/bin:$PATH
+
 script:
-- make test
-- make
+  - make test
+  - make
+
 after_success:
-- travis-cargo doc && travis-cargo doc-upload
+  - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then travis-cargo doc && travis-cargo doc-upload; fi
+
 deploy:
   provider: releases
   api_key:
