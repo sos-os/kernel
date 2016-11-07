@@ -43,6 +43,7 @@ case $distro in
         sudo apt-get install nasm xorriso qemu build-essential | sed "s/^/${bold}apt-get:${normal} /"
         ;;
     Arch)
+    ManjaroLinux)
         echo "${bold}install-env-linux:${normal} Installing with pacman."
         echo "${bold}install-env-linux:${normal} This will require sudo."
         echo "${bold}install-env-linux:${normal} Do you want to continue? (y/n)"
