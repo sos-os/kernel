@@ -61,14 +61,14 @@ case $distro in
 esac
     # todo: support non-x86_64 architectures here (later)
 
-    gcc = $(which gcc)
+    gcc=$(which gcc)
     echo "${bold}install-env-linux:${normal} Linking ${gcc} to /usr/bin/x86_64-pc-elf-gcc."
     sudo ln -s $gcc /usr/bin/x86_64-pc-elf-gcc
 
-    objcopy = $(which objcopy)
+    objcopy=$(which objcopy)
     echo "${bold}install-env-linux:${normal} Linking ${objcopy} to /usr/bin/x86_64-elf-objcopy."
     sudo ln -s $objcopy x86_64-elf-objcopy
 
-    strip = $(which strip)
+    strip=$(which strip)
     echo "${bold}install-env-linux:${normal} Linking ${strip} to /usr/bin/x86_64-elf-strip."
     sudo ln -s $strip x86_64-elf-strip
