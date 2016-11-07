@@ -37,7 +37,10 @@ use core::marker::PhantomData;
 #[cfg(target_arch = "armv7")] mod armv7;
 #[cfg(target_arch = "armv7")] pub use self::x86::*;
 
-/// Safe typed port wrapper
+/// A CPU I/O port.
+///
+/// This is a typed wrapper around an [`UnsafePort`](struct.UnsafePort.html).
+/// Unlike an `UnsafePort`, this
 pub struct Port<T> { raw_port: UnsafePort
                    , typ: PhantomData<T>
                    }
