@@ -45,6 +45,7 @@ Once you have Rust installed, you will need the following additional dependencie
 + `ld`
 + `grub-mkrescue` & `xorriso`
 + `qemu` for running the kernel under emulation
++ `mtools`
 
 Depending on your OS, you'll want to install these dependencies somewhat differently.
 
@@ -53,11 +54,11 @@ Depending on your OS, you'll want to install these dependencies somewhat differe
 On Debian you can install them with
 
 ```
-$ sudo apt-get install nasm xorriso qemu build-essential
+$ sudo apt-get install nasm xorriso qemu mtools build-essential
 ```
 On Arch Linux you can install them with
 ```
-$ sudo pacman -S --needed binutils grub libisoburn nasm qemu
+$ sudo pacman -S --needed binutils grub libisoburn nasm qemu mtools
 ```
 And on Fedora with
 ```
