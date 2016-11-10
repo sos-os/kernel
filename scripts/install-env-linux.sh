@@ -39,7 +39,7 @@ case $distro in
             exit
         fi
 
-        sudo apt-get install nasm xorriso qemu build-essential | sed "s/^/${bold}apt-get:${normal} /"
+        sudo apt-get install nasm xorriso qemu build-essential mtools | sed "s/^/${bold}apt-get:${normal} /"
         ;;
     Arch | ManjaroLinux)
         echo "${bold}install-env-linux:${normal} Installing with pacman."
@@ -56,7 +56,7 @@ case $distro in
             exit
         fi
 
-        sudo pacman -S --needed binutils grub libisoburn nasm qemu | sed "s/^/${bold}pacman:${normal} /"
+        sudo pacman -S --needed binutils grub libisoburn nasm qemu mtools | sed "s/^/${bold}pacman:${normal} /"
         ;;
 esac
     # todo: support non-x86_64 architectures here (later)
