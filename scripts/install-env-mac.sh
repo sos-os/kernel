@@ -42,42 +42,42 @@ brew bundle | sed "s/^/${bold}brew:${normal} /"
 
 cd $HOME/src
 
-if [ ! -d "binutils-2.25" ]; then
-    echo ""
-    echo "${bold}install-mac:${normal} Installing GNU \`binutils\`"
-    echo ""
-    curl http://ftp.gnu.org/gnu/binutils/binutils-2.25.tar.gz > binutils-2.25.tar.gz
-    tar xfz binutils-2.25.tar.gz
-    rm binutils-2.25.tar.gz
-    mkdir -p build-binutils
-    cd build-binutils
-    ../binutils-2.25/configure --target=$TARGET --prefix="$PREFIX" --with-sysroot --disable-nls --disable-werror
-    make
-    make install
-else
-    echo "${bold}install-mac:${normal} GNU \`binutils\` v2.25 is already installed, skipping."
-fi
+# if [ ! -d "binutils-2.25" ]; then
+#     echo ""
+#     echo "${bold}install-mac:${normal} Installing GNU \`binutils\`"
+#     echo ""
+#     curl http://ftp.gnu.org/gnu/binutils/binutils-2.25.tar.gz > binutils-2.25.tar.gz
+#     tar xfz binutils-2.25.tar.gz
+#     rm binutils-2.25.tar.gz
+#     mkdir -p build-binutils
+#     cd build-binutils
+#     ../binutils-2.25/configure --target=$TARGET --prefix="$PREFIX" --with-sysroot --disable-nls --disable-werror
+#     make
+#     make install
+# else
+#     echo "${bold}install-mac:${normal} GNU \`binutils\` v2.25 is already installed, skipping."
+# fi
 
 # gcc
 cd $HOME/src
 
-if [ ! -d "gcc-5.3.0" ]; then
-  echo ""
-  echo "${bold}install-mac:${normal} Installing \`gcc\`..."
-  echo ""
-  curl -L http://ftpmirror.gnu.org/gcc/gcc-5.3.0/gcc-5.3.0.tar.bz2 > gcc-5.3.0.tar.bz2
-  tar jxf gcc-5.3.0.tar.bz2
-  rm gcc-5.3.0.tar.bz2
-  mkdir -p build-gcc
-  cd build-gcc
-  ../gcc-5.3.0/configure --target=$TARGET --prefix="$PREFIX" --disable-nls --enable-languages=c,c++ --without-headers --with-gmp=/usr/local/Cellar/gmp/6.1.0 --with-mpfr=/usr/local/Cellar/mpfr/3.1.3 --with-mpc=/usr/local/Cellar/libmpc/1.0.3
-  make all-gcc
-  make all-target-libgcc
-  make install-gcc
-  make install-target-libgcc
-else
-    echo "${bold}install-mac:${normal}  \`gcc\` v5.3.0 is already installed, skipping."
-fi
+# if [ ! -d "gcc-5.3.0" ]; then
+#   echo ""
+#   echo "${bold}install-mac:${normal} Installing \`gcc\`..."
+#   echo ""
+#   curl -L http://ftpmirror.gnu.org/gcc/gcc-5.3.0/gcc-5.3.0.tar.bz2 > gcc-5.3.0.tar.bz2
+#   tar jxf gcc-5.3.0.tar.bz2
+#   rm gcc-5.3.0.tar.bz2
+#   mkdir -p build-gcc
+#   cd build-gcc
+#   ../gcc-5.3.0/configure --target=$TARGET --prefix="$PREFIX" --disable-nls --enable-languages=c,c++ --without-headers --with-gmp=/usr/local/Cellar/gmp/6.1.0 --with-mpfr=/usr/local/Cellar/mpfr/3.1.3 --with-mpc=/usr/local/Cellar/libmpc/1.0.3
+#   make all-gcc
+#   make all-target-libgcc
+#   make install-gcc
+#   make install-target-libgcc
+# else
+#     echo "${bold}install-mac:${normal}  \`gcc\` v5.3.0 is already installed, skipping."
+# fi
 
 # objconv
 
@@ -119,7 +119,7 @@ fi
 
 CARGO_CONFIG="$HOME/.cargo/config"
 GREP_TARGET_LINKER="\[target\.x86_64\-sos\-kernel\-gnu\]"
-TARGET_LINKER="\n\n[target.x86_64-sos-kernel-gnu]\nlinker = \"${PREFIX}bin/x86_64-pc-elf-gcc\""
+TARGET_LINKER="\n\n[target.x86_64-sos-kernel-gnu]\nlinker = \"/usr/local/opt/bin/x86_64-pc-elf-gcc\""
 
 if grep -q $GREP_TARGET_LINKER "$CARGO_CONFIG"; then
     echo "${bold}install-mac:${normal} Target linker already present in $CARGO_CONFIG. Done."
