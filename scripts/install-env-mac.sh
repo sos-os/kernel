@@ -119,7 +119,7 @@ fi
 
 CARGO_CONFIG="$HOME/.cargo/config"
 GREP_TARGET_LINKER="\[target\.x86_64\-sos\-kernel\-gnu\]"
-TARGET_LINKER="\n\n[target.x86_64-sos-kernel-gnu]\nlinker = \"/usr/local/opt/bin/x86_64-pc-elf-gcc\""
+TARGET_LINKER="\n\n[target.x86_64-sos-kernel-gnu]\nlinker = \"/usr/local/bin/x86_64-pc-elf-gcc\""
 
 if grep -q $GREP_TARGET_LINKER "$CARGO_CONFIG"; then
     echo "${bold}install-mac:${normal} Target linker already present in $CARGO_CONFIG. Done."
