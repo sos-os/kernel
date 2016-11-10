@@ -79,7 +79,7 @@ run-%: $(wild_iso)
 $(wild_iso): $(wild_kernel).bin $(wild_isofiles) $(grub_cfg)
 	@cp $< $(word 2,$^)/boot/
 	@cp $(grub_cfg) $(word 2,$^)/boot/grub
-	@grub-mkrescue -o $@ $(word 2,$^)/
+	grub-mkrescue -o $@ $(word 2,$^)/
 	@rm -r $(word 2,$^)
 
 $(wild_isofiles):
