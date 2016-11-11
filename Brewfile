@@ -11,3 +11,7 @@ brew 'qemu'
 tap 'hawkw/x86_64-pc-elf'
 brew 'x86_64-pc-elf-gcc'
 brew 'x86_64-pc-elf-binutils'
+
+# objconv
+tap 'hawkw/objconv'
+brew 'objconv'
