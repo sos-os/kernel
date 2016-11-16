@@ -12,6 +12,15 @@ matrix:
     - os: osx
   fast_finish: true
 
+cache:
+  cargo: true
+  directories:
+    - /usr/local/bin/x86_64-pc-elf-*
+    - /usr/local/bin/grub*
+    # brew directories on OS X
+    - /usr/local/Cellar/x86_64-pc-elf-*
+    - /usr/local/Cellar/grub
+
 notifications:
   email:
     on_success: never
