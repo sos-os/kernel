@@ -10,8 +10,7 @@ brew 'qemu'
 # x86_64-pc-elf cross-compile toolchain
 tap 'hawkw/x86_64-pc-elf'
 brew 'x86_64-pc-elf-gcc'
-brew 'x86_64-pc-elf-binutils'
 
-# objconv
-tap 'hawkw/objconv'
-brew 'objconv'
+# GRUB
+tap 'hawkw/grub'
+brew 'grub', args: ['with-x86_64-pc-elf', 'HEAD']
