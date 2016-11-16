@@ -28,7 +28,11 @@ addons:
     - libssh2-1
 
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then yes | make env; fi
+  - |
+    if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      brew update && brew tap homebrew/bundle && brew bundle;
+      printf "\n\n[target.x86_64-sos-kernel-gnu]\nlinker = \"/usr/local/bin/x86_64-pc-elf-gcc\"" >> $HOME/.cargo/config;
+    fi
 
 install:
   - export PATH="$PATH:$(rustc --print sysroot)/cargo/bin"
@@ -36,8 +40,10 @@ install:
 
 before_script:
   - |
-    pip install 'travis-cargo<0.2' --user &&
-    export PATH=$HOME/.local/bin:$PATH
+    if [[ "$TRAVIS_OS_NAME" != "osx" ]];
+      pip install 'travis-cargo<0.2' --user &&
+      export PATH=$HOME/.local/bin:$PATH;
+    fi
 
 script:
   - make test
