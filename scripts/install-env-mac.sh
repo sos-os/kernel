@@ -25,12 +25,9 @@ then
     exit
 fi
 
-export PREFIX="$HOME/opt/"
 export TARGET=x86_64-pc-elf
-export PATH="$PREFIX/bin:$PATH"
 
 mkdir -p $HOME/src
-mkdir -p $PREFIX
 
 # dependencies installable with brew
 echo "${bold}install-mac:${normal} Installing dependencies using Homebrew..."
