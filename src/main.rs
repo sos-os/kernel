@@ -31,7 +31,6 @@
           , type_ascription
           , custom_derive )]
 #![feature( collections )]
-#![feature( question_mark )]
 
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]

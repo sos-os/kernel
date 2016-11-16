@@ -11,7 +11,7 @@ matrix:
   allow_failures:
     - os: osx
   fast_finish: true
-  
+
 notifications:
   email:
     on_success: never
@@ -28,7 +28,7 @@ addons:
     - libssh2-1
 
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then make env; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then yes | make env; fi
 
 install:
   - export PATH="$PATH:$(rustc --print sysroot)/cargo/bin"
