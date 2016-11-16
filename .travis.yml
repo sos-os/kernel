@@ -51,8 +51,7 @@ install:
 before_script:
   - |
     if [[ "$TRAVIS_OS_NAME" != "osx" ]];
-      pip install 'travis-cargo<0.2' --user &&
-      export PATH=$HOME/.local/bin:$PATH;
+      pip install 'travis-cargo<0.2' --user && export PATH=$HOME/.local/bin:$PATH
     fi
 
 script:
