@@ -34,7 +34,7 @@ addons:
     - nasm
     - build-essential
     - xorriso
-    - libssh2-1
+    # - libssh2-1
 
 before_install:
   - |
@@ -48,18 +48,18 @@ install:
   - export PATH="$PATH:$(rustc --print sysroot)/cargo/bin"
   - curl -sf "https://raw.githubusercontent.com/japaric/rust-everywhere/master/install.sh" | bash -s -- --from japaric/xargo
 
-before_script:
-  - |
-    if [[ "$TRAVIS_OS_NAME" != "osx" ]];
-      pip install 'travis-cargo<0.2' --user && export PATH="$HOME/.local/bin:$PATH";
-    fi
+# before_script:
+#   - |
+#     if [[ "$TRAVIS_OS_NAME" != "osx" ]];
+#       pip install 'travis-cargo<0.2' --user && export PATH="$HOME/.local/bin:$PATH";
+#     fi
 
 script:
   - make test
   - make
 
-after_success:
-  - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then travis-cargo doc && travis-cargo doc-upload; fi
+# after_success:
+#   - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then travis-cargo doc && travis-cargo doc-upload; fi
 
 deploy:
   provider: releases
