@@ -272,18 +272,32 @@ impl Descriptor {
 
 
 bitflags! {
+    /// Segment descriptor bitflags field.
+    ///
+    /// Some of the bitflags vary based on the type of segment. Currently
+    /// the API for this is a bit of a mess.
     pub flags Flags: u16 {
         /// 1 if this is a code or data segment that has been accessed
         const CODE_DATA_ACC = 1 << 0
-      , const SEGMENT_TYPE  = 0b0000_0000_0000_1111
-      , const DESCR_TYPE    = 1 << 4
-      , const DPL           = 0b0000_0000_0110_0000
-      , const PRESENT       = 1 << 7
-      , const LIMIT         = 0b0000_1111_0000_0000
-      , const AVAILABLE     = 1 << 12
-      , const LENGTH        = 1 << 13
-      , const DEFAULT_SIZE  = 1 << 14
-      , const GRANULARITY   = 1 << 15
+      , /// Four bits that indcate the type of the segment
+        const SEGMENT_TYPE  = 0b0000_0000_0000_1111
+      , /// 1 if this is a data/code segment, 0 if this is a system segment
+        const DESCR_TYPE    = 1 << 4
+      , /// Two bits indicating the descriptor priveliege level
+        const DPL           = 0b0000_0000_0110_0000
+      , /// 1 if this segment is present.
+        const PRESENT       = 1 << 7
+      , /// bits 16...19 of the limit
+        const LIMIT         = 0b0000_1111_0000_0000
+      , /// 1 if this segment is available for use by system software
+        const AVAILABLE     = 1 << 12
+      , /// 0 if this is a 16- or 32-bit segment, 1 if it is a 64-bit segment
+        const LENGTH        = 1 << 13
+      , /// 0 if this is a 16-bit segment, 1 if it is a 32-bit segment
+        const DEFAULT_SIZE  = 1 << 14
+      , /// 0 if the limit of this segment is given in bytes, 1 if it is given
+        /// in 4092-byte pages
+        const GRANULARITY   = 1 << 15
       , /// If this is a code or data segment and the accessed bit is set,
         /// it has been accessed.
         const ACCESSED      = DESCR_TYPE.bits & CODE_DATA_ACC.bits
@@ -292,6 +306,7 @@ bitflags! {
 
 impl Flags {
 
+    /// Returns a new set of `Flag`s with all bits set to 0.
     const fn null() -> Self {
         Flags { bits: 0 }
     }
@@ -371,17 +386,25 @@ impl Flags {
 
 }
 
+/// Possible ways to interpret the type bits of a segment selector.
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
-pub enum Type { System(SysType)
-              , Code(CodeFlags)
-              , Data(DataFlags)
+pub enum Type { /// The type bits interpreted as a system segment
+                System(SysType)
+              , /// The type bits interpreted as a code segment
+                Code(CodeFlags)
+              , /// The type bits interpreted as a data segment
+                Data(DataFlags)
               }
 
+/// Possible types of for a system segment.
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 #[repr(u16)]
-pub enum SysType { Ldt           = 0b0010
-                 , TssAvailable  = 0b1001
-                 , TssBusy       = 0b1011
+pub enum SysType { /// System segment used for storing a local descriptor table.
+                   Ldt           = 0b0010
+                 , /// An available translation stack segment.
+                   TssAvailable  = 0b1001
+                 , /// A busy translation stack segment
+                   TssBusy       = 0b1011
                  , CallGate      = 0b1100
                  , InterruptGate = 0b1110
                  , TrapGate      = 0b1111
