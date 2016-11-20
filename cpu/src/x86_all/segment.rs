@@ -220,7 +220,6 @@ impl fmt::Display for Selector {
 /// application programs.
 ///
 #[repr(C, packed)]
-
 pub struct Descriptor { /// The last 8 bits of the base address
                         pub base_high: u8
                       , /// The next 16 bits are bitflags
@@ -405,16 +404,23 @@ pub enum SysType { /// System segment used for storing a local descriptor table.
                    TssAvailable  = 0b1001
                  , /// A busy translation stack segment
                    TssBusy       = 0b1011
-                 , CallGate      = 0b1100
-                 , InterruptGate = 0b1110
-                 , TrapGate      = 0b1111
+                 , /// A call gate system segment
+                   CallGate      = 0b1100
+                 , /// An interrupt gate system segment
+                   InterruptGate = 0b1110
+                 , /// A trap gate system segment
+                   TrapGate      = 0b1111
                  }
 
 bitflags! {
+    /// The type-specific section of a data segment's flags
     pub flags DataFlags: u16 {
+        /// 0 if this segment hasn't been accessed, 1 if it has
         const DATA_ACCESSED = 0b0001
-      , const WRITE         = 0b0010
-      , const EXPAND_DOWN   = 0b0100
+      , /// 0 if this segment is read-only, 1 if it is read-write
+        const WRITE         = 0b0010
+      , /// 1 if this segment expands down
+        const EXPAND_DOWN   = 0b0100
     }
 }
 
@@ -436,12 +442,18 @@ impl DataFlags {
 }
 
 bitflags! {
+    /// The type-specific section of a code segment's flags
     pub flags CodeFlags: u16 {
+        /// 0 if this segment hasn't been accessed, 1 if it has
         const CODE_ACCESSED = 0b0001
-      , const READ          = 0b0010
-      , const EXECUTE       = 0b1000
-      , const CONFORMING    = 0b0100
-      , const EXEC_ONLY     = EXECUTE.bits & !READ.bits
+      , /// 0 if this segment is read-only, 1 if it is read-write
+        const READ          = 0b0010
+      , /// 0 if this segment is not executable, 1 if it is executable
+        const EXECUTE       = 0b1000
+      , /// 0 if this segment is non-conforming, 1 if it is conforming
+        const CONFORMING    = 0b0100
+      , /// Whether this segment is execute-only
+        const EXEC_ONLY     = EXECUTE.bits & !READ.bits
     }
 }
 
