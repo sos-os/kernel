@@ -7,6 +7,7 @@
 //  directory of this repository for more information.
 //
 //! `x86` and `x86_64` control registers
+#![warn(missing_docs)]
 use core::fmt;
 
 /// `%cr0` contains flags that modify basic processor operation.
@@ -15,16 +16,17 @@ pub mod cr0;
 /// `%cr4` contains flags that control protected mode execution.
 pub mod cr4;
 
-
 /// A struct bundling together a snapshot of the control registers state.
 #[derive(Copy,Clone,Debug)]
-pub struct CrState { /// `$cr0` contains flags that control the CPU's operations
+pub struct CrState { /// `%cr0` contains flags that control the CPU's operations
                      pub cr0: cr0::Flags
-                   , /// `$cr2` contains the page fault linear address
+                   , /// `%cr2` contains the page fault linear address
                      pub cr2: usize
-                   , /// `$cr3` contains the page table root pointer
+                   , /// `%cr3` contains the page table root pointer
+                     ///
+                     /// TODO: can this be rewritten as a pointer?
                      pub cr3: usize
-                   , /// `$cr4` contains flags that control operations in
+                   , /// `%cr4` contains flags that control operations in
                      ///  protected mode
                      pub cr4: cr4::Flags
                    }
@@ -59,6 +61,7 @@ pub fn dump() -> CrState {
 
 }
 
+/// `$cr2` contains the page fault linear address
 pub mod cr2 {
 
     /// Read the current value from `$cr2`.
@@ -86,6 +89,7 @@ pub mod cr2 {
     }
 }
 
+/// `%cr3` contains the page table root pointer
 pub mod cr3 {
     /// Read the current value from `$cr3`.
     ///

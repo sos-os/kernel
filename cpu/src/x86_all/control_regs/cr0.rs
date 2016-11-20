@@ -1,6 +1,10 @@
 use core::fmt;
 
 bitflags! {
+    /// Flag present in `%cr0`.
+    ///
+    /// See [the OS Dev Wiki](http://wiki.osdev.org/CR0#CR0) for more
+    /// information.
     pub flags Flags: usize {
         /// Protected Mode Enable
         ///
