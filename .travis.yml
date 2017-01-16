@@ -46,7 +46,8 @@ before_install:
 
 install:
   - export PATH="$PATH:$(rustc --print sysroot)/cargo/bin"
-  - curl -sf "https://raw.githubusercontent.com/japaric/rust-everywhere/master/install.sh" | bash -s -- --from japaric/xargo
+  # - curl -sf "https://raw.githubusercontent.com/japaric/rust-everywhere/master/install.sh" | bash -s -- --from japaric/xargo
+  - cargo install xargo
 
 # before_script:
 #   - |
