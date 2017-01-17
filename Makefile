@@ -70,9 +70,9 @@ debug: $(iso) ##@build Run the kernel, redirecting serial output to a logfile.
 	@qemu-system-x86_64 -s -hda $(iso) -serial file:$(CURDIR)/target/$(target)/serial-$(TIMESTAMP).log
 
 test: ##@build Test crate dependencies
-	@xargo test -p sos_intrusive
+	@cargo test -p sos_intrusive
 	# @xargo test -p alloc
-	@cd alloc && xargo test
+	@cd alloc && cargo test
 
 run-%: $(wild_iso)
 	@qemu-system-x86_64 -s -hda $<
