@@ -140,7 +140,7 @@ impl Selector {
     /// Load this selector into the stack segment register (`ss`).
     pub unsafe fn load_ss(&self) {
         asm!(  "mov ss, $0"
-            :: "r"(*self)
+            :: "r"(self.bits)
             :  "memory"
             :  "intel");
     }
@@ -148,7 +148,7 @@ impl Selector {
     /// Load this selector into the data segment register (`ds`).
     pub unsafe fn load_ds(&self) {
         asm!(  "mov ds, $0"
-            :: "r"(*self)
+            :: "r"(self.bits)
             :  "memory"
             :  "intel");
     }
@@ -156,7 +156,7 @@ impl Selector {
     /// Load this selector into the `es` segment register.
     pub unsafe fn load_es(&self) {
         asm!(  "mov es, $0"
-            :: "r"(*self)
+            :: "r"(self.bits)
             :  "memory"
             :  "intel");
     }
@@ -164,7 +164,7 @@ impl Selector {
     /// Load this selector into the `fs` segment register.
     pub unsafe fn load_fs(&self) {
         asm!(  "mov fs, $0"
-            :: "r"(*self)
+            :: "r"(self.bits)
             :  "memory"
             :  "intel");
     }
@@ -172,7 +172,7 @@ impl Selector {
     /// Load this selector into the `gs` segment register.
     pub unsafe fn load_gs(&self) {
         asm!(  "mov gs, $0"
-            :: "r"(*self)
+            :: "r"(self.bits)
             :  "memory"
             :  "intel");
     }
