@@ -44,6 +44,7 @@ before_install: |
     fi
 
 install:
+  - rustup component add rust-src
   - cargo install xargo --force
   - export PATH="$PATH:$(rustc --print sysroot)/cargo/bin:$HOME/.cargo/bin"
 
