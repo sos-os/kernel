@@ -44,7 +44,14 @@ before_install: |
     fi
 
 install:
+  ### install the "rust-src" rustup component ###############################
+  # xargo uses this for building sysroots
+  # before installing rust-src we need to get `rustup`
+  - curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly
+  - source ~/.cargo/env
+  # add the rust-src component
   - rustup component add rust-src
+  ### install `xargo` ######################################################
   - cargo install xargo --force
   - export PATH="$PATH:$(rustc --print sysroot)/cargo/bin:$HOME/.cargo/bin"
 
