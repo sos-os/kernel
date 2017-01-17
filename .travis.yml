@@ -37,11 +37,11 @@ addons:
     # - libssh2-1
 
 before_install: |
-    if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      brew update && brew tap homebrew/bundle &&
-      travis_wait 120 brew bundle;
-      printf "\n\n[target.x86_64-sos-kernel-gnu]\nlinker = \"/usr/local/bin/x86_64-pc-elf-gcc\"" >> $HOME/.cargo/config;
-    fi
+  if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+    brew update && brew tap homebrew/bundle &&
+    travis_wait 120 brew bundle;
+    printf "\n\n[target.x86_64-sos-kernel-gnu]\nlinker = \"/usr/local/bin/x86_64-pc-elf-gcc\"" >> $HOME/.cargo/config;
+  fi
 
 install:
   ### install the "rust-src" rustup component ###############################
@@ -54,6 +54,21 @@ install:
   ### install `xargo` ######################################################
   - cargo install xargo --force
   - export PATH="$PATH:$(rustc --print sysroot)/cargo/bin:$HOME/.cargo/bin"
+
+before_script: |
+  if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      gcc=$(which gcc)
+      echo "${bold}install-env-linux:${normal} Linking ${gcc} to /usr/bin/x86_64-pc-elf-gcc."
+      sudo ln -s $gcc /usr/bin/x86_64-pc-elf-gcc
+
+      objcopy=$(which objcopy)
+      echo "${bold}install-env-linux:${normal} Linking ${objcopy} to /usr/bin/x86_64-elf-objcopy."
+      sudo ln -s $objcopy x86_64-elf-objcopy
+
+      strip=$(which strip)
+      echo "${bold}install-env-linux:${normal} Linking ${strip} to /usr/bin/x86_64-elf-strip."
+      sudo ln -s $strip x86_64-elf-strip
+  fi
 
 script:
   - make test
