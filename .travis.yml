@@ -57,7 +57,7 @@ install:
 
 script:
   - make test
-  - make
+  - make kernel
 
 # after_success:
 #   - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then travis-cargo doc && travis-cargo doc-upload; fi
