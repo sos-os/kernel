@@ -36,8 +36,7 @@ addons:
     - xorriso
     # - libssh2-1
 
-before_install:
-  - |
+before_install: |
     if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       brew update && brew tap homebrew/bundle &&
       travis_wait 120 brew bundle;
@@ -45,15 +44,8 @@ before_install:
     fi
 
 install:
-  - export PATH="$PATH:$(rustc --print sysroot)/cargo/bin"
-  # - curl -sf "https://raw.githubusercontent.com/japaric/rust-everywhere/master/install.sh" | bash -s -- --from japaric/xargo
   - cargo install xargo
-
-# before_script:
-#   - |
-#     if [[ "$TRAVIS_OS_NAME" != "osx" ]];
-#       pip install 'travis-cargo<0.2' --user && export PATH="$HOME/.local/bin:$PATH";
-#     fi
+  - export PATH="$PATH:$(rustc --print sysroot)/cargo/bin:$HOME/.cargo/bin"
 
 script:
   - make test
