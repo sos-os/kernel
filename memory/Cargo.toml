@@ -32,10 +32,14 @@ features = ["kinfo"]
 version = "0.2.*"
 features = ["spin_no_std"]
 
-[dependencies.custom_derive]
+[dependencies.macro-attr]
 git = "https://github.com/DanielKeep/rust-custom-derive.git"
-version = "0.1.6"
+version = "0.2.1"
 default-features = false
+
+# [dependencies.newtype_derive]
+# version = "0.1.6"
+# default-features = false
 
 [dependencies.log]
 version = "0.3.6"

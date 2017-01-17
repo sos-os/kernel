@@ -18,11 +18,12 @@
 #![no_std]
 
 #[macro_use] extern crate bitflags;
-#[macro_use] extern crate custom_derive;
+#[macro_use] extern crate macro_attr;
+// #[macro_use] extern crate newtype_derive;
 #[macro_use] extern crate log;
 
 #[macro_use] extern crate util;
-#[macro_use] extern crate vga;
+#[cfg(not(test))] #[macro_use] extern crate vga;
 // extern crate alloc as liballoc; // TODO: workaround
 
 #[macro_use] pub mod macros;
@@ -53,9 +54,9 @@ pub trait Addr<R>: ops::Add<Self> + ops::Add<R>
 
 //impl_addr! { VAddr, usize }
 
-custom_derive! {
+macro_attr! {
     /// A virtual address is a machine-sized unsigned integer
-    #[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Addr(usize))]
+    #[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Addr!(usize))]
     pub struct VAddr(usize);
 }
 

@@ -23,6 +23,7 @@ pub const PAGE_SHIFT: u8 = 12;
 //        in excess of 4 megs?
 pub const PAGE_SIZE: u64 = 1 << PAGE_SHIFT; // 4096
 
+#[cfg(not(test))]
 extern {
     // TODO: It would be really nice if there was a less ugly way of doing
     // this... (read: after the Revolution when we add memory regions to the
@@ -40,9 +41,9 @@ extern {
     pub static STACK_TOP: PAddr;
 }
 
-custom_derive! {
+macro_attr! {
     /// A physical (linear) memory address is a 64-bit unsigned integer
-    #[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Addr(u64))]
+    #[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Addr!(u64))]
     #[repr(C)]
     pub struct PAddr(u64);
 }
