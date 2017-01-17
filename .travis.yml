@@ -58,16 +58,16 @@ install:
 before_script: |
   if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
       gcc=$(which gcc)
-      echo "${bold}install-env-linux:${normal} Linking ${gcc} to ~/bin/x86_64-pc-elf-gcc."
-      ln -s $gcc /usr/bin/x86_64-pc-elf-gcc
+      echo "${bold}install-env-linux:${normal} Linking ${gcc} to ${HOME}/bin/x86_64-pc-elf-gcc."
+      ln -s $gcc $HOME/bin/x86_64-pc-elf-gcc
 
       objcopy=$(which objcopy)
-      echo "${bold}install-env-linux:${normal} Linking ${objcopy} to ~/bin/x86_64-elf-objcopy."
-      ln -s $objcopy x86_64-elf-objcopy
+      echo "${bold}install-env-linux:${normal} Linking ${objcopy} to ${HOME}/bin/x86_64-elf-objcopy."
+      ln -s $objcopy $HOME/bin/x86_64-elf-objcopy
 
       strip=$(which strip)
-      echo "${bold}install-env-linux:${normal} Linking ${strip} to ~/bin/x86_64-elf-strip."
-      ln -s $strip x86_64-elf-strip
+      echo "${bold}install-env-linux:${normal} Linking ${strip} to ${HOME}/bin/x86_64-elf-strip."
+      ln -s $strip $HOME/bin/x86_64-elf-strip
 
       export PATH=""$PATH:$HOME/bin"
   fi
