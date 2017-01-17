@@ -18,8 +18,7 @@
 #![crate_type = "lib"]
 #![feature( const_fn
           , slice_patterns
-          , unique
-          , question_mark )]
+          , unique )]
 #![cfg_attr(feature = "system_term", feature(lang_items))]
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
