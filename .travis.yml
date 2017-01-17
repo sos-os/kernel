@@ -44,7 +44,7 @@ before_install: |
     fi
 
 install:
-  - cargo install xargo
+  - cargo install xargo --force
   - export PATH="$PATH:$(rustc --print sysroot)/cargo/bin:$HOME/.cargo/bin"
 
 script:
