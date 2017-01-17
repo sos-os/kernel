@@ -19,6 +19,7 @@ rpath = false
 lto = false
 panic = "abort"
 
-[dependencies.vga]
-path = "../vga"
-features = ["system_term"]
+# [dependencies.vga]
+# path = "../vga"
+# features = ["system_term"]
+# optional = true

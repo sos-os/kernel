@@ -31,15 +31,11 @@
 
 #![feature( const_fn )]
 
-#[cfg(feature = "buddy")]
-extern crate sos_intrusive as intrusive;
-#[cfg(feature = "buddy_as_system")]
-extern crate spin;
 extern crate memory;
 
-#[macro_use]
-extern crate log;
-
+#[cfg(feature = "buddy")]           extern crate sos_intrusive as intrusive;
+#[cfg(feature = "buddy_as_system")] extern crate spin;
+#[macro_use]      extern crate log;
 
 /// Trait for something that is like a frame.
 ///

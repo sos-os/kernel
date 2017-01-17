@@ -37,7 +37,9 @@ use core::fmt::{Write, Result};
 #[cfg(feature = "system_term")]
 use spin::Mutex;
 
-#[cfg(feature = "system_term")]
+
+#[cfg(all( feature = "system_term"
+          , not(test)))]
 pub mod panic;
 
 /// Macro for printing to the standard output.

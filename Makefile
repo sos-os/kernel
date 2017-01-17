@@ -71,7 +71,8 @@ debug: $(iso) ##@build Run the kernel, redirecting serial output to a logfile.
 
 test: ##@build Test crate dependencies
 	@xargo test -p sos_intrusive
-	#@cd alloc && xargo test
+	# @xargo test -p alloc
+	@cd alloc && xargo test
 
 run-%: $(wild_iso)
 	@qemu-system-x86_64 -s -hda $<

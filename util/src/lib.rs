@@ -9,7 +9,8 @@
 //! General purpose stuff I couldn't find a better home for.
 #![crate_name = "util"]
 #![no_std]
-extern crate vga;
+
+// #[cfg(not(test))] extern crate vga;
 
 use core::fmt;
 
