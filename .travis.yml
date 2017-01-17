@@ -69,7 +69,7 @@ before_script: |
       echo "${bold}install-env-linux:${normal} Linking ${strip} to ${HOME}/bin/x86_64-elf-strip."
       ln -s $strip $HOME/bin/x86_64-elf-strip
 
-      export PATH=""$PATH:$HOME/bin"
+      export PATH="$PATH:$HOME/bin"
   fi
 
 script:
