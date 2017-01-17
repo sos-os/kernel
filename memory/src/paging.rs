@@ -105,7 +105,7 @@ impl Page {
     pub unsafe fn flush(&self) {
         asm!( "invlpg [$0]"
             :
-            : "{rax}"(self.base_addr())
+            : "{rax}"(self.base_addr().as_usize())
             : "memory"
             : "intel", "volatile")
     }
