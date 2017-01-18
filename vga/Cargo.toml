@@ -1,0 +1,19 @@
+[package]
+name = "vga"
+version = "0.1.0"
+authors = ["Hawk Weisman <hi@hawkweisman.me>"]
+
+[features]
+default = []
+system_term = ["spin"]
+kinfo = ["system_term", "log"]
+
+[dependencies.spin]
+version = "0.3.5"
+optional = true
+
+[dependencies.log]
+version = "0.3.6"
+default-features = false
+features = ["release_max_level_info"]
+optional = true

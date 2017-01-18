@@ -1,8 +1,8 @@
 //
 //  SOS: the Stupid Operating System
-//  by Hawk Weisman (hi@hawkweisman.me)
+//  by Eliza Weisman (hi@hawkweisman.me)
 //
-//  Copyright (c) 2015-2016 Hawk Weisman
+//  Copyright (c) 2015-2016 Eliza Weisman
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
@@ -16,26 +16,28 @@
 //! I'm writing this mostly for fun, to learn more about OS design and kernel
 //! hacking, so don't expect anything new or exciting out of this project.
 //!
-//! SOS is copyright 2015-2016 Hawk Weisman, and is released under the terms
+//! SOS is copyright 2015-2016 Eliza Weisman, and is released under the terms
 //! of the MIT license.
 
-// #![crate_name = "sos_kernel"]
-// #![crate_type = "staticlib"]
+#![crate_name = "sos_kernel"]
 
 #![doc(html_root_url = "https://hawkw.github.io/sos-kernel/")]
 
-#![feature(core_intrinsics)]
 #![feature( lang_items, asm, naked_functions )]
+#![feature( linkage )]
 #![feature( const_fn
           , slice_patterns
           , associated_consts
-          , unique
           , type_ascription
           , custom_derive )]
+<<<<<<< HEAD
 #![feature(collections)]
 #![feature(question_mark)]
 #![feature( zero_one
           , step_trait )]
+=======
+#![feature( collections )]
+>>>>>>> origin/master
 
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
@@ -44,29 +46,32 @@
 #![cfg_attr(not(test), no_main)]
 
 // -- non-SOS dependencies --------------------------------------------------
+#[macro_use] extern crate lazy_static;
+#[macro_use] extern crate bitflags;
+#[macro_use] extern crate log;
+
 extern crate collections;
 extern crate rlibc;
 extern crate spin;
 extern crate arrayvec;
 
-#[macro_use] extern crate lazy_static;
-#[macro_use] extern crate bitflags;
-#[macro_use] extern crate custom_derive;
-
 // -- SOS dependencies ------------------------------------------------------
-extern crate sos_alloc as alloc;
+#[macro_use] extern crate vga;
+#[macro_use] extern crate cpu;
 
-#[macro_use] extern crate sos_vga as vga;
+extern crate util;
+extern crate alloc;
+extern crate memory;
+extern crate elf;
 
-#[macro_use] pub mod macros;
-#[macro_use] pub mod memory;
 #[macro_use] pub mod io;
 
-pub mod util;
-pub mod multiboot2;
-pub mod elf;
+pub mod heap;
+pub mod params;
 pub mod arch;
+pub mod logger;
 
+<<<<<<< HEAD
 // Since the test module contains lang items, it can't be compiled when
 // running tests.
 #[cfg(not(test))] pub mod panic;
@@ -106,41 +111,30 @@ macro_rules! init_log {
                     )
     );
 }
+=======
+/// SOS version number
+pub const VERSION_STRING: &'static str
+    = concat!("Stupid Operating System v", env!("CARGO_PKG_VERSION"));
+>>>>>>> origin/master
 
-macro_rules! init_try {
-    ($dots:expr, $task:expr, $result:expr) => (
-        match $result {
-            Ok(value) => {
-                println!( "{task:<40}{res:>38}"
-                        , task = format!("{:>.width$}", $task, width = $dots)
-                        , res = "[ OKAY ]"
-                        );
-                value
-            }
-          , Err(why) => {
-                println!( "{task:<40}{res:>38}\n\n{msg:>.width$}"
-                        , task = format!("{:>.width$}", $task, width = $dots)
-                        , res = "[ FAIL ]"
-                        , msg = why
-                        , width = $dots + 1
-                        );
-                return $expr
-            }
-        }
-    )
-}
+use params::InitParams;
 
 /// Kernel main loop
-pub fn kernel_main() {
+pub fn kernel_main() -> ! {
     let mut a_vec = collections::vec::Vec::<usize>::new();
-    println!( "TEST: Created a vector in kernel space! {:?}", a_vec);
+    info!(target: "test", "Created a vector in kernel space! {:?}", a_vec);
     a_vec.push(1);
-    println!( "TEST: pushed to vec: {:?}", a_vec);
+    info!(target: "test", "pushed to vec: {:?}", a_vec);
     a_vec.push(2);
+<<<<<<< HEAD
     println!( "TEST: pushed to vec: {:?}", a_vec);
 
     let mut frame_allocator = frame_alloc::BuddyFrameAllocator::new();
     paging::test_paging(&mut frame_allocator);
+=======
+    info!(target: "test", "pushed to vec: {:?}", a_vec);
+
+>>>>>>> origin/master
     loop { }
 }
 
@@ -154,26 +148,51 @@ pub fn kernel_main() {
 //  TODO: since multiboot2 is x86-specific, this needs to move to `arch`.
 //  we then want the kernel entry point to be `arch_init`. we can then
 //  call into `kernel_init`.
+<<<<<<< HEAD
 #[no_mangle]
 pub extern "C" fn kernel_start(multiboot_addr: PAddr) {
     io::term::CONSOLE.lock().clear();
 
     println!("Hello from the kernel!");
+=======
+pub fn kernel_init(params: InitParams) {
+    kinfoln!("Hello from the kernel!");
+>>>>>>> origin/master
 
     // -- initialize interrupts ----------------------------------------------
+    kinfoln!(dots: " . ", "Initializing interrupts:");
     unsafe {
-        println!(" . Enabling interrupts:");
-        cpu::interrupts::initialize();
-        println!("{:<38}{:>40}", " . Enabling interrupts", "[ OKAY ]");
+        arch::interrupts::initialize();
     };
+    kinfoln!(dots: " . ", target: "Enabling interrupts", "[ OKAY ]");
 
+<<<<<<< HEAD
 
     // -- jump to architecture-specific init ---------------------------------
     arch::arch_init(multiboot_addr);
 
+=======
+    // -- initialize the heap ------------------------------------------------
+
+    if let Ok(_) =  unsafe { heap::initialize(&params) } {
+        kinfoln!( dots: " . ", target: "Intializing heap"
+                , "[ OKAY ]"
+                );
+        kinfoln!( dots: " . . "
+                , "Heap begins at {:#x} and ends at {:#x}"
+                , params.heap_base, params.heap_top);
+    } else {
+        kinfoln!( dots: " . ", target: "Intializing heap"
+                , "[ FAIL ]"
+                );
+    }
+
+    println!("\n{} {}-bit\n", VERSION_STRING, arch::ARCH_BITS);
+>>>>>>> origin/master
     // -- call into kernel main loop ------------------------------------------
     // (currently, this does nothing)
     kernel_main()
+
 }
 
 

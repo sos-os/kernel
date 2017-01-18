@@ -45,6 +45,7 @@ Once you have Rust installed, you will need the following additional dependencie
 + `ld`
 + `grub-mkrescue` & `xorriso`
 + `qemu` for running the kernel under emulation
++ `mtools`
 
 Depending on your OS, you'll want to install these dependencies somewhat differently.
 
@@ -53,15 +54,28 @@ Depending on your OS, you'll want to install these dependencies somewhat differe
 On Debian you can install them with
 
 ```
-$ sudo apt-get install nasm xorriso qemu build-essential
+$ sudo apt-get install nasm xorriso qemu mtools build-essential
 ```
 On Arch Linux you can install them with
 ```
-$ sudo pacman -S --needed binutils grub libisoburn nasm qemu
+$ sudo pacman -S --needed binutils grub libisoburn nasm qemu mtools
 ```
 And on Fedora with
 ```
 $ sudo dnf install nasm xorriso qemu
+```
+On Gentoo it's
+```
+$ sudo emerge app-emulation/qemu dev-lang/nasm dev-libs/libisoburn sys-boot/grub
+```
+
+You will also need `x86_64-elf-objcopy` and `x86_64-elf-strip`.
+On x86_64 Linux you can simply symlink them to your regular `objcopy` and `strip`.
+
+If you are on Gentoo but on another architecture you can build a cross-compiled version of `binutils` (which contains `objcopy` and `strip`) with
+```
+$ sudo emerge sys-devel/crossdev
+$ sudo crossdev -s0 --target x86_64-elf
 ```
 
 ### macOS

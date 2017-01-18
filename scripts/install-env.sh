@@ -65,7 +65,8 @@ echo "${bold}install-env:${normal} Updating Rust version"
 rustup update nightly
 echo "${bold}install-env:${normal} Overriding default Rust to nightly for SOS"
 rustup override add nightly
-
+echo "${bold}install-env:${normal} Installing rust-src component"
+rustup component add rust-src
 echo "${bold}install-env:${normal} Installing platform-specific dependencies."
 case $platform in
     Darwin)

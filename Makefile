@@ -1,11 +1,20 @@
 arch ?= x86_64
-target ?= $(arch)-unknown-sos-gnu
+target ?= $(arch)-sos-kernel-gnu
 
-iso := target/$(target)/release/sos-$(arch).iso
-kernel := target/$(target)/release/sos_kernel
-isofiles := target/$(target)/release/isofiles
+iso := target/$(target)/debug/sos-$(arch).iso
+kernel := target/$(target)/debug/sos_kernel
+
+release_iso := target/$(target)/release/sos-$(arch).iso
+release_kernel := target/$(target)/release/sos_kernel
 
 grub_cfg := src/arch/$(arch)/grub.cfg
+
+TIMESTAMP := $(shell /bin/date "+%Y-%m-%d-%H:%M:%S")
+
+# wildcard paths
+wild_iso := target/$(target)/%/sos-$(arch).iso
+wild_kernel := target/$(target)/%/sos_kernel
+wild_isofiles := target/$(target)/%/isofiles
 
 #COLORS
 GREEN  := $(shell tput -Txterm setaf 2)
@@ -23,47 +32,75 @@ HELP_FUN = \
     for (sort keys %help) { \
     print "${WHITE}$$_:${RESET}\n"; \
     for (@{$$help{$$_}}) { \
-    $$sep = " " x (32 - length $$_->[0]); \
+    $$sep = " " x (20 - length $$_->[0]); \
     print "  ${YELLOW}$$_->[0]${RESET}$$sep${GREEN}$$_->[1]${RESET}\n"; \
     }; \
     print "\n"; }
 
-.PHONY: all clean kernel run iso cargo help gdb
+.PHONY: all clean kernel run iso cargo help gdb test doc release-iso release-run release-kernel
+
+doc: ##@utilities Make RustDoc documentation
+	@xargo doc
 
 help: ##@miscellaneous Show this help.
 	@perl -e '$(HELP_FUN)' $(MAKEFILE_LIST)
 
-all: kernel
+all: help
 
 env: ##@utilities Install dev environment dependencies
 	./scripts/install-env.sh
 
 clean: ##@utilities Delete all build artefacts.
-	@cargo clean
+	@xargo clean
 
-kernel: $(kernel) ##@build Compile the kernel binary
+
+kernel: $(kernel).bin ##@build Compile the debug kernel binary
 
 iso: $(iso) ##@build Compile the kernel binary and make an ISO image
 
-run: $(iso) ##@build Make the kernel ISO image and boot QEMU from it.
-	@qemu-system-x86_64 -s -hda $(iso)
+run: run-debug ##@build Make the kernel ISO image and boot QEMU from it.
 
-$(iso): $(kernel) $(grub_cfg)
-	@mkdir -p $(isofiles)/boot/grub
-	@cp $(kernel) $(isofiles)/boot/
-	@cp $(grub_cfg) $(isofiles)/boot/grub
-	@grub-mkrescue -o $(iso) $(isofiles)/
-	@rm -r $(isofiles)
+release-kernel: $(release_kernel).bin ##@release Compile the release kernel binary
 
-$(kernel)_full:
-	@xargo build --release --target $(target)
+release-iso: $(release_iso) ##@release Compile the release kernel binary and make an ISO image
 
-$(kernel).debug: $(kernel)_full
-	@x86_64-elf-objcopy --only-keep-debug $(kernel)_full $(kernel).debug
+release-run: run-release ##@release Make the release kernel ISO image and boot QEMU from it.
 
-$(kernel): $(kernel)_full $(kernel).debug
-	@x86_64-elf-strip -g -o $(kernel) $(kernel)_full
+debug: $(iso) ##@build Run the kernel, redirecting serial output to a logfile.
+	@qemu-system-x86_64 -s -hda $(iso) -serial file:$(CURDIR)/target/$(target)/serial-$(TIMESTAMP).log
+
+test: ##@build Test crate dependencies
+	@cargo test -p sos_intrusive
+	# @xargo test -p alloc
+	@cd alloc && cargo test
+
+run-%: $(wild_iso)
+	@qemu-system-x86_64 -s -hda $<
+
+$(wild_iso): $(wild_kernel).bin $(wild_isofiles) $(grub_cfg)
+	@cp $< $(word 2,$^)/boot/
+	@cp $(grub_cfg) $(word 2,$^)/boot/grub
+	grub-mkrescue -o $@ $(word 2,$^)/
+	@rm -r $(word 2,$^)
+
+$(wild_isofiles):
+	@mkdir -p $@/boot/grub
+
+$(release_kernel):
+	@xargo build --target $(target) --release
+
+$(release_kernel).bin: $(release_kernel)
+	@cp $(release_kernel) $(release_kernel).bin
+
+$(kernel):
+	@xargo build --target $(target)
+
+$(kernel).debug: $(kernel)
+	@x86_64-elf-objcopy --only-keep-debug $(kernel) $(kernel).debug
+
+$(kernel).bin: $(kernel) $(kernel).debug
+	@x86_64-elf-strip -g -o $(kernel).bin $(kernel)
 	@x86_64-elf-objcopy --add-gnu-debuglink=$(kernel).debug $(kernel)
 
-gdb: $(kernel) $(kernel).debug ##@utilities Connect to a running QEMU instance with gdb.
+gdb: $(kernel).bin $(kernel).debug ##@utilities Connect to a running QEMU instance with gdb.
 	@rust-gdb -ex "target remote tcp:127.0.0.1:1234" $(kernel)

@@ -1,12 +1,3 @@
-# GNU floating-point libs - for cross-compiling binutils
-brew 'gmp'
-brew 'mpfr'
-brew 'libmpc'
-
-# GNU autoconf/automake -  for cross-compiling binutils
-brew 'autoconf'
-brew 'automake'
-
 # for assembling x86
 brew 'nasm'
 
@@ -16,4 +7,10 @@ brew 'xorriso'
 # for running the OS
 brew 'qemu'
 
-# todo: can we make brew cross-compile binutils?
+# x86_64-pc-elf cross-compile toolchain
+tap 'hawkw/x86_64-pc-elf'
+brew 'x86_64-pc-elf-gcc'
+
+# GRUB
+tap 'hawkw/grub'
+brew 'grub', args: ['with-x86_64-pc-elf', 'HEAD']

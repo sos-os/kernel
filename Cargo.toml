@@ -7,21 +7,30 @@ authors = [ # hacked around by
             "Philipp Oppermann <dev@phil-opp.com>"
           ]
 
-          build = "build.rs"
+build = "build.rs"
 
-[[bin]]
-name = "sos_kernel_full"
+# [[bin]]
+# name = "sos_kernel_full"
 
 # [lib]
 # crate-type = ["staticlib"]
 #
 
 [profile.dev]
+opt-level = 3
+debug = true
+rpath = false
+lto = false
+debug-assertions = true
+codegen-units = 1
 panic = "abort"
 
 [profile.release]
-panic = "abort"
+opt-level = 3
 debug = true
+rpath = false
+lto = false
+panic = "abort"
 
 [features]
 default = []
@@ -32,27 +41,27 @@ rlibc = "0.1.4"
 spin = "0.3.5"
 once = "0.3.2"
 bitflags = "0.7"
+cpu = { path = "cpu" }
+memory = { path = "memory" }
+util = { path = "util" }
+elf = { path = "elf" }
 
-[dependencies.arrayvec]
-version = "0.3.16"
+[dependencies.log]
+version = "0.3.6"
 default-features = false
-
-[dependencies.custom_derive]
-git = "https://github.com/DanielKeep/rust-custom-derive.git"
-version = "0.1.6"
-default-features = false
+features = ["release_max_level_info"]
 
 [dependencies.lazy_static]
 version = "0.2.*"
 features = ["spin_no_std"]
 
-[dependencies.sos_alloc]
-path = "lib/sos_alloc"
-features = ["buddy_as_system"]
+[dependencies.vga]
+path = "vga"
+features = ["kinfo"]
 
-[dependencies.sos_vga]
-path = "lib/sos_vga"
-features = ["system_term"]
+[dependencies.alloc]
+path = "alloc"
+features = ["buddy_as_system"]
 
 [dependencies.clippy]
 version = "0.0.60"

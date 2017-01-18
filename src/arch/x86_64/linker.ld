@@ -17,16 +17,23 @@ SECTIONS {
     .rodata :
     {
         /* This goes first. */
-        KEEP(*(.multiboot))
+        KEEP(*(.multiboot_header))
         *(.rodata .rodata.*)
         . = ALIGN(4K);
     }
 
     .text :
+<<<<<<< HEAD
     {
         *(.text .text.*)
         . = ALIGN(4K);
     }
+=======
+     {
+       *(.text .text.*)
+       . = ALIGN(4K);
+     }
+>>>>>>> origin/master
 
      .data :
      {

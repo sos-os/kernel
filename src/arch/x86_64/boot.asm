@@ -20,7 +20,7 @@
 
 global start
 
-extern kernel_start
+extern arch_init
 
 section .text
 bits 32
@@ -55,7 +55,7 @@ start:
     ; 6. print `OK` to screen and jump to the 64-bit boot subroutine.
     mov     dword [0xb8000], 0x2f4b2f4f
 
-    jmp     gdt64.code:kernel_start
+    jmp     gdt64.code:arch_init
 
 ; == Tests whether or not multiboot is enabled ==============================
 is_multiboot:
@@ -202,7 +202,8 @@ heap_base:
 heap_top:
 
 section .rodata
-gdt64:
+
+export gdt64
     dq 0 ; zero entry
 .code: equ $ - gdt64 ; new
     dq (1<<44) | (1<<47) | (1<<41) | (1<<43) | (1<<53) ; code segment
@@ -227,3 +228,6 @@ export heap_base_addr
 
 export heap_top_addr
     dq heap_top
+
+export pml4_table_addr
+    dq pml4_table

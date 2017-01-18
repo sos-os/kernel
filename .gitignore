@@ -7,6 +7,9 @@
 *.bin
 *.elf
 
+# serial output
+serial-*.log
+
 ### Assembler ###
 *.[sS]
 *.bc

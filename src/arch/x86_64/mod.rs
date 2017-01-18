@@ -7,11 +7,16 @@
 //  directory of this repository for more information.
 //
 //! `x86_64` architecture-specific implementation.
-pub mod cpu;
+// pub mod cpu;
 pub mod drivers;
-pub mod memory;
+pub mod interrupts;
+// pub mod memory;
+
+#[path = "../x86_all/bda.rs"] pub mod bda;
+#[path = "../x86_all/multiboot2.rs"] pub mod multiboot2;
 
 use memory::PAddr;
+<<<<<<< HEAD
 pub const ARCH_BITS: u8 = 64;
 
 /// Entry point for architecture-specific kernel init
@@ -21,6 +26,27 @@ pub fn arch_init(multiboot_addr: PAddr) {
     use core::mem;
     use alloc::buddy;
     use memory::paging::{Page, PhysicalPage};
+=======
+use params::InitParams;
+use ::kernel_init;
+
+pub const ARCH_BITS: u8 = 64;
+
+/// Entry point for architecture-specific kernel init
+///
+/// This expects to be passed the address of a valid
+/// Multiboot 2 info struct. It's the bootloader's responsibility to ensure
+/// that this is passed in the correct register as expected by the calling
+/// convention (`edi` on x86). If this isn't there, you can expect to have a
+/// bad problem and not go to space today.
+#[no_mangle]
+pub extern "C" fn arch_init(multiboot_addr: PAddr) {
+    use memory::arch::{HEAP_BASE, HEAP_TOP};
+
+    ::io::term::CONSOLE.lock().clear();
+    ::logger::initialize()
+        .expect("Could not initialize logger!");
+>>>>>>> origin/master
 
     // -- Unpack multiboot tag -----------------------------------------------
     let boot_info
@@ -31,9 +57,9 @@ pub fn arch_init(multiboot_addr: PAddr) {
         = boot_info.mem_map()
                    .expect("Memory map tag required!");
 
-    println!(" . Detected memory areas:");
+    kinfoln!(dots: " . ", "Detected memory areas:");
     for a in mmap_tag.areas() {
-        println!(" . . start: {:#08x}, end: {:#08x}"
+        kinfoln!(dots: " . . ", "start: {:#08x}, end: {:#08x}"
                 , a.base, a.length );
     }
 
@@ -41,12 +67,13 @@ pub fn arch_init(multiboot_addr: PAddr) {
         = boot_info.elf_sections()
                    .expect("ELF sections tag required!");
 
-    println!(" . Detecting kernel ELF sections:");
+    kinfoln!(dots: " . ", "Detecting kernel ELF sections:");
 
     let kernel_begin    // Extract kernel ELF sections from  multiboot info
         = elf_sections_tag.sections()
             .map(|s| {
-                println!(" . . address: {:#08x}, size: {:#08x}, flags: {:#08x}"
+                kinfoln!( dots: " . . "
+                     , "address: {:#08x}, size: {:#08x}, flags: {:#08x}"
                         , s.addr()
                         , s.length()
                         , s.flags() );
@@ -63,12 +90,13 @@ pub fn arch_init(multiboot_addr: PAddr) {
             .expect("Could not find kernel end section!\
                     \nSomething is deeply wrong.");
 
-    println!( " . Detected {} kernel ELF sections.", n_elf_sections);
-    println!( " . . Kernel begins at {:#x} and ends at {:#x}."
+    kinfoln!( dots: " . ", "Detected {} kernel ELF sections.", n_elf_sections);
+    kinfoln!(dots: " . . ", "Kernel begins at {:#x} and ends at {:#x}."
              , kernel_begin, kernel_end );
 
     let multiboot_end = multiboot_addr + boot_info.length as u64;
 
+<<<<<<< HEAD
     println!( " . . Multiboot info begins at {:#x} and ends at {:#x}."
            , multiboot_addr, multiboot_end);
 
@@ -104,5 +132,15 @@ pub fn arch_init(multiboot_addr: PAddr) {
     ::memory::kernel_remap(&boot_info, &frame_allocator);
     println!("{:<38}{:>40}", " . Remapping the kernel", "[ OKAY ]");
 
+=======
+    kinfoln!(dots: " . . ", "Multiboot info begins at {:#x} and ends at {:#x}."
+             , multiboot_addr, multiboot_end);
+>>>>>>> origin/master
 
+    let params = InitParams { kernel_base: kernel_begin
+                            , kernel_top:  kernel_end
+                            , heap_base:   unsafe { HEAP_BASE }
+                            , heap_top:    unsafe { HEAP_TOP }
+                            };
+    kernel_init(params);
 }

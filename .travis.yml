@@ -1,32 +1,84 @@
 language: rust
+
+os:
+  - linux
+  - osx
+
 rust:
-- nightly
+  - nightly
+
+matrix:
+  allow_failures:
+    - os: osx
+  fast_finish: true
+
+cache:
+  cargo: true
+  directories:
+    - /usr/local/bin/x86_64-pc-elf-*
+    - /usr/local/bin/grub*
+    # brew directories on OS X
+    - /usr/local/Cellar/x86_64-pc-elf-*
+    - /usr/local/Cellar/grub
+
 notifications:
   email:
     on_success: never
     on_failure: change
   slack:
     secure: CTfCGsKzNyb7SqEGeXYCnwE0jZLcANMjgdZpnpDMHtyBzOb0EJ1VXe5FpCVZ74jPD0De/eWwxT3aVnxZGnIn24gIB4K+3km4s+mSiecfhtP6lhHKaxy25NNKqcVJMt+52GgBYRvF9lPDdQR/I+YPznKeKkGCI8KMK8Y61RTMF1gWHezqsDirVemS+qp4YP8MrtcUk8W0yw+K522MuCLBFBy/LX1LrkZjkM1yyDIWmS7UerU1A0mWmDgiwfO33jJPtJKj64HrVwbOjl9ZH9SkEMeHumBsocxZ+3EPx8qygzJfEAMbWV6nu816e5Jg58UBsKrm5rPKdHmSshrvme7L79mGgfaROKF94OzIL67HFs+3vFXG5GspQz6myA+HtQMCO03dS7VydB6//Tpr9okWHsCBGgRgDnuvXWk/HG2kSP1uSDhrxqmBya/kTSaOa+QRqUnF6XxknxX5DCbGKIVY9fN5+IxDBVnigVYAlHe+NreT3xNeLd7E3p1TL865SYpU4szJ1KLtq+JX+DAAYF94UoIt4fD/kQ0tYhwKSJtUNfFRs5MubqewNpkw/Pt2d9gPIw9+hP7c6w/4gd3lDuVfMwhZwsXfRX9OvEemFET4dK+VHy5DqH00DJ/3tQaJ2dDeIHUtFMq1V93aVjspMDj+dwVctQ5DhIXHaYKmrc4yQkA=
+
 addons:
   apt:
     packages:
     - nasm
     - build-essential
     - xorriso
-    - libssh2-1
-before_script:
-- |
-  pip install 'travis-cargo<0.2' --user &&
-  export PATH=$HOME/.local/bin:$PATH
+    # - libssh2-1
+
+before_install: |
+  if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+    brew update && brew tap homebrew/bundle &&
+    travis_wait 120 brew bundle;
+    printf "\n\n[target.x86_64-sos-kernel-gnu]\nlinker = \"/usr/local/bin/x86_64-pc-elf-gcc\"" >> $HOME/.cargo/config;
+  fi
+
 install:
-- export PATH="$PATH:$(rustc --print sysroot)/cargo/bin"
-- curl -sf "https://raw.githubusercontent.com/japaric/rust-everywhere/master/install.sh" | bash -s -- --from japaric/xargo
+  ### install the "rust-src" rustup component ###############################
+  # xargo uses this for building sysroots
+  # before installing rust-src we need to get `rustup`
+  - curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly
+  - source ~/.cargo/env
+  # add the rust-src component
+  - rustup component add rust-src
+  ### install `xargo` ######################################################
+  - cargo install xargo --force
+  - export PATH="$PATH:$(rustc --print sysroot)/cargo/bin:$HOME/.cargo/bin"
+
+# before_script: |
+#   if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+#       gcc=$(which gcc)
+#       echo "${bold}install-env-linux:${normal} Linking ${gcc} to ${HOME}/bin/x86_64-pc-elf-gcc."
+#       ln -s $gcc $HOME/bin/x86_64-pc-elf-gcc
+#
+#       objcopy=$(which objcopy)
+#       echo "${bold}install-env-linux:${normal} Linking ${objcopy} to ${HOME}/bin/x86_64-elf-objcopy."
+#       ln -s $objcopy $HOME/bin/x86_64-elf-objcopy
+#
+#       strip=$(which strip)
+#       echo "${bold}install-env-linux:${normal} Linking ${strip} to ${HOME}/bin/x86_64-elf-strip."
+#       ln -s $strip $HOME/bin/x86_64-elf-strip
+#
+#       export PATH="$PATH:$HOME/bin"
+#   fi
+
 script:
-- cd lib/sos_alloc && cargo test
-- cd ../.. && cargo test -p sos_intrusive
-- make
-after_success:
-- travis-cargo doc && travis-cargo doc-upload
+  - make test
+  - xargo build --target x86_64-sos-kernel-gnu
+
+# after_success:
+#   - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then travis-cargo doc && travis-cargo doc-upload; fi
+
 deploy:
   provider: releases
   api_key:

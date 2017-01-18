@@ -1,0 +1,30 @@
+[package]
+name = "alloc"
+version = "0.1.0"
+authors = ["Eliza Weisman <hi@hawkweisman.me>"]
+
+[features]
+default = ["buddy"]
+buddy = ["sos_intrusive"]
+as_system = []
+buddy_as_system = ["spin", "as_system"]
+
+[dependencies.log]
+version = "0.3.6"
+default-features = false
+features = ["release_max_level_info"]
+
+[dependencies.memory]
+path = "../memory"
+
+[dependencies.spin]
+version = "0.3.5"
+optional = true
+
+[dependencies.sos_intrusive]
+path = "../sos_intrusive"
+optional = true
+
+[dependencies.arrayvec]
+version = "0.3.16"
+default-features = false
