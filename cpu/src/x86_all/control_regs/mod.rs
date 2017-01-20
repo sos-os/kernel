@@ -95,7 +95,7 @@ pub mod cr3 {
     use memory::PAddr;
 
     #[cfg(target_arch = "x86_64")]
-    use arch::memory::paging::table::{Table, PML4Level};
+    use memory::paging::table::{Table, PML4Level};
 
     /// Read the current value from `$cr3`.
     ///

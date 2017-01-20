@@ -28,6 +28,9 @@ spin = "0.3.5"
 path = "../vga"
 features = ["kinfo"]
 
+[dependencies.memory]
+path = "../memory"
+
 [dependencies.log]
 version = "0.3.6"
 default-features = false
