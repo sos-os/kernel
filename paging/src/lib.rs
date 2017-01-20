@@ -6,19 +6,35 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-//! Non-arch-specific paging.
-use ::{VAddr, PAddr};
-use arch::{ PAGE_SHIFT, PAGE_SIZE };
-use memory::{Addr, VAddr, PAddr, PAGE_SHIFT};
-use memory::alloc::FrameAllocator;
+//! SOS Paging
+//!
+//! This is in its own crate so that it can depend on both the `memory` and
+//! `alloc` crates.
+
+#![no_std]
+
+#[macro_use] extern crate bitflags;
+#[macro_use] extern crate macro_attr;
+// #[macro_use] extern crate newtype_derive;
+#[macro_use] extern crate log;
+extern crate spin;
+
+#[macro_use] extern crate util;
+#[macro_use] extern crate memory;
+extern crate alloc;
+
+#[macro_use] pub mod macros;
+pub mod arch;
+
+use memory::{Addr, VAddr, PAddr, PAGE_SHIFT, PAGE_SIZE };
+use alloc::FrameAllocator;
 
 use elf;
 
 use core::{ops, cmp, convert};
 use core::ops::Range;
 
-pub use arch::memory::PhysicalPage;
-pub use arch::memory::paging::*;
+pub use arch::PhysicalPage;
 
 pub type PageRange = Range<VirtualPage>;
 pub type FrameRange = Range<PhysicalPage>;
@@ -228,9 +244,9 @@ pub trait Mapper {
 
 }
 
-custom_derive!{
+macro_attr!{
     /// A virtual page
-    #[derive( Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Page(VAddr) )]
+    #[derive( Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Page!(VAddr) )]
     pub struct VirtualPage { pub number: usize }
 }
 
