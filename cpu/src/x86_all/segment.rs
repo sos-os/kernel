@@ -21,6 +21,7 @@
 
 use core::{fmt, mem};
 use super::PrivilegeLevel;
+use super::dtable::DTable;
 
 /// The number of entries in the GDT
 #[cfg(target_arch = "x86_64")]
