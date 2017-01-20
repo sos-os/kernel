@@ -65,3 +65,12 @@ unsafe fn extract_from_slice<T: Sized>( data: &[u8]
            );
     slice::from_raw_parts(data[offset..].as_ptr() as *const T, n)
 }
+
+impl<'a> convert:Into<FrameRange> for Section<'a> {
+    #[inline]
+    fn into(self) -> FrameRange {
+        let start = PhysicalPage::from(self.addr());
+        let end = PhysicalPage::from(self.end_addr());
+        start .. end
+    }
+}
