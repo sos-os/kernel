@@ -1,5 +1,5 @@
 use arrayvec::ArrayVec;
-use memory::paging::{Page, MemRange, PhysicalPage, FrameRange};
+use memory::{Page, MemRange, PhysicalPage, FrameRange};
 use super::FrameAllocator;
 use spin::Mutex;
 

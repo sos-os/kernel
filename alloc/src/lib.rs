@@ -34,11 +34,18 @@
 extern crate memory;
 use memory::{PhysicalPage, FrameRange};
 
-use core::ops;
+use core::{ops, ptr};
+use core::cmp::min;
 
-#[cfg(feature = "buddy")]           extern crate sos_intrusive as intrusive;
-#[cfg(feature = "buddy_as_system")] extern crate spin;
-#[macro_use]                        extern crate log;
+#[cfg(feature = "buddy")]
+extern crate sos_intrusive as intrusive;
+#[cfg(any( feature = "buddy_as_system"
+         , feature = "first_fit"))]
+extern crate spin;
+#[macro_use]
+extern crate log;
+#[cfg(feature = "first_fit")]
+extern crate arrayvec;
 
 /// Trait for something that is like a frame.
 ///
@@ -242,5 +249,5 @@ pub trait Allocator {
 
 #[cfg(feature = "buddy")]
 pub mod buddy;
-
+#[cfg(feature = "first_fit")]
 pub mod first_fit;

@@ -8,6 +8,7 @@ default = ["buddy"]
 buddy = ["sos_intrusive"]
 as_system = []
 buddy_as_system = ["spin", "as_system"]
+first_fit = ["spin", "arrayvec"]
 
 [dependencies.log]
 version = "0.3.6"
@@ -28,3 +29,4 @@ optional = true
 [dependencies.arrayvec]
 version = "0.3.16"
 default-features = false
+optional = true
