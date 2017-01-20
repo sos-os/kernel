@@ -12,7 +12,7 @@ mod math;
 #[cfg(feature = "buddy_as_system")]
 pub mod system;
 
-use super::Framesque;
+use super::{Allocator, Framesque};
 use self::math::PowersOf2;
 
 use core::mem;
@@ -21,8 +21,6 @@ use core::ptr::Unique;
 
 use intrusive::list::{List, Node};
 use intrusive::rawlink::RawLink;
-
-use memory::alloc::Allocator;
 use memory::arch::PAGE_SIZE;
 
 #[cfg(target_os = "linux")]
