@@ -10,8 +10,7 @@
 //!
 //! Consult the [Multiboot Specification](http://nongnu.askapache.com/grub/phcoder/multiboot.pdf)
 //! for more information.
-use memory::PAddr;
-use memory::paging::{PhysicalPage, FrameRange};
+use memory::{PAddr, PhysicalPage, FrameRange};
 use elf::section::{Sections, HeaderRepr};
 
 const END_TAG_LEN: u32 = 8;
