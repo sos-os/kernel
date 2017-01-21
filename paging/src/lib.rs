@@ -22,11 +22,12 @@ extern crate spin;
 #[macro_use] extern crate util;
 #[macro_use] extern crate memory;
 extern crate alloc;
+extern crate elf;
 
 #[macro_use] pub mod macros;
 pub mod arch;
 
-use memory::{Addr, VAddr, PAddr, PAGE_SHIFT, PAGE_SIZE };
+use memory::{VirtualPage, PhysicalPage};
 use alloc::FrameAllocator;
 
 use elf;
@@ -56,7 +57,7 @@ pub trait Mapper {
     /// + `alloc`: a memory allocator
     fn map<A>( &mut self, page: VirtualPage, frame: PhysicalPage
              , flags: Self::Flags, alloc: &A )
-    where A: FrameAllocator;
+    where A: FrameAllocator<PhysicalPage>;
 
     /// Identity map a given `frame`.
     ///
@@ -66,7 +67,7 @@ pub trait Mapper {
     /// + `alloc`: a memory allocator
     fn identity_map<A>( &mut self, frame: PhysicalPage
                       , flags: Self::Flags, alloc: &A )
-    where A: FrameAllocator;
+    where A: FrameAllocator<PhysicalPage>;
 
     /// Map the given `VirtualPage` to any free frame.
     ///
@@ -80,23 +81,23 @@ pub trait Mapper {
     fn map_to_any<A>( &mut self, page: VirtualPage
                     , flags: Self::Flags
                     , alloc: &A)
-    where A: FrameAllocator;
+    where A: FrameAllocator<PhysicalPage>;
 
     /// Unmap the given `VirtualPage`.
     ///
     /// All freed frames are returned to the given `FrameAllocator`.
     fn unmap<A>(&mut self, page: VirtualPage, alloc: &A)
-    where A: FrameAllocator;
+    where A: FrameAllocator<PhysicalPage>;
 
 }
 
-/// Trait for a memory allocator which can allocate memory in terms of frames.
-pub trait FrameAllocator<Frame> {
-
-    /// Allocate a new `Frame`
-    //  TODO: do we want to be able to request a frame size?
-    fn alloc_frame(&mut self) -> Option<Frame>;
-
-    /// Deallocate a given `Frame`.
-    fn dealloc_frame(&mut self, frame: Frame);
-}
+// /// Trait for a memory allocator which can allocate memory in terms of frames.
+// pub trait FrameAllocator<Frame> {
+//
+//     /// Allocate a new `Frame`
+//     //  TODO: do we want to be able to request a frame size?
+//     fn alloc_frame(&mut self) -> Option<Frame>;
+//
+//     /// Deallocate a given `Frame`.
+//     fn dealloc_frame(&mut self, frame: Frame);
+// }
