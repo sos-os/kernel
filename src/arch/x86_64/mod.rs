@@ -15,20 +15,6 @@ pub mod interrupts;
 #[path = "../x86_all/bda.rs"] pub mod bda;
 #[path = "../x86_all/multiboot2.rs"] pub mod multiboot2;
 
-use memory::PAddr;
-<<<<<<< HEAD
-pub const ARCH_BITS: u8 = 64;
-
-/// Entry point for architecture-specific kernel init
-pub fn arch_init(multiboot_addr: PAddr) {
-    use multiboot2;
-    use self::cpu::{control_regs, msr};
-    use core::mem;
-    use alloc::buddy;
-    use memory::paging::{Page, PhysicalPage};
-=======
-use params::InitParams;
-use ::kernel_init;
 
 pub const ARCH_BITS: u8 = 64;
 
@@ -41,12 +27,19 @@ pub const ARCH_BITS: u8 = 64;
 /// bad problem and not go to space today.
 #[no_mangle]
 pub extern "C" fn arch_init(multiboot_addr: PAddr) {
+    use multiboot2;
+    use cpu::{control_regs, msr};
+    use core::mem;
+    use alloc::buddy;
+    use memory::{PAddr, Page, PhysicalPage};
+
     use memory::arch::{HEAP_BASE, HEAP_TOP};
+    use params::InitParams;
+    use ::kernel_init;
 
     ::io::term::CONSOLE.lock().clear();
     ::logger::initialize()
         .expect("Could not initialize logger!");
->>>>>>> origin/master
 
     // -- Unpack multiboot tag -----------------------------------------------
     let boot_info
@@ -59,7 +52,7 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
 
     kinfoln!(dots: " . ", "Detected memory areas:");
     for a in mmap_tag.areas() {
-        kinfoln!(dots: " . . ", "start: {:#08x}, end: {:#08x}"
+        kinfoln!( dots: " . . ", "start: {:#08x}, end: {:#08x}"
                 , a.base, a.length );
     }
 
@@ -73,7 +66,7 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
         = elf_sections_tag.sections()
             .map(|s| {
                 kinfoln!( dots: " . . "
-                     , "address: {:#08x}, size: {:#08x}, flags: {:#08x}"
+                        , "address: {:#08x}, size: {:#08x}, flags: {:#08x}"
                         , s.addr()
                         , s.length()
                         , s.flags() );
@@ -91,22 +84,21 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
                     \nSomething is deeply wrong.");
 
     kinfoln!( dots: " . ", "Detected {} kernel ELF sections.", n_elf_sections);
-    kinfoln!(dots: " . . ", "Kernel begins at {:#x} and ends at {:#x}."
-             , kernel_begin, kernel_end );
+    kinfoln!( dots: " . . ", "Kernel begins at {:#x} and ends at {:#x}."
+            , kernel_begin, kernel_end );
 
     let multiboot_end = multiboot_addr + boot_info.length as u64;
 
-<<<<<<< HEAD
-    println!( " . . Multiboot info begins at {:#x} and ends at {:#x}."
-           , multiboot_addr, multiboot_end);
+    kinfoln!( dots: " . . ", "Multiboot info begins at {:#x} and ends at {:#x}."
+            , multiboot_addr, multiboot_end);
 
      // -- enable flags needed for paging ------------------------------------
      unsafe {
          control_regs::cr0::enable_write_protect(true);
-         println!( " . Page write protect ENABED" );
+         kinfoln!(dots: " . ", "Page write protect ENABED" );
 
          msr::enable_nxe();
-         println!( " . Page no execute bit ENABLED");
+         kinfoln!(dots: " . ", "Page no execute bit ENABLED");
      }
 
      println!(" . . Preparing to initialize heap. ");
@@ -126,16 +118,14 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
      };
 
     // -- remap the kernel ----------------------------------------------------
-    println!(" . Remapping the kernel:");
+    kinfoln!(dots: " . ", "Remapping the kernel:");
 
     let frame_allocator = ::memory::alloc::BuddyFrameAllocator::new();
     ::memory::kernel_remap(&boot_info, &frame_allocator);
-    println!("{:<38}{:>40}", " . Remapping the kernel", "[ OKAY ]");
+    kinfoln!(dots: " . ", "Remapping the kernel", "[ OKAY ]");
 
-=======
     kinfoln!(dots: " . . ", "Multiboot info begins at {:#x} and ends at {:#x}."
              , multiboot_addr, multiboot_end);
->>>>>>> origin/master
 
     let params = InitParams { kernel_base: kernel_begin
                             , kernel_top:  kernel_end
