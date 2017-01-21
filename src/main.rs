@@ -49,6 +49,7 @@
 extern crate collections;
 extern crate rlibc;
 extern crate spin;
+
 // -- SOS dependencies ------------------------------------------------------
 #[macro_use] extern crate vga;
 #[macro_use] extern crate cpu;
