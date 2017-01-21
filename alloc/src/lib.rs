@@ -122,7 +122,6 @@ where A: FrameAllocator
     }
 }
 
-
 pub trait FrameAllocator: Sized  {
 
     unsafe fn allocate(&self) -> Option<PhysicalPage>;

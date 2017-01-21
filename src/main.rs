@@ -66,12 +66,7 @@ pub mod params;
 pub mod arch;
 pub mod logger;
 
-// Since the test module contains lang items, it can't be compiled when
-// running tests.
-
-use arch::cpu;
-use memory::{paging, PAddr};
-use memory::alloc as frame_alloc;
+use memory::{PAddr, PhysicalPage, VirtualPage};
 
 #[macro_use]
 macro_rules! init_log {
@@ -120,9 +115,8 @@ pub fn kernel_main() -> ! {
     a_vec.push(2);
     info!(target: "test", "pushed to vec: {:?}", a_vec);
 
-    let mut frame_allocator = frame_alloc::BuddyFrameAllocator::new();
-    paging::test_paging(&mut frame_allocator);
-
+    // let mut frame_allocator = frame_alloc::BuddyFrameAllocator::new();
+    // paging::test_paging(&mut frame_allocator);
 
     loop { }
 }

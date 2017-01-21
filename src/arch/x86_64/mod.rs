@@ -15,8 +15,9 @@ pub mod interrupts;
 #[path = "../x86_all/bda.rs"] pub mod bda;
 #[path = "../x86_all/multiboot2.rs"] pub mod multiboot2;
 
-
 pub const ARCH_BITS: u8 = 64;
+
+use memory::PAddr;
 
 /// Entry point for architecture-specific kernel init
 ///
@@ -118,14 +119,14 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
      };
 
     // -- remap the kernel ----------------------------------------------------
-    kinfoln!(dots: " . ", "Remapping the kernel:");
-
-    let frame_allocator = ::memory::alloc::BuddyFrameAllocator::new();
-    ::memory::kernel_remap(&boot_info, &frame_allocator);
-    kinfoln!(dots: " . ", target: "Remapping the kernel", "[ OKAY ]");
-
-    kinfoln!(dots: " . . ", "Multiboot info begins at {:#x} and ends at {:#x}."
-             , multiboot_addr, multiboot_end);
+    // kinfoln!(dots: " . ", "Remapping the kernel:");
+    //
+    // let frame_allocator = ::memory::alloc::BuddyFrameAllocator::new();
+    // ::memory::kernel_remap(&boot_info, &frame_allocator);
+    // kinfoln!(dots: " . ", target: "Remapping the kernel", "[ OKAY ]");
+    //
+    // kinfoln!(dots: " . . ", "Multiboot info begins at {:#x} and ends at {:#x}."
+    //          , multiboot_addr, multiboot_end);
 
     let params = InitParams { kernel_base: kernel_begin
                             , kernel_top:  kernel_end
