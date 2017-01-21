@@ -2,8 +2,11 @@
 use spin::Mutex;
 use core::ptr;
 
-use ::Allocator;
+use ::{Allocator, FrameAllocator};
 use super::{BuddyHeapAllocator, FreeList};
+
+use memory::{ PAddr, PhysicalPage, FrameRange, VAddr };
+use memory::arch::PAGE_SIZE;
 
 pub const NUM_FREE_LISTS: usize = 19;
 
@@ -29,6 +32,7 @@ pub unsafe fn init_heap(start_addr: *mut u8, heap_size: usize ) {
                                       , heap_size));
 }
 
+// -- integrate the heap allocator into the Rust runtime ------------------
 #[no_mangle]
 pub extern "C" fn __rust_allocate(size: usize, align: usize) -> *mut u8 {
     trace!("__rust_allocate() was called.");
@@ -80,4 +84,54 @@ pub extern "C" fn __rust_reallocate_inplace( _ptr: *mut u8
 #[no_mangle]
 pub extern "C" fn __rust_usable_size(size: usize, _: usize) -> usize {
     size
+}
+
+// quick first pass on using the heap allocator as a frame allocator
+// TODO: this is Extremely Bad And Ugly And Awful. pleae make better.
+//       – eliza, 1/21/2017
+pub struct BuddyFrameAllocator;
+
+impl BuddyFrameAllocator {
+    pub const fn new() -> Self { BuddyFrameAllocator }
+}
+
+impl FrameAllocator for BuddyFrameAllocator {
+
+    unsafe fn allocate(&self) -> Option<PhysicalPage> {
+        ALLOC.lock().as_mut()
+             .expect("Cannot allocate frame, no system allocator exists!")
+             .allocate(PAGE_SIZE as usize, PAGE_SIZE as usize)
+             .map(|block| {
+                let addr = VAddr::from_ptr(block);
+                // TODO: make this not be bad and ugly.
+                PhysicalPage::containing_addr(
+                    PAddr::from(addr.as_usize() as u64))
+             })
+
+    }
+
+    unsafe fn deallocate(&self, frame: PhysicalPage) {
+        ALLOC.lock().as_mut()
+             .expect("Cannot deallocate frame, no system allocator exists!")
+             .deallocate( frame.as_mut_ptr()
+                        , PAGE_SIZE as usize
+                        , PAGE_SIZE as usize);
+
+    }
+
+    unsafe fn allocate_range(&self, _num: usize) -> Option<FrameRange> {
+        unimplemented!()
+    }
+
+    unsafe fn deallocate_range(&self, range: FrameRange) {
+        for frame in range {
+            ALLOC.lock().as_mut()
+                 .expect("Cannot deallocate frames, no system allocator exists")
+                 .deallocate( frame.as_mut_ptr()
+                            , PAGE_SIZE as usize
+                            , PAGE_SIZE as usize);
+        }
+    }
+
+
 }
