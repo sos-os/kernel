@@ -24,6 +24,7 @@ util = { path = "../util" }
 memory = { path = "../memory" }
 alloc = { path = "../alloc" }
 elf = { path = "../elf" }
+cpu = { path = "../cpu" }
 bitflags = "0.7"
 spin = "0.3.5"
 

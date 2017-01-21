@@ -58,6 +58,7 @@ extern crate util;
 extern crate alloc;
 extern crate memory;
 extern crate elf;
+extern crate paging;
 
 #[macro_use] pub mod io;
 

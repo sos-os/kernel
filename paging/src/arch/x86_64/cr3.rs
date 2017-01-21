@@ -1,6 +1,6 @@
 use super::table::{Table, PML4Level};
 use memory::PhysicalPage;
-use cpu::cr3::{read, write};
+use cpu::control_regs::cr3::{read, write};
 
 /// Returns the current Page Meta-Level 4 table
 ///

@@ -1,13 +1,14 @@
-use ::memory::paging::{Page, PhysicalPage, VirtualPage, FrameRange, Mapper};
-use ::memory::alloc::{FrameAllocator};
-use memory::VAddr;
+use memory::{Page, PhysicalPage, VAddr, VirtualPage, FrameRange};
+use alloc::FrameAllocator;
+// use memory::VAddr;
 
 use spin::Mutex;
 
 use core::ops;
 
-use arch::memory::paging::ActivePageTable;
-use arch::memory::paging::table::{Table, PTLevel};
+use super::ActivePageTable;
+use super::table::{Table, PTLevel};
+use ::Mapper;
 
 #[derive(Debug)]
 pub struct TempPage { page: VirtualPage

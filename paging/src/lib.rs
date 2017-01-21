@@ -10,7 +10,9 @@
 //!
 //! This is in its own crate so that it can depend on both the `memory` and
 //! `alloc` crates.
-
+#![feature(asm)]
+#![feature(unique)]
+#![feature(associated_consts)]
 #![no_std]
 
 #[macro_use] extern crate bitflags;
@@ -22,15 +24,15 @@ extern crate spin;
 #[macro_use] extern crate util;
 #[macro_use] extern crate memory;
 extern crate alloc;
+extern crate cpu;
 extern crate elf;
 
 #[macro_use] pub mod macros;
 pub mod arch;
+pub use self::arch::{kernel_remap, test_paging};
 
-use memory::{VirtualPage, PhysicalPage};
+use memory::{PAddr, PhysicalPage, VAddr, VirtualPage};
 use alloc::FrameAllocator;
-
-use elf;
 
 use core::{ops, cmp, convert};
 
@@ -57,7 +59,7 @@ pub trait Mapper {
     /// + `alloc`: a memory allocator
     fn map<A>( &mut self, page: VirtualPage, frame: PhysicalPage
              , flags: Self::Flags, alloc: &A )
-    where A: FrameAllocator<PhysicalPage>;
+    where A: FrameAllocator;
 
     /// Identity map a given `frame`.
     ///
@@ -67,7 +69,7 @@ pub trait Mapper {
     /// + `alloc`: a memory allocator
     fn identity_map<A>( &mut self, frame: PhysicalPage
                       , flags: Self::Flags, alloc: &A )
-    where A: FrameAllocator<PhysicalPage>;
+    where A: FrameAllocator;
 
     /// Map the given `VirtualPage` to any free frame.
     ///
@@ -81,13 +83,13 @@ pub trait Mapper {
     fn map_to_any<A>( &mut self, page: VirtualPage
                     , flags: Self::Flags
                     , alloc: &A)
-    where A: FrameAllocator<PhysicalPage>;
+    where A: FrameAllocator;
 
     /// Unmap the given `VirtualPage`.
     ///
     /// All freed frames are returned to the given `FrameAllocator`.
     fn unmap<A>(&mut self, page: VirtualPage, alloc: &A)
-    where A: FrameAllocator<PhysicalPage>;
+    where A: FrameAllocator;
 
 }
 

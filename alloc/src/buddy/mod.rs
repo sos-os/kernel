@@ -11,8 +11,10 @@
 mod math;
 #[cfg(feature = "buddy_as_system")]
 pub mod system;
+#[cfg(feature = "buddy_as_system")]
+pub use self::system::BuddyFrameAllocator;
 
-use super::{Allocator, FrameAllocator, Framesque};
+use super::{Allocator,  Framesque};
 use self::math::PowersOf2;
 
 use core::mem;

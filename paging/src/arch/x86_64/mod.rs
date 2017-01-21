@@ -15,15 +15,12 @@
 use core::ops;
 use core::ptr::Unique;
 
-use multiboot2;
 
-use cpu::control_regs::cr3;
+use alloc::FrameAllocator;
+use memory::{PAddr, Page, PhysicalPage, VAddr, VirtualPage};
+use memory::arch::PAGE_SIZE;
+use ::Mapper;
 
-use super::VAddr;
-use super::paging::{Page, VirtualPage, Mapper};
-use super::alloc::FrameAllocator;
-
-use self::{PhysicalPage, PAddr, PAGE_SIZE};
 use self::table::*;
 use self::temp::TempPage;
 

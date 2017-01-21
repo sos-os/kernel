@@ -1,4 +1,4 @@
-use ::VAddr;
+use memory::VAddr;
 use super::{Page, VirtualPage};
 
 /// Invalidate the TLB completely by reloading the CR3 register.
@@ -6,7 +6,7 @@ use super::{Page, VirtualPage};
 /// # Unsafe Because
 /// + Causes a general protection fault if not executed in kernel mode.
 pub unsafe fn flush_all() {
-    use arch::cpu::control_regs::cr3;
+    use cpu::control_regs::cr3;
     cr3::write(cr3::read());
 }
 
@@ -25,7 +25,7 @@ pub trait Flush {
     /// + False if it was not flushed.
     #[inline]
     fn flush(&self) -> bool {
-        use arch::cpu::PrivilegeLevel;
+        use cpu::PrivilegeLevel;
 
         if PrivilegeLevel::current_iopl() != PrivilegeLevel::KernelMode {
             false // can't flush, we are not in kernel mode
