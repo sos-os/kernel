@@ -142,7 +142,7 @@ pub fn kernel_init(params: InitParams) {
 
 
     // -- jump to architecture-specific init ---------------------------------
-    arch::arch_init(multiboot_addr);
+    // arch::arch_init(multiboot_addr);
 
     // -- initialize the heap ------------------------------------------------
 
