@@ -30,14 +30,10 @@
           , associated_consts
           , type_ascription
           , custom_derive )]
-<<<<<<< HEAD
 #![feature(collections)]
 #![feature(question_mark)]
 #![feature( zero_one
           , step_trait )]
-=======
-#![feature( collections )]
->>>>>>> origin/master
 
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
@@ -71,7 +67,6 @@ pub mod params;
 pub mod arch;
 pub mod logger;
 
-<<<<<<< HEAD
 // Since the test module contains lang items, it can't be compiled when
 // running tests.
 #[cfg(not(test))] pub mod panic;
@@ -111,11 +106,10 @@ macro_rules! init_log {
                     )
     );
 }
-=======
+
 /// SOS version number
 pub const VERSION_STRING: &'static str
     = concat!("Stupid Operating System v", env!("CARGO_PKG_VERSION"));
->>>>>>> origin/master
 
 use params::InitParams;
 
@@ -126,15 +120,12 @@ pub fn kernel_main() -> ! {
     a_vec.push(1);
     info!(target: "test", "pushed to vec: {:?}", a_vec);
     a_vec.push(2);
-<<<<<<< HEAD
-    println!( "TEST: pushed to vec: {:?}", a_vec);
+    info!(target: "test", "pushed to vec: {:?}", a_vec);
 
     let mut frame_allocator = frame_alloc::BuddyFrameAllocator::new();
     paging::test_paging(&mut frame_allocator);
-=======
-    info!(target: "test", "pushed to vec: {:?}", a_vec);
 
->>>>>>> origin/master
+
     loop { }
 }
 
@@ -148,17 +139,8 @@ pub fn kernel_main() -> ! {
 //  TODO: since multiboot2 is x86-specific, this needs to move to `arch`.
 //  we then want the kernel entry point to be `arch_init`. we can then
 //  call into `kernel_init`.
-<<<<<<< HEAD
-#[no_mangle]
-pub extern "C" fn kernel_start(multiboot_addr: PAddr) {
-    io::term::CONSOLE.lock().clear();
-
-    println!("Hello from the kernel!");
-=======
 pub fn kernel_init(params: InitParams) {
     kinfoln!("Hello from the kernel!");
->>>>>>> origin/master
-
     // -- initialize interrupts ----------------------------------------------
     kinfoln!(dots: " . ", "Initializing interrupts:");
     unsafe {
@@ -166,12 +148,10 @@ pub fn kernel_init(params: InitParams) {
     };
     kinfoln!(dots: " . ", target: "Enabling interrupts", "[ OKAY ]");
 
-<<<<<<< HEAD
 
     // -- jump to architecture-specific init ---------------------------------
     arch::arch_init(multiboot_addr);
 
-=======
     // -- initialize the heap ------------------------------------------------
 
     if let Ok(_) =  unsafe { heap::initialize(&params) } {
@@ -188,7 +168,7 @@ pub fn kernel_init(params: InitParams) {
     }
 
     println!("\n{} {}-bit\n", VERSION_STRING, arch::ARCH_BITS);
->>>>>>> origin/master
+
     // -- call into kernel main loop ------------------------------------------
     // (currently, this does nothing)
     kernel_main()
