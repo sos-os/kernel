@@ -91,11 +91,10 @@ pub mod cr2 {
 
 /// `%cr3` contains the page table root pointer
 pub mod cr3 {
-    use memory::paging::{Page, PhysicalPage};
-    use memory::PAddr;
+    use memory::{PAddr, Page, PhysicalPage};
 
-    #[cfg(target_arch = "x86_64")]
-    use memory::paging::table::{Table, PML4Level};
+    // #[cfg(target_arch = "x86_64")]
+    // use paging::table::{Table, PML4Level};
 
     /// Read the current value from `$cr3`.
     ///
@@ -149,47 +148,5 @@ pub mod cr3 {
         asm!(  "mov cr3, $0"
             :: "r"(value)
             :: "intel");
-    }
-
-    /// Returns the current Page Meta-Level 4 table
-    ///
-    /// # Unsafe Because:
-    /// + Reading from control registers while not in kernel mode will cause
-    ///   a general protection fault.
-    #[cfg(target_arch = "x86_64")]
-    #[inline]
-    pub unsafe fn current_pml4() -> Table<PML4Level> {
-        use core::mem::transmute;
-        //*read().as_mut_ptr::<Table<PML4Level>>()
-        unimplemented!()
-    }
-
-    /// Sets the current Page Meta-Level 4 Table
-    ///
-    /// # Unsafe Because:
-    /// + Control registers should generally not be modified during normal
-    ///   operation.
-    #[cfg(target_arch = "x86_64")]
-    pub unsafe fn set_pml4(pml4: Table<PML4Level>) {
-        write(pml4.frame().base_addr())
-    }
-
-    /// Returns the current Page Directory base frame.
-    ///
-    /// # Unsafe Because:
-    /// + Reading from control registers while not in kernel mode will cause
-    ///   a general protection fault.
-    pub unsafe fn current_pagetable_frame() -> PhysicalPage {
-        PhysicalPage::containing_addr(read())
-    }
-
-    /// Returns the current Page Directory base frame.
-    ///
-    /// # Unsafe Because:
-    /// + Reading from control registers while not in kernel mode will cause
-    ///   a general protection fault.
-    #[inline]
-    pub unsafe fn set_pagetable_frame(frame: PhysicalPage) {
-        write(frame.base_addr())
     }
 }

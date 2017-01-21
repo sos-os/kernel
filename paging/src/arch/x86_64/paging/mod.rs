@@ -30,6 +30,7 @@ use self::temp::TempPage;
 pub mod table;
 pub mod tlb;
 pub mod temp;
+pub mod cr3;
 
 
 pub struct ActivePageTable { pml4: ActivePML4 }
