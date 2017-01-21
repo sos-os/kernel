@@ -49,8 +49,6 @@
 extern crate collections;
 extern crate rlibc;
 extern crate spin;
-extern crate arrayvec;
-
 // -- SOS dependencies ------------------------------------------------------
 #[macro_use] extern crate vga;
 #[macro_use] extern crate cpu;
@@ -69,7 +67,6 @@ pub mod logger;
 
 // Since the test module contains lang items, it can't be compiled when
 // running tests.
-#[cfg(not(test))] pub mod panic;
 
 use arch::cpu;
 use memory::{paging, PAddr};
