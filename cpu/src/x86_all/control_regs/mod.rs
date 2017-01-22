@@ -149,4 +149,23 @@ pub mod cr3 {
             :: "r"(value)
             :: "intel");
     }
+
+    /// Returns the current Page Directory base frame.
+    ///
+    /// # Unsafe Because:
+    /// + Reading from control registers while not in kernel mode will cause
+    ///   a general protection fault.
+    pub unsafe fn current_pagetable_frame() -> PhysicalPage {
+        PhysicalPage::containing_addr(read())
+    }
+
+    /// Returns the current Page Directory base frame.
+    ///
+    /// # Unsafe Because:
+    /// + Reading from control registers while not in kernel mode will cause
+    ///   a general protection fault.
+    #[inline]
+    pub unsafe fn set_pagetable_frame(frame: PhysicalPage) {
+        write(frame.base_addr())
+    }
 }

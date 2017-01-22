@@ -1,6 +1,7 @@
 use super::table::{Table, PML4Level};
 use memory::PhysicalPage;
 use cpu::control_regs::cr3::{read, write};
+pub use cpu::control_regs::cr3::*;
 
 /// Returns the current Page Meta-Level 4 table
 ///
@@ -24,23 +25,4 @@ pub unsafe fn current_pml4() -> Table<PML4Level> {
 #[cfg(target_arch = "x86_64")]
 pub unsafe fn set_pml4(pml4: Table<PML4Level>) {
     write(pml4.frame().base_addr())
-}
-
-/// Returns the current Page Directory base frame.
-///
-/// # Unsafe Because:
-/// + Reading from control registers while not in kernel mode will cause
-///   a general protection fault.
-pub unsafe fn current_pagetable_frame() -> PhysicalPage {
-    PhysicalPage::containing_addr(read())
-}
-
-/// Returns the current Page Directory base frame.
-///
-/// # Unsafe Because:
-/// + Reading from control registers while not in kernel mode will cause
-///   a general protection fault.
-#[inline]
-pub unsafe fn set_pagetable_frame(frame: PhysicalPage) {
-    write(frame.base_addr())
 }
