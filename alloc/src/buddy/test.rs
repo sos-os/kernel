@@ -1,5 +1,6 @@
 use super::*;
-use memory::alloc::Allocator;
+
+use ::Allocator;
 
 use core::ptr;
 
