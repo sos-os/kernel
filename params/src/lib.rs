@@ -40,6 +40,17 @@ pub struct InitParams {
     pub heap_base: PAddr
   , /// The top of the memory range to use for the kernel heap
     pub heap_top: PAddr
+  , /// The start address of the Multiboot info structure, if it exists.
+    ///
+    /// N.B. that this is currently never `None`, as we only support multiboot.
+    /// However, this may change at a later date.
+    pub multiboot_start: Option<PAddr>
+  , /// The end address of the Multiboot info structure, if it exists.
+    ///
+    /// N.B. that this is currently never `None`, as we only support multiboot.
+    /// However, this may change at a later date.
+    pub multiboot_end: Option<PAddr>
+
 }
 
 impl InitParams {
@@ -53,13 +64,24 @@ impl InitParams {
     }
 
     /// Returns the start address of the multiboot info struct
+    ///
+    /// # Panics
+    /// If this is a non-Multiboot kernel
+    #[inline]
     pub fn multiboot_start(&self) -> PAddr {
-        unimplemented!()
+        self.multiboot_start
+            .expect("Attempted to access Multiboot info structure on a \
+                     non-Multiboot kernel!")
     }
 
     /// Returns the end address of the multiboot info struct
+    ///
+    /// # Panics
+    /// If this is a non-Multiboot kernel
     pub fn multiboot_end(&self) -> PAddr {
-        unimplemented!()
+        self.multiboot_end
+            .expect("Attempted to access Multiboot info structure on a \
+                     non-Multiboot kernel!")
     }
 
     /// Returns the range of frames containing the kernel binary.
