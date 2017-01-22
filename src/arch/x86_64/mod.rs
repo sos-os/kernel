@@ -124,15 +124,5 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
     //              , heap_base + ::memory::HEAP_SIZE as u64);
     //  };
 
-    // -- remap the kernel ----------------------------------------------------
-    // TODO: should this happen _after_ non-arch kernel initialization?
-    //          - eliza, 1/22/2017
-    kinfoln!(dots: " . ", "Remapping the kernel:");
-
-    let frame_allocator = buddy::BuddyFrameAllocator::new();
-    ::paging::kernel_remap(&params, &frame_allocator);
-
-    kinfoln!( dots: " . ", target: "Remapping the kernel", "[ OKAY ]");
-
     kernel_init(params);
 }

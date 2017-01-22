@@ -118,16 +118,18 @@ pub fn kernel_main() -> ! {
     loop { }
 }
 
-/// Kernel initialization function called from ASM
+/// Kernel initialization function called into by architecture-specific init
 ///
-/// The kernel main loop expects to be passed the address of a valid
-/// Multiboot 2 info struct. It's the bootloader's responsibility to ensure
-/// that this is passed in the correct register as expected by the calling
-/// convention (`edi` on x86). If this isn't there, you can expect to have a
-/// bad problem and not go to space today.
-//  TODO: since multiboot2 is x86-specific, this needs to move to `arch`.
-//  we then want the kernel entry point to be `arch_init`. we can then
-//  call into `kernel_init`.
+/// Our initialization process essentially looks like this:
+///
+/// ```text
+/// +-------------+     +-----------+     +-------------------------------+
+/// | bootloader  |     | start.asm |     | rust init functions           |
+/// | (multiboot) | --> |           | -----> arch_init() -> kernel_init() |
+/// +-------------+     +-----------+     +----------------------|--------+
+///                                                              V
+///                                                         kernel_main()
+/// ```
 pub fn kernel_init(params: InitParams) {
     kinfoln!("Hello from the kernel!");
     // -- initialize interrupts ----------------------------------------------
@@ -137,12 +139,7 @@ pub fn kernel_init(params: InitParams) {
     };
     kinfoln!(dots: " . ", target: "Enabling interrupts", "[ OKAY ]");
 
-
-    // -- jump to architecture-specific init ---------------------------------
-    // arch::arch_init(multiboot_addr);
-
     // -- initialize the heap ------------------------------------------------
-
     if let Ok(_) =  unsafe { heap::initialize(&params) } {
         kinfoln!( dots: " . ", target: "Intializing heap"
                 , "[ OKAY ]"
@@ -156,12 +153,19 @@ pub fn kernel_init(params: InitParams) {
                 );
     }
 
+    // -- remap the kernel ----------------------------------------------------
+    kinfoln!(dots: " . ", "Remapping the kernel:");
+
+    let frame_allocator = alloc::buddy::BuddyFrameAllocator::new();
+    ::paging::kernel_remap(&params, &frame_allocator);
+
+    kinfoln!( dots: " . ", target: "Remapping the kernel", "[ OKAY ]");
+
     println!("\n{} {}-bit\n", VERSION_STRING, arch::ARCH_BITS);
 
     // -- call into kernel main loop ------------------------------------------
     // (currently, this does nothing)
     kernel_main()
-
 }
 
 
