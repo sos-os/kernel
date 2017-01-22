@@ -32,8 +32,6 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
     use cpu::{control_regs, msr};
     use alloc::buddy;
     use memory::{PAddr, Page, PhysicalPage};
-
-    use memory::arch::{HEAP_BASE, HEAP_TOP};
     use params::InitParams;
     use ::kernel_init;
 
@@ -92,6 +90,11 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
     kinfoln!( dots: " . . ", "Multiboot info begins at {:#x} and ends at {:#x}."
             , multiboot_addr, multiboot_end);
 
+    let params = InitParams { multiboot_start: Some(multiboot_addr)
+                            , multiboot_end: Some(multiboot_end)
+                            , ..Default::default()
+                            };
+
      // -- enable flags needed for paging ------------------------------------
      unsafe {
          control_regs::cr0::enable_write_protect(true);
@@ -103,11 +106,12 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
 
      println!(" . . Preparing to initialize heap. ");
      // -- initialize the heap -----------------------------------------------
+     // TODO: I think this is in kernel_init now – not sure which is
+     //       Correcter. Should figure that out.
+     //          - eliza, 1/21/2017
      let heap_base
         = PhysicalPage::containing_addr(PAddr::from(multiboot_addr + boot_info.length as u64)).base();
-        // TODO: I think this is in kernel_init now – not sure which is
-        //       Correcter. Should figure that out.
-        //          - eliza, 1/21/2017
+
     //  unsafe {
     //      buddy::system::init_heap(heap_base.as_mut_ptr(), ::memory::HEAP_SIZE);
     //      println!( "{:<38}{:>40}\n \
@@ -121,21 +125,14 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
     //  };
 
     // -- remap the kernel ----------------------------------------------------
+    // TODO: should this happen _after_ non-arch kernel initialization?
+    //          - eliza, 1/22/2017
     kinfoln!(dots: " . ", "Remapping the kernel:");
 
     let frame_allocator = buddy::BuddyFrameAllocator::new();
-    // paging::kernel_remap(&boot_info, &frame_allocator);
+    ::paging::kernel_remap(&params, &frame_allocator);
+
     kinfoln!( dots: " . ", target: "Remapping the kernel", "[ OKAY ]");
 
-    kinfoln!( dots: " . . ", "Multiboot info begins at {:#x} and ends at {:#x}."
-             , multiboot_addr, multiboot_end);
-
-    let params = InitParams { kernel_base: kernel_begin
-                            , kernel_top:  kernel_end
-                            , heap_base:   unsafe { HEAP_BASE }
-                            , heap_top:    unsafe { HEAP_TOP }
-                            , multiboot_start: Some(multiboot_addr)
-                            , multiboot_end: Some(multiboot_end)
-                            };
     kernel_init(params);
 }

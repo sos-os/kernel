@@ -21,6 +21,7 @@ extern crate memory;
 extern crate elf;
 
 use memory::{ PAddr, Page, PhysicalPage, FrameRange };
+use core::default::Default;
 
 /// If we are on x86_64 or armv7 this uses the 64-bit ELF word
 #[cfg(target_pointer_width = "64")]
@@ -31,6 +32,7 @@ pub type ElfSections<'a> = elf::section::Sections<'a, u64>;
 pub type ElfSections<'a> = elf::section::Sections<'a, u32>;
 
 /// Parameters used during the init process
+#[derive(Copy, Clone, Debug)]
 pub struct InitParams {
     /// The base of the kernel memory range
     pub kernel_base: PAddr
@@ -40,6 +42,10 @@ pub struct InitParams {
     pub heap_base: PAddr
   , /// The top of the memory range to use for the kernel heap
     pub heap_top: PAddr
+  , /// The base of the memory range for the kernel stack
+    pub stack_base: PAddr
+  , /// The top of the memory range to use for the kernel stack
+    pub stack_top: PAddr
   , /// The start address of the Multiboot info structure, if it exists.
     ///
     /// N.B. that this is currently never `None`, as we only support multiboot.
@@ -50,7 +56,26 @@ pub struct InitParams {
     /// N.B. that this is currently never `None`, as we only support multiboot.
     /// However, this may change at a later date.
     pub multiboot_end: Option<PAddr>
+}
 
+impl Default for InitParams {
+    fn default() -> Self {
+        use memory::arch::{HEAP_BASE, HEAP_TOP, STACK_BASE, STACK_TOP};
+        InitParams { kernel_base: PAddr::from(0x0)
+                     // NOTE: this is, of course, Extremely Wrong, but the
+                     //       `Default` impl is not going to make _correct_
+                     //       params, just fill in default values for other
+                     //       fns that make params.
+                     // TODO: should this be an Option instead?
+                   , kernel_top: PAddr::from(0x0)
+                   , heap_base: unsafe { HEAP_BASE }
+                   , heap_top: unsafe { HEAP_TOP }
+                   , stack_base: unsafe { STACK_BASE }
+                   , stack_top: unsafe { STACK_TOP }
+                   , multiboot_start: None
+                   , multiboot_end: None
+                   }
+    }
 }
 
 impl InitParams {
