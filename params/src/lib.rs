@@ -19,8 +19,8 @@
 
 extern crate memory;
 extern crate elf;
-// use memory::paging::PageRange;
-use memory::PAddr;
+
+use memory::{ PAddr, Page, PhysicalPage, FrameRange };
 
 /// If we are on x86_64 or armv7 this uses the 64-bit ELF word
 #[cfg(target_pointer_width = "64")]
@@ -33,16 +33,12 @@ pub type ElfSections<'a> = elf::section::Sections<'a, u32>;
 /// Parameters used during the init process
 pub struct InitParams {
     /// The base of the kernel memory range
-    // TODO: rewrite to use FrameRange once that's on master
     pub kernel_base: PAddr
   , /// The top of the kernel memory range
-    // TODO: rewrite to use FrameRange once that's on master
     pub kernel_top: PAddr
   , /// The base of the memory range for the kernel heap
-    // TODO: rewrite to use FrameRange once that's on master
     pub heap_base: PAddr
   , /// The top of the memory range to use for the kernel heap
-    // TODO: rewrite to use FrameRange once that's on master
     pub heap_top: PAddr
 }
 
@@ -65,4 +61,38 @@ impl InitParams {
     pub fn multiboot_end(&self) -> PAddr {
         unimplemented!()
     }
+
+    /// Returns the range of frames containing the kernel binary.
+    ///
+    /// The kernel _should_ start on the first address in the frame range,
+    /// since the kernel should be page aligned.
+    #[inline]
+    pub fn kernel_frames(&self) -> FrameRange {
+        // TODO: assert that the kernel base addr is page aligned here?
+        //       this should maybe be a debug assertion?
+        //          - eliza, 1/22/2017
+        PhysicalPage::containing(self.kernel_base) ..
+        PhysicalPage::containing(self.kernel_top)
+    }
+
+    /// Returns the range of frames containing the kernel heap
+    ///
+    /// The heap _should_ start on the first address in the frame range,
+    /// since the heap should be page aligned.
+    #[inline]
+    pub fn heap_frames(&self) -> FrameRange {
+        // TODO: assert that the heap base addr is page aligned here?
+        //       this should maybe be a debug assertion?
+        //          - eliza, 1/22/2017
+        PhysicalPage::containing(self.heap_base) ..
+        PhysicalPage::containing(self.heap_top)
+    }
+
+    /// Returns the range of frames containing the kernel stack.
+    #[inline]
+    pub fn stack_frames(&self) -> FrameRange {
+        unimplemented!()
+    }
+
+
 }
