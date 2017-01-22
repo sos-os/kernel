@@ -23,17 +23,10 @@ SECTIONS {
     }
 
     .text :
-<<<<<<< HEAD
-    {
-        *(.text .text.*)
-        . = ALIGN(4K);
-    }
-=======
      {
        *(.text .text.*)
        . = ALIGN(4K);
      }
->>>>>>> origin/master
 
      .data :
      {
