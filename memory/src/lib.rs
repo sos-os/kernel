@@ -37,6 +37,7 @@ use core::{ops, cmp, convert};
 pub use arch::{PAddr, PAGE_SHIFT};
 
 pub mod alloc;
+pub mod params;
 // pub mod paging;
 
 /// Trait representing an address, whether physical or virtual.

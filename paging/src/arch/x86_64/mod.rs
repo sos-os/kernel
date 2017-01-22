@@ -15,7 +15,6 @@
 use core::ops;
 use core::ptr::Unique;
 
-
 use alloc::FrameAllocator;
 use memory::{PAddr, Page, PhysicalPage, VAddr, VirtualPage};
 use memory::arch::PAGE_SIZE;
@@ -28,7 +27,6 @@ pub mod table;
 pub mod tlb;
 pub mod temp;
 pub mod cr3;
-
 
 pub struct ActivePageTable { pml4: ActivePML4 }
 
@@ -190,7 +188,7 @@ impl Mapper for ActivePML4 {
     fn identity_map<A>(&mut self, frame: PhysicalPage, flags: EntryFlags
                       , alloc: &A)
     where A: FrameAllocator {
-        self.map( Page::containing(VAddr::from(frame.base_addr().0 as usize))
+        self.map( Page::containing(VAddr::from(*frame.base_addr() as usize))
                 , frame
                 , flags
                 , alloc )
