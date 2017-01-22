@@ -1,5 +1,4 @@
 use super::table::{Table, PML4Level};
-use memory::PhysicalPage;
 use cpu::control_regs::cr3::{read, write};
 pub use cpu::control_regs::cr3::*;
 

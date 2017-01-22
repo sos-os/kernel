@@ -91,7 +91,7 @@ pub mod cr2 {
 
 /// `%cr3` contains the page table root pointer
 pub mod cr3 {
-    use memory::{PAddr, Page, PhysicalPage};
+    use memory::{PAddr, PhysicalPage};
 
     // #[cfg(target_arch = "x86_64")]
     // use paging::table::{Table, PML4Level};

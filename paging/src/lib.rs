@@ -17,7 +17,6 @@
 
 #[macro_use] extern crate bitflags;
 #[macro_use] extern crate macro_attr;
-// #[macro_use] extern crate newtype_derive;
 #[macro_use] extern crate log;
 extern crate spin;
 
@@ -34,8 +33,6 @@ pub use self::arch::{kernel_remap, test_paging};
 
 use memory::{PAddr, PhysicalPage, VAddr, VirtualPage};
 use alloc::FrameAllocator;
-
-use core::{ops, cmp, convert};
 
 pub trait Mapper {
     type Flags;
@@ -93,14 +90,3 @@ pub trait Mapper {
     where A: FrameAllocator;
 
 }
-
-// /// Trait for a memory allocator which can allocate memory in terms of frames.
-// pub trait FrameAllocator<Frame> {
-//
-//     /// Allocate a new `Frame`
-//     //  TODO: do we want to be able to request a frame size?
-//     fn alloc_frame(&mut self) -> Option<Frame>;
-//
-//     /// Deallocate a given `Frame`.
-//     fn dealloc_frame(&mut self, frame: Frame);
-// }

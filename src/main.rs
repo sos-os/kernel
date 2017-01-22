@@ -31,9 +31,6 @@
           , type_ascription
           , custom_derive )]
 #![feature(collections)]
-#![feature(question_mark)]
-#![feature( zero_one
-          , step_trait )]
 
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
@@ -67,7 +64,7 @@ pub mod heap;
 pub mod arch;
 pub mod logger;
 
-use memory::{PAddr, PhysicalPage, VirtualPage};
+use params::InitParams;
 
 #[macro_use]
 macro_rules! init_log {
@@ -105,7 +102,6 @@ macro_rules! init_log {
 pub const VERSION_STRING: &'static str
     = concat!("Stupid Operating System v", env!("CARGO_PKG_VERSION"));
 
-use params::InitParams;
 
 /// Kernel main loop
 pub fn kernel_main() -> ! {

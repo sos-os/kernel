@@ -30,7 +30,6 @@ use memory::PAddr;
 pub extern "C" fn arch_init(multiboot_addr: PAddr) {
     // use multiboot2;
     use cpu::{control_regs, msr};
-    use core::mem;
     use alloc::buddy;
     use memory::{PAddr, Page, PhysicalPage};
 
