@@ -42,7 +42,7 @@ impl Flush for VAddr {
     unsafe fn invlpg(&self) {
          asm!( "invlpg [$0]"
              :
-             : "r" (*self)
+             : "r" (**self)
              : "memory"
              : "intel", "volatile" );
     }
