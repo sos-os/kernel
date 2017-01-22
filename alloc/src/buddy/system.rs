@@ -5,8 +5,7 @@ use core::ptr;
 use ::{Allocator, FrameAllocator};
 use super::{BuddyHeapAllocator, FreeList};
 
-use memory::{ PAddr, PhysicalPage, FrameRange, VAddr };
-use memory::arch::PAGE_SIZE;
+use memory::{ PAGE_SIZE, PAddr, PhysicalPage, FrameRange, VAddr };
 
 pub const NUM_FREE_LISTS: usize = 19;
 

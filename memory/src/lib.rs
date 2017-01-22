@@ -34,7 +34,7 @@ pub mod arch;
 // use ::params::InitParams;
 use core::{ops, cmp, convert};
 
-pub use arch::{PAddr, PAGE_SHIFT};
+pub use arch::{PAddr, PAGE_SHIFT, PAGE_SIZE};
 
 pub mod alloc;
 pub mod params;

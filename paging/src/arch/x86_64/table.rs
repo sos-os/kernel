@@ -8,8 +8,7 @@
 //
 use alloc::FrameAllocator;
 use ::elf;
-use memory::{PAddr, Page, PhysicalPage, VAddr, VirtualPage};
-use memory::arch::PAGE_SIZE;
+use memory::{PAGE_SIZE, PAddr, Page, PhysicalPage, VAddr, VirtualPage};
 
 use core::marker::PhantomData;
 use core::ops::{Index, IndexMut};

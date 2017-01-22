@@ -16,8 +16,7 @@ use core::ops;
 use core::ptr::Unique;
 
 use alloc::FrameAllocator;
-use memory::{PAddr, Page, PhysicalPage, VAddr, VirtualPage};
-use memory::arch::PAGE_SIZE;
+use memory::{PAGE_SIZE, PAddr, Page, PhysicalPage, VAddr, VirtualPage};
 use ::Mapper;
 
 use self::table::*;

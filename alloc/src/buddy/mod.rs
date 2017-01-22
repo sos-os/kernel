@@ -23,7 +23,7 @@ use core::ptr::Unique;
 
 use intrusive::list::{List, Node};
 use intrusive::rawlink::RawLink;
-use memory::arch::PAGE_SIZE;
+use memory::PAGE_SIZE;
 
 #[cfg(target_os = "linux")]
 #[cfg(test)]
