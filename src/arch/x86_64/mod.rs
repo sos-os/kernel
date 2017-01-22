@@ -125,7 +125,7 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
     kinfoln!(dots: " . ", "Remapping the kernel:");
 
     let frame_allocator = buddy::BuddyFrameAllocator::new();
-    paging::kernel_remap(&boot_info, &frame_allocator);
+    // paging::kernel_remap(&boot_info, &frame_allocator);
     kinfoln!( dots: " . ", target: "Remapping the kernel", "[ OKAY ]");
 
     kinfoln!( dots: " . . ", "Multiboot info begins at {:#x} and ends at {:#x}."

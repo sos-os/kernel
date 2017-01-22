@@ -37,8 +37,6 @@ use core::{ops, cmp, convert};
 pub use arch::{PAddr, PAGE_SHIFT, PAGE_SIZE};
 
 pub mod alloc;
-pub mod params;
-// pub mod paging;
 
 /// Trait representing an address, whether physical or virtual.
 pub trait Addr: ops::Add<Self> + ops::Sub<Self>

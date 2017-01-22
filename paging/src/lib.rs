@@ -26,6 +26,7 @@ extern crate spin;
 extern crate alloc;
 extern crate cpu;
 extern crate elf;
+extern crate params;
 
 #[macro_use] pub mod macros;
 pub mod arch;

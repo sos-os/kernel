@@ -17,6 +17,7 @@ use core::ptr::Unique;
 
 use alloc::FrameAllocator;
 use memory::{PAGE_SIZE, PAddr, Page, PhysicalPage, VAddr, VirtualPage};
+use params::InitParams;
 use ::Mapper;
 
 use self::table::*;
@@ -329,9 +330,8 @@ where A: FrameAllocator {
 }
 
 /// Remaps the kernel using 4KiB pages.
-pub fn kernel_remap<A>(info: &multiboot2::Info, alloc: &A) -> ActivePageTable
+pub fn kernel_remap<A>(params: InitParams, alloc: &A) -> ActivePageTable
 where A: FrameAllocator {
-
     // create a  temporary page for switching page tables
     // page number chosen fairly arbitrarily.
     const TEMP_PAGE_NUMBER: usize = 0xcafebabe;
@@ -354,10 +354,8 @@ where A: FrameAllocator {
     // actually remap the kernel --------------------------------------------
     current_table.using(&mut new_table, &mut temp_page, |pml4| {
         let sections // extract allocated ELF sections
-            = info.elf_sections()
-                  .expect("Can't remap the kernel, no elf sections tag!")
-                  .sections()
-                  .filter(|section| section.is_allocated());
+            = params.elf_sections()
+                    .filter(|section| section.is_allocated());
 
         for section in sections { // remap ELF secctions
             assert!( section.addr().is_page_aligned()
@@ -383,8 +381,8 @@ where A: FrameAllocator {
 
         // remap Multiboot info
         trace!( " . . Identity mapping multiboot info" );
-        let multiboot_start = PhysicalPage::from(info.start_addr());
-        let multiboot_end = PhysicalPage::from(info.end_addr());
+        let multiboot_start = PhysicalPage::from(params.multiboot_start());
+        let multiboot_end = PhysicalPage::from(params.multiboot_end());
 
         for frame in multiboot_start .. multiboot_end {
             pml4.identity_map(frame, PRESENT, alloc)

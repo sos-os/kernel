@@ -1,0 +1,25 @@
+[package]
+name = "params"
+version = "0.0.1"
+authors = [ "Eliza Weisman <hi@hawkweisman.me>" ]
+
+[profile.dev]
+opt-level = 3
+debug = true
+rpath = false
+lto = false
+debug-assertions = true
+codegen-units = 1
+panic = "abort"
+
+[profile.release]
+opt-level = 3
+debug = true
+rpath = false
+lto = false
+panic = "abort"
+
+[dependencies]
+util = { path = "../util" }
+memory = { path = "../memory" }
+elf = { path = "../elf" }

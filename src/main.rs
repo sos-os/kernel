@@ -59,11 +59,11 @@ extern crate alloc;
 extern crate memory;
 extern crate elf;
 extern crate paging;
+extern crate params;
 
 #[macro_use] pub mod io;
 
 pub mod heap;
-pub mod params;
 pub mod arch;
 pub mod logger;
 

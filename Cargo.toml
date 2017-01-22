@@ -46,6 +46,7 @@ memory = { path = "memory" }
 util = { path = "util" }
 elf = { path = "elf" }
 paging = { path = "paging" }
+params = { path = "params" }
 
 [dependencies.log]
 version = "0.3.6"
