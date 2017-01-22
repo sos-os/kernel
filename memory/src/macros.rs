@@ -180,13 +180,13 @@ macro_rules! Page {
             }
         }
 
-        impl ::core::num::One for $ty {
-            #[inline] fn one() -> Self {
-                $ty { number:
-                    <<$addr as Addr>::Repr as ::core::num::One>::one()
-                }
-            }
-        }
+        // impl ::core::num::One for $ty {
+        //     #[inline] fn one() -> Self {
+        //         $ty { number:
+        //             <<$addr as Addr>::Repr as ::core::num::One>::one()
+        //         }
+        //     }
+        // }
 
         impl ::core::iter::Step for $ty {
             #[inline]

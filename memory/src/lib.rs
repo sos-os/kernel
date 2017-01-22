@@ -13,7 +13,6 @@
 //! re-exports memory-related definitions.
 #![crate_name = "memory"]
 #![feature(const_fn)]
-#![feature(zero_one)]
 #![feature(asm)]
 #![feature(step_trait)]
 #![no_std]
