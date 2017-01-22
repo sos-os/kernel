@@ -123,10 +123,23 @@ pub fn kernel_main() -> ! {
 /// Our initialization process essentially looks like this:
 ///
 /// ```text
-/// +------------+ +----------+ +----------------------------------------------+
-/// | bootloader | | assembly | | rust                                         |
-/// | (multiboot) -> start.asm -> arch_init() -> kernel_init() -> kernel_main()|
-/// +------------+ +----------+ +----------------------------------------------+
+/// +-------------+
+/// | bootloader  |
+/// | (multiboot) |
+/// +------|------+
+/// +------V------+
+/// | start.asm   |
+/// +------|------+
+/// +------|--------------------------------------------------------+
+/// |      |           RUST-LAND KERNEL FUNCTIONS                   |
+/// |      V                                                        |
+/// | arch_init() ----------> kernel_init() --------> kernel_main() |
+/// | + collects boot info   + initializes interrupts               |
+/// |   from arch-specific   + initializes the heap                 |
+/// |   sources              + remaps the kernel into the higher    |
+/// | + some CPU-specific      half of the address space            |
+/// |   configuration                                               |
+/// +---------------------------------------------------------------+
 /// ```
 pub fn kernel_init(params: InitParams) {
     kinfoln!("Hello from the kernel!");
