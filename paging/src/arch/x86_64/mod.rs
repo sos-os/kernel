@@ -330,7 +330,7 @@ where A: FrameAllocator {
 }
 
 /// Remaps the kernel using 4KiB pages.
-pub fn kernel_remap<A>(params: InitParams, alloc: &A) -> ActivePageTable
+pub fn kernel_remap<A>(params: &InitParams, alloc: &A) -> ActivePageTable
 where A: FrameAllocator {
     // create a  temporary page for switching page tables
     // page number chosen fairly arbitrarily.
@@ -353,11 +353,12 @@ where A: FrameAllocator {
 
     // actually remap the kernel --------------------------------------------
     current_table.using(&mut new_table, &mut temp_page, |pml4| {
-        let sections // extract allocated ELF sections
+        // extract allocated ELF sections
+        let sections
             = params.elf_sections()
                     .filter(|section| section.is_allocated());
 
-        for section in sections { // remap ELF secctions
+        for section in sections { // remap ELF sections
             assert!( section.addr().is_page_aligned()
                    , "Section address must be page aligned to remap!");
             trace!( " . . Identity mapping section at {:?} with size {:?}"
