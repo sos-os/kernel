@@ -28,12 +28,12 @@ use memory::PAddr;
 /// bad problem and not go to space today.
 #[no_mangle]
 pub extern "C" fn arch_init(multiboot_addr: PAddr) {
-    // use multiboot2;
     use cpu::{control_regs, msr};
-    use alloc::buddy;
     use memory::{PAddr, Page, PhysicalPage};
     use params::InitParams;
     use ::kernel_init;
+
+    kinfoln!(dots: " . ", "Beginning `arch_init()` for x86_64");
 
     ::io::term::CONSOLE.lock().clear();
     ::logger::initialize()
@@ -104,25 +104,6 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
          kinfoln!(dots: " . ", "Page no execute bit ENABLED");
      }
 
-     println!(" . . Preparing to initialize heap. ");
-     // -- initialize the heap -----------------------------------------------
-     // TODO: I think this is in kernel_init now – not sure which is
-     //       Correcter. Should figure that out.
-     //          - eliza, 1/21/2017
-     let heap_base
-        = PhysicalPage::containing_addr(PAddr::from(multiboot_addr + boot_info.length as u64)).base();
-
-    //  unsafe {
-    //      buddy::system::init_heap(heap_base.as_mut_ptr(), ::memory::HEAP_SIZE);
-    //      println!( "{:<38}{:>40}\n \
-    //                  . . Heap begins at {:#x} and ends at {:#x}"
-    //              , " . Intializing heap"
-    //             // , ::memory::init_heap(heap_base.as_mut_ptr())
-    //             //            .unwrap_or("[ FAIL ]")
-    //              , "[ OKAY ]"
-    //              , heap_base
-    //              , heap_base + ::memory::HEAP_SIZE as u64);
-    //  };
-
+    kinfoln!(dots: " . ", "Transferring to `kernel_init()`.");
     kernel_init(params);
 }

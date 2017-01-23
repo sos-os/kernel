@@ -151,6 +151,7 @@ pub fn kernel_init(params: InitParams) {
     kinfoln!(dots: " . ", target: "Enabling interrupts", "[ OKAY ]");
 
     // -- initialize the heap ------------------------------------------------
+    kinfoln!(dots: " . ", "Preparing to initialize heap.");
     if let Ok(_) =  unsafe { heap::initialize(&params) } {
         kinfoln!( dots: " . ", target: "Intializing heap"
                 , "[ OKAY ]"
