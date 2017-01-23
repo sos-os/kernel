@@ -66,7 +66,7 @@ pub mod cr2 {
 
     /// Read the current value from `$cr2`.
     ///
-    /// # Unsafe Because:
+    /// # Safety
     /// + Reading from control registers while not in kernel mode will cause
     ///   a general protection fault.
     pub unsafe fn read() -> usize {
@@ -79,7 +79,7 @@ pub mod cr2 {
 
     /// Write a value to `$cr2`.
     ///
-    /// # Unsafe Because:
+    /// # Safety
     /// + Control registers should generally not be modified during normal
     ///   operation.
     pub unsafe fn write(value: usize) {
@@ -98,7 +98,7 @@ pub mod cr3 {
 
     /// Read the current value from `$cr3`.
     ///
-    /// # Unsafe Because:
+    /// # Safety
     /// + Reading from control registers while not in kernel mode will cause
     ///   a general protection fault.
     #[cfg(target_arch = "x86_64")]
@@ -112,7 +112,7 @@ pub mod cr3 {
 
     /// Read the current value from `$cr3`.
     ///
-    /// # Unsafe Because:
+    /// # Safety
     /// + Reading from control registers while not in kernel mode will cause
     ///   a general protection fault.
     #[cfg(target_arch = "x86")]
@@ -126,7 +126,7 @@ pub mod cr3 {
 
     /// Write a value to `$cr3`.
     ///
-    /// # Unsafe Because:
+    /// # Safety
     /// + Control registers should generally not be modified during normal
     ///   operation.
     #[cfg(target_arch = "x86_64")]
@@ -139,7 +139,7 @@ pub mod cr3 {
 
     /// Write a value to `$cr3`.
     ///
-    /// # Unsafe Because:
+    /// # Safety
     /// + Control registers should generally not be modified during normal
     ///   operation.
     #[cfg(target_arch = "x86")]
@@ -152,7 +152,7 @@ pub mod cr3 {
 
     /// Returns the current Page Directory base frame.
     ///
-    /// # Unsafe Because:
+    /// # Safety
     /// + Reading from control registers while not in kernel mode will cause
     ///   a general protection fault.
     pub unsafe fn current_pagetable_frame() -> PhysicalPage {
@@ -161,7 +161,7 @@ pub mod cr3 {
 
     /// Returns the current Page Directory base frame.
     ///
-    /// # Unsafe Because:
+    /// # Safety
     /// + Reading from control registers while not in kernel mode will cause
     ///   a general protection fault.
     #[inline]

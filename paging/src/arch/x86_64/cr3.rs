@@ -4,7 +4,7 @@ pub use cpu::control_regs::cr3::*;
 
 /// Returns the current Page Meta-Level 4 table
 ///
-/// # Unsafe Because:
+/// # Safety
 /// + Reading from control registers while not in kernel mode will cause
 ///   a general protection fault.
 #[cfg(target_arch = "x86_64")]
@@ -15,7 +15,7 @@ pub unsafe fn current_pml4() -> *mut Table<PML4Level> {
 
 /// Sets the current Page Meta-Level 4 Table
 ///
-/// # Unsafe Because:
+/// # Safety
 /// + Control registers should generally not be modified during normal
 ///   operation.
 #[cfg(target_arch = "x86_64")]

@@ -110,7 +110,7 @@ cpu_flag! {
 
 /// Read the current value from `%cr0`.
 ///
-/// # Unsafe Because:
+/// # Safety
 /// + Reading from control registers while not in kernel mode will cause
 ///   a general protection fault.
 pub unsafe fn read() -> Flags {
@@ -123,7 +123,7 @@ pub unsafe fn read() -> Flags {
 
 /// Write a value to `%cr0`.
 ///
-/// # Unsafe Because:
+/// # Safety
 /// + Control registers should generally not be modified during normal
 ///   operation.
 pub unsafe fn write(flags: Flags) {
