@@ -19,8 +19,6 @@
 #![cfg_attr( feature = "as_system", feature(allocator) )]
 #![cfg_attr( feature = "as_system", allocator )]
 
-#![cfg_attr( feature = "buddy", feature(unique))]
-
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
@@ -29,13 +27,10 @@
 // however, can use all of libcore.
 #![no_std]
 
-#![feature( const_fn )]
+#![feature(const_fn)]
+#![feature(unique)]
 
 extern crate memory;
-use memory::{PhysicalPage, FrameRange};
-
-use core::{ops, ptr};
-use core::cmp::min;
 
 #[cfg(feature = "first_fit")]
 extern crate arrayvec;
@@ -52,8 +47,8 @@ extern crate spin;
 
 #[macro_use] extern crate log;
 
-
-
+use core::{cmp, ops, ptr};
+use memory::{PhysicalPage, FrameRange};
 
 /// Trait for something that is like a frame.
 ///
@@ -64,70 +59,6 @@ extern crate spin;
 pub trait Framesque {
     /// Return a pointer to the frame in memory.
     fn as_ptr(&self) -> *mut u8;
-}
-
-
-/// A borrowed handle on a frame with a specified lifetime.
-///
-/// This automatically deallocates the frame when the borrow's lifetime
-/// ends. It also ensures that the borrow only lives as long as the allocator
-/// that provided it, and that the borrow is dropped if the allocator is
-/// dropped.
-pub struct BorrowedFrame<'a, A>
-where A: FrameAllocator
-    , A: 'a {
-    frame: PhysicalPage
-  , allocator: &'a A
-}
-
-impl<'a, A> ops::Deref for BorrowedFrame<'a, A>
-where A: FrameAllocator
-    , A: 'a {
-    type Target = PhysicalPage;
-    fn deref(&self) ->  &Self::Target { &self.frame }
-}
-
-impl<'a, A> ops::DerefMut for BorrowedFrame<'a, A>
-where A: FrameAllocator
-    , A: 'a {
-    fn deref_mut(&mut self) ->  &mut Self::Target { &mut self.frame }
-}
-
-impl<'a, A> Drop for BorrowedFrame<'a, A>
-where A: FrameAllocator
-    , A: 'a {
-    fn drop(&mut self) {
-        unsafe { self.allocator.deallocate(self.frame) }
-    }
-}
-
-/// Identical to a `BorrowedFrame` but borrowing a range of `Frame`s.
-pub struct BorrowedFrameRange<'a, A>
-where A: FrameAllocator
-    , A: 'a {
-    range: FrameRange
-  , allocator: &'a A
-}
-
-impl<'a, A> ops::Deref for BorrowedFrameRange<'a, A>
-where A: FrameAllocator
-    , A: 'a {
-    type Target = FrameRange;
-    fn deref(&self) -> &Self::Target { &self.range }
-}
-
-impl<'a, A> ops::DerefMut for BorrowedFrameRange<'a, A>
-where A: FrameAllocator
-    , A: 'a {
-    fn deref_mut(&mut self) -> &mut Self::Target { &mut self.range }
-}
-
-impl<'a, A> Drop for BorrowedFrameRange<'a, A>
-where A: FrameAllocator
-    , A: 'a {
-    fn drop(&mut self) {
-        unsafe { self.allocator.deallocate_range(self.range.clone()) }
-    }
 }
 
 pub trait FrameAllocator: Sized  {
@@ -206,6 +137,13 @@ pub trait Allocator {
     /// + `frame`: a pointer to the block of memory to deallocate
     /// + `size`: the size of the block being deallocated
     /// + `align`: the alignment of the block being deallocated
+    ///
+    /// # Safety
+    /// This function has no guarantee that the `size` and `align`ment of the
+    /// deallocated block are correct, and no guarantee that the block pointed
+    /// to by `frame` was originally allocated by this allocator. It's the
+    /// responsibility of the caller to ensure that these parameters are
+    /// correct.
     unsafe fn deallocate( &mut self
                         , frame: *mut u8
                         , size: usize, align: usize);
@@ -226,6 +164,13 @@ pub trait Allocator {
     /// + `Some(*mut u8)` if the frame was reallocated successfully
     /// + `None` if the allocator is out of memory or if the request was
     ///     invalid.
+    ///
+    /// # Safety
+    /// This function has no guarantee that the `size` and `old_align` of the
+    /// reallocated block are correct, and no guarantee that the block pointed
+    /// to by `old_frame` was originally allocated by this allocator. It's the
+    /// responsibility of the caller to ensure that these parameters are
+    /// correct.
     // TODO: Optimization: check if the reallocation request fits in
     // the old frame and return immediately if it does
     unsafe fn reallocate( &mut self
@@ -239,7 +184,7 @@ pub trait Allocator {
             .map(|new_frame| {
                 // If a new frame was allocated, copy all the data from the
                 // old frame into the new frame.
-                ptr::copy(new_frame, old_frame, min(old_size, new_size));
+                ptr::copy(new_frame, old_frame, cmp::min(old_size, new_size));
                 // Then we can deallocate the old frame
                 self.deallocate(old_frame, old_size, align);
                 new_frame
@@ -253,6 +198,110 @@ pub trait Allocator {
         unimplemented!()
     }
 }
+
+/// A borrowed handle on a heap allocation with a specified lifetime.
+///
+/// This automatically deallocates the allocated object when the borrow's
+/// lifetime ends. It also ensures that the borrow only lives as long as the
+/// allocator that provided it, and that the borrow is dropped if the allocator
+/// is dropped.
+// TODO: can this allocate pointers to _objects_ rather than `*mut u8`s?
+//       - eliza, 1/23/2017
+pub struct BorrowedHeap<'a, A>
+where A: Allocator
+    , A: 'a {
+    ptr: ptr::Unique<u8>
+  , order: usize
+  , size: usize
+  , allocator: &'a A
+}
+
+impl<'a, A> ops::Deref for BorrowedHeap<'a, A>
+where A: Allocator
+    , A: 'a {
+    type Target = *mut u8;
+    fn deref(&self) ->  &Self::Target { &(*self.ptr) }
+}
+
+// impl<'a, A> ops::DerefMut for BorrowedHeap<'a, A>
+// where A: Allocator
+//     , A: 'a {
+//     fn deref_mut(&mut self) ->  &mut Self::Target { &mut self.frame }
+// }
+
+impl<'a, A> Drop for BorrowedHeap<'a, A>
+where A: Allocator
+    , A: 'a {
+    fn drop(&mut self) {
+        // TODO: need a way to mutably access the parent allocator...
+        // unsafe { self.allocator.deallocate(*self.ptr, self.order, self.size)
+        unimplemented!()
+    }
+}
+
+/// A borrowed handle on a frame with a specified lifetime.
+///
+/// This automatically deallocates the frame when the borrow's lifetime
+/// ends. It also ensures that the borrow only lives as long as the allocator
+/// that provided it, and that the borrow is dropped if the allocator is
+/// dropped.
+pub struct BorrowedFrame<'a, A>
+where A: FrameAllocator
+    , A: 'a {
+    frame: PhysicalPage
+  , allocator: &'a A
+}
+
+impl<'a, A> ops::Deref for BorrowedFrame<'a, A>
+where A: FrameAllocator
+    , A: 'a {
+    type Target = PhysicalPage;
+    fn deref(&self) ->  &Self::Target { &self.frame }
+}
+
+impl<'a, A> ops::DerefMut for BorrowedFrame<'a, A>
+where A: FrameAllocator
+    , A: 'a {
+    fn deref_mut(&mut self) ->  &mut Self::Target { &mut self.frame }
+}
+
+impl<'a, A> Drop for BorrowedFrame<'a, A>
+where A: FrameAllocator
+    , A: 'a {
+    fn drop(&mut self) {
+        unsafe { self.allocator.deallocate(self.frame) }
+    }
+}
+
+/// Identical to a `BorrowedFrame` but borrowing a range of `Frame`s.
+pub struct BorrowedFrameRange<'a, A>
+where A: FrameAllocator
+    , A: 'a {
+    range: FrameRange
+  , allocator: &'a A
+}
+
+impl<'a, A> ops::Deref for BorrowedFrameRange<'a, A>
+where A: FrameAllocator
+    , A: 'a {
+    type Target = FrameRange;
+    fn deref(&self) -> &Self::Target { &self.range }
+}
+
+impl<'a, A> ops::DerefMut for BorrowedFrameRange<'a, A>
+where A: FrameAllocator
+    , A: 'a {
+    fn deref_mut(&mut self) -> &mut Self::Target { &mut self.range }
+}
+
+impl<'a, A> Drop for BorrowedFrameRange<'a, A>
+where A: FrameAllocator
+    , A: 'a {
+    fn drop(&mut self) {
+        unsafe { self.allocator.deallocate_range(self.range.clone()) }
+    }
+}
+
 
 #[cfg(feature = "buddy")]
 pub mod buddy;
