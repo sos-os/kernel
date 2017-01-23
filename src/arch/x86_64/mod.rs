@@ -30,9 +30,7 @@ use memory::PAddr;
 pub extern "C" fn arch_init(multiboot_addr: PAddr) {
     use cpu::{control_regs, msr};
     use elf;
-    use memory::{PAddr, Page, PhysicalPage};
     use params::InitParams;
-    use ::kernel_init;
 
     kinfoln!(dots: " . ", "Beginning `arch_init()` for x86_64");
 
@@ -116,5 +114,5 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
      }
 
     kinfoln!(dots: " . ", "Transferring to `kernel_init()`.");
-    kernel_init(params);
+    ::kernel_init(params);
 }
