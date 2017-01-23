@@ -7,6 +7,7 @@ pub use cpu::control_regs::cr3::*;
 /// # Safety
 /// + Reading from control registers while not in kernel mode will cause
 ///   a general protection fault.
+/// + Returns a `*mut` pointer with an arbitrary lifetime.
 #[cfg(target_arch = "x86_64")]
 #[inline]
 pub unsafe fn current_pml4() -> *mut Table<PML4Level> {
