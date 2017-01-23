@@ -17,7 +17,7 @@
 // because some extern types have bitflags members, which cannot
 // be marked repr(C) but should compile down to an unsigned integer
 #![allow(improper_ctypes)]
-#![warn(missing_docs)]
+#![deny(missing_docs)]
 
 use core::{fmt, mem};
 use super::PrivilegeLevel;
@@ -32,6 +32,11 @@ pub const GDT_SIZE: usize = 3;
 #[cfg(target_arch = "x86")]
 pub const GDT_SIZE: usize = 512;
 
+/// The Global Descriptor Table (GDT)
+///
+/// This is used for configuring segmentation. Since we use paging rather than
+/// segmentation for memory protection, we never actually _use_ the GDT, but
+/// x86 requires that it be properly configured nonetheless. So, here it is.
 pub type Gdt = [Descriptor; GDT_SIZE];
 
 impl DTable for Gdt {
