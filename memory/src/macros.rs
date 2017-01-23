@@ -24,6 +24,13 @@ macro_rules! Addr {
             }
         }
 
+        impl ::core::fmt::Pointer for $ty {
+            fn fmt(&self, f: &mut ::core::fmt::Formatter)
+                  -> ::core::fmt::Result {
+                write!(f, "{:#x}", self.0)
+            }
+        }
+
         impl ::core::convert::Into<$size> for $ty {
             #[inline] fn into(self) -> $size { self.0 }
         }
