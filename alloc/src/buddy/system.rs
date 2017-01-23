@@ -3,13 +3,13 @@ use spin::Mutex;
 use core::ptr;
 
 use ::{Allocator, FrameAllocator};
-use super::{BuddyHeapAllocator, FreeList};
+use super::{HeapAllocator, FreeList};
 
 use memory::{ PAGE_SIZE, PAddr, PhysicalPage, FrameRange, VAddr };
 
 pub const NUM_FREE_LISTS: usize = 19;
 
-static ALLOC: Mutex<Option<BuddyHeapAllocator<'static>>>
+static ALLOC: Mutex<Option<HeapAllocator<'static>>>
     = Mutex::new(None);
 
 static mut KERNEL_FREE_LISTS: [FreeList; NUM_FREE_LISTS]
@@ -26,7 +26,7 @@ static mut KERNEL_FREE_LISTS: [FreeList; NUM_FREE_LISTS]
 pub unsafe fn init_heap(start_addr: *mut u8, heap_size: usize ) {
     trace!(target: "alloc", "init_heap() was called.");
     *(ALLOC.lock())
-        = Some(BuddyHeapAllocator::new( start_addr
+        = Some(HeapAllocator::new( start_addr
                                       , &mut KERNEL_FREE_LISTS
                                       , heap_size));
 }

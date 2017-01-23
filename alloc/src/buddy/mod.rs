@@ -66,7 +66,7 @@ macro_rules! max {
 }
 
 /// Structure with data for implementing the buddy block allocation strategy.
-pub struct BuddyHeapAllocator<'a> {
+pub struct HeapAllocator<'a> {
     /// Address of the base of the heap. This must be aligned
     /// on a `MIN_ALIGN` boundary.
     pub start_addr: *mut u8
@@ -78,8 +78,8 @@ pub struct BuddyHeapAllocator<'a> {
     pub min_block_size: usize
 }
 
-impl<'a> BuddyHeapAllocator<'a> {
-    /// Construct a new `BuddyHeapAllocator`.
+impl<'a> HeapAllocator<'a> {
+    /// Construct a new `HeapAllocator`.
     ///
     /// # Arguments:
     /// + `start_addr`: a pointer to the start location of the heap
@@ -89,11 +89,11 @@ impl<'a> BuddyHeapAllocator<'a> {
     /// + `heap_size`: the size of the heap (in bytes)
     ///
     /// # Returns:
-    /// + A new `BuddyHeapAllocator`, obviously.
+    /// + A new `HeapAllocator`, obviously.
     pub unsafe fn new( start_addr: *mut u8
                      , free_lists: &'a mut [FreeList]
                      , heap_size: usize)
-                     -> BuddyHeapAllocator<'a> {
+                     -> HeapAllocator<'a> {
         // Cache the number of free lists hopefully saving performance.
         let n_free_lists = free_lists.len();
 
@@ -125,7 +125,7 @@ impl<'a> BuddyHeapAllocator<'a> {
         }
 
         let mut heap
-            = BuddyHeapAllocator { start_addr: start_addr
+            = HeapAllocator { start_addr: start_addr
                                  , free_lists: free_lists
                                  , heap_size: heap_size
                                  , min_block_size: min_block_size
@@ -295,7 +295,7 @@ impl<'a> BuddyHeapAllocator<'a> {
 }
 
 
-impl<'a> Allocator for BuddyHeapAllocator<'a> {
+impl<'a> Allocator for HeapAllocator<'a> {
 
     /// Allocate a new block of size `size` on alignment `align`.
     ///

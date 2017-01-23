@@ -24,7 +24,7 @@ fn test_allocation_size_and_order() {
               , FreeList::new(), FreeList::new()
               , FreeList::new()
               ];
-        let heap = BuddyHeapAllocator::new( mem
+        let heap = HeapAllocator::new( mem
                                           , &mut free_lists
                                           , HEAP_SIZE );
 
@@ -67,7 +67,7 @@ fn test_get_buddy() {
               , FreeList::new(), FreeList::new()
               , FreeList::new()
               ];
-        let heap = BuddyHeapAllocator::new( mem
+        let heap = HeapAllocator::new( mem
                                           , &mut free_lists
                                           , HEAP_SIZE );
         let block_16_0 = mem;
@@ -101,7 +101,7 @@ fn test_alloc_and_dealloc() {
               , FreeList::new(), FreeList::new()
               , FreeList::new()
               ];
-        let mut heap = BuddyHeapAllocator::new( mem
+        let mut heap = HeapAllocator::new( mem
                                               , &mut free_lists
                                               , HEAP_SIZE );
 

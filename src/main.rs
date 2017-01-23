@@ -112,7 +112,7 @@ pub fn kernel_main() -> ! {
     a_vec.push(2);
     info!(target: "test", "pushed to vec: {:?}", a_vec);
 
-    // let mut frame_allocator = frame_alloc::BuddyFrameAllocator::new();
+    // let mut frame_allocator = frame_alloc::FrameAllocator::new();
     // paging::test_paging(&mut frame_allocator);
 
     loop { }
