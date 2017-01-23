@@ -8,6 +8,8 @@
 //
 //! Simple buddy-block allocator
 
+#![warn(missing_docs)]
+
 mod math;
 #[cfg(feature = "buddy_as_system")]
 pub mod system;
@@ -81,15 +83,29 @@ pub struct HeapAllocator<'a> {
 impl<'a> HeapAllocator<'a> {
     /// Construct a new `HeapAllocator`.
     ///
-    /// # Arguments:
+    /// # Arguments
     /// + `start_addr`: a pointer to the start location of the heap
-    /// + `free_lists`: an array of `FreeList`s. The cardinality
-    ///     of the `free_lists` array should be equal to the maximum
-    ///     allocateable order.
+    /// + `free_lists`: an array of [`FreeList`]s. The cardinality
+    ///    of the `free_lists` array should be equal to the maximum
+    ///    allocateable order.
     /// + `heap_size`: the size of the heap (in bytes)
     ///
-    /// # Returns:
+    /// # Returns
     /// + A new `HeapAllocator`, obviously.
+    ///
+    /// # Panics
+    /// + If `start_addr` is a null pointer or is not page-aligned
+    /// + If the array of `free_lists` is empty
+    /// + If the `heap_size` is too small to contain at least one block, or is
+    ///   not a power of two.
+    /// + If the calculated minimum block size is to small to contain a
+    ///   [`FreeBlock`] header
+    ///
+    /// # Safety
+    /// + If `start_addr` is not valid, you will have a bad time
+    ///
+    /// [`FreeList`]: type.FreeList.html
+    /// [`FreeBlock`]: struct.FreeBlock.html
     pub unsafe fn new( start_addr: *mut u8
                      , free_lists: &'a mut [FreeList]
                      , heap_size: usize)
@@ -144,7 +160,13 @@ impl<'a> HeapAllocator<'a> {
     }
 
     /// Add a block of max order
+    ///
+    /// # Safety
+    /// + This function has no way to guarantee that the given `block` of
+    ///   uninitialized memory is not already in use.
     pub unsafe fn add_block(&mut self, block: *mut u8) {
+        // TODO: assert the passed block is not a null pointer?
+        //       - eliza, 1/23/2017
         let order = self.free_lists.len() -1;
         self.push_block(block, order);
     }
@@ -195,7 +217,7 @@ impl<'a> HeapAllocator<'a> {
         trace!(target: "alloc", "TRACE: alloc_order() called");
         self.alloc_size(size, align)
             .map(|s| {
-                trace!(target: "alloc"
+                trace!( target: "alloc"
                       , "in alloc_order(): alloc_size() returned {}", s);
                 s.log2() - self.min_block_size.log2()
             })
@@ -222,10 +244,30 @@ impl<'a> HeapAllocator<'a> {
 
 
     /// Splits a block
+    ///
+    /// # Arguments
+    /// + `block`: a pointer to the block to split
+    /// + `old_order`: the current order of `block`
+    /// + `new_order`: the requested order for the split block
+    ///
+    /// # Safety
+    /// + This function has no guarantee that `block` is not a null pointer.
+    /// + This function has no guarantee that `block` is not already in use --
+    ///   if it is invoked on an already allocated block, that block may be
+    ///   clobbered without warning.
+    /// + This function has no guarantee that `old_order` is the correct order
+    ///   for `block`.
+    ///
+    /// # Panics
+    /// + If `new_order` is less than `old_order`: we make a block _larger_ by
+    ///   splitting it.
+    /// + If `old_order` is larger than the maximum order of this allocator
     unsafe fn split_block( &mut self
                          , block: *mut u8
                          , old_order: usize
                          , new_order: usize ) {
+        // TODO: assert the passed block is not a null pointer?
+        //       - eliza, 1/23/2017
         trace!( target: "alloc"
               , "split_block() was called, target order: {}.", new_order);
 
@@ -299,11 +341,11 @@ impl<'a> Allocator for HeapAllocator<'a> {
 
     /// Allocate a new block of size `size` on alignment `align`.
     ///
-    /// # Arguments:
+    /// # Arguments
     /// + `size`: the amount of memory to allocate (in bytes)
     /// + `align`: the alignment for the allocation request
     ///
-    /// # Returns:
+    /// # Returns
     /// + `Some(*mut u8)` if the request was allocated successfully
     /// + `None` if the allocator is out of memory or if the request was
     ///     invalid.
@@ -349,7 +391,7 @@ impl<'a> Allocator for HeapAllocator<'a> {
     /// size and alignment of the frame being deallocated, otherwise our
     /// heap will become corrupted.
     ///
-    /// # Arguments:
+    /// # Arguments
     /// + `frame`: a pointer to the block of memory to deallocate
     /// + `size`: the size of the block being deallocated
     /// + `align`: the alignment of the block being deallocated

@@ -37,15 +37,23 @@ use memory::{PhysicalPage, FrameRange};
 use core::{ops, ptr};
 use core::cmp::min;
 
+#[cfg(feature = "first_fit")]
+extern crate arrayvec;
+
 #[cfg(feature = "buddy")]
 extern crate sos_intrusive as intrusive;
+
 #[cfg(any( feature = "buddy_as_system"
          , feature = "first_fit"))]
 extern crate spin;
-#[macro_use]
-extern crate log;
-#[cfg(feature = "first_fit")]
-extern crate arrayvec;
+
+#[cfg(feature = "buddy_as_system")]
+#[macro_use] extern crate once;
+
+#[macro_use] extern crate log;
+
+
+
 
 /// Trait for something that is like a frame.
 ///
@@ -133,7 +141,7 @@ pub trait FrameAllocator: Sized  {
     /// contain a handle on a `Frame` that will be automatically deallocated
     /// when the `BorrowedFrame` is dropped.
     ///
-    /// # Returns:
+    /// # Returns
     /// + `Some(BorrowedFrame)` if there are frames remaining in this
     ///    allocator.
     /// + `None` if the allocator is out of frames.
@@ -152,10 +160,10 @@ pub trait FrameAllocator: Sized  {
     /// contain a handle on a range of `Frame`s that will be automatically
     /// deallocated when the `BorrowedFrameRange` is dropped.
     ///
-    /// # Arguments:
+    /// # Arguments
     /// + `num`: The number of frames to allocate.
     ///
-    /// # Returns:
+    /// # Returns
     /// + `Some(BorrowedFrameRange)` if there are enough `Frame`s
     ///    remaining in the allocator to fulfill the allocation
     ///    request.
@@ -175,11 +183,11 @@ pub trait Allocator {
 
     /// Allocate a new block of size `size` on alignment `align`.
     ///
-    /// # Arguments:
+    /// # Arguments
     /// + `size`: the amount of memory to allocate (in bytes)
     /// + `align`: the alignment for the allocation request
     ///
-    /// # Returns:
+    /// # Returns
     /// + `Some(*mut u8)` if the request was allocated successfully
     /// + `None` if the allocator is out of memory or if the request was
     ///     invalid.
@@ -194,7 +202,7 @@ pub trait Allocator {
     /// size and alignment of the frame being deallocated, otherwise our
     /// heap will become corrupted.
     ///
-    /// # Arguments:
+    /// # Arguments
     /// + `frame`: a pointer to the block of memory to deallocate
     /// + `size`: the size of the block being deallocated
     /// + `align`: the alignment of the block being deallocated
@@ -208,13 +216,13 @@ pub trait Allocator {
     /// original size and alignment of the frame being reallocated, otherwise
     /// our heap will become corrupted.
     ///
-    /// # Arguments:
+    /// # Arguments
     /// + `old_frame`: a pointer to the frame to be reallocated
     /// + `old_size`: the size (in bytes) of the frame being reallocated
     /// + `new_size`: the size to reallocate the frame to.
     /// + `align`: the alignment for the allocation request
     ///
-    /// # Returns:
+    /// # Returns
     /// + `Some(*mut u8)` if the frame was reallocated successfully
     /// + `None` if the allocator is out of memory or if the request was
     ///     invalid.

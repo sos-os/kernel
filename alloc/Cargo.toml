@@ -7,7 +7,7 @@ authors = ["Eliza Weisman <hi@hawkweisman.me>"]
 default = ["buddy"]
 buddy = ["sos_intrusive"]
 as_system = []
-buddy_as_system = ["spin", "as_system"]
+buddy_as_system = ["spin", "once", "as_system"]
 first_fit = ["spin", "arrayvec"]
 
 [dependencies.log]
@@ -29,4 +29,8 @@ optional = true
 [dependencies.arrayvec]
 version = "0.3.16"
 default-features = false
+optional = true
+
+[dependencies.once]
+version = "0.3.2"
 optional = true

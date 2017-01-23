@@ -7,6 +7,7 @@ use super::{HeapAllocator, FreeList};
 
 use memory::{ PAGE_SIZE, PAddr, PhysicalPage, FrameRange, VAddr };
 
+/// The number of free lists for the kernel heap
 pub const NUM_FREE_LISTS: usize = 19;
 
 static ALLOC: Mutex<Option<HeapAllocator<'static>>>
@@ -23,7 +24,17 @@ static mut KERNEL_FREE_LISTS: [FreeList; NUM_FREE_LISTS]
       , FreeList::new()
       , ];
 
+/// Initialize the system heap at the given start address
+///
+/// # Arguments
+/// + `start_addr`: a pointer to the start address of the kernel heap
+/// + `heap_size`: the maximum size (in bytes) of the kernel heap
+///
+/// # Panics
+/// + If called once the kernel heap is already initialized
 pub unsafe fn init_heap(start_addr: *mut u8, heap_size: usize ) {
+    assert_has_not_been_called!("the kernel heap may not be initialized \
+                                 more than once!");
     trace!(target: "alloc", "init_heap() was called.");
     *(ALLOC.lock())
         = Some(HeapAllocator::new( start_addr
@@ -32,6 +43,7 @@ pub unsafe fn init_heap(start_addr: *mut u8, heap_size: usize ) {
 }
 
 // -- integrate the heap allocator into the Rust runtime ------------------
+#[allow(missing_docs)]
 #[no_mangle]
 pub extern "C" fn __rust_allocate(size: usize, align: usize) -> *mut u8 {
     trace!("__rust_allocate() was called.");
@@ -40,13 +52,15 @@ pub extern "C" fn __rust_allocate(size: usize, align: usize) -> *mut u8 {
              .expect("Cannot allocate memory, no system allocator exists!")
              .allocate(size, align)
              .map(|blck| {
+                 // TODO: can we use `inspect()` here instead?
+                 //       - eliza, 1/23/2017
                  trace!( target: "alloc"
                        , "__rust_allocate: allocatedd {:?}", blck);
                  blck })
              .unwrap_or(ptr::null_mut())
     }
 }
-
+#[allow(missing_docs)]
 #[no_mangle]
 pub extern "C" fn __rust_deallocate( ptr: *mut u8, old_size: usize
                                    , align: usize ) {
@@ -57,7 +71,7 @@ pub extern "C" fn __rust_deallocate( ptr: *mut u8, old_size: usize
     }
 }
 
-
+#[allow(missing_docs)]
 #[no_mangle]
 pub extern "C" fn __rust_reallocate( ptr: *mut u8, old_size: usize
                                    , size: usize, align: usize )
@@ -80,17 +94,20 @@ pub extern "C" fn __rust_reallocate_inplace( _ptr: *mut u8
     old_size
 }
 
+#[allow(missing_docs)]
 #[no_mangle]
 pub extern "C" fn __rust_usable_size(size: usize, _: usize) -> usize {
     size
 }
 
+/// A frame allocator using the system's buddy-block heap allocator
 // quick first pass on using the heap allocator as a frame allocator
 // TODO: this is Extremely Bad And Ugly And Awful. pleae make better.
 //       – eliza, 1/21/2017
 pub struct BuddyFrameAllocator;
 
 impl BuddyFrameAllocator {
+    /// Construct a new `BuddyFrameAllocator`
     pub const fn new() -> Self { BuddyFrameAllocator }
 }
 

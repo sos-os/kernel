@@ -3,7 +3,7 @@ use super::{Page, VirtualPage};
 
 /// Invalidate the TLB completely by reloading the CR3 register.
 ///
-/// # Unsafe Because
+/// # Safety
 /// + Causes a general protection fault if not executed in kernel mode.
 pub unsafe fn flush_all() {
     use cpu::control_regs::cr3;
@@ -14,7 +14,7 @@ pub unsafe fn flush_all() {
 pub trait Flush {
     /// Invalidate this object in the TLB using the `invlpg` instruction.
     ///
-    /// # Unsafe Because
+    /// # Safety
     /// + Causes a general protection fault if not executed in kernel mode.
     unsafe fn invlpg(&self);
 

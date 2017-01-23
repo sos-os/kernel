@@ -77,11 +77,11 @@ pub trait Allocator {
 
     /// Allocate a new block of size `size` on alignment `align`.
     ///
-    /// # Arguments:
+    /// # Arguments
     /// + `size`: the amount of memory to allocate (in bytes)
     /// + `align`: the alignment for the allocation request
     ///
-    /// # Returns:
+    /// # Returns
     /// + `Some(*mut u8)` if the request was allocated successfully
     /// + `None` if the allocator is out of memory or if the request was
     ///     invalid.
@@ -96,7 +96,7 @@ pub trait Allocator {
     /// size and alignment of the frame being deallocated, otherwise our
     /// heap will become corrupted.
     ///
-    /// # Arguments:
+    /// # Arguments
     /// + `frame`: a pointer to the block of memory to deallocate
     /// + `size`: the size of the block being deallocated
     /// + `align`: the alignment of the block being deallocated
@@ -110,13 +110,13 @@ pub trait Allocator {
     /// original size and alignment of the frame being reallocated, otherwise
     /// our heap will become corrupted.
     ///
-    /// # Arguments:
+    /// # Arguments
     /// + `old_frame`: a pointer to the frame to be reallocated
     /// + `old_size`: the size (in bytes) of the frame being reallocated
     /// + `new_size`: the size to reallocate the frame to.
     /// + `align`: the alignment for the allocation request
     ///
-    /// # Returns:
+    /// # Returns
     /// + `Some(*mut u8)` if the frame was reallocated successfully
     /// + `None` if the allocator is out of memory or if the request was
     ///     invalid.

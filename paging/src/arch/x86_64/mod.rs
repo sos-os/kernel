@@ -90,11 +90,11 @@ impl ActivePageTable {
 
     /// Replace the current `ActivePageTable` with the given `InactivePageTable`
     ///
-    /// # Arguments:
+    /// # Arguments
     /// + `new_table`: the `InactivePageTable` that will replace the current
     ///                `ActivePageTable`.
     ///
-    /// # Returns:
+    /// # Returns
     /// + the old active page table as an `InactivePageTable`.
     pub fn replace_with(&mut self, new_table: &mut InactivePageTable)
                        -> InactivePageTable {
