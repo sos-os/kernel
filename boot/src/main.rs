@@ -13,6 +13,7 @@
 #![feature(lang_items)]
 #![feature(naked_functions)]
 #![no_std]
+#![no_main]
 
 const TABLE_LENGTH: usize = 512;
 
@@ -36,8 +37,13 @@ extern {
 }
 
 #[no_mangle]
+pub unsafe fn start() {
+    unimplemented!()
+}
+
+#[no_mangle]
 #[naked]
-pub unsafe extern fn create_page_tables() {
+unsafe fn create_page_tables() {
     const HUGE_PAGE_SIZE: u64 = 2 * 1024 * 1024; // 2 MiB
 
     //-- map the PML4 and PDP tables -----------------------------------------
