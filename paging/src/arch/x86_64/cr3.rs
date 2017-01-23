@@ -9,11 +9,8 @@ pub use cpu::control_regs::cr3::*;
 ///   a general protection fault.
 #[cfg(target_arch = "x86_64")]
 #[inline]
-// TODO: this needs to return a reference
-pub unsafe fn current_pml4() -> Table<PML4Level> {
-    use core::mem::transmute;
-    //*read().as_mut_ptr::<Table<PML4Level>>()
-    unimplemented!()
+pub unsafe fn current_pml4() -> *mut Table<PML4Level> {
+    read().as_mut_ptr::<Table<PML4Level>>()
 }
 
 /// Sets the current Page Meta-Level 4 Table
