@@ -49,12 +49,12 @@ extern crate spin;
 
 // -- SOS dependencies ------------------------------------------------------
 #[macro_use] extern crate vga;
-#[macro_use] extern crate cpu;
 
-extern crate util;
 extern crate alloc;
-extern crate memory;
+#[macro_use] extern crate cpu;
 extern crate elf;
+extern crate util;
+extern crate memory;
 
 #[macro_use] pub mod io;
 

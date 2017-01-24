@@ -3,8 +3,11 @@ name = "boot"
 version = "0.1.0"
 authors = ["Eliza Weisman <hi@hawkweisman.me>"]
 
-[[bin]]
-name = "boot"
+# [lib]
+# crate-type = ["staticlib"]
+
+# [[bin]]
+# name = "libboot.a"
 
 [profile.dev]
 opt-level = 3

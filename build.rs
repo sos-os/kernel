@@ -54,7 +54,7 @@ fn main() {
         //
         // println!("cargo:rustc-link-search=native={}", out_dir);
         // println!("cargo:rustc-link-lib=static=boot");
-
+        //
         // xargo rustc --target x86_32-sos-bootstrap-gnu -- --emit=obj
         //
         // fn run(cmd: &mut Command) -> io::Result<ExitStatus> {
@@ -89,12 +89,19 @@ fn main() {
         //
         // }
 
-        if arch_name == "x86_64" {
+        use std::process::Command;
+        use std::process::Stdio;
 
-            println!( "cargo:rustc-link-search=native=boot/target/x86_32-sos-bootstrap-gnu/debug/");
-            println!("cargo:rustc-link-lib=static=boot");
+        let boot_path = if arch_name == "x86_64" {
 
-        }
+
+            "boot/target/"
+
+        } else {
+            panic!("target arch {} not yet supported, sorry!", arch_name);
+        };
+        println!( "cargo:rustc-link-search=native={}", boot_path);
+        println!("cargo:rustc-link-lib=static=boot");
 
         // // for each assembly file detected, tell cargo to re-run
         // // if that file has changed

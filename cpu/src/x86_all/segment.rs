@@ -20,7 +20,7 @@
 #![warn(missing_docs)]
 
 use core::{fmt, mem};
-use super::PrivilegeLevel;
+use super::{PrivilegeLevel, dtable};
 
 /// The number of entries in the GDT
 #[cfg(target_arch = "x86_64")]
@@ -31,10 +31,20 @@ pub const GDT_SIZE: usize = 3;
 #[cfg(target_arch = "x86")]
 pub const GDT_SIZE: usize = 512;
 
-extern {
-    #[cfg(target_arch = "x86_64")]
-    #[link_section = ".gdt64"]
-    pub static GDT: [Descriptor; GDT_SIZE];
+pub type Gdt = [Descriptor; GDT_SIZE];
+
+// extern {
+//     #[cfg(target_arch = "x86_64")]
+//     #[link_section = ".gdt64"]
+//     pub static GDT: [Descriptor; GDT_SIZE];
+// }
+
+
+
+impl dtable::DTable for Gdt {
+    type Entry = u64;
+    fn entry_count(&self) -> usize { GDT_SIZE }
+    fn load (&'static self) { unimplemented!() }
 }
 
 bitflags! {
@@ -308,6 +318,10 @@ impl Flags {
     /// Returns a new set of `Flag`s with all bits set to 0.
     const fn null() -> Self {
         Flags { bits: 0 }
+    }
+
+    pub const fn from_raw(bits: u16) -> Self {
+        Flags { bits: bits }
     }
 
     /// Get the Descriptor Privilege Level (DPL) from the flags

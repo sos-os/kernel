@@ -11,6 +11,7 @@
 pub mod drivers;
 pub mod interrupts;
 // pub mod memory;
+pub mod segmentation;
 
 #[path = "../x86_all/bda.rs"] pub mod bda;
 #[path = "../x86_all/multiboot2.rs"] pub mod multiboot2;

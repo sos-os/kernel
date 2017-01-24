@@ -35,7 +35,6 @@ pub struct Header {
     , pub end_tag: Tag
 }
 
-// #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 #[linkage = "external"]
 #[link_section = ".multiboot_header"]
 pub static HEADER: Header = Header {

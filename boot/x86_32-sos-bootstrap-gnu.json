@@ -8,14 +8,14 @@
     "code-model":"kernel",
     "os": "sos",
     "arch": "x86",
-    "linker": "no-linker",
     "features": "-mmx,-sse,-sse2,+soft-float",
     "relocation-model": "static",
     "disable-redzone": true,
     "eliminate-frame-pointer": false,
     "no-compiler-rt": true,
     "linker-is-gnu": true,
-    "pre-link-args": [],
+    "linker": "no-linker",
+    "pre-link-args": ["-m32", "-Wl,-n", "-nostartfiles"],
     "post-link-args": [],
     "archive-format": "gnu"
 }

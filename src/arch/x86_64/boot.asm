@@ -110,63 +110,63 @@ err:
     mov     byte  [0xb8004], al
     hlt
 
-; == Creates the page tables =================================================
-; Map the following:
-;   - the first PML4 entry -> PDP
-;   - the first PDP entry -> PD
-;   - each PD entry to its own 2mB page
-create_page_tables:
-    ; recursive map last entry in PML4 ---------------------------------------
-    mov         eax, pml4_table
-    or          eax, 0b11
-    mov         [pml4_table + 511 * 8], eax
-
-    page_map    pml4_table, pdp_table   ; map first PML4 entry to PDP table
-    page_map    pdp_table,  pd_table    ; map first PDP entry to PD table
-
-    ; map each PD table entry to its own 2mB page
-    mov         ecx, 0
-
-.pd_table_map: ; maps the PD table -----------------------------------------
-    mov     eax, 0x200000   ; 2 mB
-    mul     ecx             ; times the start address of the page
-    or      eax, 0b10000011 ; check if present + writable + huge
-
-    mov     [pd_table + ecx * 8], eax ; map nth entry from pd -> own page
-
-    ; increment counter and check if done
-    inc     ecx
-    cmp     ecx, 512
-    jne     .pd_table_map
-
-    ret
-
-; == Sets long mode and enables paging =======================================
-; In order to do this, we must first create the initial page tables.
-set_long_mode:
-
-    ; load PML4 addr to cr3 register -----------------------------------------
-    mov     eax, pml4_table
-    mov     cr3, eax
-
-    ; enable PAE-flag in cr4 (Physical Address Extension) --------------------
-    mov     eax, cr4
-    or      eax, 1 << 5
-    mov     cr4, eax
-
-    ; set the long mode bit in the EFER MSR (model specific register) --------
-    mov     ecx, 0xC0000080
-    rdmsr
-    or      eax, 1 << 8
-    wrmsr
-
-    ; enable paging in the cr0 register -------------------------------------
-    mov     eax, cr0
-    or      eax, 1 << 31
-    or      eax, 1 << 16
-    mov     cr0, eax
-
-    ret
+; ; == Creates the page tables =================================================
+; ; Map the following:
+; ;   - the first PML4 entry -> PDP
+; ;   - the first PDP entry -> PD
+; ;   - each PD entry to its own 2mB page
+; create_page_tables:
+;     ; recursive map last entry in PML4 ---------------------------------------
+;     mov         eax, pml4_table
+;     or          eax, 0b11
+;     mov         [pml4_table + 511 * 8], eax
+;
+;     page_map    pml4_table, pdp_table   ; map first PML4 entry to PDP table
+;     page_map    pdp_table,  pd_table    ; map first PDP entry to PD table
+;
+;     ; map each PD table entry to its own 2mB page
+;     mov         ecx, 0
+;
+; .pd_table_map: ; maps the PD table -----------------------------------------
+;     mov     eax, 0x200000   ; 2 mB
+;     mul     ecx             ; times the start address of the page
+;     or      eax, 0b10000011 ; check if present + writable + huge
+;
+;     mov     [pd_table + ecx * 8], eax ; map nth entry from pd -> own page
+;
+;     ; increment counter and check if done
+;     inc     ecx
+;     cmp     ecx, 512
+;     jne     .pd_table_map
+;
+;     ret
+;
+; ; == Sets long mode and enables paging =======================================
+; ; In order to do this, we must first create the initial page tables.
+; set_long_mode:
+;
+;     ; load PML4 addr to cr3 register -----------------------------------------
+;     mov     eax, pml4_table
+;     mov     cr3, eax
+;
+;     ; enable PAE-flag in cr4 (Physical Address Extension) --------------------
+;     mov     eax, cr4
+;     or      eax, 1 << 5
+;     mov     cr4, eax
+;
+;     ; set the long mode bit in the EFER MSR (model specific register) --------
+;     mov     ecx, 0xC0000080
+;     rdmsr
+;     or      eax, 1 << 8
+;     wrmsr
+;
+;     ; enable paging in the cr0 register -------------------------------------
+;     mov     eax, cr0
+;     or      eax, 1 << 31
+;     or      eax, 1 << 16
+;     mov     cr0, eax
+;
+;     ret
 
 section .bss
 align 4096
