@@ -24,3 +24,6 @@ debug = true
 rpath = false
 lto = false
 panic = "abort"
+
+[dependencies]
+rlibc = "0.1.4"

@@ -10,8 +10,6 @@
 // pub mod cpu;
 pub mod drivers;
 pub mod interrupts;
-// pub mod memory;
-pub mod segmentation;
 
 #[path = "../x86_all/bda.rs"] pub mod bda;
 #[path = "../x86_all/multiboot2.rs"] pub mod multiboot2;
@@ -30,9 +28,19 @@ pub const ARCH_BITS: u8 = 64;
 /// convention (`edi` on x86). If this isn't there, you can expect to have a
 /// bad problem and not go to space today.
 #[no_mangle]
+#[naked]
 pub extern "C" fn arch_init(multiboot_addr: PAddr) {
     use memory::arch::{HEAP_BASE, HEAP_TOP};
-
+    unsafe {
+        // load 0 into all data segment registers
+        asm!("mov ax, 0
+              mov ss, ax
+              mov ds, ax
+              mov es, ax
+              mov fs, ax
+              mov gs, ax"
+              :::: "intel");
+    }
     ::io::term::CONSOLE.lock().clear();
     ::logger::initialize()
         .expect("Could not initialize logger!");

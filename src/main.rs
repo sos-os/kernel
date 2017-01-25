@@ -88,9 +88,6 @@ pub fn kernel_main() -> ! {
 /// that this is passed in the correct register as expected by the calling
 /// convention (`edi` on x86). If this isn't there, you can expect to have a
 /// bad problem and not go to space today.
-//  TODO: since multiboot2 is x86-specific, this needs to move to `arch`.
-//  we then want the kernel entry point to be `arch_init`. we can then
-//  call into `kernel_init`.
 pub fn kernel_init(params: InitParams) {
     kinfoln!("Hello from the kernel!");
 
