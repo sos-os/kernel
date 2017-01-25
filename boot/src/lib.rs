@@ -37,12 +37,9 @@ extern {
 
 }
 
-extern "C" {
-    fn arch_init() -> !;
-}
-
 #[repr(C, packed)]
-pub struct Gdt { descriptors: [u64; 3]
+pub struct Gdt { _null: u64
+               , code: u64
            , ptr: GdtPointer
            }
 
@@ -54,17 +51,18 @@ pub struct GdtPointer { /// the length of the descriptor table
                      pub base: &'static Gdt
                    }
 
+#[repr(C, packed)]
+pub struct SegmentDescriptor {
+}
 
 // TODO: this sucks please fix
 #[link_name = ".gdt64"]
+#[link_section = ".gdt"]
 pub static GDT: Gdt
-    = Gdt {
-        descriptors: [ 0
-                     , (1<<44) | (1<<47) | (1<<41) | (1<<43) | (1<<53)
-                     , (1<<44) | (1<<47) | (1<<41)
-                     ]
-        , ptr: GdtPointer { limit: 23
-                          , base: &GDT }
+    = Gdt { _null: 0
+          , code: (1<<44) | (1<<47) | (1<<41) | (1<<43) | (1<<53)
+          , ptr: GdtPointer { limit: 23
+                            , base: &GDT }
      };
 
 #[inline(always)]
@@ -77,7 +75,7 @@ fn boot_write(s: &[u8]) {
     	for c in s {
     		ptr::write_volatile( vga_buf.offset(offset)
                                , 0x0200 + *c as u16);
-    		offset += 2;
+    		offset += 1;
     	}
 
     }
@@ -222,7 +220,7 @@ pub unsafe extern "C" fn _start() {
     // 4. load the 64-bit GDT
     asm!( "lgdt ($0)"
         :: "r"(&GDT.ptr)
-        : "memory"
+        :  "memory"
         );
     boot_write(b"4");
 
@@ -247,9 +245,15 @@ pub unsafe extern "C" fn _start() {
 
     // 6. jump to the 64-bit boot subroutine.
     // asm!("jmp $0:$1" :: "X"(&GDT.descriptors[1]), "X"(arch_init as unsafe extern "C" fn() -> !) :: "intel");
-    asm!("jmp $0:arch_init" :: "i"(&GDT.descriptors[1]) :: "intel");
+    // asm!("jmp $0:arch_init" :: "r"(&GDT.descriptors[1] as *const u64) :: "intel");
     // arch_init();
+    asm!(  "jmp $0:arch_init"
+        :: "r"(&GDT.code as *const _ as usize -
+               &GDT as *const _ as usize)
+        :: "intel");
 
-    boot_write(b"kernel returned unexpectedly!");
+    loop {
+        boot_write(b"kernel returned unexpectedly!");
+    }
 
 }
