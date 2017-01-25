@@ -14,6 +14,8 @@
 #![feature(naked_functions)]
 #![feature(static_recursion)]
 #![feature(linkage)]
+#![feature(struct_field_attributes)]
+#![feature(stmt_expr_attributes)]
 #![no_std]
 
 const TABLE_LENGTH: usize = 512;
@@ -33,7 +35,10 @@ use core::ptr;
 #[repr(C, packed)]
 pub struct Gdt { _null: u64
                , code: u64
-           , ptr: GdtPointer
+               , data: u64
+               , _pad: u16
+               , pub ptr: GdtPointer
+        //    , ptr: GdtPointer
            }
 
 #[repr(C, packed)]
@@ -44,19 +49,28 @@ pub struct GdtPointer { /// the length of the descriptor table
                      pub base: &'static Gdt
                    }
 
-#[repr(C, packed)]
-pub struct SegmentDescriptor {
-}
-
 // TODO: this sucks please fix
 #[link_name = ".gdt64"]
 #[link_section = ".gdt"]
+#[no_mangle]
 pub static GDT: Gdt
     = Gdt { _null: 0
-          , code: (1<<44) | (1<<47) | (1<<41) | (1<<43) | (1<<53)
-          , ptr: GdtPointer { limit: 23
-                            , base: &GDT }
-     };
+          , #[export_name = "gdt64.code"] #[no_mangle]
+            code: (1<<44) | (1<<47) | (1<<41) | (1<<43) | (1<<53)
+          , data: (1 << 44) | (1 << 47) | (1 << 41)
+          , _pad: 0
+          , ptr:
+                #[no_mangle]
+                GdtPointer { limit: 23
+                            , base: &GDT
+                            }
+          };
+
+// #[no_mangle]
+// static mut GDT_PTR: GdtPointer
+//     = GdtPointer { limit: 15
+//                  , base: &GDT
+//                  };
 
 #[inline(always)]
 #[naked]
@@ -85,8 +99,20 @@ extern "C" {
     static mut pml4_table: Table;
     static mut pdp_table: Table;
     static mut pd_table: Table;    // static mut page_table: Table;
+    fn arch_init(mboot: u64);
 }
 
+// #[naked]
+// #[inline(always)]
+// unsafe fn set_cs(cs: u16) {
+//     asm!("ljmpl $0, $$fake_label
+//           fake_label: \n\t"
+//         :
+//         : "i"(cs)
+//         : "ax"
+//         : "volatile"
+//         );
+// }
 
 #[naked]
 #[inline(always)]
@@ -96,11 +122,11 @@ pub unsafe fn create_page_tables() {
 
     //-- map the PML4 and PDP tables -----------------------------------------
     // recursive map last PML4 entry
-    pml4_table[511] = (&pml4_table as *const Table as u64) | 3;
+    pml4_table[511] = (&pml4_table[0] as *const _ as u64) | 3;
     // map first PML4 entry to PDP table
-    pml4_table[0] = (&pdp_table as *const Table as u64) | 3;
+    pml4_table[0] = (&pdp_table[0] as *const _ as u64) | 3;
     // map first PDPT entry to PD table
-    pdp_table[0] = (&pd_table as *const Table as u64) | 3;
+    pdp_table[0] = (&pd_table[0] as *const _ as u64) | 3;
 
     boot_write(b"3.1");
 
@@ -121,17 +147,16 @@ pub unsafe fn create_page_tables() {
 #[inline(always)]
 pub unsafe fn set_long_mode() {
     // load PML4 addr to cr3
-    asm!( "mov   cr3, $0"
-        :: "r"(&pml4_table)
-        :: "intel");
-    boot_write(b"3.2");
-
+    asm!( "mov  eax, pml4_table
+           mov   cr3, eax"
+        :::: "intel");
+    // boot_write(b"3.2");
     // enable PAE flag in cr4
     asm!( "mov   eax, cr4
            or    eax, 1 << 5
            mov   cr4, eax"
         :::: "intel");
-    boot_write(b"3.3");
+    // boot_write(b"3.3");
 
     // set the long mode bit in EFER MSR (model specific register)
     asm!( "mov   ecx, 0xC0000080
@@ -148,7 +173,6 @@ pub unsafe fn set_long_mode() {
            mov  cr0, eax"
         :::: "intel");
     boot_write(b"3.5");
-
 }
 
 
@@ -160,9 +184,11 @@ pub unsafe extern "C" fn _start() {
     asm!( "mov esp, stack_top"
         :::: "intel");
     boot_write(b"0");
+    asm!("cli");
 
     // 1. Move Multiboot info pointer to edi
-    asm!("mov edi, edx" :::: "intel");
+    let multiboot: usize;
+    asm!("mov edi, $0" : "=r"(multiboot) ::: "intel");
     boot_write(b"1");
 
     // 2. make sure the system supports SOS
@@ -172,22 +198,23 @@ pub unsafe extern "C" fn _start() {
     create_page_tables();
     set_long_mode();
 
+
     // 4. load the 64-bit GDT
-    asm!( "lgdt ($0)"
+    asm!(  "lgdt ($0)"
         :: "r"(&GDT.ptr)
         :  "memory"
         );
     boot_write(b"4");
 
     // 5. update selectors
-    asm!("mov ax, 0x10" :::: "intel");
+    asm!("mov ax, 16" :::: "intel");
     boot_write(b"5.1");
     // stack selector
     asm!("mov ss, ax" :::: "intel");
     boot_write(b"5.2");
     // data selector
     asm!("mov ds, ax" :::: "intel");
-     boot_write(b"5.3");
+    boot_write(b"5.3");
     // extra selector
     asm!("mov es, ax" :::: "intel");
     boot_write(b"5.4");
@@ -196,13 +223,27 @@ pub unsafe extern "C" fn _start() {
     // asm!("jmp $0:$1" :: "X"(&GDT.descriptors[1]), "X"(arch_init as unsafe extern "C" fn() -> !) :: "intel");
     // asm!("jmp $0:arch_init" :: "r"(&GDT.descriptors[1] as *const u64) :: "intel");
     // arch_init();
-    asm!(  "jmp $0:arch_init"
-        :: "r"(&GDT.code as *const _ as usize -
-               &GDT as *const _ as usize)
-        :: "intel");
+    // asm!(  "jmp $0:arch_init"
+    //     :: "r"(&GDT.code as *const _ as usize -
+    //            &GDT as *const _ as usize)
+    //     :: "intel");
+    // asm!( "ljmp $0:$1" :: "X"(8), "X"("arch_init"):: "volatile", "intel");
 
-    loop {
-        boot_write(b"kernel returned unexpectedly!");
-    }
+
+    // asm!("ljmpw $$0x0008, $$arch_init"
+    //     :: // "i"(arch_init)
+    //     :: "volatile");
+    asm!(  "ljmpl $$8, $$arch_init"
+        :: //"I"((&GDT.code as *const _ as usize) - &GDT as *const _ as usize)
+        :: "volatile"
+       );
+    // asm!("jmp far 0x0008:arch_init" :::: "intel", "volatile");
+    // set_cs(0x0008);
+    // loop { boot_write(b"hey i set the code segment selector"); }
+    // asm!("calll $$arch_init");
+    // arch_init(multiboot as u64);
+    // asm!("ljmpl $$0x0008, $$0x106000");
+    // asm!("ljmpl *(arch_init)");
+    // asm!("ljmpl [arch_init]" );
 
 }
