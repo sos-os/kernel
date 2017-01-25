@@ -29,13 +29,6 @@ use core::ptr;
 //     die();
 // }
 
-extern {
-    static mut pml4_table: Table;
-    static mut pdp_table: Table;
-    static mut pd_table: Table;
-    // static mut page_table: Table;
-
-}
 
 #[repr(C, packed)]
 pub struct Gdt { _null: u64
@@ -87,83 +80,17 @@ macro_rules! write_char {
     }
 }
 
+
+extern "C" {
+    static mut pml4_table: Table;
+    static mut pdp_table: Table;
+    static mut pd_table: Table;    // static mut page_table: Table;
+}
+
+
 #[naked]
 #[inline(always)]
 pub unsafe fn create_page_tables() {
-    const HUGE_PAGE_SIZE: u64 = 2 * 1024 * 1024; // 2 MiB
-
-    //-- map the PML4 and PDP tables -----------------------------------------
-    // recursive map last PML4 entry
-    pml4_table[511] = (&pml4_table as *const Table as u64) | 3;
-    // map first PML4 entry to PDP table
-    pml4_table[0] = (&pdp_table as *const Table as u64) | 3;
-    // map first PDPT entry to PD table
-    pdp_table[0] = (&pd_table as *const Table as u64) | 3;
-
-    //-- map the PD table ----------------------------------------------------
-    for (number, entry) in pd_table.iter_mut().enumerate() {
-        // set each PD entry equal to the start address of the page (the page
-        // number times the page's size)
-        let addr = number as u64 * HUGE_PAGE_SIZE;
-        // with the appropriate flags (present + writable + huge)
-        // TODO: do we want to do this using bitflags, or is that too
-        //       heavyweight for the boot module?
-        //          - eliza, 1/23/2017
-        *entry = addr | 0b10000011;
-    }
-}
-
-#[naked]
-#[inline(always)]
-pub unsafe fn set_long_mode() {
-    // load PML4 addr to cr3
-    asm!( "mov   cr3, $0"
-        : "=r"(&pml4_table as *const Table)
-        ::: "intel");
-    // enable PAE flag in cr4
-    asm!( "mov   eax, cr4
-           or    eax, 1 << 5
-           mov   cr4, eax"
-        :::: "intel");
-    // set the long mode bit in EFER MSR (model specific register)
-    asm!( "mov   ecx, 0xC0000080
-           rdmsr
-           or    eax, 1 << 8
-           wrmsr"
-        :::: "intel");
-    // enable paging in cr0
-    asm!( "mov  eax, cr0
-           or   eax, 1 << 31
-           or   eax, 1 << 16
-           mov  cr0, eax"
-        :::: "intel");
-
-    asm!("ret");
-}
-
-#[naked]
-#[inline(always)] #[cold]
-unsafe fn die() -> ! {
-    loop { asm!("hlt"); }
-}
-
-#[cold]
-#[no_mangle]
-#[naked]
-pub unsafe extern "C" fn _start() {
-    // 0. Move the stack pointer to the top of the stack.
-    asm!( "mov esp, stack_top"
-        :::: "intel");
-    boot_write(b"0");
-
-    // 1. Move Multiboot info pointer to edi
-    asm!("mov edi, edx" :::: "intel");
-    boot_write(b"1");
-
-    // 2. make sure the system supports SOS
-    // TODO: port this from boot.asm
-    boot_write(b"2");
-
     // 3. if everything is okay, create the page tables and start long mode
     const HUGE_PAGE_SIZE: u64 = 2 * 1024 * 1024; // 2 MiB
 
@@ -188,9 +115,14 @@ pub unsafe extern "C" fn _start() {
         //          - eliza, 1/23/2017
         *entry = addr | 0b10000011;
     }
+}
+
+#[naked]
+#[inline(always)]
+pub unsafe fn set_long_mode() {
     // load PML4 addr to cr3
     asm!( "mov   cr3, $0"
-        :: "r"(&pml4_table as *const Table)
+        :: "r"(&pml4_table)
         :: "intel");
     boot_write(b"3.2");
 
@@ -217,6 +149,29 @@ pub unsafe extern "C" fn _start() {
         :::: "intel");
     boot_write(b"3.5");
 
+}
+
+
+#[cold]
+#[no_mangle]
+#[naked]
+pub unsafe extern "C" fn _start() {
+    // 0. Move the stack pointer to the top of the stack.
+    asm!( "mov esp, stack_top"
+        :::: "intel");
+    boot_write(b"0");
+
+    // 1. Move Multiboot info pointer to edi
+    asm!("mov edi, edx" :::: "intel");
+    boot_write(b"1");
+
+    // 2. make sure the system supports SOS
+    // TODO: port this from boot.asm
+    boot_write(b"2");
+
+    create_page_tables();
+    set_long_mode();
+
     // 4. load the 64-bit GDT
     asm!( "lgdt ($0)"
         :: "r"(&GDT.ptr)
@@ -225,12 +180,6 @@ pub unsafe extern "C" fn _start() {
     boot_write(b"4");
 
     // 5. update selectors
-    // asm!("mov ax, 16
-    //       mov ss, ax
-    //       mov ds, ax
-    //       mov es, ax"
-    //      :::: "intel");
-    // update selectors
     asm!("mov ax, 0x10" :::: "intel");
     boot_write(b"5.1");
     // stack selector
