@@ -43,6 +43,9 @@ HELP_FUN = \
 
 .PHONY: all clean kernel run iso cargo help gdb test doc release-iso release-run release-kernel
 
+exception: $(iso) ##@build Run the kernel, dumping the state from QEMU if an exception occurs
+	@qemu-system-x86_64 -s -hda $(iso) -d int -no-reboot
+
 doc: ##@utilities Make RustDoc documentation
 	@xargo doc
 
