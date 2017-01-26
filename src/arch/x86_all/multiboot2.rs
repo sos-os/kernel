@@ -57,8 +57,11 @@ impl Info {
 
     pub unsafe fn from(addr: PAddr) -> Result<&'static Self, &'static str> {
         let info: &Info = &*(addr.into(): u64 as *const Info);
-        if info.has_end() { Ok(info) }
-        else { Err("Multiboot info structure had no end tag!") }
+        if info.has_end() {
+            Ok(info)
+        } else {
+            Err( "Multiboot info structure at {:?} had no end tag!")
+        }
     }
 
     /// Finds the tag with the given tag type.

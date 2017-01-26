@@ -40,7 +40,7 @@ use core::ptr;
 #[repr(C, packed)]
 pub struct Gdt { _null: u64
                , code: u64
-               , data: u64
+            //    , data: u64
                , _pad: u16
                , pub ptr: GdtPointer
         //    , ptr: GdtPointer
@@ -62,11 +62,11 @@ pub static GDT: Gdt
     = Gdt { _null: 0
           , #[export_name = "gdt64.code"] #[no_mangle]
             code: (1<<44) | (1<<47) | (1<<41) | (1<<43) | (1<<53)
-          , data: (1 << 44) | (1 << 47) | (1 << 41)
+        //   , data: (1 << 44) | (1 << 47) | (1 << 41)
           , _pad: 0
           , ptr:
                 #[no_mangle]
-                GdtPointer { limit: 23
+                GdtPointer { limit: 15
                             , base: &GDT
                             }
           };
@@ -212,23 +212,20 @@ pub unsafe extern "C" fn _start() {
     asm!("lgdt ($0)" :: "r"(&GDT.ptr) : "memory" );
     boot_write(b"4");
 
-    // 5. update selectors
-    asm!("mov ax, 0x10" :::: "intel");
-    boot_write(b"5.1");
-    // stack selector
-    asm!("mov ss, ax" :::: "intel");
-    boot_write(b"5.2");
-    // data selector
-    asm!("mov ds, ax" :::: "intel");
-    boot_write(b"5.3");
-    // extra selector
-    asm!("mov es, ax" :::: "intel");
-    boot_write(b"5.4");
+    // // 5. update selectors
+    // asm!("mov ax, 0x10" :::: "intel");
+    // boot_write(b"5.1");
+    // // stack selector
+    // asm!("mov ss, ax" :::: "intel");
+    // boot_write(b"5.2");
+    // // data selector
+    // asm!("mov ds, ax" :::: "intel");
+    // boot_write(b"5.3");
+    // // extra selector
+    // asm!("mov es, ax" :::: "intel");
+    // boot_write(b"5.4");
 
     // 6. jump to the 64-bit boot subroutine.
-    asm!( "ljmpl $$8, $$arch_init"
-        :: //"I"((&GDT.code as *const _ as usize) - &GDT as *const _ as usize)
-        :: "volatile"
-        );
+    asm!( "ljmpl $$8, $$arch_init" );
 
 }
