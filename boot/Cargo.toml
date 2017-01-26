@@ -10,6 +10,7 @@ authors = ["Eliza Weisman <hi@hawkweisman.me>"]
 # name = "libboot.a"
 
 [features]
+default = ["log"]
 log = []
 
 [profile.dev]

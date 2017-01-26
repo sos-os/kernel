@@ -6,15 +6,15 @@
     "target-pointer-width": "32",
     "data-layout": "e-m:e-p:32:32-f64:32:64-f80:32-n8:16:32-S128",
     "os": "sos",
-    "arch": "x86_64",
+    "arch": "x86",
     "features": "-mmx,-sse,-sse2,+soft-float",
     "code-model":"kernel",
-    "relocation-model": "dynamic-no-pic",
+    "relocation-model": "static",
     "disable-redzone": true,
     "eliminate-frame-pointer": false,
     "no-compiler-rt": true,
     "linker": "no-linker",
-    "pre-link-args": ["-m32", "-Wl,-n", "-Wl,-z,relro", "-Wl,-z,now", "-nostartfiles"],
+    "pre-link-args": [],
     "post-link-args": [],
     "archive-format": "gnu"
 }

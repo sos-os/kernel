@@ -10,6 +10,7 @@ pub const NUM_FREE_LISTS: usize = 19;
 static ALLOC: Mutex<Option<BuddyHeapAllocator<'static>>>
     = Mutex::new(None);
 
+#[no_mangle]
 static mut KERNEL_FREE_LISTS: [FreeList; NUM_FREE_LISTS]
     // TODO: I really wish there was a less awful way to do this...
     = [ FreeList::new(),  FreeList::new(), FreeList::new()

@@ -44,13 +44,14 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
     ::io::term::CONSOLE.lock().clear();
     ::logger::initialize()
         .expect("Could not initialize logger!");
-
+    kinfoln!("in arch_init");
+    // loop { };
     // -- Unpack multiboot tag ------------------------------------------------
     let boot_info
         = unsafe { multiboot2::Info::from(multiboot_addr)
                     .expect("Could not unpack multiboot2 information!") };
-
-    let mmap_tag // Extract the memory map tag from the multiboot info
+    // Extract the memory map tag from the multiboot info
+    let mmap_tag
         = boot_info.mem_map()
                    .expect("Memory map tag required!");
 
@@ -59,14 +60,15 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
         kinfoln!(dots: " . . ", "start: {:#08x}, end: {:#08x}"
                 , a.base, a.length );
     }
-
-    let elf_sections_tag // Extract ELF sections tag from the multiboot info
+    // Extract ELF sections tag from the multiboot info
+    let elf_sections_tag
         = boot_info.elf_sections()
                    .expect("ELF sections tag required!");
 
     kinfoln!(dots: " . ", "Detecting kernel ELF sections:");
 
-    let kernel_begin    // Extract kernel ELF sections from  multiboot info
+    // Extract kernel ELF sections from  multiboot info
+    let kernel_begin
         = elf_sections_tag.sections()
             .map(|s| {
                 kinfoln!( dots: " . . "
