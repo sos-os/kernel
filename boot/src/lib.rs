@@ -40,35 +40,29 @@ use core::ptr;
 #[repr(C, packed)]
 pub struct Gdt { _null: u64
                , code: u64
-            //    , data: u64
-               , _pad: u16
-               , pub ptr: GdtPointer
-        //    , ptr: GdtPointer
-           }
+               }
 
 #[repr(C, packed)]
-pub struct GdtPointer { /// the length of the descriptor table
-                     pub limit: u16
-                   , /// pointer to the region in memory
-                     /// containing the descriptor table.
-                     pub base: &'static Gdt
-                   }
+pub struct GdtPointer { /// the length of the GDT
+                        pub limit: u16
+                      , /// pointer to the GDT
+                        pub base: &'static Gdt
+                      }
 
-// TODO: this sucks please fix
+impl GdtPointer {
+    #[inline]
+    unsafe fn load (&self) {
+        asm!("lgdt $0" :: "m"(self) : "memory");
+    }
+}
+
 #[link_name = ".gdt64"]
 #[link_section = ".gdt"]
 #[no_mangle]
 pub static GDT: Gdt
     = Gdt { _null: 0
-          , #[export_name = "gdt64.code"] #[no_mangle]
-            code: (1<<44) | (1<<47) | (1<<41) | (1<<43) | (1<<53)
+          , code: (1<<44) | (1<<47) | (1<<41) | (1<<43) | (1<<53)
         //   , data: (1 << 44) | (1 << 47) | (1 << 41)
-          , _pad: 0
-          , ptr:
-                #[no_mangle]
-                GdtPointer { limit: 15
-                            , base: &GDT
-                            }
           };
 
 // #[no_mangle]
@@ -188,6 +182,7 @@ unsafe fn set_long_mode() {
 #[no_mangle]
 #[naked]
 pub unsafe extern "C" fn _start() {
+    use core::mem;
     // 0. Move the stack pointer to the top of the stack.
     asm!( "mov esp, stack_top" :::: "intel" );
     boot_write(b"0");
@@ -209,7 +204,11 @@ pub unsafe extern "C" fn _start() {
     set_long_mode();
 
     // 4. load the 64-bit GDT
-    asm!("lgdt ($0)" :: "r"(&GDT.ptr) : "memory" );
+    let gdt_ptr = GdtPointer { limit: mem::size_of_val(&GDT) as u16 - 1
+                             , base: &GDT };
+
+    // asm!("lgdt ($0)" :: "r"(&gdt_ptr) : "memory" );
+    gdt_ptr.load();
     boot_write(b"4");
 
     // // 5. update selectors
