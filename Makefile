@@ -98,7 +98,7 @@ $(boot):
 	# # Place 32-bit bootstrap code into a 64-bit ELF
 	@x86_64-elf-objcopy -O elf64-x86-64 boot/target/boot32.o boot/target/boot.o
 	# # # Strip all but the entry symbol `setup_long_mode` so they don't conflict with 64-bit kernel symbols
-	# # @x86_64-elf-objcopy --strip-debug -G _start boot/target/boot.o
+	@x86_64-elf-objcopy --strip-debug -G _start boot/target/boot.o
 	@cd boot/target && ar -crus libboot.a boot.o
 
 $(release_kernel):

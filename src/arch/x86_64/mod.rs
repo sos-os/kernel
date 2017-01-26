@@ -28,7 +28,6 @@ pub const ARCH_BITS: u8 = 64;
 /// convention (`edi` on x86). If this isn't there, you can expect to have a
 /// bad problem and not go to space today.
 #[no_mangle]
-#[naked]
 pub extern "C" fn arch_init(multiboot_addr: PAddr) {
     use memory::arch::{HEAP_BASE, HEAP_TOP};
     unsafe {
@@ -40,12 +39,16 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
               mov fs, ax
               mov gs, ax"
               :::: "intel");
+
+        asm!("movabs $$stack_top, %rsp
+              movabs $$stack_top, %rbp");
     }
     ::io::term::CONSOLE.lock().clear();
     ::logger::initialize()
         .expect("Could not initialize logger!");
+
     kinfoln!("in arch_init");
-    // loop { };
+
     // -- Unpack multiboot tag ------------------------------------------------
     let boot_info
         = unsafe { multiboot2::Info::from(multiboot_addr)

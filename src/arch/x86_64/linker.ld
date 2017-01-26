@@ -14,7 +14,7 @@ SECTIONS {
     /* Load the kernel reasonably high in memory to avoid special addresses. */
     . = 1M;
 
-    .rodata :
+    .boot :
     {
         /* This goes first. */
         KEEP(*(.multiboot_header))
@@ -61,7 +61,7 @@ SECTIONS {
 
 
         stack_base = .;
-        . += 4096;
+        . += 4096 + 4096;
         stack_top = .;
 
         heap_base_addr = .;
@@ -82,8 +82,6 @@ SECTIONS {
       *(.got.plt)
       . = ALIGN(4096);
     }
-
-
 
     .data.rel.ro : {
        *(.data.rel.ro.local*) *(.data.rel.ro .data.rel.ro.*)
