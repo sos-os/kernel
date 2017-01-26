@@ -100,6 +100,7 @@ extern "C" {
     static mut pdp_table: Table;
     static mut pd_table: Table;    // static mut page_table: Table;
     fn arch_init(mboot: u64);
+    static mut stack_top: *mut u8;
 }
 
 // #[naked]
@@ -144,19 +145,17 @@ pub unsafe fn create_page_tables() {
 }
 
 #[naked]
-#[inline(always)]
 pub unsafe fn set_long_mode() {
     // load PML4 addr to cr3
-    asm!( "mov  eax, pml4_table
-           mov   cr3, eax"
-        :::: "intel");
-    // boot_write(b"3.2");
+    asm!( "mov   cr3, $0" :: "r"(&pml4_table) :: "intel");
+    boot_write(b"3.2");
+
     // enable PAE flag in cr4
-    asm!( "mov   eax, cr4
-           or    eax, 1 << 5
-           mov   cr4, eax"
-        :::: "intel");
-    // boot_write(b"3.3");
+    let mut cr4: usize;
+    asm!("mov $0, cr4" : "=r"(cr4) ::: "intel");
+    cr4 |= 1 << 5;
+    asm!("mov cr4, $0" :: "r"(cr4) :: "intel");
+    boot_write(b"3.3");
 
     // set the long mode bit in EFER MSR (model specific register)
     asm!( "mov   ecx, 0xC0000080
@@ -167,11 +166,11 @@ pub unsafe fn set_long_mode() {
     boot_write(b"3.4");
 
     // enable paging in cr0
-    asm!( "mov  eax, cr0
-           or   eax, 1 << 31
-           or   eax, 1 << 16
-           mov  cr0, eax"
-        :::: "intel");
+    let mut cr0: usize;
+    asm!( "mov $0, cr0" : "=r"(cr0) ::: "intel");
+    cr0 |= 1 << 31;
+    cr0 |= 1 << 16;
+    asm!( "mov cr0, $0" :: "r"(cr0) ::: "intel");
     boot_write(b"3.5");
 }
 
@@ -180,20 +179,20 @@ pub unsafe fn set_long_mode() {
 #[no_mangle]
 #[naked]
 pub unsafe extern "C" fn _start() {
-    // 0. Move the stack pointer to the top of the stack.
-    asm!( "mov esp, stack_top"
-        :::: "intel");
-    boot_write(b"0");
+    // boot_write(b"0");
     asm!("cli");
 
     // 1. Move Multiboot info pointer to edi
-    let multiboot: usize;
-    asm!("mov edi, $0" : "=r"(multiboot) ::: "intel");
-    boot_write(b"1");
+    // let multiboot: usize;
+    asm!("mov edi, edx"
+         : //"=r"(multiboot)
+         ::: "intel"
+    );
+    // boot_write(b"1");
 
     // 2. make sure the system supports SOS
     // TODO: port this from boot.asm
-    boot_write(b"2");
+    // boot_write(b"2");
 
     create_page_tables();
     set_long_mode();
@@ -204,20 +203,20 @@ pub unsafe extern "C" fn _start() {
         :: "r"(&GDT.ptr)
         :  "memory"
         );
-    boot_write(b"4");
+    // boot_write(b"4");
 
     // 5. update selectors
     asm!("mov ax, 16" :::: "intel");
-    boot_write(b"5.1");
+    // boot_write(b"5.1");
     // stack selector
     asm!("mov ss, ax" :::: "intel");
-    boot_write(b"5.2");
+    // boot_write(b"5.2");
     // data selector
     asm!("mov ds, ax" :::: "intel");
-    boot_write(b"5.3");
+    // boot_write(b"5.3");
     // extra selector
     asm!("mov es, ax" :::: "intel");
-    boot_write(b"5.4");
+    // boot_write(b"5.4");
 
     // 6. jump to the 64-bit boot subroutine.
     // asm!("jmp $0:$1" :: "X"(&GDT.descriptors[1]), "X"(arch_init as unsafe extern "C" fn() -> !) :: "intel");
