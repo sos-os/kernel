@@ -1,7 +1,7 @@
 extern crate nasm_rs;
 
 use std::env;
-use std::path::{PathBuf, Path};
+use std::path::{PathBuf,  Path};
 use std::process::{Command, ExitStatus, Output};
 use std::io;
 use std::io::{BufReader, BufRead, Write};
@@ -100,8 +100,8 @@ fn main() {
         } else {
             panic!("target arch {} not yet supported, sorry!", arch_name);
         };
-        println!( "cargo:rustc-link-search=native={}", boot_path);
-        println!("cargo:rustc-link-lib=static=boot");
+        // println!( "cargo:rustc-link-search=native={}", boot_path);
+        // println!("cargo:rustc-link-lib=static=boot");
 
         // // for each assembly file detected, tell cargo to re-run
         // // if that file has changed

@@ -9,6 +9,9 @@ authors = ["Eliza Weisman <hi@hawkweisman.me>"]
 # [[bin]]
 # name = "libboot.a"
 
+[features]
+log = []
+
 [profile.dev]
 opt-level = 3
 debug = true
