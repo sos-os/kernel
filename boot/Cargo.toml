@@ -7,6 +7,7 @@ authors = ["Eliza Weisman <hi@hawkweisman.me>"]
 name = "boot"
 
 [features]
+default = ["log"]
 log = []
 
 [profile.dev]

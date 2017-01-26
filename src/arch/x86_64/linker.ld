@@ -27,7 +27,7 @@ SECTIONS {
      /* NOTE we use KEEP here to prevent the linker from dropping
         these symbols
       */
-        KEEP(*(.text.start))
+        KEEP(*(.text._start))
         KEEP(*(.text.arch_init))
         *(.text .text.*)
         . = ALIGN(4096);
