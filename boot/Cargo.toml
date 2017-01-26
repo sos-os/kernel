@@ -6,6 +6,9 @@ authors = ["Eliza Weisman <hi@hawkweisman.me>"]
 [[bin]]
 name = "boot"
 
+[features]
+log = []
+
 [profile.dev]
 opt-level = 3
 debug = true

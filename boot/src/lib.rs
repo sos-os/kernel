@@ -8,7 +8,7 @@
 //
 //! Initial 32-bit bootloader for x86_64
 #![crate_name = "boot"]
-#![crate_type = "staticlib"]
+// #![crate_type = "staticlib"]
 #![feature(asm)]
 #![feature(lang_items)]
 #![feature(naked_functions)]
@@ -17,18 +17,23 @@
 #![feature(struct_field_attributes)]
 #![feature(stmt_expr_attributes)]
 #![no_std]
+// #![no_main]
 
 const TABLE_LENGTH: usize = 512;
 
 type Table = [u64; TABLE_LENGTH];
 
 use core::ptr;
-//
+
 // #[lang = "panic_fmt"]
 // #[cold]
 // unsafe extern fn panic_fmt() -> ! {
-//     boot_write(b"boot panic occurred!");
-//     die();
+//     let vga_buf: *mut u16 = 0xb8000 as *mut u16;
+//     for (i, c) in b"boot panic occurred!".iter().enumerate() {
+//         ptr::write_volatile( vga_buf.offset(i as isize)
+//                            , 0x0200 + *c as u16);
+//     }
+//     loop { asm!("hlt") };
 // }
 
 
@@ -72,6 +77,7 @@ pub static GDT: Gdt
 //                  , base: &GDT
 //                  };
 
+#[cfg(feature = "log")]
 #[inline(always)]
 #[naked]
 fn boot_write(s: &[u8]) {
@@ -88,19 +94,15 @@ fn boot_write(s: &[u8]) {
     }
 
 }
-macro_rules! write_char {
-    ($c:expr) => {
-        ptr::write_volatile(0xb8000 as *mut u16, 0x0200 + $c as u16)
-    }
-}
+
+#[cfg(not(feature = "log"))]
+fn boot_write(_s: &[u8]) { }
 
 
 extern "C" {
     static mut pml4_table: Table;
     static mut pdp_table: Table;
     static mut pd_table: Table;    // static mut page_table: Table;
-    fn arch_init(mboot: u64);
-    static mut stack_top: *mut u8;
 }
 
 // #[naked]
@@ -116,18 +118,17 @@ extern "C" {
 // }
 
 #[naked]
-#[inline(always)]
-pub unsafe fn create_page_tables() {
+unsafe fn create_page_tables() {
     // 3. if everything is okay, create the page tables and start long mode
     const HUGE_PAGE_SIZE: u64 = 2 * 1024 * 1024; // 2 MiB
 
     //-- map the PML4 and PDP tables -----------------------------------------
     // recursive map last PML4 entry
-    pml4_table[511] = (&pml4_table[0] as *const _ as u64) | 3;
+    pml4_table[511] = (&pml4_table as *const _ as u64) | 0b11;
     // map first PML4 entry to PDP table
-    pml4_table[0] = (&pdp_table[0] as *const _ as u64) | 3;
+    pml4_table[0] = (&pdp_table as *const _ as u64) | 0b11;
     // map first PDPT entry to PD table
-    pdp_table[0] = (&pd_table[0] as *const _ as u64) | 3;
+    pdp_table[0] = (&pd_table as *const _ as u64) | 0b11;
 
     boot_write(b"3.1");
 
@@ -147,7 +148,8 @@ pub unsafe fn create_page_tables() {
 }
 
 #[naked]
-pub unsafe fn set_long_mode() {
+unsafe fn set_long_mode() {
+
     // load PML4 addr to cr3
     asm!( "mov   cr3, $0" :: "r"(&pml4_table) :: "intel");
     boot_write(b"3.3");
@@ -168,12 +170,17 @@ pub unsafe fn set_long_mode() {
     boot_write(b"3.5");
 
     // enable paging in cr0
-    let mut cr0: usize;
-    asm!( "mov $0, cr0" : "=r"(cr0) ::: "intel");
-    cr0 |= 1 << 31;
-    cr0 |= 1 << 16;
-    asm!( "mov cr0, $0" :: "r"(cr0) ::: "intel");
-    boot_write(b"3.6");
+    // let mut cr0: usize;
+    // asm!( "mov $0, cr0" : "=r"(cr0) ::: "intel");
+    // cr0 |= 1 << 31;
+    // cr0 |= 1 << 16;
+    // asm!( "mov cr0, $0" :: "r"(cr0) :: "intel");
+    // boot_write(b"3.6");
+    asm!( "mov eax, cr0
+           or  eax, 1 << 31
+           or  eax, 1 << 16
+           mov cr0, eax"
+        :::: "intel");
 }
 
 
@@ -181,6 +188,8 @@ pub unsafe fn set_long_mode() {
 #[no_mangle]
 #[naked]
 pub unsafe extern "C" fn _start() {
+    // 0. Move the stack pointer to the top of the stack.
+    asm!( "mov esp, stack_top" :::: "intel" );
     boot_write(b"0");
     asm!("cli");
 
@@ -198,7 +207,6 @@ pub unsafe extern "C" fn _start() {
 
     create_page_tables();
     set_long_mode();
-
 
     // 4. load the 64-bit GDT
     asm!("lgdt ($0)" :: "r"(&GDT.ptr) : "memory" );
