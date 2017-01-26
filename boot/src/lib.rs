@@ -142,20 +142,22 @@ pub unsafe fn create_page_tables() {
         //          - eliza, 1/23/2017
         *entry = addr | 0b10000011;
     }
+
+    boot_write(b"3.2");
 }
 
 #[naked]
 pub unsafe fn set_long_mode() {
     // load PML4 addr to cr3
     asm!( "mov   cr3, $0" :: "r"(&pml4_table) :: "intel");
-    boot_write(b"3.2");
+    boot_write(b"3.3");
 
     // enable PAE flag in cr4
     let mut cr4: usize;
     asm!("mov $0, cr4" : "=r"(cr4) ::: "intel");
     cr4 |= 1 << 5;
     asm!("mov cr4, $0" :: "r"(cr4) :: "intel");
-    boot_write(b"3.3");
+    boot_write(b"3.4");
 
     // set the long mode bit in EFER MSR (model specific register)
     asm!( "mov   ecx, 0xC0000080
@@ -163,7 +165,7 @@ pub unsafe fn set_long_mode() {
            or    eax, 1 << 8
            wrmsr"
         :::: "intel");
-    boot_write(b"3.4");
+    boot_write(b"3.5");
 
     // enable paging in cr0
     let mut cr0: usize;
@@ -171,7 +173,7 @@ pub unsafe fn set_long_mode() {
     cr0 |= 1 << 31;
     cr0 |= 1 << 16;
     asm!( "mov cr0, $0" :: "r"(cr0) ::: "intel");
-    boot_write(b"3.5");
+    boot_write(b"3.6");
 }
 
 
@@ -179,7 +181,7 @@ pub unsafe fn set_long_mode() {
 #[no_mangle]
 #[naked]
 pub unsafe extern "C" fn _start() {
-    // boot_write(b"0");
+    boot_write(b"0");
     asm!("cli");
 
     // 1. Move Multiboot info pointer to edi
@@ -188,61 +190,37 @@ pub unsafe extern "C" fn _start() {
          : //"=r"(multiboot)
          ::: "intel"
     );
-    // boot_write(b"1");
+    boot_write(b"1");
 
     // 2. make sure the system supports SOS
     // TODO: port this from boot.asm
-    // boot_write(b"2");
+    boot_write(b"2");
 
     create_page_tables();
     set_long_mode();
 
 
     // 4. load the 64-bit GDT
-    asm!(  "lgdt ($0)"
-        :: "r"(&GDT.ptr)
-        :  "memory"
-        );
-    // boot_write(b"4");
+    asm!("lgdt ($0)" :: "r"(&GDT.ptr) : "memory" );
+    boot_write(b"4");
 
     // 5. update selectors
-    asm!("mov ax, 16" :::: "intel");
-    // boot_write(b"5.1");
+    asm!("mov ax, 0x10" :::: "intel");
+    boot_write(b"5.1");
     // stack selector
     asm!("mov ss, ax" :::: "intel");
-    // boot_write(b"5.2");
+    boot_write(b"5.2");
     // data selector
     asm!("mov ds, ax" :::: "intel");
-    // boot_write(b"5.3");
+    boot_write(b"5.3");
     // extra selector
     asm!("mov es, ax" :::: "intel");
-    // boot_write(b"5.4");
+    boot_write(b"5.4");
 
     // 6. jump to the 64-bit boot subroutine.
-    // asm!("jmp $0:$1" :: "X"(&GDT.descriptors[1]), "X"(arch_init as unsafe extern "C" fn() -> !) :: "intel");
-    // asm!("jmp $0:arch_init" :: "r"(&GDT.descriptors[1] as *const u64) :: "intel");
-    // arch_init();
-    // asm!(  "jmp $0:arch_init"
-    //     :: "r"(&GDT.code as *const _ as usize -
-    //            &GDT as *const _ as usize)
-    //     :: "intel");
-    // asm!( "ljmp $0:$1" :: "X"(8), "X"("arch_init"):: "volatile", "intel");
-
-
-    // asm!("ljmpw $$0x0008, $$arch_init"
-    //     :: // "i"(arch_init)
-    //     :: "volatile");
-    asm!(  "ljmpl $$8, $$arch_init"
+    asm!( "ljmpl $$8, $$arch_init"
         :: //"I"((&GDT.code as *const _ as usize) - &GDT as *const _ as usize)
         :: "volatile"
-       );
-    // asm!("jmp far 0x0008:arch_init" :::: "intel", "volatile");
-    // set_cs(0x0008);
-    // loop { boot_write(b"hey i set the code segment selector"); }
-    // asm!("calll $$arch_init");
-    // arch_init(multiboot as u64);
-    // asm!("ljmpl $$0x0008, $$0x106000");
-    // asm!("ljmpl *(arch_init)");
-    // asm!("ljmpl [arch_init]" );
+        );
 
 }
