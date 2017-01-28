@@ -7,8 +7,8 @@ use std::io;
 use std::io::{BufReader, BufRead, Write};
 
 fn main() {
-
-    if env::var("PROFILE").unwrap() != "test" {
+    let profile = env::var("PROFILE").unwrap();
+    if profile != "test" {
         let out_dir // the output directory for compiled binaries
             = env::var("OUT_DIR").unwrap();
 
@@ -89,15 +89,15 @@ fn main() {
         //
         // }
 
-        if arch_name == "x86_64" {
+        use std::process::Command;
+        use std::process::Stdio;
 
-            println!( "cargo:rustc-link-search=native=boot/target/x86_32-sos-bootstrap-gnu/debug/");
-            println!("cargo:rustc-link-lib=static=boot");
-
+        let boot_path = if arch_name == "x86_64" {
+            format!("boot/target/x86_32-sos-bootstrap-gnu/{}/", profile)
         } else {
             panic!("target arch {} not yet supported, sorry!", arch_name);
         };
-        println!( "cargo:rustc-link-search=native={}", boot_path);
+        println!("cargo:rustc-link-search=native={}", boot_path);
         println!("cargo:rustc-link-lib=static=boot");
 
         // // for each assembly file detected, tell cargo to re-run
