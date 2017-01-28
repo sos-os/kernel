@@ -20,6 +20,25 @@ use ::kernel_init;
 
 pub const ARCH_BITS: u8 = 64;
 
+/// Trampoline to ensure we have a correct stack frame for calling [`arch_init`]
+///
+/// I have no idea why this works, but it does.
+///
+/// [`arch_init`]: fn.arch_init
+#[naked]
+#[no_mangle]
+pub unsafe extern "C" fn long_mode_init() {
+    asm!("movabsq $$(stack_top), %rsp");
+    asm!("mov ax, 0
+          mov ss, ax
+          mov ds, ax
+          mov es, ax
+          mov fs, ax
+          mov gs, ax
+          call arch_init"
+        :::: "intel");
+}
+
 /// Entry point for architecture-specific kernel init
 ///
 /// This expects to be passed the address of a valid
@@ -30,19 +49,7 @@ pub const ARCH_BITS: u8 = 64;
 #[no_mangle]
 pub extern "C" fn arch_init(multiboot_addr: PAddr) {
     use memory::arch::{HEAP_BASE, HEAP_TOP};
-    unsafe {
-        //load 0 into all data segment registers
-        asm!("mov ax, 0
-              mov ss, ax
-              mov ds, ax
-              mov es, ax
-              mov fs, ax
-              mov gs, ax"
-              :::: "intel");
 
-        // asm!("movabs $$stack_top, %rsp
-        //       movabs $$stack_top, %rbp");
-    }
     ::io::term::CONSOLE.lock().clear();
     ::logger::initialize()
         .expect("Could not initialize logger!");
@@ -53,6 +60,7 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
     kinfoln!( dots: " . "
             , "trying to unpack multiboot info at {:?}"
             , multiboot_addr);
+
     let boot_info
         = unsafe { multiboot2::Info::from(multiboot_addr)
                     .expect("Could not unpack multiboot2 information!") };
