@@ -50,7 +50,9 @@ pub struct GdtPointer { /// the length of the GDT
                       }
 
 impl GdtPointer {
-    #[inline]
+    #[cold]
+    #[inline(always)]
+    #[naked]
     unsafe fn load (&self) {
         asm!("lgdt ($0)" :: "r"(self) : "memory");
     }
@@ -112,7 +114,9 @@ extern "C" {
 //         : "volatile"
 //         );
 // }
-
+#[cold]
+#[inline(always)]
+#[naked]
 unsafe fn create_page_tables() {
     // 3. if everything is okay, create the page tables and start long mode
     const HUGE_PAGE_SIZE: u64 = 2 * 1024 * 1024; // 2 MiB
@@ -141,7 +145,9 @@ unsafe fn create_page_tables() {
 
     boot_write(b"3.2");
 }
-
+#[cold]
+#[inline(always)]
+#[naked]
 unsafe fn set_long_mode() {
 
     // load PML4 addr to cr3
@@ -183,14 +189,12 @@ unsafe fn set_long_mode() {
 #[naked]
 pub unsafe extern "C" fn _start() {
     use core::mem;
-    // 0. Move the stack pointer to the top of the stack.
-    asm!( "mov esp, stack_top" :::: "intel" );
     boot_write(b"0");
     asm!("cli");
 
     // 1. Move Multiboot info pointer to edi
     // let multiboot: usize;
-    asm!("mov edi, edx"
+    asm!("mov edi, ebx"
          : //"=r"(multiboot)
          ::: "intel"
     );
@@ -225,6 +229,7 @@ pub unsafe extern "C" fn _start() {
     // boot_write(b"5.4");
     // loop { }
     // 6. jump to the 64-bit boot subroutine.
-    asm!( "ljmpl $$8, $$arch_init" );
+    // 0. Move the stack pointer to the top of the stack.
+    asm!("ljmpl $$8, $$long_mode_init");
 
 }
