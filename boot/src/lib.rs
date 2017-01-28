@@ -52,7 +52,7 @@ pub struct GdtPointer { /// the length of the GDT
 impl GdtPointer {
     #[inline]
     unsafe fn load (&self) {
-        asm!("lgdt $0" :: "m"(self) : "memory");
+        asm!("lgdt ($0)" :: "r"(self) : "memory");
     }
 }
 
@@ -97,6 +97,8 @@ extern "C" {
     static mut pml4_table: Table;
     static mut pdp_table: Table;
     static mut pd_table: Table;    // static mut page_table: Table;
+    // #[link_name = "__vga_buffer"]
+    // static mut vga_buf: *mut u16;
 }
 
 // #[naked]
@@ -111,7 +113,6 @@ extern "C" {
 //         );
 // }
 
-#[naked]
 unsafe fn create_page_tables() {
     // 3. if everything is okay, create the page tables and start long mode
     const HUGE_PAGE_SIZE: u64 = 2 * 1024 * 1024; // 2 MiB
@@ -141,7 +142,6 @@ unsafe fn create_page_tables() {
     boot_write(b"3.2");
 }
 
-#[naked]
 unsafe fn set_long_mode() {
 
     // load PML4 addr to cr3
@@ -223,7 +223,7 @@ pub unsafe extern "C" fn _start() {
     // // extra selector
     // asm!("mov es, ax" :::: "intel");
     // boot_write(b"5.4");
-
+    // loop { }
     // 6. jump to the 64-bit boot subroutine.
     asm!( "ljmpl $$8, $$arch_init" );
 

@@ -61,7 +61,7 @@ SECTIONS {
 
 
         stack_base = .;
-        . += 4K;
+        . += 4K * 2;
         stack_top = .;
 
         heap_base_addr = .;

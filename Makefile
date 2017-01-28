@@ -1,15 +1,19 @@
 arch ?= x86_64
 target ?= $(arch)-sos-kernel-gnu
 
+boot_target := x86_32-sos-bootstrap-gnu
+boot_outdir := boot/target/$(boot_target)
+
 iso := target/$(target)/debug/sos-$(arch).iso
 kernel := target/$(target)/debug/sos_kernel
 isofiles := target/$(target)/debug/isofiles
-boot := boot/target/libboot.a
+boot := $(boot_outdir)/debug/libboot.a
+
 
 release_iso := target/$(target)/release/sos-$(arch).iso
 release_kernel := target/$(target)/release/sos_kernel
 release_isofiles := target/$(target)/release/isofiles
-release_boot := boot/target/x86_32-sos-bootstrap-gnu/release/libboot.a
+release_boot := $(boot_outdir)/release/libboot.a
 
 grub_cfg := src/arch/$(arch)/grub.cfg
 
@@ -74,7 +78,7 @@ release-iso: $(release_iso) ##@release Compile the release kernel binary and mak
 release-run: run-release ##@release Make the release kernel ISO image and boot QEMU from it.
 
 debug: $(iso) ##@build Run the kernel, redirecting serial output to a logfile.
-	@qemu-system-x86_64 -s -hda $(iso) -serial file:$(CURDIR)/target/$(target)/serial-$(TIMESTAMP).log
+	@qemu-system-x86_64 -s -S -hda $(iso) -serial file:$(CURDIR)/target/$(target)/serial-$(TIMESTAMP).log
 
 test: ##@build Test crate dependencies
 	@cargo test -p sos_intrusive
@@ -94,14 +98,23 @@ $(wild_isofiles):
 	@mkdir -p $@/boot/grub
 
 $(boot):
-	@cd boot && xargo rustc --target x86_32-sos-bootstrap-gnu -- --emit=obj=target/boot32.o
+	@cd boot && xargo rustc --target $(boot_target) -- \
+		--emit=obj=target/$(boot_target)/debug/boot32.o
 	# # Place 32-bit bootstrap code into a 64-bit ELF
-	@x86_64-elf-objcopy -O elf64-x86-64 boot/target/boot32.o boot/target/boot.o
-	# # # Strip all but the entry symbol `setup_long_mode` so they don't conflict with 64-bit kernel symbols
-	@x86_64-elf-objcopy --strip-debug -G _start boot/target/boot.o
-	@cd boot/target && ar -crus libboot.a boot.o
+	@x86_64-elf-objcopy -O elf64-x86-64 $(boot_outdir)/debug/boot32.o \
+	 	$(boot_outdir)/debug/boot.o
+	# @x86_64-elf-objcopy --strip-debug -G _start boot/target/boot.o
+	@cd $(boot_outdir)/debug && ar -crus libboot.a boot.o
 
-$(release_kernel):
+$(release_boot):
+	@cd boot && xargo rustc --target $(boot_target) -- --release \
+	 	--emit=obj=target/$(boot_target)release/boot32.o
+	# # Place 32-bit bootstrap code into a 64-bit ELF
+	@x86_64-elf-objcopy -O elf64-x86-64 $(boot_outdir)/release/boot32.o $(boot_outdir)/release/boot.o
+	@x86_64-elf-objcopy --strip-debug -G _start $(boot_outdir)/release/boot.o
+	@cd $(boot_outdir)/release && ar -crus libboot.a boot.o
+
+$(release_kernel): $(release_boot)
 	@xargo build --target $(target) --release
 
 $(release_kernel).bin: $(release_kernel)
@@ -125,4 +138,4 @@ $(kernel).bin: $(kernel) $(kernel).debug
 	@x86_64-elf-objcopy --add-gnu-debuglink=$(kernel).debug $(kernel)
 
 gdb: $(kernel).bin $(kernel).debug ##@utilities Connect to a running QEMU instance with gdb.
-	@rust-gdb -ex "target remote tcp:127.0.0.1:1234" $(kernel)
+	@rust-os-gdb -ex "target remote tcp:127.0.0.1:1234" $(kernel)
