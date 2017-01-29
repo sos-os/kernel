@@ -148,6 +148,15 @@ unsafe fn set_long_mode() {
                     |= 1 << 16 );
 }
 
+/// Test whether or not this system supports Multiboot 2
+#[cold]
+#[inline(always)]
+unsafe fn is_multiboot_supported() -> bool {
+    let eax: usize;
+    asm!("mov eax, $0" : "=r"(eax) ::: "intel");
+    eax == 0x36d76289
+}
+
 
 #[cold]
 #[no_mangle]
@@ -162,6 +171,9 @@ pub unsafe extern "C" fn _start() {
 
     // 2. make sure the system supports SOS
     // TODO: port this from boot.asm
+    if !is_multiboot_supported() {
+        loop { boot_write(b"ERROR: multiboot not supported!"); }
+    }
     boot_write(b"2");
 
     create_page_tables();
