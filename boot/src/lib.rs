@@ -26,6 +26,19 @@ type Table = [u64; TABLE_LENGTH];
 use core::ptr;
 use core::convert;
 
+macro_rules! set_flags {
+    (%$register:ident $( |= $body:expr);+ ) => {
+        let mut $register: usize;
+        asm!( concat!("mov $0, ", stringify!($register))
+            : "=r"($register)
+            ::: "intel");
+        $($register |= $body;)+
+        asm!( concat!("mov ", stringify!($register), ", $0")
+            :: "r"($register)
+            :: "intel");
+    }
+}
+
 #[repr(C, packed)]
 pub struct Gdt { _null: u64
                , code: u64
@@ -88,9 +101,7 @@ fn boot_write(_s: &[u8]) { }
 extern "C" {
     static mut pml4_table: Table;
     static mut pdp_table: Table;
-    static mut pd_table: Table;    // static mut page_table: Table;
-    // #[link_name = "__vga_buffer"]
-    // static mut vga_buf: *mut u16;
+    static mut pd_table: Table;
 }
 
 #[cold]
@@ -130,14 +141,11 @@ unsafe fn create_page_tables() {
 unsafe fn set_long_mode() {
 
     // load PML4 addr to cr3
-    asm!( "mov   cr3, $0" :: "r"(&pml4_table) :: "intel");
+    asm!("mov cr3, $0" :: "r"(&pml4_table) :: "intel");
     boot_write(b"3.3");
 
-    // enable PAE flag in cr4
-    let mut cr4: usize;
-    asm!("mov $0, cr4" : "=r"(cr4) ::: "intel");
-    cr4 |= 1 << 5;
-    asm!("mov cr4, $0" :: "r"(cr4) :: "intel");
+    // // enable PAE flag in cr4
+    set_flags!(%cr4 |= 1 << 5 );
     boot_write(b"3.4");
 
     // set the long mode bit in EFER MSR (model specific register)
@@ -149,17 +157,8 @@ unsafe fn set_long_mode() {
     boot_write(b"3.5");
 
     // enable paging in cr0
-    // let mut cr0: usize;
-    // asm!( "mov $0, cr0" : "=r"(cr0) ::: "intel");
-    // cr0 |= 1 << 31;
-    // cr0 |= 1 << 16;
-    // asm!( "mov cr0, $0" :: "r"(cr0) :: "intel");
-    // boot_write(b"3.6");
-    asm!( "mov eax, cr0
-           or  eax, 1 << 31
-           or  eax, 1 << 16
-           mov cr0, eax"
-        :::: "intel");
+    set_flags!(%cr0 |= 1 << 31;
+                    |= 1 << 16 );
 }
 
 
@@ -171,11 +170,7 @@ pub unsafe extern "C" fn _start() {
     asm!("cli");
 
     // 1. Move Multiboot info pointer to edi
-    // let multiboot: usize;
-    asm!("mov edi, ebx"
-         : //"=r"(multiboot)
-         ::: "intel"
-    );
+    asm!("mov edi, ebx" :::: "intel");
     boot_write(b"1");
 
     // 2. make sure the system supports SOS
