@@ -73,27 +73,18 @@ pub static GDT: Gdt
         //   , data: (1 << 44) | (1 << 47) | (1 << 41)
           };
 
-#[cfg(feature = "log")]
 #[inline(always)]
-#[naked]
 fn boot_write(s: &[u8]) {
-	use core::ptr;
-    let mut offset = 0;
     unsafe {
-        let vga_buf: *mut u16 = 0xb8000 as *mut u16;
-    	for c in s {
-    		ptr::write_volatile( vga_buf.offset(offset)
-                               , 0x0200 + *c as u16);
-    		offset += 1;
+        use core::ptr::write_volatile;
+        let vga_buf = 0xb8000 as *mut u16;
+    	for (n, c) in s.iter().enumerate() {
+    		write_volatile(vga_buf.offset(n as isize), 0x0200 + *c as u16);
     	}
 
     }
 
 }
-
-#[cfg(not(feature = "log"))]
-fn boot_write(_s: &[u8]) { }
-
 
 extern "C" {
     static mut pml4_table: Table;
