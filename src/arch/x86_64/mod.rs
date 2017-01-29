@@ -114,8 +114,8 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
 
     let params = InitParams { kernel_base: kernel_begin
                             , kernel_top:  kernel_end
-                            , heap_base:   unsafe { HEAP_BASE }
-                            , heap_top:    unsafe { HEAP_TOP }
+                            , heap_base:   unsafe { PAddr::from(HEAP_BASE) }
+                            , heap_top:    unsafe { PAddr::from(HEAP_TOP) }
                             };
     kernel_init(params);
 }
