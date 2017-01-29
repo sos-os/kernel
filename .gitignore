@@ -155,6 +155,8 @@ Session.vim
 tags
 .tags1
 
+### GDB ###
+.gdb_history
 
 ### Linux ###
 *~
