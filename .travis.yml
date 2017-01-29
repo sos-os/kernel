@@ -74,7 +74,7 @@ install:
 
 script:
   - make test
-  - xargo build --target x86_64-sos-kernel-gnu
+  - make kernel
 
 # after_success:
 #   - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then travis-cargo doc && travis-cargo doc-upload; fi
