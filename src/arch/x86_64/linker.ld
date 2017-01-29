@@ -4,7 +4,7 @@
  * before everything else.
  */
 
-ENTRY(start)
+ENTRY(_start)
 
 SECTIONS {
     . = 0xb8000;

@@ -11,8 +11,15 @@ use ::segment;
 use super::{Handler, GateFlags};
 
 use core::{convert, mem};
-use core::default::Default;
 
+// extern {
+//     /// Offset of the 64-bit GDT main code segment.
+//     /// Exported by `boot.asm`
+//     #[link_name = "gdt64_offset"]
+//     static GDT_OFFSET: u16;
+// }
+// TODO: it would be nice if we didn't have to hardcode this.
+const GDT_OFFSET: u16 = 0x8;
 impl GateFlags {
 
     /// Returns a new trap gate
