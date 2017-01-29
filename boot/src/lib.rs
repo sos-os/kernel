@@ -8,7 +8,6 @@
 //
 //! Initial 32-bit bootloader for x86_64
 #![crate_name = "boot"]
-// #![crate_type = "staticlib"]
 #![feature(asm)]
 #![feature(lang_items)]
 #![feature(naked_functions)]
@@ -17,13 +16,11 @@
 #![feature(struct_field_attributes)]
 #![feature(stmt_expr_attributes)]
 #![no_std]
-// #![no_main]
 
 const TABLE_LENGTH: usize = 512;
 
 type Table = [u64; TABLE_LENGTH];
 
-use core::ptr;
 use core::convert;
 
 macro_rules! set_flags {
@@ -80,7 +77,7 @@ pub static GDT: Gdt
 #[inline(always)]
 #[naked]
 fn boot_write(s: &[u8]) {
-	// use core::ptr;
+	use core::ptr;
     let mut offset = 0;
     unsafe {
         let vga_buf: *mut u16 = 0xb8000 as *mut u16;
@@ -139,7 +136,6 @@ unsafe fn create_page_tables() {
 #[inline(always)]
 #[naked]
 unsafe fn set_long_mode() {
-
     // load PML4 addr to cr3
     asm!("mov cr3, $0" :: "r"(&pml4_table) :: "intel");
     boot_write(b"3.3");
@@ -182,24 +178,9 @@ pub unsafe extern "C" fn _start() {
 
     // 4. load the 64-bit GDT
     GdtPointer::from(&GDT).load();
-
     boot_write(b"4");
 
-    // // 5. update selectors
-    // asm!("mov ax, 0x10" :::: "intel");
-    // boot_write(b"5.1");
-    // // stack selector
-    // asm!("mov ss, ax" :::: "intel");
-    // boot_write(b"5.2");
-    // // data selector
-    // asm!("mov ds, ax" :::: "intel");
-    // boot_write(b"5.3");
-    // // extra selector
-    // asm!("mov es, ax" :::: "intel");
-    // boot_write(b"5.4");
-    // loop { }
     // 6. jump to the 64-bit boot subroutine.
-    // 0. Move the stack pointer to the top of the stack.
     asm!("ljmpl $$8, $$long_mode_init");
 
 }
