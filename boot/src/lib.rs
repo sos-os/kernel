@@ -18,8 +18,44 @@
 #![no_std]
 
 const TABLE_LENGTH: usize = 512;
+const HUGE_PAGE_SIZE: u64 = 2 * 1024 * 1024; // 2 MiB
 
-type Table = [u64; TABLE_LENGTH];
+const ENTRY_FLAGS_PW: u64 = 0b11;
+
+type Table = [TableEntry; TABLE_LENGTH];
+
+trait PageTable: Sized {
+    /// Install this page table as the top-level page table.
+    #[inline(always)]
+    unsafe fn set_top_level(&'static self) {
+        asm!("mov cr3, $0" :: "r"(self) :: "intel");
+    }
+}
+
+impl PageTable for Table { }
+
+#[repr(C)]
+struct TableEntry(u64);
+
+impl TableEntry {
+    /// Set this table entry to map to a lower-level page table.
+    // TODO: use a marker type to ensure this always maps to a _lower-level_
+    //       table?
+    #[inline(always)]
+    unsafe fn map_to_table(&mut self, to: &'static Table) {
+        *self = TableEntry(to as *const _ as u64 | ENTRY_FLAGS_PW);
+    }
+
+    /// Set this table entry to map to a huge page with the given number.
+    #[inline(always)]
+    unsafe fn map_to_page(&mut self, number: usize) {
+        const ENTRY_FLAGS_HUGE: u64 = 0b10000000 | ENTRY_FLAGS_PW;
+        // the start address is the page number times the page's size
+        let addr = number as u64 * HUGE_PAGE_SIZE;
+        *self = TableEntry(addr | ENTRY_FLAGS_HUGE);
+    }
+
+}
 
 use core::convert;
 
@@ -96,39 +132,29 @@ extern "C" {
 #[inline(always)]
 #[naked]
 unsafe fn create_page_tables() {
-    // 3. if everything is okay, create the page tables and start long mode
-    const HUGE_PAGE_SIZE: u64 = 2 * 1024 * 1024; // 2 MiB
-
     //-- map the PML4 and PDP tables -----------------------------------------
     // recursive map last PML4 entry
-    pml4_table[511] = (&pml4_table as *const _ as u64) | 0b11;
+    pml4_table[511].map_to_table(&pml4_table);
     // map first PML4 entry to PDP table
-    pml4_table[0] = (&pdp_table as *const _ as u64) | 0b11;
+    pml4_table[0].map_to_table(&pdp_table);
     // map first PDPT entry to PD table
-    pdp_table[0] = (&pd_table as *const _ as u64) | 0b11;
+    pdp_table[0].map_to_table(&pd_table);
 
     boot_write(b"3.1");
 
     //-- map the PD table ----------------------------------------------------
-    for (number, entry) in pd_table.iter_mut().enumerate() {
-        // set each PD entry equal to the start address of the page (the page
-        // number times the page's size)
-        let addr = number as u64 * HUGE_PAGE_SIZE;
-        // with the appropriate flags (present + writable + huge)
-        // TODO: do we want to do this using bitflags, or is that too
-        //       heavyweight for the boot module?
-        //          - eliza, 1/23/2017
-        *entry = addr | 0b10000011;
+    for (page_number, entry) in pd_table.iter_mut().enumerate() {
+        entry.map_to_page(page_number);
     }
 
     boot_write(b"3.2");
 }
+
 #[cold]
 #[inline(always)]
-#[naked]
 unsafe fn set_long_mode() {
     // load PML4 addr to cr3
-    asm!("mov cr3, $0" :: "r"(&pml4_table) :: "intel");
+    &pml4_table.set_top_level();
     boot_write(b"3.3");
 
     // // enable PAE flag in cr4
@@ -146,15 +172,17 @@ unsafe fn set_long_mode() {
     // enable paging in cr0
     set_flags!(%cr0 |= 1 << 31;
                     |= 1 << 16 );
+    boot_write(b"3.6")
 }
 
 /// Test whether or not this system supports Multiboot 2
 #[cold]
 #[inline(always)]
 unsafe fn is_multiboot_supported() -> bool {
+    const MULTIBOOT_MAGIC: usize = 0x36d76289;
     let eax: usize;
     asm!("mov eax, $0" : "=r"(eax) ::: "intel");
-    eax == 0x36d76289
+    eax == MULTIBOOT_MAGIC
 }
 
 
@@ -176,6 +204,7 @@ pub unsafe extern "C" fn _start() {
     }
     boot_write(b"2");
 
+    // 3. if everything is okay, create the page tables and start long mode
     create_page_tables();
     set_long_mode();
 
