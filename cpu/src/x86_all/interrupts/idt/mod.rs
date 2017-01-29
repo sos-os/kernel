@@ -54,7 +54,7 @@ bitflags! {
     ///    - `0111`: 80286 16-bit trap gate
     ///    - `1110`: 80386 32-bit interrupt gate
     ///    - `1111`: 80386 32-bit trap gate
-    ///    
+    ///
     /// For more information, refer to the _Intel® 64 and IA-32 Architectures
     /// Software Developer’s Manual_, Vol. 3A, section 6.11, "IDT Descriptors";
     /// and to the OS Dev Wiki
@@ -129,6 +129,11 @@ impl GateFlags {
         self
     }
 
+}
+
+
+impl Default for GateFlags {
+    fn default() -> Self { GateFlags { bits: 0 } }
 }
 
 //==------------------------------------------------------------------------==

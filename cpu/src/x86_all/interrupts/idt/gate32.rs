@@ -24,7 +24,7 @@ extern {
 /// Based on [code](http://wiki.osdev.org/Interrupt_Descriptor_Table#Structure)
 /// from the OS Dev Wiki.
 #[repr(C, packed)]
-#[derive(Copy,Clone)]
+#[derive(Copy,Clone, Default)]
 pub struct Gate { /// bits 0 - 15 of the offset
                  pub offset_lower: u16
                , /// code segment selector (GDT or LDT)

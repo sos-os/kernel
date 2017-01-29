@@ -20,6 +20,8 @@
 #![warn(missing_docs)]
 
 use core::{fmt, mem};
+use core::default::Default;
+
 use super::PrivilegeLevel;
 
 /// The number of entries in the GDT
@@ -197,6 +199,11 @@ impl Selector {
 
 }
 
+
+impl Default for Selector {
+    #[inline] fn default() -> Self { Selector::from_cs() }
+}
+
 impl fmt::Display for Selector {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // TODO: this could be much less ugly.
@@ -266,9 +273,11 @@ impl Descriptor {
         self.flags.get_limit_part() & self.limit as u32
     }
 
-
 }
 
+impl Default for Descriptor {
+    #[inline] fn default() -> Self { Descriptor::null() }
+}
 
 bitflags! {
     /// Segment descriptor bitflags field.
