@@ -24,18 +24,7 @@ const TABLE_LENGTH: usize = 512;
 type Table = [u64; TABLE_LENGTH];
 
 use core::ptr;
-
-// #[lang = "panic_fmt"]
-// #[cold]
-// unsafe extern fn panic_fmt() -> ! {
-//     let vga_buf: *mut u16 = 0xb8000 as *mut u16;
-//     for (i, c) in b"boot panic occurred!".iter().enumerate() {
-//         ptr::write_volatile( vga_buf.offset(i as isize)
-//                            , 0x0200 + *c as u16);
-//     }
-//     loop { asm!("hlt") };
-// }
-
+use core::convert;
 
 #[repr(C, packed)]
 pub struct Gdt { _null: u64
@@ -50,11 +39,18 @@ pub struct GdtPointer { /// the length of the GDT
                       }
 
 impl GdtPointer {
-    #[cold]
-    #[inline(always)]
-    #[naked]
+    #[cold] #[inline(always)]
     unsafe fn load (&self) {
         asm!("lgdt ($0)" :: "r"(self) : "memory");
+    }
+}
+
+impl convert::From<&'static Gdt> for GdtPointer {
+    #[cold] #[inline(always)]
+    fn from(gdt: &'static Gdt) -> Self {
+        use core::mem::size_of_val;
+        GdtPointer { limit: size_of_val(gdt) as u16 - 1
+                   , base: gdt }
     }
 }
 
@@ -66,12 +62,6 @@ pub static GDT: Gdt
           , code: (1<<44) | (1<<47) | (1<<41) | (1<<43) | (1<<53)
         //   , data: (1 << 44) | (1 << 47) | (1 << 41)
           };
-
-// #[no_mangle]
-// static mut GDT_PTR: GdtPointer
-//     = GdtPointer { limit: 15
-//                  , base: &GDT
-//                  };
 
 #[cfg(feature = "log")]
 #[inline(always)]
@@ -103,17 +93,6 @@ extern "C" {
     // static mut vga_buf: *mut u16;
 }
 
-// #[naked]
-// #[inline(always)]
-// unsafe fn set_cs(cs: u16) {
-//     asm!("ljmpl $0, $$fake_label
-//           fake_label: \n\t"
-//         :
-//         : "i"(cs)
-//         : "ax"
-//         : "volatile"
-//         );
-// }
 #[cold]
 #[inline(always)]
 #[naked]
@@ -188,7 +167,6 @@ unsafe fn set_long_mode() {
 #[no_mangle]
 #[naked]
 pub unsafe extern "C" fn _start() {
-    use core::mem;
     boot_write(b"0");
     asm!("cli");
 
@@ -208,11 +186,8 @@ pub unsafe extern "C" fn _start() {
     set_long_mode();
 
     // 4. load the 64-bit GDT
-    let gdt_ptr = GdtPointer { limit: mem::size_of_val(&GDT) as u16 - 1
-                             , base: &GDT };
+    GdtPointer::from(&GDT).load();
 
-    // asm!("lgdt ($0)" :: "r"(&gdt_ptr) : "memory" );
-    gdt_ptr.load();
     boot_write(b"4");
 
     // // 5. update selectors
