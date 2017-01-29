@@ -68,6 +68,8 @@ SECTIONS {
         . += 4 * 1k * 1k;
         heap_top_addr = .;
 
+         *(.bss .bss.*)
+
         . = ALIGN(4096);
      }
 
