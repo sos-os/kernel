@@ -14,15 +14,14 @@ SECTIONS {
     /* Load the kernel reasonably high in memory to avoid special addresses. */
     . = 1M;
 
-    .boot :
+    .boot ALIGN(4K) :
     {
         /* This goes first. */
         KEEP(*(.multiboot_header))
         *(.rodata .rodata.*)
-        . = ALIGN(4096);
     }
 
-    .text :
+    .text ALIGN(4K) :
     {
      /* NOTE we use KEEP here to prevent the linker from dropping
         these symbols
@@ -30,24 +29,14 @@ SECTIONS {
         KEEP(*(.text._start))
         KEEP(*(.text.arch_init))
         *(.text .text.*)
-        . = ALIGN(4096);
     }
 
-    .gdt :
-    {
-        KEEP(*(.gdt64))
-        KEEP(*(gdt64_ptr))
-       *(.rodata .rodata.*)
-        . = ALIGN(4096);
-    }
-
-     .data :
+     .data ALIGN(4K) :
      {
        *(.data .data.*)
-       . = ALIGN(4096);
      }
 
-     .bss :
+     .bss ALIGN(4K) :
      {
         /* Page-Map Level-4 Table (PML4) */
         pml4_table = .;
@@ -59,38 +48,22 @@ SECTIONS {
         pd_table = .;
         . += 4096;
 
-
         stack_base = .;
         . += 4K * 2;
         stack_top = .;
 
         heap_base_addr = .;
-        . += 4 * 1k * 1k;
+        . += 4K * 2;
         heap_top_addr = .;
-
-         *(.bss .bss.*)
-
-        . = ALIGN(4096);
+        *(.bss .bss.*)
      }
 
-    .got :
-    {
-      *(.got)
-      . = ALIGN(4096);
+    .data.rel.ro : ALIGN(4K) {
+       *(.data.rel.ro.local*)
+       *(.data.rel.ro .data.rel.ro.*)
     }
 
-    .got.plt :
-    {
-      *(.got.plt)
-      . = ALIGN(4096);
-    }
-
-    .data.rel.ro : {
-       *(.data.rel.ro.local*) *(.data.rel.ro .data.rel.ro.*)
-        . = ALIGN(4096);
-    }
-
-    .gcc_except_table : ALIGN(4096) {
+    .gcc_except_table : ALIGN(4K) {
       *(.gcc_except_table)
       . = ALIGN(4096);
     }

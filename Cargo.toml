@@ -71,6 +71,3 @@ features = ["buddy_as_system"]
 [dependencies.clippy]
 version = "0.0.60"
 optional = true
-
-[build-dependencies]
-nasm-rs = { git = "https://github.com/medek/nasm-rs" }

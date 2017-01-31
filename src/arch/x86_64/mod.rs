@@ -37,6 +37,7 @@ pub unsafe extern "C" fn long_mode_init() {
           mov gs, ax
           call arch_init"
         :::: "intel");
+
 }
 
 /// Entry point for architecture-specific kernel init
