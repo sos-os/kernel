@@ -35,7 +35,6 @@ pub struct Header {
     , pub end_tag: Tag
 }
 
-// #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 #[linkage = "external"]
 #[link_section = ".multiboot_header"]
 pub static HEADER: Header = Header {
@@ -58,8 +57,11 @@ impl Info {
 
     pub unsafe fn from(addr: PAddr) -> Result<&'static Self, &'static str> {
         let info: &Info = &*(addr.into(): u64 as *const Info);
-        if info.has_end() { Ok(info) }
-        else { Err("Multiboot info structure had no end tag!") }
+        if info.has_end() {
+            Ok(info)
+        } else {
+            Err( "Multiboot info structure at {:?} had no end tag!")
+        }
     }
 
     /// Finds the tag with the given tag type.

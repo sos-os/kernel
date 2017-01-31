@@ -29,9 +29,9 @@ extern {
     // this... (read: after the Revolution when we add memory regions to the
     // heap programmatically.)
     #[link_name = "heap_base_addr"]
-    pub static HEAP_BASE: PAddr;
+    pub static HEAP_BASE: *const u8;
     #[link_name = "heap_top_addr"]
-    pub static HEAP_TOP: PAddr;
+    pub static HEAP_TOP: *const u8;
     // Of course, we will still need to export the kernel stack addresses like
     // this, but it would be nice if they could be, i dont know, not mut u8s
     // pointers, like God intended.
