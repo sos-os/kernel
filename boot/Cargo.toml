@@ -1,0 +1,33 @@
+[package]
+name = "boot"
+version = "0.1.0"
+authors = ["Eliza Weisman <hi@hawkweisman.me>"]
+
+# [lib]
+# crate-type = ["staticlib"]
+
+# [[bin]]
+# name = "libboot.a"
+
+[features]
+default = ["log"]
+log = []
+
+[profile.dev]
+opt-level = 3
+debug = true
+rpath = false
+lto = false
+debug-assertions = true
+codegen-units = 1
+panic = "abort"
+
+[profile.release]
+opt-level = 3
+debug = true
+rpath = false
+lto = false
+panic = "abort"
+
+[dependencies]
+rlibc = "0.1.4"

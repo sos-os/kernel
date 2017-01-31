@@ -7,10 +7,13 @@
 //  directory of this repository for more information.
 //
 #![crate_name = "cpu"]
+#![crate_type = "lib"]
 #![feature(const_fn)]
 #![feature(asm)]
 #![feature(naked_functions)]
 #![feature(slice_patterns)]
+#![feature(linkage)]
+#![feature(stmt_expr_attributes)]
 #![no_std]
 
 #[macro_use] extern crate log;

@@ -11,7 +11,6 @@ use ::segment;
 use super::{Handler, GateFlags};
 
 use core::{convert, mem};
-use core::default::Default;
 
 impl GateFlags {
 

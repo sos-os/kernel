@@ -24,7 +24,7 @@ pub struct Pointer<T: DTable> { /// the length of the descriptor table
                      /// containing the descriptor table.
                      pub base: *const T
                    }
-
+unsafe impl<T: DTable> Sync for Pointer<T> { }
 /// A descriptor table (IDT or GDT).
 ///
 /// The IA32 architecture uses two descriptor table structures, the GDT

@@ -10,7 +10,6 @@
 // pub mod cpu;
 pub mod drivers;
 pub mod interrupts;
-// pub mod memory;
 
 #[path = "../x86_all/bda.rs"] pub mod bda;
 #[path = "../x86_all/multiboot2.rs"] pub mod multiboot2;
@@ -20,6 +19,26 @@ use params::InitParams;
 use ::kernel_init;
 
 pub const ARCH_BITS: u8 = 64;
+
+/// Trampoline to ensure we have a correct stack frame for calling [`arch_init`]
+///
+/// I have no idea why this works, but it does.
+///
+/// [`arch_init`]: fn.arch_init
+#[naked]
+#[no_mangle]
+pub unsafe extern "C" fn long_mode_init() {
+    asm!("movabsq $$(stack_top), %rsp");
+    asm!("mov ax, 0
+          mov ss, ax
+          mov ds, ax
+          mov es, ax
+          mov fs, ax
+          mov gs, ax
+          call arch_init"
+        :::: "intel");
+
+}
 
 /// Entry point for architecture-specific kernel init
 ///
@@ -36,12 +55,18 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
     ::logger::initialize()
         .expect("Could not initialize logger!");
 
+    kinfoln!("in arch_init");
+
     // -- Unpack multiboot tag ------------------------------------------------
+    kinfoln!( dots: " . "
+            , "trying to unpack multiboot info at {:?}"
+            , multiboot_addr);
+
     let boot_info
         = unsafe { multiboot2::Info::from(multiboot_addr)
                     .expect("Could not unpack multiboot2 information!") };
-
-    let mmap_tag // Extract the memory map tag from the multiboot info
+    // Extract the memory map tag from the multiboot info
+    let mmap_tag
         = boot_info.mem_map()
                    .expect("Memory map tag required!");
 
@@ -50,14 +75,15 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
         kinfoln!(dots: " . . ", "start: {:#08x}, end: {:#08x}"
                 , a.base, a.length );
     }
-
-    let elf_sections_tag // Extract ELF sections tag from the multiboot info
+    // Extract ELF sections tag from the multiboot info
+    let elf_sections_tag
         = boot_info.elf_sections()
                    .expect("ELF sections tag required!");
 
     kinfoln!(dots: " . ", "Detecting kernel ELF sections:");
 
-    let kernel_begin    // Extract kernel ELF sections from  multiboot info
+    // Extract kernel ELF sections from  multiboot info
+    let kernel_begin
         = elf_sections_tag.sections()
             .map(|s| {
                 kinfoln!( dots: " . . "
@@ -89,8 +115,8 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
 
     let params = InitParams { kernel_base: kernel_begin
                             , kernel_top:  kernel_end
-                            , heap_base:   unsafe { HEAP_BASE }
-                            , heap_top:    unsafe { HEAP_TOP }
+                            , heap_base:   unsafe { PAddr::from(HEAP_BASE) }
+                            , heap_top:    unsafe { PAddr::from(HEAP_TOP) }
                             };
     kernel_init(params);
 }

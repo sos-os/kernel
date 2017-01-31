@@ -8,7 +8,7 @@ authors = [ # hacked around by
           ]
 
 build = "build.rs"
-
+# build = false
 # [[bin]]
 # name = "sos_kernel_full"
 
@@ -62,7 +62,7 @@ features = ["spin_no_std"]
 
 [dependencies.vga]
 path = "vga"
-features = ["kinfo"]
+features = ["kinfo", "system_term"]
 
 [dependencies.alloc]
 path = "alloc"
@@ -71,6 +71,3 @@ features = ["buddy_as_system"]
 [dependencies.clippy]
 version = "0.0.60"
 optional = true
-
-[build-dependencies]
-nasm-rs = { git = "https://github.com/medek/nasm-rs" }
