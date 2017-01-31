@@ -43,7 +43,6 @@ before_install: |
     printf "\n\n[target.x86_64-sos-kernel-gnu]\nlinker = \"/usr/local/bin/x86_64-pc-elf-gcc\"" >> $HOME/.cargo/config;
   elif [[ "$TRAVIS_OS_NAME == "linux" ]]; then
     objcopy=$(which objcopy) &&
-    echo "Linking ${objcopy} to ${HOME/bin/x86_64-elf-objcopy." &&
     ln -s $objcopy $HOME/bin/x86_64-elf-objcopy
   fi
 
