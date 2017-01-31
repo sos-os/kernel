@@ -41,6 +41,10 @@ before_install: |
     brew update && brew tap homebrew/bundle &&
     travis_wait 120 brew bundle;
     printf "\n\n[target.x86_64-sos-kernel-gnu]\nlinker = \"/usr/local/bin/x86_64-pc-elf-gcc\"" >> $HOME/.cargo/config;
+  elif [[ "$TRAVIS_OS_NAME == "linux" ]]; then
+    objcopy=$(which objcopy)
+    echo "${bold}install-env-linux:${normal} Linking ${objcopy} to ${HOME/bin/x86_64-elf-objcopy."
+    ln -s $objcopy $HOME/bin/x86_64-elf-objcopy
   fi
 
 install:
@@ -92,4 +96,5 @@ env:
   global:
     # override the default `--features unstable` used for the nightly branch (optional)
     - TRAVIS_CARGO_NIGHTLY_FEATURE=""
+    - PATH="$PATH:$HOME/bin"
     - secure: Vv4bFCkxM3o7FpKjcxTzQRWdkp5aSfrkmFcxSRLYFhm8tyeh+TRiC2+ucNfscFeOzPTC/hTwatbbpdTIaAZKpyrD/gB4hNiGFdKV1x1pw23KQkiPmQdFKxAHtIS20jeIa44q6kPltTQtZXXuM8s0xc6r+C14Q6igd4HkD0nLhAlKIQpcS/srXoeMheL3vNIroasHUwFgpv1LLJnMqYhCHzNk2Y6CaxYygg5Cy2gS9G1nfxdNVfF4iaUXYZKgU0s3C1GL0ApTtUxW0uT/NS0UBZwttsq9NvwmZSZQIXpfTnn0wHd4cl8MhokUQNEumFouU5rlEIcFS9ulohxaHnn50cqfos+seblKs2E+MJoX8rBO5Kz3dNE3+otZw9CpImskO4EKA2MYwtTC3Ds4uVoleS9PskCMz32jKXqp6WqZkJgpimHrdv0jNBy2ucTMdw91XjRXLA557GPRa/28TPpKkMYrSB02c2IadftexWKDP5Q9uMsfTEgIpXzx/XRQvPoxtJo+rOn9hTbyHWexKEMAuic12FBoYFOMSbRKtpT8kjtd8WeBzc1RmXZYpg5td5EN3v/2fmvM6F6Sz/db4HgNZIccC/j/fWvXN7njRl8bgMC002/tkQs0Ugl1aE5onaK9DTMHquqCLnd9CADwXdQf1YsfxryjhhBfd1WIfuqe1Ww=
