@@ -20,26 +20,29 @@
 #![deny(missing_docs)]
 
 use core::{fmt, mem};
-use super::PrivilegeLevel;
-use super::dtable::DTable;
-
+use super::{PrivilegeLevel, dtable};
 /// The number of entries in the GDT
 #[cfg(target_arch = "x86_64")]
-pub const GDT_SIZE: usize = 3;
+pub const GDT_SIZE: usize = 2;
 
+/// Structure representing a Global Descriptor Table
+#[cfg(target_arch = "x86_64")]
+#[repr(C, packed)]
+pub struct Gdt { _null: Descriptor
+               , /// The code segment descriptor
+                 pub code: Descriptor
+            //    , /// The data segment descriptor
+            //      pub data: Descriptor
+               }
 
 /// The number of entries in the GDT
 #[cfg(target_arch = "x86")]
 pub const GDT_SIZE: usize = 512;
 
-/// The Global Descriptor Table (GDT)
-///
-/// This is used for configuring segmentation. Since we use paging rather than
-/// segmentation for memory protection, we never actually _use_ the GDT, but
-/// x86 requires that it be properly configured nonetheless. So, here it is.
+#[cfg(target_arch = "x86")]
 pub type Gdt = [Descriptor; GDT_SIZE];
 
-impl DTable for Gdt {
+impl dtable::DTable for Gdt {
     type Entry = Descriptor;
 
     /// Returns the number of Entries in the `DTable`.
@@ -59,6 +62,12 @@ impl DTable for Gdt {
 
 
 extern {
+
+    /// A Global Descriptor Table (GDT)
+    ///
+    /// This is used for configuring segmentation. Since we use paging rather than
+    /// segmentation for memory protection, we never actually _use_ the GDT, but
+    /// x86 requires that it be properly configured nonetheless. So, here it is.
     #[cfg(target_arch = "x86_64")]
     #[link_section = ".gdt64"]
     pub static GDT: Gdt;
@@ -224,6 +233,11 @@ impl Selector {
 
 }
 
+
+impl Default for Selector {
+    #[inline] fn default() -> Self { Selector::from_cs() }
+}
+
 impl fmt::Display for Selector {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // TODO: this could be much less ugly.
@@ -293,9 +307,11 @@ impl Descriptor {
         self.flags.get_limit_part() & self.limit as u32
     }
 
-
 }
 
+impl Default for Descriptor {
+    #[inline] fn default() -> Self { Descriptor::null() }
+}
 
 bitflags! {
     /// Segment descriptor bitflags field.
@@ -333,8 +349,13 @@ bitflags! {
 impl Flags {
 
     /// Returns a new set of `Flag`s with all bits set to 0.
-    const fn null() -> Self {
+    pub const fn null() -> Self {
         Flags { bits: 0 }
+    }
+
+    /// Returns a new set of `Flag`s from a raw `u16`
+    pub const fn from_raw(bits: u16) -> Self {
+        Flags { bits: bits }
     }
 
     /// Get the Descriptor Privilege Level (DPL) from the flags

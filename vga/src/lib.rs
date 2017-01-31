@@ -162,6 +162,7 @@ pub struct Char { pub ascii: u8
                 }
 
 impl Char {
+    #[inline(always)]
     pub const fn empty() -> Self {
         Char { ascii: 0, colors: Palette(0) }
     }
@@ -238,6 +239,7 @@ impl Terminal {
     }
 
     /// Clear the terminal
+    #[inline]
     pub fn clear(&mut self) -> &mut Self {
         // to clear the terminal, we just zero out the whole buffer.
         {

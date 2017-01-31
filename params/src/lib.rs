@@ -68,8 +68,8 @@ impl Default for InitParams {
                      //       fns that make params.
                      // TODO: should this be an Option instead?
                    , kernel_top: PAddr::from(0x0)
-                   , heap_base: unsafe { HEAP_BASE }
-                   , heap_top: unsafe { HEAP_TOP }
+                   , heap_base: unsafe { PAddr::from(HEAP_BASE) }
+                   , heap_top: unsafe { PAddr::from(HEAP_TOP) }
                    , stack_base: unsafe { STACK_BASE }
                    , stack_top: unsafe { STACK_TOP }
                    , multiboot_start: None

@@ -12,13 +12,6 @@ use super::{Handler, GateFlags};
 
 use core::{convert, mem};
 
-extern {
-    /// Offset of the 64-bit GDT main code segment.
-    /// Exported by `boot.asm`
-    #[link_name = "gdt64_offset"]
-    static GDT_OFFSET: u16;
-}
-
 impl GateFlags {
 
     /// Returns a new trap gate
@@ -38,6 +31,7 @@ impl GateFlags {
 
 }
 
+
 /// An IDT entry is called a gate.
 ///
 /// Based on [code](http://wiki.osdev.org/Interrupt_Descriptor_Table#Structure)
@@ -47,7 +41,7 @@ impl GateFlags {
 /// Gate-Descriptor Types" in the _Intel® 64 and IA-32 Architectures
 /// Software Developer’s Manual_
 #[repr(C, packed)]
-#[derive(Copy,Clone)]
+#[derive(Copy, Clone, Default)]
 pub struct Gate { /// bits 0 - 15 of the offset
                    pub offset_lower: u16
                  , /// code segment selector (GDT or LDT)
@@ -101,14 +95,10 @@ impl convert::From<Handler> for Gate {
                 let (low, mid, high): (u16, u16, u32) = mem::transmute(handler);
 
             Gate { offset_lower: low
-                 , selector: segment::Selector::from_raw(GDT_OFFSET)
-                 , _zero: 0
-                 // Bit 7 is the present bit
-                 // Bits 4-0 indicate this is an interrupt gate
                  , flags: GateFlags::new_interrupt()
                  , offset_mid: mid
                  , offset_upper: high
-                 , _reserved: 0
+                 , ..Default::default()
                  }
         }
     }
@@ -130,14 +120,10 @@ impl convert::From<*const u8> for Gate {
             let (low, mid, high): (u16, u16, u32) = mem::transmute(handler);
 
             Gate { offset_lower: low
-                 , selector: segment::Selector::from_raw(GDT_OFFSET)
-                 , _zero: 0
-                 // Bit 7 is the present bit
-                 // Bits 4-0 indicate this is an interrupt gate
                  , flags: GateFlags::new_interrupt()
                  , offset_mid: mid
                  , offset_upper: high
-                 , _reserved: 0
+                 , ..Default::default()
                  }
         }
     }

@@ -2,7 +2,6 @@
 # Created by https://www.gitignore.io/api/assembler,rust,emacs,osx,sublimetext,tags,vagrant,vim,linux
 
 ### Kernel binaries ###
-/build/
 *.iso
 *.bin
 *.elf
@@ -156,6 +155,8 @@ Session.vim
 tags
 .tags1
 
+### GDB ###
+.gdb_history
 
 ### Linux ###
 *~
