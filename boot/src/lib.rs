@@ -17,6 +17,8 @@
 #![feature(stmt_expr_attributes)]
 #![no_std]
 
+extern crate rlibc;
+
 const TABLE_LENGTH: usize = 512;
 const HUGE_PAGE_SIZE: u64 = 2 * 1024 * 1024; // 2 MiB
 
@@ -49,7 +51,7 @@ impl TableEntry {
     /// Set this table entry to map to a huge page with the given number.
     #[inline(always)]
     unsafe fn map_to_page(&mut self, number: usize) {
-        const ENTRY_FLAGS_HUGE: u64 = 0b10000000 | ENTRY_FLAGS_PW;
+        const ENTRY_FLAGS_HUGE: u64 = 0b10000011;
         // the start address is the page number times the page's size
         let addr = number as u64 * HUGE_PAGE_SIZE;
         *self = TableEntry(addr | ENTRY_FLAGS_HUGE);
@@ -106,7 +108,6 @@ impl convert::From<&'static Gdt> for GdtPointer {
 pub static GDT: Gdt
     = Gdt { _null: 0
           , code: (1<<44) | (1<<47) | (1<<41) | (1<<43) | (1<<53)
-        //   , data: (1 << 44) | (1 << 47) | (1 << 41)
           };
 
 #[inline(always)]

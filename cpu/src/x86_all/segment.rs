@@ -24,7 +24,7 @@ use super::{PrivilegeLevel, dtable};
 
 /// The number of entries in the GDT
 #[cfg(target_arch = "x86_64")]
-pub const GDT_SIZE: usize = 512;
+pub const GDT_SIZE: usize = 3;
 
 /// Structure representing a GDT
 #[cfg(target_arch = "x86_64")]
@@ -32,8 +32,8 @@ pub const GDT_SIZE: usize = 512;
 pub struct Gdt { _null: Descriptor
                , /// The code segment descriptor
                  pub code: Descriptor
-               , /// The data segment descriptor
-                 pub data: Descriptor
+            //    , /// The data segment descriptor
+            //      pub data: Descriptor
                }
 
 /// The number of entries in the GDT
@@ -46,6 +46,7 @@ pub type Gdt = [Descriptor; GDT_SIZE];
 
 extern {
     /// The Global Descriptor Table
+    #[link_name = ".gdt64"]
     pub static GDT: Gdt;
 }
 
