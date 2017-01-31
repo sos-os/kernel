@@ -32,10 +32,10 @@ extern {
     // Of course, we will still need to export the kernel stack addresses like
     // this, but it would be nice if they could be, i dont know, not mut u8s
     // pointers, like God intended.
-    #[link_name = "stack_base_addr"]
-    pub static STACK_BASE: PAddr;
-    #[link_name = "stack_top_addr"]
-    pub static STACK_TOP: PAddr;
+    #[link_name = "stack_base"]
+    pub static STACK_BASE: *const u8;
+    #[link_name = "stack_top"]
+    pub static STACK_TOP: *const u8;
 }
 
 macro_attr! {
