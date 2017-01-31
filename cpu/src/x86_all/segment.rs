@@ -24,22 +24,30 @@ use super::{PrivilegeLevel, dtable};
 
 /// The number of entries in the GDT
 #[cfg(target_arch = "x86_64")]
-pub const GDT_SIZE: usize = 3;
+pub const GDT_SIZE: usize = 512;
 
+/// Structure representing a GDT
+#[cfg(target_arch = "x86_64")]
+#[repr(C, packed)]
+pub struct Gdt { _null: Descriptor
+               , /// The code segment descriptor
+                 pub code: Descriptor
+               , /// The data segment descriptor
+                 pub data: Descriptor
+               }
 
 /// The number of entries in the GDT
 #[cfg(target_arch = "x86")]
 pub const GDT_SIZE: usize = 512;
 
+/// The Global Descriptor Table
+#[cfg(target_arch = "x86")]
 pub type Gdt = [Descriptor; GDT_SIZE];
 
-// extern {
-//     #[cfg(target_arch = "x86_64")]
-//     #[link_section = ".gdt64"]
-//     pub static GDT: [Descriptor; GDT_SIZE];
-// }
-
-
+extern {
+    /// The Global Descriptor Table
+    pub static GDT: Gdt;
+}
 
 impl dtable::DTable for Gdt {
     type Entry = u64;
@@ -323,10 +331,11 @@ bitflags! {
 impl Flags {
 
     /// Returns a new set of `Flag`s with all bits set to 0.
-    const fn null() -> Self {
+    pub const fn null() -> Self {
         Flags { bits: 0 }
     }
 
+    /// Returns a new set of `Flag`s from a raw `u16`
     pub const fn from_raw(bits: u16) -> Self {
         Flags { bits: bits }
     }
