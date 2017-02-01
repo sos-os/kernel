@@ -51,6 +51,7 @@ const ENTRY_FLAGS_PW: u64 = 0b11;
 /// Page table entry flags for a page that is huge, present, and writable.
 const ENTRY_FLAGS_HUGE: u64 = 0b10000000 & ENTRY_FLAGS_PW;
 
+/// A page table is an array of page table entries.
 type Table = [TableEntry; TABLE_LENGTH];
 
 trait PageTable: Sized {
@@ -63,6 +64,12 @@ trait PageTable: Sized {
 
 impl PageTable for Table { }
 
+/// A page table entry is a 64-bit unsigned integer.
+///
+/// We represent this as a [newtype] rather than a type alias, because we want
+/// to implement specific functionality on it.
+///
+/// [newtype]: https://aturon.github.io/features/types/newtype.html
 #[repr(C)]
 struct TableEntry(u64);
 
