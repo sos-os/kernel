@@ -6,7 +6,31 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-//! Initial 32-bit bootloader for x86_64
+//! # SOS x86_64 bootstrap
+//!
+//! This crate contains code for the 32-bit protected mode boot routine for
+//! x86_64 CPUs. When we boot up an x86_64 system using GRUB & multiboot, we
+//! end up with the CPU running in 32-bit 'protected mode', rather than 64-bit
+//! 'long mode'. Before we can jump into long mode, we have to perform a
+//! handful of setup tasks in protected mode.
+//!
+//! This boot routine lives in a separate crate, with a 32-bit `target.json`.
+//! When building SOS for x86_64, we have to compile this crate separately and
+//! then link the resulting 32-bit object with the rest of the 64-bit kernel
+//! object.
+//!
+//! This boot crate is only necessary for x86_64. For other architectures, all
+//! boot code can live in the main kernel crate.
+//!
+//! For more information, refer to:
+//! + the [intermezzOS book]
+//! + the [OSDev Wiki] article on long mode
+//! + Philipp Oppermann's [blog post]
+//!
+//! [intermezzOS book]: http://intermezzos.github.io/book/transitioning-to-long-mode.html
+//! [OSDev Wiki]: http://wiki.osdev.org/Long_Mode#Long_Mode
+//! [blog post]: http://os.phil-opp.com/entering-longmode.html
+
 #![crate_name = "boot"]
 #![feature(asm)]
 #![feature(lang_items)]
@@ -20,9 +44,12 @@
 extern crate rlibc;
 
 const TABLE_LENGTH: usize = 512;
+/// The size of a "huge" page
 const HUGE_PAGE_SIZE: u64 = 2 * 1024 * 1024; // 2 MiB
-
+/// Page table entry flags for a page that is present and writable.
 const ENTRY_FLAGS_PW: u64 = 0b11;
+/// Page table entry flags for a page that is huge, present, and writable.
+const ENTRY_FLAGS_HUGE: u64 = 0b10000000 & ENTRY_FLAGS_PW;
 
 type Table = [TableEntry; TABLE_LENGTH];
 
@@ -51,7 +78,7 @@ impl TableEntry {
     /// Set this table entry to map to a huge page with the given number.
     #[inline(always)]
     unsafe fn map_to_page(&mut self, number: usize) {
-        const ENTRY_FLAGS_HUGE: u64 = 0b10000011;
+
         // the start address is the page number times the page's size
         let addr = number as u64 * HUGE_PAGE_SIZE;
         *self = TableEntry(addr | ENTRY_FLAGS_HUGE);
