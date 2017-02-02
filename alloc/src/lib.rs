@@ -1,15 +1,36 @@
 //
 //  SOS: the Stupid Operating System
-//  by Hawk Weisman (hi@hawkweisman.me)
+//  by Eliza Weisman (hi@hawkweisman.me)
 //
-//  Copyright (c) 2015 Hawk Weisman
+//  Copyright (c) 2015-2017 Eliza Weisman
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
+//  Allocator API copyright 2015 The Rust Project Developers.
+//  See the COPYRIGHT file at http://rust-lang.org/COPYRIGHT.
+//
+//  Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
+//  http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
+//  <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
+//  option. This file may not be copied, modified, or distributed
+//  except according to those terms.
 //! SOS memory allocation library
 //!
 //! This is in its own crate so it can be used by kernel-space and user-space
 //! OS components.
+//!
+//! We reproduce the Rust [`Allocator`] trait described in Rust [RFC 1398], so
+//! that our allocators can implement it. Once RFC 1398 is implemented, we will
+//! be able to remove the [`Allocator`] and [`Layout`] types from this crate.
+//!
+//! For more information on the Allocator API, refer to:
+//! + the text of [RFC 1398]
+//! + rust-lang/rust [tracking issue]
+//!
+//! [`Allocator`]: trait.Allocator.html
+//! [`Layout`]: struct.Layout.html
+//! [RFC 1398]: https://github.com/rust-lang/rfcs/blob/master/text/1398-kinds-of-allocators.md
+//! [tracking issue]: https://github.com/rust-lang/rust/issues/32838
 #![crate_name = "alloc"]
 #![crate_type = "lib"]
 
@@ -78,7 +99,7 @@ pub struct Layout {
     size: Size,
     // alignment of the requested block of memory, measured in bytes.
     // we ensure that this is always a power-of-two, because API's
-    ///like `posix_memalign` require it and it is a reasonable
+    // like `posix_memalign` require it and it is a reasonable
     // constraint to impose on Layout constructors.
     //
     // (However, we do not analogously require `align >= sizeof(void*)`,
@@ -93,7 +114,7 @@ pub struct Layout {
 
 impl Layout {
     // (private constructor)
-    fn from_size_align(size: usize, align: usize) -> Layout {
+    pub fn from_size_align(size: usize, align: usize) -> Layout {
         assert!(align.is_power_of_two());
         assert!(align > 0);
         Layout { size: size, align: align }
@@ -398,8 +419,8 @@ pub unsafe trait Allocator {
     /// initialized. (Extension subtraits might restrict this
     /// behavior, e.g. to ensure initialization.)
     ///
-    /// Returning `Err` indicates that either memory is exhausted or `layout` does
-    /// not meet allocator's size or alignment constraints.
+    /// Returning `Err` indicates that either memory is exhausted or `layout`
+    /// does not meet allocator's size or alignment constraints.
     ///
     /// Implementations are encouraged to return `Err` on memory
     /// exhaustion rather than panicking or aborting, but this is

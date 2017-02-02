@@ -2,7 +2,7 @@
 use spin::Mutex;
 use core::ptr;
 
-use ::{Allocator, FrameAllocator};
+use ::{Allocator, FrameAllocator, Layout};
 use super::{HeapAllocator, FreeList};
 
 use memory::{ PAGE_SIZE, PAddr, PhysicalPage, FrameRange, VAddr };
@@ -50,14 +50,17 @@ pub extern "C" fn __rust_allocate(size: usize, align: usize) -> *mut u8 {
     unsafe {
         ALLOC.lock().as_mut()
              .expect("Cannot allocate memory, no system allocator exists!")
-             .allocate(size, align)
+             .alloc(Layout::from_size_align(size, align))
              .map(|blck| {
                  // TODO: can we use `inspect()` here instead?
                  //       - eliza, 1/23/2017
                  trace!( target: "alloc"
-                       , "__rust_allocate: allocatedd {:?}", blck);
+                       , "__rust_allocate: allocated {:?}", blck);
                  blck })
-             .unwrap_or(ptr::null_mut())
+            // TODO: how to handle various error conditions here in
+            //       ways the stdlib expects?
+            //          - eliza, 02/02/2017
+             .unwrap()
     }
 }
 #[allow(missing_docs)]
@@ -67,7 +70,7 @@ pub extern "C" fn __rust_deallocate( ptr: *mut u8, old_size: usize
     unsafe {
         ALLOC.lock().as_mut()
              .expect("Cannot deallocate memory, no system allocator exists!")
-             .deallocate(ptr, old_size, align)
+             .dealloc(ptr, Layout::from_size_align(old_size, align))
     }
 }
 
@@ -79,8 +82,13 @@ pub extern "C" fn __rust_reallocate( ptr: *mut u8, old_size: usize
     unsafe {
         ALLOC.lock().as_mut()
              .expect("Cannot reallocate memory, no system allocator exists!")
-             .reallocate(ptr, old_size, size, align)
-             .unwrap_or(ptr::null_mut())
+             .realloc( ptr
+                     , Layout::from_size_align(old_size, align)
+                     , Layout::from_size_align(size, align))
+             // TODO: how to handle various error conditions here in
+             //       ways the stdlib expects?
+             //          - eliza, 02/02/2017
+             .unwrap()
      }
 }
 
@@ -110,44 +118,44 @@ impl BuddyFrameAllocator {
     /// Construct a new `BuddyFrameAllocator`
     pub const fn new() -> Self { BuddyFrameAllocator }
 }
-
-impl FrameAllocator for BuddyFrameAllocator {
-
-    unsafe fn allocate(&self) -> Option<PhysicalPage> {
-        ALLOC.lock().as_mut()
-             .expect("Cannot allocate frame, no system allocator exists!")
-             .allocate(PAGE_SIZE as usize, PAGE_SIZE as usize)
-             .map(|block| {
-                let addr = VAddr::from_ptr(block);
-                // TODO: make this not be bad and ugly.
-                PhysicalPage::containing_addr(
-                    PAddr::from(addr.as_usize() as u64))
-             })
-
-    }
-
-    unsafe fn deallocate(&self, frame: PhysicalPage) {
-        ALLOC.lock().as_mut()
-             .expect("Cannot deallocate frame, no system allocator exists!")
-             .deallocate( frame.as_mut_ptr()
-                        , PAGE_SIZE as usize
-                        , PAGE_SIZE as usize);
-
-    }
-
-    unsafe fn allocate_range(&self, _num: usize) -> Option<FrameRange> {
-        unimplemented!()
-    }
-
-    unsafe fn deallocate_range(&self, range: FrameRange) {
-        for frame in range {
-            ALLOC.lock().as_mut()
-                 .expect("Cannot deallocate frames, no system allocator exists")
-                 .deallocate( frame.as_mut_ptr()
-                            , PAGE_SIZE as usize
-                            , PAGE_SIZE as usize);
-        }
-    }
-
-
-}
+//
+// impl FrameAllocator for BuddyFrameAllocator {
+//
+//     unsafe fn allocate(&self) -> Option<PhysicalPage> {
+//         ALLOC.lock().as_mut()
+//              .expect("Cannot allocate frame, no system allocator exists!")
+//              .allocate(PAGE_SIZE as usize, PAGE_SIZE as usize)
+//              .map(|block| {
+//                 let addr = VAddr::from_ptr(block);
+//                 // TODO: make this not be bad and ugly.
+//                 PhysicalPage::containing_addr(
+//                     PAddr::from(addr.as_usize() as u64))
+//              })
+//
+//     }
+//
+//     unsafe fn deallocate(&self, frame: PhysicalPage) {
+//         ALLOC.lock().as_mut()
+//              .expect("Cannot deallocate frame, no system allocator exists!")
+//              .deallocate( frame.as_mut_ptr()
+//                         , PAGE_SIZE as usize
+//                         , PAGE_SIZE as usize);
+//
+//     }
+//
+//     unsafe fn allocate_range(&self, _num: usize) -> Option<FrameRange> {
+//         unimplemented!()
+//     }
+//
+//     unsafe fn deallocate_range(&self, range: FrameRange) {
+//         for frame in range {
+//             ALLOC.lock().as_mut()
+//                  .expect("Cannot deallocate frames, no system allocator exists")
+//                  .deallocate( frame.as_mut_ptr()
+//                             , PAGE_SIZE as usize
+//                             , PAGE_SIZE as usize);
+//         }
+//     }
+//
+//
+// }

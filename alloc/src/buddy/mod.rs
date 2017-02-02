@@ -1,8 +1,8 @@
 //
 //  SOS: the Stupid Operating System
-//  by Hawk Weisman (hi@hawkweisman.me)
+//  by Eliza Weisman (hi@hawkweisman.me)
 //
-//  Copyright (c) 2015 Hawk Weisman
+//  Copyright (c) 2015-2017 Eliza Weisman
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
@@ -16,7 +16,7 @@ pub mod system;
 #[cfg(feature = "buddy_as_system")]
 pub use self::system::BuddyFrameAllocator;
 
-use super::{Allocator,  Framesque};
+use super::{Allocator, Layout, Address, AllocErr, Framesque};
 use self::math::PowersOf2;
 
 use core::mem;
@@ -149,7 +149,7 @@ impl<'a> HeapAllocator<'a> {
 
         // the order needed to allocate the entire heap as a single block
         let root_order
-            = heap.alloc_order(heap_size, 1)
+            = heap.alloc_order(&Layout::from_size_align(heap_size, 1))
                   .expect("Couldn't determine heap root allocation order!\
                            This should be (as far as I know) impossible.\
                            Something is seriously amiss.");
@@ -181,28 +181,36 @@ impl<'a> HeapAllocator<'a> {
     /// + `None` if the request is invalid
     /// + `Some(usize)` containing the size needed if the request is valid
     #[inline]
-    pub fn alloc_size(&self, size: usize, align: usize) -> Option<usize> {
+    pub fn alloc_size(&self, layout: &Layout) -> Result<usize, AllocErr> {
         // Pre-check if this is a valid allocation request:
         //  - allocations must be aligned on power of 2 boundaries
         //  - we cannot allocate requests with alignments greater than the
         //    base alignment of the heap without jumping through a bunch of
         //    hoops.
-        if !align.is_pow2() || align > PAGE_SIZE as usize {
-            None
+        let align = layout.align();
+        debug_assert!(align.is_power_of_two());
+        if align > PAGE_SIZE as usize {
+            Err(AllocErr::Unsupported {
+                details: "Cannot allocate requests with alignments greater \
+                          than the base alignment of the heap!"
+                })
         // If the request is valid, compute the size we need to allocate
         } else {
             // the allocation size for the request is the next power of 2
             // after the size of the request, the alignment of the request,
             // or the minimum block size (whichever is greatest).
-            let alloc_size = max!(size, self.min_block_size, align).next_pow2();
+            let alloc_size = max!(layout.size()
+            , self.min_block_size, align).next_pow2();
 
             if alloc_size > self.heap_size {
                 // if the calculated size is greater than the size of the heap,
                 // we (obviously) cannot allocate this request.
-                None
+                Err(AllocErr::Unsupported {
+                    details: "Cannot allocate requests larger than the heap!"
+                })
             } else {
                 // otherwise, return the calculated size.
-                Some(alloc_size)
+                Ok(alloc_size)
             }
         }
     }
@@ -213,9 +221,9 @@ impl<'a> HeapAllocator<'a> {
     /// double the minimum block size to get a large enough block for that
     /// allocation.
     #[inline]
-    pub fn alloc_order(&self, size: usize, align: usize) -> Option<usize> {
+    pub fn alloc_order(&self, layout: &Layout) -> Result<usize, AllocErr> {
         trace!(target: "alloc", "TRACE: alloc_order() called");
-        self.alloc_size(size, align)
+        self.alloc_size(layout)
             .map(|s| {
                 trace!( target: "alloc"
                       , "in alloc_order(): alloc_size() returned {}", s);
@@ -337,27 +345,26 @@ impl<'a> HeapAllocator<'a> {
 }
 
 
-impl<'a> Allocator for HeapAllocator<'a> {
+unsafe impl<'a> Allocator for HeapAllocator<'a> {
 
-    /// Allocate a new block of size `size` on alignment `align`.
+    /// Returns a pointer suitable for holding data described by
+    /// `layout`, meeting its size and alignment guarantees.
     ///
-    /// # Arguments
-    /// + `size`: the amount of memory to allocate (in bytes)
-    /// + `align`: the alignment for the allocation request
+    /// The returned block of storage may or may not have its contents
+    /// initialized. (Extension subtraits might restrict this
+    /// behavior, e.g. to ensure initialization.)
     ///
-    /// # Returns
-    /// + `Some(*mut u8)` if the request was allocated successfully
-    /// + `None` if the allocator is out of memory or if the request was
-    ///     invalid.
-    unsafe fn allocate( &mut self
-                      , size: usize
-                      , align: usize)
-                      -> Option<*mut u8> {
+    /// Returning `Err` indicates that either memory is exhausted or `layout`
+    /// does not meet allocator's size or alignment constraints.
+    ///
+    unsafe fn alloc(&mut self, layout: Layout) -> Result<Address, AllocErr> {
         trace!(target: "alloc", "allocate() was called!");
         // First, compute the allocation order for this request
-        self.alloc_order(size, align)
-            .and_then(|order| if order > self.free_lists.len() - 1 { None }
-                              else {Some(order)} )
+        self.alloc_order(&layout)
+            .and_then(|order|
+                if order > self.free_lists.len() - 1 {
+                    Err(AllocErr::Exhausted { request: layout.clone() })
+                } else { Ok(order) } )
             // If the allocation order is defined, then we try to allocate
             // a block of that order. Otherwise, the request is invalid.
             .and_then(|min_order| {
@@ -378,10 +385,10 @@ impl<'a> Allocator for HeapAllocator<'a> {
                                   , "in allocate(): split_block() done");
 
                         }
-                        return Some(block)
+                        return Ok(block)
                     }
                 }
-                None
+                Err(AllocErr::Exhausted { request: layout })
             })
     }
 
@@ -395,19 +402,15 @@ impl<'a> Allocator for HeapAllocator<'a> {
     /// + `frame`: a pointer to the block of memory to deallocate
     /// + `size`: the size of the block being deallocated
     /// + `align`: the alignment of the block being deallocated
-    unsafe fn deallocate( &mut self
-                        , block: *mut u8
-                        , old_size: usize
-                        , align: usize ) {
-        let min_order = self.alloc_order(old_size, align)
-                            .unwrap();
+    unsafe fn dealloc(&mut self, ptr: Address, layout: Layout) {
+        let min_order = self.alloc_order(&layout).unwrap();
 
         // Check if the deallocated block's buddy block is also free.
         // If it is, merge the two blocks.
-        let mut new_block = block;
+        let mut new_block = ptr;
         for order in min_order..self.free_lists.len() {
             // If there is a buddy for this block of the given order...
-            if let Some(buddy) = self.get_buddy(order, block) {
+            if let Some(buddy) = self.get_buddy(order, ptr) {
                 // ...and if the buddy was free...
                 if self.remove_block(order, buddy) {
                     // ...merge the buddy with the new block (just use
