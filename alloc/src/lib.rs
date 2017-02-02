@@ -815,17 +815,6 @@ pub unsafe trait Allocator {
     }
 }
 
-/// Trait for something that is like a frame.
-///
-/// Various allocation strategies use different data structures for
-/// representing frames. For example, frames may be stored as frame numbers or
-/// as nodes in a linked list. To be `Framesque`, an object need only provide
-/// a function to convert the frame data to a pointer to the frame in memory.
-pub trait Framesque {
-    /// Return a pointer to the frame in memory.
-    fn as_ptr(&self) -> *mut u8;
-}
-
 pub trait FrameAllocator: Sized  {
 
     unsafe fn allocate(&self) -> Option<PhysicalPage>;

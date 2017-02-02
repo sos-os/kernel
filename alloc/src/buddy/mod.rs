@@ -9,14 +9,13 @@
 //! Simple buddy-block allocator
 
 #![warn(missing_docs)]
-
 mod math;
 #[cfg(feature = "buddy_as_system")]
 pub mod system;
 #[cfg(feature = "buddy_as_system")]
 pub use self::system::BuddyFrameAllocator;
 
-use super::{Allocator, Layout, Address, AllocErr, Framesque};
+use super::{Allocator, Layout, Address, AllocErr};
 use self::math::PowersOf2;
 
 use core::mem;
@@ -38,11 +37,8 @@ pub type FreeList = List<Unique<FreeBlock>, FreeBlock>;
 pub struct FreeBlock { next: RawLink<FreeBlock>
                      , prev: RawLink<FreeBlock>
                      }
-
-impl Framesque for FreeBlock {
-    #[inline] fn as_ptr(&self) -> *mut u8 {
-        unsafe { mem::transmute(self) }
-    }
+impl FreeBlock {
+    #[inline] unsafe fn as_ptr(&self) -> *mut u8 { mem::transmute(self) }
 }
 
 impl Node for FreeBlock {
