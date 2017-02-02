@@ -3,14 +3,14 @@ use spin::Mutex;
 use core::ptr;
 
 use ::{Allocator, FrameAllocator, Layout};
-use super::{HeapAllocator, FreeList};
+use super::{Heap, FreeList};
 
 use memory::{ PAGE_SIZE, PAddr, PhysicalPage, FrameRange, VAddr };
 
 /// The number of free lists for the kernel heap
 pub const NUM_FREE_LISTS: usize = 19;
 
-static ALLOC: Mutex<Option<HeapAllocator<'static>>>
+static ALLOC: Mutex<Option<Heap<'static>>>
     = Mutex::new(None);
 
 static mut KERNEL_FREE_LISTS: [FreeList; NUM_FREE_LISTS]
@@ -37,7 +37,7 @@ pub unsafe fn init_heap(start_addr: *mut u8, heap_size: usize ) {
                                  more than once!");
     trace!(target: "alloc", "init_heap() was called.");
     *(ALLOC.lock())
-        = Some(HeapAllocator::new( start_addr
+        = Some(Heap::new( start_addr
                                       , &mut KERNEL_FREE_LISTS
                                       , heap_size));
 }

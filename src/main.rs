@@ -169,6 +169,7 @@ pub fn kernel_init(params: InitParams) {
     kinfoln!(dots: " . ", "Remapping the kernel:");
 
     let frame_allocator = alloc::buddy::BuddyFrameAllocator::new();
+
     ::paging::kernel_remap(&params, &frame_allocator);
 
     kinfoln!( dots: " . ", target: "Remapping the kernel", "[ OKAY ]");
