@@ -94,6 +94,7 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
 
     let kernel_begin
         = elf_sections_tag.sections()
+            .filter(|s| s.is_allocated())
             .inspect(|s| {
                 kinfoln!( dots: " . . "
                         , "address: {:#08x}, size: {:#08x}, flags: {:#08x}"
@@ -111,6 +112,7 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
 
     let kernel_end
         = elf_sections_tag.sections()
+            .filter(|s| s.is_allocated())
             .max_by_key(elf::Section::addr)
             .expect("Could not find kernel end section!\
                     \nSomething is deeply wrong.");
