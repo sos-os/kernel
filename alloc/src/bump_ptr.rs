@@ -7,7 +7,7 @@
 //  directory of this repository for more information.
 //
 
-use memory::PAddr;
+use memory::{Addr, PAddr};
 use super::{Address, Allocator, AllocErr, Layout};
 
 /// A simple bump pointer allocator.
@@ -18,21 +18,30 @@ use super::{Address, Allocator, AllocErr, Layout};
 #[derive(Debug)]
 pub struct BumpPtr { start: PAddr
                    , end: PAddr
-                   , ptr: *mut u8
+                   , ptr: PAddr
                    }
 
 impl BumpPtr {
     pub const fn new(start: PAddr, end: PAddr) -> Self {
         BumpPtr { start: start
                 , end: end
-                , ptr: start.as_mut_ptr()
+                , ptr: start
                 }
     }
 }
 
 unsafe impl Allocator for BumpPtr {
     unsafe fn alloc(&mut self, layout: Layout) -> Result<Address, AllocErr> {
-        unimplemented!()
+        let start = self.ptr.align_up(layout.align() as <PAddr as Addr>::Repr);
+        // TODO: can this be a saturating add?
+        let end = start + layout.size() as <PAddr as Addr>::Repr;
+        if end > self.end {
+            Err(AllocErr::Exhausted{ request: layout.clone() })
+        } else {
+            // bump
+            self.ptr = end;
+            Ok(start.as_mut_ptr())
+        }
     }
     unsafe fn dealloc(&mut self, ptr: Address, layout: Layout) {
         // just leak it
