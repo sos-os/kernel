@@ -32,6 +32,7 @@ pub mod arch;
 // use alloc::buddy;
 // use ::params::InitParams;
 use core::{ops, cmp, convert};
+use util::Align;
 
 pub use arch::{PAddr, PAGE_SHIFT, PAGE_SIZE};
 
@@ -41,9 +42,16 @@ pub mod alloc;
 pub trait Addr: ops::Add<Self> + ops::Sub<Self>
               + ops::Mul<Self> + ops::Div<Self>
               + ops::Shl<Self> + ops::Shr<Self>
+              + ops::BitOr<Self> + ops::BitAnd<Self>
               + convert::From<*mut u8> + convert::From<*const u8>
               + Sized {
-    type Repr;
+    type Repr: Align;
+
+    fn align_down(&self, align: Self::Repr) -> Self;
+    fn align_up(&self, align: Self::Repr) -> Self;
+
+    /// Returns true if this address is aligned on a page boundary.
+    fn is_page_aligned(&self) -> bool;
 }
 
 //impl Addr<usize> for VAddr { }

@@ -969,3 +969,4 @@ where A: FrameAllocator
 pub mod buddy;
 #[cfg(feature = "first_fit")]
 pub mod first_fit;
+pub mod bump_ptr;

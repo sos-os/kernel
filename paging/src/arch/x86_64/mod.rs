@@ -16,7 +16,7 @@ use core::ops;
 use core::ptr::Unique;
 
 use alloc::FrameAllocator;
-use memory::{PAGE_SIZE, PAddr, Page, PhysicalPage, VAddr, VirtualPage};
+use memory::{Addr, PAGE_SIZE, PAddr, Page, PhysicalPage, VAddr, VirtualPage};
 use params::InitParams;
 use ::Mapper;
 

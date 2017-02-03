@@ -59,12 +59,7 @@ macro_rules! Addr {
             #[inline(always)]
             pub const fn as_ptr<T>(&self) -> *const T { self.0 as *const _ }
 
-            /// Returns true if this address is aligned on a page boundary.
-            #[inline]
-            pub fn is_page_aligned(&self) -> bool {
-                use $crate::arch::PAGE_SIZE;
-                **self % PAGE_SIZE as <Self as Addr>::Repr == 0 as <Self as Addr>::Repr
-            }
+
         }
 
         impl_ops! {
@@ -104,6 +99,20 @@ macro_rules! Addr {
 
         impl Addr for $ty {
             type Repr = $size;
+
+            #[inline] fn align_down(&self, align: Self::Repr) -> Self {
+                use util::Align;
+                $ty ( self.0.align_down(align) )
+            }
+
+            #[inline] fn align_up(&self, align: Self::Repr) -> Self {
+                use util::Align;
+                $ty ( self.0.align_up(align) )
+            }
+
+            #[inline] fn is_page_aligned(&self) -> bool {
+                **self % PAGE_SIZE as <Self as Addr>::Repr == 0 as <Self as Addr>::Repr
+            }
         }
 
     }
