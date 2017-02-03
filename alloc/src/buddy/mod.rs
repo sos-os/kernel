@@ -26,7 +26,6 @@ use intrusive::list::{List, Node};
 use intrusive::rawlink::RawLink;
 use memory::PAGE_SIZE;
 
-#[cfg(target_os = "linux")]
 #[cfg(test)]
 mod test;
 
@@ -113,8 +112,8 @@ impl<'a> Heap<'a> {
                 , "Heap start address cannot be null." );
         assert!( n_free_lists > 0
                , "Allocator must have at least one free list.");
-        assert!( start_addr as usize & (PAGE_SIZE-1) as usize == 0
-               , "Heap start address must be aligned on a 4k boundary.");
+        // assert!( start_addr as usize & (PAGE_SIZE-1) as usize == 0
+        //        , "Heap start address must be aligned on a 4k boundary.");
 
         let min_block_size = heap_size >> (n_free_lists - 1);
 
