@@ -107,6 +107,7 @@ macro_rules! Addr {
 
             #[inline] fn align_up(&self, align: Self::Repr) -> Self {
                 use util::Align;
+                // assert!(align.is_page_aligned());
                 $ty ( self.0.align_up(align) )
             }
 
