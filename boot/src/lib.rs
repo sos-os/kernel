@@ -48,8 +48,6 @@ const TABLE_LENGTH: usize = 512;
 const HUGE_PAGE_SIZE: u64 = 2 * 1024 * 1024; // 2 MiB
 /// Page table entry flags for a page that is present and writable.
 const ENTRY_FLAGS_PW: u64 = 0b11;
-/// Page table entry flags for a page that is huge, present, and writable.
-const ENTRY_FLAGS_HUGE: u64 = 0b10000000 & ENTRY_FLAGS_PW;
 
 /// A page table is an array of page table entries.
 type Table = [TableEntry; TABLE_LENGTH];
@@ -85,7 +83,8 @@ impl TableEntry {
     /// Set this table entry to map to a huge page with the given number.
     #[inline(always)]
     unsafe fn map_to_page(&mut self, number: usize) {
-
+        // Page table entry flags for a page that is huge, present, and writable.
+        const ENTRY_FLAGS_HUGE: u64 = 0b10000011;
         // the start address is the page number times the page's size
         let addr = number as u64 * HUGE_PAGE_SIZE;
         *self = TableEntry(addr | ENTRY_FLAGS_HUGE);
