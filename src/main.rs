@@ -105,12 +105,12 @@ pub const VERSION_STRING: &'static str
 
 /// Kernel main loop
 pub fn kernel_main() -> ! {
-    let mut a_vec = collections::vec::Vec::<usize>::new();
-    info!(target: "test", "Created a vector in kernel space! {:?}", a_vec);
-    a_vec.push(1);
-    info!(target: "test", "pushed to vec: {:?}", a_vec);
-    a_vec.push(2);
-    info!(target: "test", "pushed to vec: {:?}", a_vec);
+    // let mut a_vec = collections::vec::Vec::<usize>::new();
+    // info!(target: "test", "Created a vector in kernel space! {:?}", a_vec);
+    // a_vec.push(1);
+    // info!(target: "test", "pushed to vec: {:?}", a_vec);
+    // a_vec.push(2);
+    // info!(target: "test", "pushed to vec: {:?}", a_vec);
 
     // let mut frame_allocator = frame_alloc::FrameAllocator::new();
     // paging::test_paging(&mut frame_allocator);
@@ -143,6 +143,7 @@ pub fn kernel_main() -> ! {
 /// ```
 pub fn kernel_init(params: InitParams) {
     kinfoln!("Hello from the kernel!");
+    kinfoln!("Got init params: {:#?}", params );
     // -- initialize interrupts ----------------------------------------------
     kinfoln!(dots: " . ", "Initializing interrupts:");
     unsafe {
@@ -168,7 +169,7 @@ pub fn kernel_init(params: InitParams) {
     // -- remap the kernel ----------------------------------------------------
     kinfoln!(dots: " . ", "Remapping the kernel:");
 
-    let frame_allocator = alloc::buddy::BuddyFrameAllocator::new();
+    // let frame_allocator = alloc::buddy::BuddyFrameAllocator::new();
 
     // ::paging::kernel_remap(&params, &frame_allocator);
 

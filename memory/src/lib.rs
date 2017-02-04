@@ -15,6 +15,7 @@
 #![feature(const_fn)]
 #![feature(asm)]
 #![feature(step_trait)]
+#![feature(linkage)]
 #![no_std]
 
 #[macro_use] extern crate bitflags;

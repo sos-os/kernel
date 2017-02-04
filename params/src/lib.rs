@@ -60,7 +60,7 @@ pub struct InitParams {
 
 impl Default for InitParams {
     fn default() -> Self {
-        use memory::arch::{HEAP_BASE, HEAP_TOP, STACK_BASE, STACK_TOP};
+        // use memory::arch::{HEAP_BASE, HEAP_TOP, STACK_BASE, STACK_TOP};
         InitParams { kernel_base: PAddr::from(0x0)
                      // NOTE: this is, of course, Extremely Wrong, but the
                      //       `Default` impl is not going to make _correct_
@@ -68,10 +68,10 @@ impl Default for InitParams {
                      //       fns that make params.
                      // TODO: should this be an Option instead?
                    , kernel_top: PAddr::from(0x0)
-                   , heap_base: unsafe { PAddr::from(HEAP_BASE) }
-                   , heap_top: unsafe { PAddr::from(HEAP_TOP) }
-                   , stack_base: unsafe { PAddr::from(STACK_BASE) }
-                   , stack_top: unsafe { PAddr::from(STACK_TOP) }
+                   , heap_base:  PAddr::from(0x0)
+                   , heap_top: PAddr::from(0x0)
+                   , stack_base: PAddr::from(0x0)
+                   , stack_top: PAddr::from(0x0)
                    , multiboot_start: None
                    , multiboot_end: None
                    }

@@ -7,7 +7,6 @@
 //  directory of this repository for more information.
 //
 //! Architecture-specific memory management.
-
 use ::{Addr, Page};
 
 use core::mem;
@@ -21,22 +20,6 @@ pub const LARGE_PAGE_SIZE: u64 = 1024 * 1024 * 2;
 /// The size of a huge page (2GiB) in bytes
 pub const HUGE_PAGE_SIZE: u64 = 1024 * 1024 * 1024;
 
-extern {
-    // TODO: It would be really nice if there was a less ugly way of doing
-    // this... (read: after the Revolution when we add memory regions to the
-    // heap programmatically.)
-    #[link_name = "heap_base_addr"]
-    pub static HEAP_BASE: *const u8;
-    #[link_name = "heap_top_addr"]
-    pub static HEAP_TOP: *const u8;
-    // Of course, we will still need to export the kernel stack addresses like
-    // this, but it would be nice if they could be, i dont know, not mut u8s
-    // pointers, like God intended.
-    #[link_name = "stack_base"]
-    pub static STACK_BASE: *const u8;
-    #[link_name = "stack_top"]
-    pub static STACK_TOP: *const u8;
-}
 
 macro_attr! {
     /// A physical (linear) memory address is a 64-bit unsigned integer

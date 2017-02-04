@@ -16,6 +16,25 @@ pub mod interrupts;
 
 pub const ARCH_BITS: u8 = 64;
 
+extern {
+    // TODO: It would be really nice if there was a less ugly way of doing
+    // this... (read: after the Revolution when we add memory regions to the
+    // heap programmatically.)
+    #[link_name = "heap_base_addr"]
+    #[linkage = "external"]
+    pub static HEAP_BASE: *mut u8;
+    #[link_name = "heap_top_addr"]
+    #[linkage = "external"]
+    pub static HEAP_TOP: *mut u8;
+    // Of course, we will still need to export the kernel stack addresses like
+    // this, but it would be nice if they could be, i dont know, not mut u8s
+    // pointers, like God intended.
+    #[link_name = "stack_base"]
+    pub static STACK_BASE: *mut u8;
+    #[link_name = "stack_top"]
+    pub static STACK_TOP: *mut u8;
+}
+
 use memory::PAddr;
 
 /// Trampoline to ensure we have a correct stack frame for calling [`arch_init`]
@@ -126,8 +145,14 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
     kinfoln!( dots: " . . ", "Multiboot info begins at {:#x} and ends at {:#x}."
             , multiboot_addr, multiboot_end);
 
-    let params = InitParams { multiboot_start: Some(multiboot_addr)
+    let params = InitParams { kernel_base: kernel_begin.addr()
+                            , kernel_top: kernel_end.addr()
+                            , multiboot_start: Some(multiboot_addr)
                             , multiboot_end: Some(multiboot_end)
+                            , heap_base: unsafe { PAddr::from(HEAP_BASE) }
+                            , heap_top: unsafe { PAddr::from(HEAP_TOP) }
+                            , stack_base: unsafe { PAddr::from(STACK_BASE) }
+                            , stack_top: unsafe { PAddr::from(STACK_TOP) }
                             , ..Default::default()
                             };
 
