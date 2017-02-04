@@ -1,6 +1,3 @@
-# for assembling x86
-brew 'nasm'
-
 # for making a bootable ISO
 brew 'xorriso'
 
