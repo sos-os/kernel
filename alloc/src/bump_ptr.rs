@@ -43,7 +43,7 @@ unsafe impl Allocator for BumpPtr {
             Ok(start.as_mut_ptr())
         }
     }
-    unsafe fn dealloc(&mut self, ptr: Address, layout: Layout) {
+    unsafe fn dealloc(&mut self, _ptr: Address, _layout: Layout) {
         // just leak it
     }
 }

@@ -37,8 +37,8 @@
 // The compiler needs to be instructed that this crate is an allocator in order
 // to realize that when this is linked in another allocator like jemalloc
 // should not be linked in
-#![cfg_attr( feature = "as_system", feature(allocator) )]
-#![cfg_attr( feature = "as_system", allocator )]
+#![cfg_attr( feature = "system", feature(allocator) )]
+#![cfg_attr( feature = "system", allocator )]
 
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
@@ -60,7 +60,7 @@ extern crate arrayvec;
 #[cfg(feature = "buddy")]
 extern crate sos_intrusive as intrusive;
 
-#[cfg(any( feature = "buddy_as_system"
+#[cfg(any( feature = "system"
          , feature = "first_fit"))]
 extern crate spin;
 
@@ -861,45 +861,6 @@ pub trait FrameAllocator: Sized  {
     }
 }
 
-/// A borrowed handle on a heap allocation with a specified lifetime.
-///
-/// This automatically deallocates the allocated object when the borrow's
-/// lifetime ends. It also ensures that the borrow only lives as long as the
-/// allocator that provided it, and that the borrow is dropped if the allocator
-/// is dropped.
-// TODO: can this allocate pointers to _objects_ rather than `*mut u8`s?
-//       - eliza, 1/23/2017
-pub struct BorrowedHeap<'a, A>
-where A: Allocator
-    , A: 'a {
-    ptr: ptr::Unique<u8>
-  , order: usize
-  , size: usize
-  , allocator: &'a A
-}
-
-impl<'a, A> ops::Deref for BorrowedHeap<'a, A>
-where A: Allocator
-    , A: 'a {
-    type Target = *mut u8;
-    fn deref(&self) ->  &Self::Target { &(*self.ptr) }
-}
-
-// impl<'a, A> ops::DerefMut for BorrowedHeap<'a, A>
-// where A: Allocator
-//     , A: 'a {
-//     fn deref_mut(&mut self) ->  &mut Self::Target { &mut self.frame }
-// }
-
-impl<'a, A> Drop for BorrowedHeap<'a, A>
-where A: Allocator
-    , A: 'a {
-    fn drop(&mut self) {
-        // TODO: need a way to mutably access the parent allocator...
-        // unsafe { self.allocator.deallocate(*self.ptr, self.order, self.size)
-        unimplemented!()
-    }
-}
 
 /// A borrowed handle on a frame with a specified lifetime.
 ///
@@ -964,9 +925,12 @@ where A: FrameAllocator
     }
 }
 
-
 #[cfg(feature = "buddy")]
 pub mod buddy;
 #[cfg(feature = "first_fit")]
 pub mod first_fit;
+#[cfg(feature = "bump_ptr")]
 pub mod bump_ptr;
+
+#[cfg(feature = "system")]
+pub mod system;

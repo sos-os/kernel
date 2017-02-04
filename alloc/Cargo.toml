@@ -4,10 +4,10 @@ version = "0.1.0"
 authors = ["Eliza Weisman <hi@hawkweisman.me>"]
 
 [features]
-default = ["buddy"]
+default = ["buddy", "bump_ptr"]
 buddy = ["sos_intrusive"]
-as_system = []
-buddy_as_system = ["spin", "once", "as_system"]
+system = ["params", "spin"]
+bump_ptr = []
 first_fit = ["spin", "arrayvec"]
 
 [dependencies.log]
@@ -33,4 +33,8 @@ optional = true
 
 [dependencies.once]
 version = "0.3.2"
+optional = true
+
+[dependencies.params]
+path = "../params"
 optional = true
