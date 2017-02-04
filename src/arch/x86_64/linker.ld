@@ -38,6 +38,10 @@ SECTIONS {
 
      .bss ALIGN(4K) :
      {
+
+        *(.bss .bss.*)
+        . = ALIGN(4K);
+
         /* Page-Map Level-4 Table (PML4) */
         pml4_table = .;
         . += 4096;
@@ -53,9 +57,8 @@ SECTIONS {
         stack_top = .;
 
         heap_base_addr = .;
-        . += 4K * 2;
+        . += 4K * 2K;
         heap_top_addr = .;
-        *(.bss .bss.*)
      }
 
     .data.rel.ro : ALIGN(4K) {
