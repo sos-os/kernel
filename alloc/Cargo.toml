@@ -19,7 +19,7 @@ features = ["release_max_level_info"]
 path = "../memory"
 
 [dependencies.spin]
-version = "0.3.5"
+version = "0.4.5"
 optional = true
 
 [dependencies.sos_intrusive]

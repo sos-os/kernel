@@ -1,5 +1,5 @@
-use spin::Mutex;
-use super::{Allocator, Layout};
+use spin::{Mutex, MutexGuard};
+use super::{Address, Allocator, AllocErr, Layout};
 
 extern crate params;
 
@@ -12,6 +12,51 @@ use bump_ptr::BumpPtr;
 
 #[cfg(feature = "buddy")]
 use buddy::Heap as BuddyHeap;
+#[cfg(all(feature = "bump_ptr", feature="buddy"))]
+pub enum Tier<'a> {
+    Uninitialized
+    , Bump(BumpPtr)
+    , Buddy(BuddyHeap<'a>)
+}
+#[cfg(all(feature = "bump_ptr", feature="buddy"))]
+impl Deref for Tier<'static> {
+    type Target = Allocator + 'static ;
+    fn deref(&self) -> &Self::Target{
+        match self {
+            &Tier::Bump(ref alloc) => alloc
+          , &Tier::Buddy(ref alloc) => alloc
+          , _ => panic!("no allocator!")
+        }
+    }
+}
+
+#[cfg(all(feature = "bump_ptr", feature="buddy"))]
+unsafe impl<'a> Allocator for Tier<'a> {
+    #[inline(always)]
+    unsafe fn alloc(&mut self, layout: Layout) -> Result<Address, AllocErr> {
+        match *self {
+            Tier::Bump(ref mut alloc) => alloc.alloc(layout)
+          , Tier::Buddy(ref mut alloc) => alloc.alloc(layout)
+          , _ => Err(AllocErr::Unsupported {
+                    details: "System allocator uninitialized!"
+                })
+        }
+    }
+
+    #[inline(always)]
+    unsafe fn dealloc(&mut self, ptr: Address, layout: Layout) {
+        match *self {
+            Tier::Bump(ref mut alloc) => alloc.dealloc(ptr, layout)
+          , Tier::Buddy(ref mut alloc) => alloc.dealloc(ptr, layout)
+          , _ =>  {
+              // just leak it? not sure if we should panic here...
+          }
+        }
+    }
+
+}
+
+pub type SystemAllocator = Mutex<Tier<'static>>;
 
 /// A borrowed handle on a heap allocation with a specified lifetime.
 ///
