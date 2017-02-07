@@ -1,5 +1,5 @@
 use spin::Mutex;
-use super::{Address, Allocator, AllocErr, Layout};
+use super::{Address, Allocator, AllocErr, Layout, AllocResult};
 
 extern crate params;
 
@@ -35,7 +35,7 @@ impl Deref for Tier<'static> {
 #[cfg(all(feature = "bump_ptr", feature = "buddy"))]
 unsafe impl<'a> Allocator for Tier<'a> {
     #[inline(always)]
-    unsafe fn alloc(&mut self, layout: Layout) -> Result<Address, AllocErr> {
+    unsafe fn alloc(&mut self, layout: Layout) -> AllocResult<Address> {
         match *self {
             Tier::Bump(ref mut alloc) => alloc.alloc(layout)
           , Tier::Buddy(ref mut alloc) => alloc.alloc(layout)
@@ -58,7 +58,33 @@ unsafe impl<'a> Allocator for Tier<'a> {
 
 }
 
-pub type SystemAllocator = Mutex<Tier<'static>>;
+pub struct SystemAllocator(Mutex<Tier<'static>>);
+
+impl SystemAllocator {
+
+    /// Borrow a raw allocation from the system allocator
+    ///
+    /// The borrowed allocation handle will automagically deallocate the
+    /// allocation at the end of its lifetime
+    pub fn borrow_ptr<'alloc>(&'alloc self, layout: Layout)
+                      -> AllocResult<BorrowedPtr<'alloc, Tier<'static>>> {
+        let ptr = unsafe { self.0.lock().alloc(layout.clone())? };
+        Ok(BorrowedPtr { ptr: unsafe { Unique::new(ptr) }
+                       , layout: layout
+                       , allocator: &self.0 })
+    }
+
+    /// Borrow an object allocation from the system allocator.
+    ///
+    /// The borrowed allocation handle will automagically deallocate the
+    /// allocated object at the end of its lifetime
+    pub fn borrow<'alloc, T>(&'alloc self)
+                        -> AllocResult<Borrowed<'alloc, Tier<'static>, T>> {
+        let value = unsafe { self.0.lock().alloc_one::<T>()? };
+        Ok(Borrowed { value: value
+                    , allocator: &self.0 })
+    }
+}
 
 /// A borrowed handle on a heap allocation with a specified lifetime.
 ///
@@ -66,8 +92,6 @@ pub type SystemAllocator = Mutex<Tier<'static>>;
 /// lifetime ends. It also ensures that the borrow only lives as long as the
 /// allocator that provided it, and that the borrow is dropped if the allocator
 /// is dropped.
-// TODO: can this allocate pointers to _objects_ rather than `*mut u8`s?
-//       - eliza, 1/23/2017
 pub struct BorrowedPtr<'a, A>
 where A: Allocator
     , A: 'a {

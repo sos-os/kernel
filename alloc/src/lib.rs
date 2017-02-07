@@ -73,6 +73,8 @@ use core::{cmp, ops, ptr, mem};
 use ptr::Unique;
 use memory::{PhysicalPage, FrameRange};
 
+pub type AllocResult<T> = Result<T, AllocErr>;
+
 pub type Size = usize;
 pub type Capacity = usize;
 pub type Alignment = usize;
