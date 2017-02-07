@@ -4,10 +4,12 @@ version = "0.1.0"
 authors = ["Eliza Weisman <hi@hawkweisman.me>"]
 
 [features]
-default = ["buddy", "bump_ptr"]
+default = ["buddy", "bump_ptr", "borrow"]
 buddy = ["sos_intrusive"]
 system = ["params", "spin"]
 bump_ptr = []
+placement_in = ["system"]
+borrow = ["spin"]
 first_fit = ["spin", "arrayvec"]
 
 [dependencies.log]

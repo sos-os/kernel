@@ -43,6 +43,9 @@
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
+#![cfg_attr( feature = "placement_in"
+           , feature(placement_new_protocol, placement_in_syntax))]
+
 // Allocators are not allowed to depend on the standard library which in turn
 // requires an allocator in order to avoid circular dependencies. This crate,
 // however, can use all of libcore.
@@ -927,6 +930,8 @@ where A: FrameAllocator
     }
 }
 
+#[cfg(feature = "borrow")] pub mod borrow;
+
 #[cfg(feature = "buddy")]
 pub mod buddy;
 #[cfg(feature = "first_fit")]
@@ -934,5 +939,10 @@ pub mod first_fit;
 #[cfg(feature = "bump_ptr")]
 pub mod bump_ptr;
 
-#[cfg(feature = "system")]
-pub mod system;
+#[cfg(feature = "system")] pub mod system;
+#[cfg(feature = "system")] pub use system::*;
+
+
+
+#[cfg(feature = "placement_in")] pub mod place;
+#[cfg(feature = "placement_in")] pub use place::*;
