@@ -1,4 +1,4 @@
-use spin::{Mutex, MutexGuard};
+use spin::Mutex;
 use super::{Address, Allocator, AllocErr, Layout};
 
 extern crate params;
@@ -12,11 +12,13 @@ use bump_ptr::BumpPtr;
 
 #[cfg(feature = "buddy")]
 use buddy::Heap as BuddyHeap;
-#[cfg(all(feature = "bump_ptr", feature="buddy"))]
+
 pub enum Tier<'a> {
     Uninitialized
-    , Bump(BumpPtr)
-    , Buddy(BuddyHeap<'a>)
+    , #[cfg(feature = "bump_ptr")]
+      Bump(BumpPtr)
+    , #[cfg(feature = "buddy")]
+      Buddy(BuddyHeap<'a>)
 }
 #[cfg(all(feature = "bump_ptr", feature="buddy"))]
 impl Deref for Tier<'static> {
@@ -30,7 +32,7 @@ impl Deref for Tier<'static> {
     }
 }
 
-#[cfg(all(feature = "bump_ptr", feature="buddy"))]
+#[cfg(all(feature = "bump_ptr", feature = "buddy"))]
 unsafe impl<'a> Allocator for Tier<'a> {
     #[inline(always)]
     unsafe fn alloc(&mut self, layout: Layout) -> Result<Address, AllocErr> {
