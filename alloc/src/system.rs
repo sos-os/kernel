@@ -92,30 +92,30 @@ impl SystemAllocator {
 /// lifetime ends. It also ensures that the borrow only lives as long as the
 /// allocator that provided it, and that the borrow is dropped if the allocator
 /// is dropped.
-pub struct BorrowedPtr<'a, A>
+pub struct BorrowedPtr<'alloc, A>
 where A: Allocator
-    , A: 'a {
+    , A: 'alloc {
     ptr: Unique<u8>
   , layout: Layout
-  , allocator: &'a Mutex<A>
+  , allocator: &'alloc Mutex<A>
 }
 
-impl<'a, A> Deref for BorrowedPtr<'a, A>
+impl<'alloc, A> Deref for BorrowedPtr<'alloc, A>
 where A: Allocator
-    , A: 'a {
+    , A: 'alloc {
     type Target = *mut u8;
     fn deref(&self) ->  &Self::Target { &(*self.ptr) }
 }
 //
-// impl<'a, A> ops::DerefMut for BorrowedPtr<'a, A>
+// impl<'alloc, A> ops::DerefMut for BorrowedPtr<'alloc, A>
 // where A: Allocator
-//     , A: 'a {
+//     , A: 'alloc {
 //     fn deref_mut(&mut self) ->  &mut Self::Target { &mut self.frame }
 // }
 
-impl<'a, A> Drop for BorrowedPtr<'a, A>
+impl<'alloc, A> Drop for BorrowedPtr<'alloc, A>
 where A: Allocator
-    , A: 'a {
+    , A: 'alloc {
     fn drop(&mut self) {
         unsafe {
             self.allocator.lock().dealloc(*self.ptr, self.layout.clone())
@@ -129,31 +129,31 @@ where A: Allocator
 /// lifetime ends. It also ensures that the borrow only lives as long as the
 /// allocator that provided it, and that the borrow is dropped if the allocator
 /// is dropped.
-pub struct Borrowed<'a, A, T>
+pub struct Borrowed<'alloc, A, T>
 where A: Allocator
-    , A: 'a {
+    , A: 'alloc {
     value: Unique<T>
-  , allocator: &'a Mutex<A>
+  , allocator: &'alloc Mutex<A>
 }
 
-impl<'a, A, T> Deref for Borrowed<'a, A, T>
+impl<'alloc, A, T> Deref for Borrowed<'alloc, A, T>
 where A: Allocator
-    , A: 'a {
+    , A: 'alloc {
     type Target = T;
     fn deref(&self) ->  &Self::Target { unsafe { self.value.get() } }
 }
 
-impl<'a, A, T> DerefMut for Borrowed<'a, A, T>
+impl<'alloc, A, T> DerefMut for Borrowed<'alloc, A, T>
 where A: Allocator
-    , A: 'a {
+    , A: 'alloc {
     fn deref_mut(&mut self) ->  &mut Self::Target {
         unsafe { self.value.get_mut() }
     }
 }
 
-impl<'a, A, T> Drop for Borrowed<'a, A, T>
+impl<'alloc, A, T> Drop for Borrowed<'alloc, A, T>
 where A: Allocator
-    , A: 'a {
+    , A: 'alloc {
     fn drop(&mut self) {
         unsafe {
             self.allocator.lock()
