@@ -63,8 +63,6 @@ extern crate arrayvec;
 #[cfg(feature = "buddy")]
 extern crate sos_intrusive as intrusive;
 
-#[cfg(any( feature = "system"
-         , feature = "first_fit"))]
 extern crate spin;
 
 #[cfg(feature = "buddy_as_system")]
@@ -75,6 +73,8 @@ extern crate spin;
 use core::{cmp, ops, ptr, mem};
 use ptr::Unique;
 use memory::{PhysicalPage, FrameRange};
+
+use spin::Mutex;
 
 pub type AllocResult<T> = Result<T, AllocErr>;
 
@@ -825,6 +825,15 @@ pub trait FrameAllocator: Sized  {
     unsafe fn allocate(&self) -> Option<PhysicalPage>;
     unsafe fn deallocate(&self, frame: PhysicalPage);
 
+
+    unsafe fn allocate_range(&self, num: usize) -> Option<FrameRange>;
+    unsafe fn deallocate_range(&self, range: FrameRange);
+
+
+}
+
+pub trait FrameLender<A>
+where A: FrameAllocator {
     /// Borrow a `Frame` from this allocator.
     ///e
     /// The `BorrowedFrame` will live as long as this allocator, and will
@@ -835,14 +844,9 @@ pub trait FrameAllocator: Sized  {
     /// + `Some(BorrowedFrame)` if there are frames remaining in this
     ///    allocator.
     /// + `None` if the allocator is out of frames.
-    fn borrow(&self) -> Option<BorrowedFrame<Self>> {
-        unsafe { self.allocate() }
-                     .map(|frame| BorrowedFrame { frame: frame
-                                                , allocator: self })
-    }
-
-    unsafe fn allocate_range(&self, num: usize) -> Option<FrameRange>;
-    unsafe fn deallocate_range(&self, range: FrameRange);
+    //  TODO: do we want to refactor this into returning Results?
+    //          - eliza, 02/21/2017
+    fn borrow(&self) -> Option<BorrowedFrame<A>>;
 
     /// Borrow a `FrameRange` from this allocator.
     ///
@@ -859,13 +863,31 @@ pub trait FrameAllocator: Sized  {
     ///    request.
     /// + `None` if there are not enough frames in the allocator to fulfill the
     ///   allocation request.
-    fn borrow_range(&self, num: usize) -> Option<BorrowedFrameRange<Self>> {
-        unsafe { self.allocate_range(num) }
+    //  TODO: do we want to refactor this into returning Results?
+    //          - eliza, 02/21/2017
+    fn borrow_range(&self, num: usize) -> Option<BorrowedFrameRange<A>>;
+
+}
+
+impl<A: FrameAllocator> FrameLender<A> for Mutex<A> {
+
+    fn borrow(&self) -> Option<BorrowedFrame<A>> {
+        // TODO: can this be rewritten to just use `self.borrow_range(1)`?
+        //          - eliza, 02/21/2017
+        unsafe { self.lock().allocate() }
+                     .map(|frame| BorrowedFrame { frame: frame
+                                                , allocator: self })
+    }
+
+    fn borrow_range(&self, num: usize) -> Option<BorrowedFrameRange<A>> {
+        unsafe { self.lock().allocate_range(num) }
                      .map(|range| BorrowedFrameRange { range: range
                                                      , allocator: self })
     }
-}
 
+
+
+}
 
 /// A borrowed handle on a frame with a specified lifetime.
 ///
@@ -877,7 +899,7 @@ pub struct BorrowedFrame<'a, A>
 where A: FrameAllocator
     , A: 'a {
     frame: PhysicalPage
-  , allocator: &'a A
+  , allocator: &'a Mutex<A>
 }
 
 impl<'a, A> ops::Deref for BorrowedFrame<'a, A>
@@ -897,7 +919,7 @@ impl<'a, A> Drop for BorrowedFrame<'a, A>
 where A: FrameAllocator
     , A: 'a {
     fn drop(&mut self) {
-        unsafe { self.allocator.deallocate(self.frame) }
+        unsafe { self.allocator.lock().deallocate(self.frame) }
     }
 }
 
@@ -906,7 +928,7 @@ pub struct BorrowedFrameRange<'a, A>
 where A: FrameAllocator
     , A: 'a {
     range: FrameRange
-  , allocator: &'a A
+  , allocator: &'a Mutex<A>
 }
 
 impl<'a, A> ops::Deref for BorrowedFrameRange<'a, A>
@@ -926,7 +948,7 @@ impl<'a, A> Drop for BorrowedFrameRange<'a, A>
 where A: FrameAllocator
     , A: 'a {
     fn drop(&mut self) {
-        unsafe { self.allocator.deallocate_range(self.range.clone()) }
+        unsafe { self.allocator.lock().deallocate_range(self.range.clone()) }
     }
 }
 
