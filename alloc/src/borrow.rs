@@ -1,8 +1,7 @@
 use super::{Address, Allocator, Layout};
-use spin::Mutex;
 use ptr::Unique;
 use ops::{Deref, DerefMut};
-
+use spin::Mutex;
 
 pub trait Lender {
     type Borrowed;
@@ -15,6 +14,10 @@ pub trait Lender {
 /// lifetime ends. It also ensures that the borrow only lives as long as the
 /// allocator that provided it, and that the borrow is dropped if the allocator
 /// is dropped.
+// TODO: can we replace this with one generic implementation that works for
+//       borrowed pointers, objects, and arrays? can that code be reused for
+//       BorrowedFrame/BorrowedFrameRange as well?
+//          - eliza, 02/21/2017
 pub struct BorrowedPtr<'alloc, A>
 where A: Allocator
     , A: 'alloc {
