@@ -1,7 +1,13 @@
 use super::{Address, Allocator, Layout};
 use spin::Mutex;
-use core::ptr::Unique;
+use ptr::Unique;
 use ops::{Deref, DerefMut};
+
+
+pub trait Lender {
+    type Borrowed;
+    fn borrow(&self) -> Self::Borrowed;
+}
 
 /// A borrowed handle on a heap allocation with a specified lifetime.
 ///
@@ -40,12 +46,6 @@ where A: Allocator
     type Target = Address;
     fn deref(&self) ->  &Self::Target { &(*self.ptr) }
 }
-//
-// impl<'alloc, A> ops::DerefMut for BorrowedPtr<'alloc, A>
-// where A: Allocator
-//     , A: 'alloc {
-//     fn deref_mut(&mut self) ->  &mut Self::Target { &mut self.frame }
-// }
 
 impl<'alloc, A> Drop for BorrowedPtr<'alloc, A>
 where A: Allocator
@@ -103,9 +103,15 @@ impl<'alloc, A, T> Drop for Borrowed<'alloc, A, T>
 where A: Allocator
     , A: 'alloc {
     fn drop(&mut self) {
+        use mem::drop;
+        let address = *self.value as Address;
+        // ensure we drop the object _before_ deallocating it, so that
+        // the object's destructor gets run first
+        // i hope this is correct...
+        drop(*self.value);
         unsafe {
             self.allocator.lock()
-                .dealloc( *self.value as *mut u8
+                .dealloc( address
                         , Layout::for_value(self.value.get()))
         }
     }
