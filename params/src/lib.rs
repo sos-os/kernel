@@ -113,6 +113,9 @@ impl InitParams {
     ///
     /// The kernel _should_ start on the first address in the frame range,
     /// since the kernel should be page aligned.
+    //  TODO: this should be an array vector or linked list of frame ranges
+    //        possibly?
+    //          - eliza, 2/28/2017
     #[inline]
     pub fn kernel_frames(&self) -> FrameRange {
         // TODO: assert that the kernel base addr is page aligned here?

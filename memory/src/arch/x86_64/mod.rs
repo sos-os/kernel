@@ -30,6 +30,8 @@ macro_attr! {
 
 macro_attr! {
     /// A frame (physical page)
+    //  TODO: consider renaming this to `Frame` (less typing)?
+    //      - eliza, 2/28/2017
     #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Page!(PAddr) )]
     pub struct PhysicalPage { pub number: u64 }
 }
