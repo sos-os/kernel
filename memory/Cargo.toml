@@ -29,7 +29,7 @@ path = "../vga"
 features = ["kinfo"]
 
 [dependencies.lazy_static]
-version = "0.2.*"
+version = "^0.2.*"
 features = ["spin_no_std"]
 
 [dependencies.macro-attr]
@@ -42,6 +42,6 @@ default-features = false
 # default-features = false
 
 [dependencies.log]
-version = "0.3.6"
+version = "^0.3.6"
 default-features = false
 features = ["release_max_level_info"]

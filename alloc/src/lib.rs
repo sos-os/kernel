@@ -55,6 +55,11 @@
 #![feature(unique)]
 #![feature(core_intrinsics)]
 
+#![cfg_attr(all(test, feature = "bench"), feature(test))]
+#![cfg_attr(test, feature(collections))]
+#[cfg(all(test, feature = "bench"))] extern crate test;
+#[cfg(test)] extern crate collections;
+
 extern crate memory;
 
 #[cfg(feature = "first_fit")]
