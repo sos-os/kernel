@@ -8,11 +8,12 @@
 //
 //! Code for reading & extracting data from Multiboot 2 boot information.
 //!
-//! Consult the [Multiboot Specification](http://nongnu.askapache.com/grub/phcoder/multiboot.pdf)
-//! for more information.
+//! Consult the Multiboot [specification]  for more information.
+//!
+//! [specification]: http://nongnu.askapache.com/grub/phcoder/multiboot.pdf
 use memory::PAddr;
-
-use elf::section::{Sections, HeaderRepr};
+use elf::section::{Header as Section, Sections, HeaderRepr};
+use core::iter::IntoIterator;
 
 const END_TAG_LEN: u32 = 8;
 
@@ -115,6 +116,15 @@ impl Info {
     }
 }
 
+impl<'a> IntoIterator for &'a Info {
+    // TODO: should this be 'static?
+    //       - eliza, 03/04/2017
+    type IntoIter = Tags;
+    type Item = &'static Tag;
+    #[inline]  fn into_iter(self) -> Self::IntoIter { self.tags() }
+
+}
+
 
 /// A Multiboot tag.
 ///
@@ -176,7 +186,7 @@ pub enum TagType { /// Tag that indicates the end of multiboot tags
                  }
 
 /// An iterator over Multiboot 2 tags.
-struct Tags(*const Tag);
+pub struct Tags(*const Tag);
 
 impl Tags {
     #[inline] fn advance(&mut self, size: u32) {
@@ -188,10 +198,14 @@ impl Tags {
 impl Iterator for Tags {
     type Item = &'static Tag;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         match unsafe { &*self.0 } {
-            &Tag{ ty: TagType::End, length: END_TAG_LEN } => None
-          , tag => { self.advance(tag.length); Some(tag) }
+            &Tag { ty: TagType::End, length: END_TAG_LEN } => None
+          , tag => {
+              self.advance(tag.length);
+              Some(tag)
+            }
         }
     }
 }
@@ -207,7 +221,9 @@ pub struct MemMapTag { tag: Tag
 impl MemMapTag {
 
     /// Returns an iterator over all the memory areas in this tag.
-    pub fn areas(&self) -> MemAreas {
+    // TODO: should this be &'static?
+    //       - eliza, 03/04/2017
+    #[inline] pub fn areas(&self) -> MemAreas {
         MemAreas { curr: (&self.first_entry) as *const MemArea
                  , last: ((self as *const MemMapTag as u32) +
                          self.tag.length - self.entry_size)
@@ -216,6 +232,17 @@ impl MemMapTag {
                  }
     }
 }
+
+impl<'a> IntoIterator for &'a MemMapTag {
+    //  TODO: should this be &'static?
+    //          - eliza, 03/04/2017
+    type Item = &'static MemArea;
+    type IntoIter = MemAreas;
+
+    #[inline] fn into_iter(self) -> Self::IntoIter { self.areas() }
+
+}
+
 
 /// A tag that stores the boot command line.
 #[repr(C)]
@@ -306,10 +333,22 @@ pub struct ElfSectionsTag { tag: Tag
 
 impl ElfSectionsTag {
     /// Returns an iterator over the ELF sections pointed to by this tag.
-    pub fn sections(&'static self) -> Sections<'static, Word> {
+    //  TODO: can the &'static bound be reduced to &'a? is there any reason to?
+    //          - eliza, 03/04/2017
+    #[inline] pub fn sections(&'static self) -> Sections<'static, Word> {
         Sections::new( &self.first_section
                      , self.n_sections - 1
                      , self.section_size
                      )
     }
+}
+
+impl IntoIterator for &'static ElfSectionsTag {
+    //  TODO: can the &'static bound be reduced to &'a? is there any reason to?
+    //          - eliza, 03/04/2017
+    type Item = Section<'static>;
+    type IntoIter = Sections<'static, Word>;
+
+    #[inline] fn into_iter(self) -> Self::IntoIter { self.sections() }
+
 }
