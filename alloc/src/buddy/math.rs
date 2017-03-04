@@ -121,8 +121,7 @@ mod tests {
     assert_eq!(10, 1024.log2());
     }
 
-
-
+    #[cfg(feature = "bench")]
     #[bench]
     fn our_next_pow2(b: &mut Bencher) {
         use collections::Vec;
@@ -134,6 +133,7 @@ mod tests {
         })
     }
 
+    #[cfg(feature = "bench")]
     #[bench]
     fn std_next_power_of_two(b: &mut Bencher) {
         use collections::Vec;
@@ -145,6 +145,7 @@ mod tests {
         })
     }
 
+    #[cfg(feature = "bench")]
     #[bench]
     fn our_is_pow2(b: &mut Bencher) {
         use collections::Vec;
@@ -156,6 +157,7 @@ mod tests {
         })
     }
 
+    #[cfg(feature = "bench")]
     #[bench]
     fn std_is_power_of_two(b: &mut Bencher) {
         use collections::Vec;
