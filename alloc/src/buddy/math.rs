@@ -127,7 +127,7 @@ mod tests {
     fn our_next_pow2(b: &mut Bencher) {
         use collections::Vec;
         b.iter(|| {
-            let n = test::black_box(10000);
+            let n = test::black_box(100_000);
 
             (0..n).map(|x: usize| x.next_pow2())
                   .collect::<Vec<_>>() // force the map to return so it doesn't get optimised away
@@ -138,7 +138,29 @@ mod tests {
     fn std_next_power_of_two(b: &mut Bencher) {
         use collections::Vec;
         b.iter(|| {
-            let n = test::black_box(10000);
+            let n = test::black_box(100_000);
+
+            (0..n).map(|x: usize| x.next_power_of_two())
+                  .collect::<Vec<_>>() // force the map to return so it doesn't get optimised away
+        })
+    }
+
+    #[bench]
+    fn our_is_pow2(b: &mut Bencher) {
+        use collections::Vec;
+        b.iter(|| {
+            let n = test::black_box(100_000);
+
+            (0..n).map(|ref x: usize| x.is_pow2())
+                  .collect::<Vec<_>>() // force the map to return so it doesn't get optimised away
+        })
+    }
+
+    #[bench]
+    fn std_is_power_of_two(b: &mut Bencher) {
+        use collections::Vec;
+        b.iter(|| {
+            let n = test::black_box(100_000);
 
             (0..n).map(|x: usize| x.next_power_of_two())
                   .collect::<Vec<_>>() // force the map to return so it doesn't get optimised away
