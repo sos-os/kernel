@@ -194,8 +194,9 @@ impl<'a> Heap<'a> {
             // the allocation size for the request is the next power of 2
             // after the size of the request, the alignment of the request,
             // or the minimum block size (whichever is greatest).
-            let alloc_size = max!(layout.size()
-            , self.min_block_size, align).next_pow2();
+            let alloc_size
+                = max!( layout.size(), self.min_block_size, align)
+                    .next_power_of_two();
 
             if alloc_size > self.heap_size {
                 // if the calculated size is greater than the size of the heap,
