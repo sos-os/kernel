@@ -58,6 +58,13 @@ impl Info {
 
     pub unsafe fn from(addr: PAddr) -> Result<&'static Self, &'static str> {
         let info: &Info = &*(addr.into(): u64 as *const Info);
+        // TODO: check if the multiboot tag *exists* at this location as well?
+        //       since if we pass in the wrong address, we'll still make the
+        //       "no end tag" error.
+        //
+        //       which, i suppose is *technically* correct, but not very
+        //       helpful...
+        //          - eliza, 03/04/2017
         if info.has_end() {
             Ok(info)
         } else {
@@ -73,7 +80,7 @@ impl Info {
     /// # Returns
     ///  - `Some(tag)` if a tag of the given type could be found.
     ///  - `None` if no tag of the given type could be found.
-    pub fn get_tag(&self, tag_type: TagType) -> Option<&'static Tag> {
+    pub fn get_tag(&'static self, tag_type: TagType) -> Option<&'static Tag> {
         self.tags()
             .find(|t| t.ty == tag_type)
     }
@@ -84,7 +91,7 @@ impl Info {
     ///  - `Some(MemMapTag)` if a memory map tag could be found
     ///  - `None` if no tag of the given type could be found.
     #[inline]
-    pub fn mem_map(&self) -> Option<&'static MemMapTag> {
+    pub fn mem_map(&'static self) -> Option<&'static MemMapTag> {
         self.get_tag(TagType::MemoryMap)
             .map(|tag| unsafe { &*((tag as *const Tag) as *const MemMapTag) })
     }
@@ -95,7 +102,7 @@ impl Info {
     ///  - `Some(ElfSectionsTag)` if a memory map tag could be found
     ///  - `None` if no tag of the given type could be found.
     #[inline]
-    pub fn elf_sections(&self) -> Option<&'static ElfSectionsTag> {
+    pub fn elf_sections(&'static self) -> Option<&'static ElfSectionsTag> {
         self.get_tag(TagType::ELFSections)
             .map(|tag| unsafe {
                 &*((tag as *const Tag) as *const ElfSectionsTag)
@@ -104,7 +111,7 @@ impl Info {
 
     /// Returns an iterator over all Multiboot tags.
     #[inline]
-    fn tags(&self) -> Tags { Tags(&self.tag_start as *const Tag) }
+    fn tags(&'static self) -> Tags { Tags(&self.tag_start as *const Tag) }
 
     /// Returns true if the multiboot structure has a valid end tag.
     fn has_end(&self) -> bool {
@@ -116,9 +123,7 @@ impl Info {
     }
 }
 
-impl<'a> IntoIterator for &'a Info {
-    // TODO: should this be 'static?
-    //       - eliza, 03/04/2017
+impl IntoIterator for &'static Info {
     type IntoIter = Tags;
     type Item = &'static Tag;
     #[inline]  fn into_iter(self) -> Self::IntoIter { self.tags() }
@@ -221,9 +226,7 @@ pub struct MemMapTag { tag: Tag
 impl MemMapTag {
 
     /// Returns an iterator over all the memory areas in this tag.
-    // TODO: should this be &'static?
-    //       - eliza, 03/04/2017
-    #[inline] pub fn areas(&self) -> MemAreas {
+    #[inline] pub fn areas(&'static self) -> MemAreas {
         MemAreas { curr: (&self.first_entry) as *const MemArea
                  , last: ((self as *const MemMapTag as u32) +
                          self.tag.length - self.entry_size)
@@ -233,9 +236,7 @@ impl MemMapTag {
     }
 }
 
-impl<'a> IntoIterator for &'a MemMapTag {
-    //  TODO: should this be &'static?
-    //          - eliza, 03/04/2017
+impl IntoIterator for &'static MemMapTag {
     type Item = &'static MemArea;
     type IntoIter = MemAreas;
 
