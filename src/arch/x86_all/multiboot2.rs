@@ -13,7 +13,9 @@
 //! [specification]: http://nongnu.askapache.com/grub/phcoder/multiboot.pdf
 use memory::PAddr;
 use elf::section::{Header as Section, Sections, HeaderRepr};
+
 use core::iter::IntoIterator;
+use core::fmt;
 
 const END_TAG_LEN: u32 = 8;
 
@@ -275,6 +277,7 @@ pub enum MemAreaType { Available = 1
 
 /// A multiboot 2 memory area
 #[repr(C)]
+#[derive(Debug)]
 pub struct MemArea { /// the starting address of the memory area
                      pub base: PAddr
                    , /// the length of the memory area
@@ -287,6 +290,14 @@ pub struct MemArea { /// the starting address of the memory area
 impl MemArea {
     #[inline] pub fn address(&self) -> PAddr {
         self.base + self.length - 1
+    }
+}
+
+impl fmt::Display for MemArea {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!( f, "{:?} from {:#08x} to {:#08x}"
+              , self.ty, self.base, self.address())
     }
 }
 
