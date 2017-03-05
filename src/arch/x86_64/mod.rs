@@ -66,15 +66,15 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
         = unsafe { multiboot2::Info::from(multiboot_addr)
                     .expect("Could not unpack multiboot2 information!") };
     // Extract the memory map tag from the multiboot info
-    let mmap_tag
-        = boot_info.mem_map()
-                   .expect("Memory map tag required!");
+    let mem_map = boot_info.mem_map()
+                           .expect("Memory map tag required!");
 
     kinfoln!(dots: " . ", "Detected memory areas:");
-    for a in mmap_tag.areas() {
-        kinfoln!(dots: " . . ", "start: {:#08x}, end: {:#08x}"
-                , a.base, a.length );
+    for area in mem_map {
+        kinfoln!( dots: " . . ", "{}", area);
+        // TODO: add memory map to init params here
     }
+
     // Extract ELF sections tag from the multiboot info
     let elf_sections_tag
         = boot_info.elf_sections()
