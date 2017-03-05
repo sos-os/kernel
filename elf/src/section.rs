@@ -31,14 +31,24 @@ pub const SHT_HIUSER: u32 = 0xffffffff;
 
 /// Represents an ELF section header
 ///
-/// Refer to the [ELF standard](http://www.sco.com/developers/gabi/latest/ch4.sheader.html)
+/// Refer to [Figure 4-8], "Section Header", from Chapter 4 of the ELF standard
 /// for more information.
+///
+/// [Figure 4-8]: (http://www.sco.com/developers/gabi/latest/ch4.sheader.html#section_header)
 #[derive(Clone, Copy, Debug)]
 pub enum Header<'a> {
     ThirtyTwo(&'a HeaderRepr<u32>)
   , SixtyFour(&'a HeaderRepr<u64>)
 }
 
+/// Raw representation of an ELF section header in an ELF binary.
+///
+/// Refer to [Figure 4-8], "Section Header", from Chapter 4 of the ELF standard
+/// for more information.
+///
+/// [Figure 4-8]: (http://www.sco.com/developers/gabi/latest/ch4.sheader.html#section_header)
+//  TODO: add docs for all fields!
+//          - eliza, 03/05/2017
 #[derive(Debug)]
 #[repr(C)]
 pub struct HeaderRepr<Word> {
@@ -46,6 +56,8 @@ pub struct HeaderRepr<Word> {
     ///
     /// Its value is an index into the section header string table section,
     /// giving the location of a null-terminated string.
+    //  TODO: this should be a Word, not a 32-bit word.
+    //          - eliza, 03/05/2017
     name_offset: u32
   , /// This member categorizes the section's contents and semantics.
     ty: TypeRepr
@@ -220,6 +232,11 @@ pub enum Contents<'a> {
 /// Unfortunately, we cannot have enums with open ranges yet, so we have
 /// to convert between the ELF file underlying representation and our
 /// type-safe representation.
+///
+/// Refer to [Figure 4-9]: "Section Types, `sh_type`" in Section 4 of the
+/// ELF standard for more information.
+///
+/// [Figure 4-9]:  http://www.sco.com/developers/gabi/latest/ch4.sheader.html#sh_type
 #[derive(Debug, Copy, Clone)]
 struct TypeRepr(u32);
 
@@ -251,9 +268,10 @@ impl TypeRepr {
 
 /// Enum representing an ELF file section type.
 ///
-/// Refer to Figure 1-10: "Section Types, `sh_type`" in Section 1 of the
-/// [ELF standard](http://www.sco.com/developers/gabi/latest/ch4.sheader.html)
-/// for more information.
+/// Refer to [Figure 4-9]: "Section Types, `sh_type`" in Section 4 of the
+/// ELF standard for more information.
+///
+/// [Figure 4-9]:  http://www.sco.com/developers/gabi/latest/ch4.sheader.html#sh_type
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum Type {
     /// Section type 0: `SHT_NULL`
@@ -369,6 +387,8 @@ where HeaderRepr<W>: AsHeader {
         } else {
             let current = self.curr.as_header();
             self.curr = unsafe {
+                // TODO: we should be able to use ptr::offset() here?
+                //          - eliza, 03/05/2017
                 &*(((self.curr as *const HeaderRepr<W>) as u32 + self.size)
                     as *const HeaderRepr<W>)
             };
