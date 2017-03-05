@@ -49,8 +49,14 @@ impl<'a> fmt::Display for Header<'a> {
         //          - eliza, 03/05/2017
         // TODO: do we want to print the header's flags, or would that make the //       format too long?
         //          - eliza, 03/05/2017
-        write!(f, "ELF {:?} section at {:#08x} to {:#08x}"
-              , self.get_type(), self.addr(), self.end_addr())
+        if let Ok(ty) = self.get_type() {
+            // the ELF section was valid
+            write!(f, "ELF {:?} section at {:#08x} to {:#08x}"
+                  , ty, self.addr(), self.end_addr())
+        } else {
+            // we couldn't successfully extract a type from the ELF section!
+            write!(f, "Bad ELF section {:?}", self)
+        }
     }
 }
 
