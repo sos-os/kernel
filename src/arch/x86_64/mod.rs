@@ -86,7 +86,8 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
     let kernel_begin
         = elf_sections_tag.sections()
             .map(|s| {
-                kinfoln!( dots: " . . ", "{}, flags: {:?}", s, s.flags() );
+                kinfoln!( dots: " . . ", "{}", s );
+                kinfoln!( dots: " . . . ", "flags: [ {:?} ]", s.flags());
                 s.addr() })
             .min()
             .expect("Could not find kernel start section!\
