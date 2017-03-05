@@ -41,6 +41,19 @@ pub enum Header<'a> {
   , SixtyFour(&'a HeaderRepr<u64>)
 }
 
+impl<'a> fmt::Display for Header<'a> {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // TODO: do we want to actually get the section's name from the string
+        //       table and display it here?
+        //          - eliza, 03/05/2017
+        // TODO: do we want to print the header's flags, or would that make the //       format too long?
+        //          - eliza, 03/05/2017
+        write!(f, "ELF {:?} section at {:#08x} to {:#08x}"
+              , self.get_type(), self.addr(), self.end_addr())
+    }
+}
+
 /// Raw representation of an ELF section header in an ELF binary.
 ///
 /// Refer to [Figure 4-8], "Section Header", from Chapter 4 of the ELF standard
@@ -71,6 +84,9 @@ pub struct HeaderRepr<Word> {
   , entry_length: Word
 }
 
+// TODO: does this need to be a trait? could we make this faster by simplifying
+//       dispatch here?
+//         - eliza, 03/05/2017
 pub trait AsHeader {
     fn as_header(&self) -> Header;
 }
@@ -89,6 +105,8 @@ impl AsHeader for HeaderRepr<u64> {
 
 
 bitflags! {
+    // TODO: add documentation to the flags
+    //          - eliza, 03/05/2017
     pub flags Flags: usize {
         // Flags (SectionHeader::flags)
         const SHF_WRITE            =        0x1
