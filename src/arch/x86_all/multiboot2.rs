@@ -117,9 +117,12 @@ impl Info {
 
     /// Returns true if the multiboot structure has a valid end tag.
     fn has_end(&self) -> bool {
+        // TODO: we should be able to use ptr::offset() here?
+        //          - eliza, 03/05/2017
         let end_tag_addr
             = (self as *const _) as usize +
               (self.length - END_TAG_LEN) as usize;
+
         let end_tag = unsafe {&*(end_tag_addr as *const Tag)};
         end_tag.ty == TagType::End && end_tag.length == 8
     }
@@ -230,6 +233,8 @@ impl MemMapTag {
     /// Returns an iterator over all the memory areas in this tag.
     #[inline] pub fn areas(&'static self) -> MemAreas {
         MemAreas { curr: (&self.first_entry) as *const MemArea
+                    // TODO: we should be able to use ptr::offset() here?
+                    //          - eliza, 03/05/2017
                  , last: ((self as *const MemMapTag as u32) +
                          self.tag.length - self.entry_size)
                          as *const MemArea
@@ -316,12 +321,19 @@ impl Iterator for MemAreas {
             None
         } else {
             let current = unsafe { &*self.curr };
+            // TODO: we should be able to use ptr::offset() here.
+            //          - eliza, 03/05/2017
             self.curr = (self.curr as u32 + self.size) as *const MemArea;
-            if current.ty == MemAreaType::Available {
-                Some(current)
-            } else {
-                self.next()
-            }
+            // if current.ty == MemAreaType::Available {
+            // NOTE: this used to skip over unavailable or ACPI memory areas,
+            //       but i've disabled that as we may want to iterate over thsoe
+            //       memory areas. we can use `filter` on this iterator to get
+            //       only available memory areas.
+            //          - eliza, 03/05/2017
+            Some(current)
+            // } else {
+            //      self.next()
+            // }
         }
     }
 }
