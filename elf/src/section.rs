@@ -2,13 +2,17 @@
 //  SOS: the Stupid Operating System
 //  by Eliza Weisman (hi@hawkweisman.me)
 //
-//  Copyright (c) 2015-2016 Eliza Weisman
+//  Copyright (c) 2015-2017 Eliza Weisman
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
 use memory::PAddr;
-use core::fmt;
+
 use super::ElfResult;
+
+use core::fmt;
+use core::ops::Deref;
+use core::iter::IntoIterator;
 
 // Distinguished section indices.
 pub const SHN_UNDEF: u16        = 0;
@@ -51,7 +55,7 @@ impl<'a> fmt::Display for Header<'a> {
         //          - eliza, 03/05/2017
         if let Ok(ty) = self.get_type() {
             // the ELF section was valid
-            write!(f, "ELF {:?} section at {:#08x} to {:#08x}"
+            write!(f, "{:?} section at {:#08x} to {:#08x}"
                   , ty, self.addr(), self.end_addr())
         } else {
             // we couldn't successfully extract a type from the ELF section!
@@ -423,5 +427,92 @@ where HeaderRepr<W>: AsHeader {
                 Some(current)
             }
         }
+    }
+}
+
+/// Characters in the ELF string table are 8-bit ASCII characters.
+type ElfChar = u8;
+
+/// An ELF string table.
+///
+/// Refer to the String Table [entry] in Section 4 of the ELF standard
+/// for more information.
+///
+/// [entry]: http://www.sco.com/developers/gabi/latest/ch4.strtab.html
+#[derive(Clone, Debug)]
+pub struct StrTable<'a>(&'a [ElfChar]);
+
+// impl<'a> StrTable<'a> {
+//     #[inline] fn len(&self) -> usize { self.0.len}
+//
+// }
+impl<'a> Deref for StrTable<'a> {
+    type Target = [ElfChar];
+
+    #[inline] fn deref(&self) -> &Self::Target { self.0 }
+}
+
+impl<'a> IntoIterator for StrTable<'a> {
+    type IntoIter = Strings<'a>;
+    type Item = &'a str;
+
+    //  TODO: this doesn't strictly need to consume the StringTable...
+    //          - eliza, 03/07/2017
+    #[inline] fn into_iter(self) -> Self::IntoIter { Strings(&self.0) }
+}
+
+/// Returns true if `ch` is the null-terminator character
+#[inline] fn is_null(ch: &ElfChar) -> bool { *ch == b'\0' }
+
+/// Read a series of bytes from a slice to the first null-terminator
+//  TODO: can this be moved to the StrTable type? no big deal but it would be
+//        somewhat prettier...
+//          - eliza, 03/07/2017
+#[inline] fn read_to_null<'a>(bytes: &'a [ElfChar]) -> Option<&'a [ElfChar]> {
+    bytes.iter().position(is_null)
+         .map(|i| &bytes[..i] )
+}
+
+/// Iterator over the strings in an ELF string table
+#[derive(Clone, Debug)]
+pub struct Strings<'a>(&'a [ElfChar]);
+
+impl<'a> Iterator for Strings<'a> {
+    type Item = &'a str;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        use core::str::from_utf8_unchecked;
+        if self.0.len() == 0 {
+            // if there are no bytes remaining in the iterator, then we've
+            // iterated over all the strings in the string table (or it was
+            // empty to begin with).
+            //
+            // N.B. that `read_to_null()` _will_ return None in this case, so
+            // this check isn't strictly necessary; it just saves us from
+            // having to create an iterator if the slice is empty, so I'm
+            // calling it an "optimisation".
+            None
+        } else {
+            // otherwise, try to read the iterator's slice to the first null
+            // character...
+            read_to_null(self.0).map(|bytes| {
+                // ...if we found a null character, remove the string's bytes
+                // from the slice in the iterator (since we're returning that
+                // string), and return a string slice containing those bytes
+                // interpreted as UTF-8 (which should be equivalent to ASCII)
+                self.0 = &self.0[bytes.len() + 1..];
+                unsafe {
+                    // TODO: should this be checked, or do we assume the ELF
+                    //       binary has only well-formed strings? this could be
+                    //       a Security Thing...
+                    //          - eliza, 03/07/2017
+                    from_utf8_unchecked(bytes)
+                }
+            })
+        }
+    }
+
+    #[inline] fn size_hint(&self) -> (usize, Option<usize>) {
+        (0, Some(self.0.len() / 2))
     }
 }
