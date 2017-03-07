@@ -195,6 +195,7 @@ macro_rules! impl_getters {
 
 impl<'a> Header<'a> {
     impl_getters! { address: u64
+                  , name_offset: u64
                   , pub offset: u64
                   , pub length: u64
                   , pub link: u32
@@ -244,6 +245,12 @@ impl<'a> Header<'a> {
         get!(self, flags).contains(SHF_MERGE) &&
         !get!(self, flags).contains(SHF_STRINGS)
     }
+
+    /// Look up the name of this section in the passed string table.
+    #[inline] pub fn get_name(&self, strtab: StrTable<'a>) -> &'a str {
+        unimplemented!()
+    }
+
 }
 
 pub enum Contents<'a> {
@@ -444,6 +451,39 @@ type ElfChar = u8;
 //          - eliza, 03/07/2017
 #[derive(Clone, Debug)]
 pub struct StrTable<'a>(&'a [ElfChar]);
+
+impl<'a> StrTable<'a> {
+
+    /// Returns the string at a given index in the string table,
+    /// if there is one.
+    // TODO: these docs are Bad
+    //          - eliza, 03/07/2017
+    // TODO: this def. shouldn't be u64, but i didn't want to annotate the
+    //       string table type with ElfWord...figure this out
+    //          - eliza, 03/07/2017
+    // TODO: can this be replaced with an ops::Index implementation?
+    //       but then we can't implement Deref to a slice any more?
+    //          - eliza, 03/07/2017
+    pub fn at_index(&'a self, i: usize) -> Option<&'a str> {
+        use core::str::from_utf8_unchecked;
+        if i <= self.len() {
+            read_to_null(&self[i..])
+                .map(|bytes| unsafe {
+                    // TODO: should this be checked, or do we assume the ELF
+                    //       binary has only well-formed strings? this could be
+                    //       a Security Thing...
+                    //          - eliza, 03/07/2017
+                    from_utf8_unchecked(bytes)
+                    // TODO: can the conversion to a Rust string be moved to
+                    //       `read_to_null()`? we also do this in the iterator
+                    //          - eliza, 03/07/2017
+                })
+
+        } else {
+            None
+        }
+    }
+}
 
 // impl<'a> StrTable<'a> {
 //     #[inline] fn len(&self) -> usize { self.0.len}
