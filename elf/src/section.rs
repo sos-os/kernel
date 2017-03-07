@@ -79,9 +79,7 @@ pub struct HeaderRepr<Word> {
     ///
     /// Its value is an index into the section header string table section,
     /// giving the location of a null-terminated string.
-    //  TODO: this should be a Word, not a 32-bit word.
-    //          - eliza, 03/05/2017
-    name_offset: u32
+    name_offset: Word
   , /// This member categorizes the section's contents and semantics.
     ty: TypeRepr
   , flags: Flags
@@ -439,6 +437,11 @@ type ElfChar = u8;
 /// for more information.
 ///
 /// [entry]: http://www.sco.com/developers/gabi/latest/ch4.strtab.html
+//  TODO: this should be indexable by string number, possibly?
+//          - eliza, 03/07/2017
+//  TODO: add a function to get the name of the section (which always lives)
+//        at index 0.
+//          - eliza, 03/07/2017
 #[derive(Clone, Debug)]
 pub struct StrTable<'a>(&'a [ElfChar]);
 
