@@ -44,6 +44,11 @@ pub trait ElfWord: Sized + Copy + Clone
 impl ElfWord for u64 { }
 impl ElfWord for u32 { }
 
+/// Hack to make the type-system let me do what I want
+trait ValidatesWord<Word: ElfWord> {
+    fn check(&self) -> ElfResult<()>;
+}
+
 /// A handle on a parsed ELF binary
 ///  TODO: do we want this to own a HashMap of section names to section headers,
 ///        to speed up section lookup?
