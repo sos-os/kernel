@@ -10,8 +10,7 @@ use memory::PAddr;
 
 use super::ElfResult;
 
-use core::fmt;
-use core::ops::Deref;
+use core::{convert, fmt, ops};
 use core::iter::IntoIterator;
 
 // Distinguished section indices.
@@ -195,7 +194,7 @@ macro_rules! impl_getters {
 
 impl<'a> Header<'a> {
     impl_getters! { address: u64
-                  , name_offset: u64
+                  , name_offset: usize
                   , pub offset: u64
                   , pub length: u64
                   , pub link: u32
@@ -452,6 +451,11 @@ type ElfChar = u8;
 #[derive(Clone, Debug)]
 pub struct StrTable<'a>(&'a [ElfChar]);
 
+impl<'a> convert::From<&'a [ElfChar]> for StrTable<'a> {
+    #[inline(always)]
+    fn from(binary: &'a [ElfChar]) -> Self { StrTable(binary) }
+}
+
 impl<'a> StrTable<'a> {
 
     /// Returns the string at a given index in the string table,
@@ -489,7 +493,7 @@ impl<'a> StrTable<'a> {
 //     #[inline] fn len(&self) -> usize { self.0.len}
 //
 // }
-impl<'a> Deref for StrTable<'a> {
+impl<'a> ops::Deref for StrTable<'a> {
     type Target = [ElfChar];
 
     #[inline] fn deref(&self) -> &Self::Target { self.0 }
