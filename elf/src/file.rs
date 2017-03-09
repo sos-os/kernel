@@ -272,7 +272,7 @@ impl ValidatesWord<u64> for Class {
         use self::Class::*;
         match *self {
             None => Err("Invalid ELF type ELFCLASSNONE!")
-          , Elf32 => Err("Cannot extract 64-bit section from 32-bit ELF ")
+          , Elf32 => Err("Cannot extract 64-bit section from 32-bit ELF")
           , Elf64 => Ok(())
         }
     }
@@ -287,7 +287,7 @@ impl ValidatesWord<u32> for Class {
           , Elf64 =>
                 // TODO: is this actually true?
                 //          - eliza, 03/08/2017
-                Err("Cannot extract 32-bit section from 64-bit ELF ")
+                Err("Cannot extract 32-bit section from 64-bit ELF")
           , Elf32 => Ok(())
         }
     }
