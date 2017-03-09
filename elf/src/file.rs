@@ -14,14 +14,22 @@ use core::{fmt, mem};
 #[derive(Copy, Clone, Debug)]
 #[repr(C, packed)]
 pub struct Header<W: ElfWord> {
+    /// the ELF [file identifier](struct.Ident.html)
     pub ident: Ident
   , elftype: TypeRepr
   , pub machine: Machine
   , /// Program entry point
+    /// TODO: getters for turning these into `usize`?
+    //          - eliza, 03/08/2017
     pub entry_point: W
   , /// Offset for start of program headers
+    /// TODO: getters for turning these into `usize`?
+    //          - eliza, 03/08/2017
     pub ph_offset: W
-  , /// Offset for start of section headers
+  , /// Offset for start of [section header]s.
+    /// TODO: getters for turning these into `usize`?
+    //          - eliza, 03/08/2017
+    /// [section header]: ../section/struct.Header.html
     pub sh_offset: W
   , pub flags: u32
   , pub header_size: u16
@@ -30,6 +38,8 @@ pub struct Header<W: ElfWord> {
   , pub sh_entry_size: u16
   , pub sh_count: u16
   , /// Index of the section header string table
+    /// TODO: getters for turning these into `usize`?
+    //          - eliza, 03/08/2017
     pub sh_str_idx: u16
 }
 
@@ -119,15 +129,20 @@ pub type Magic = [u8; 4];
 #[derive(Copy, Clone, Debug)]
 #[repr(C, packed)]
 pub struct Ident {
-    /// ELF magic numbers. Must be [0x7, E, L, F]
+    /// ELF magic numbers. Must be equal to the [ELF magic], `[0x7, E, L, F]`.
+    ///
+    /// [ELF magic]: constant.MAGIC.html
     pub magic: Magic
-  , /// ELF file class (32- or 64-bit)
+  , /// ELF [file class](enum.Class.html) (32- or 64-bit)
     pub class: Class
-  , /// ELF data encoding (big- or little-endian)
-    pub data: DataEncoding
-  , /// ELF file version
+  , /// ELF [data encoding](enum.DataEncoding.html) (big- or little-endian)
+    pub encoding: DataEncoding
+  , /// ELF file [version](enum.Version.html)
     pub version: Version
-  , pub abi: OsAbi
+  , /// What [operating system ABI] this file was compiled for.
+    ///
+    /// [operating system ABI]: enum.OsAbi.html
+    pub abi: OsAbi
   , /// ABI version (often this is just padding)
     pub abi_version: u8
   , _padding: [u8; 7]
@@ -135,6 +150,16 @@ pub struct Ident {
 
 impl Ident {
     #[inline] pub fn check_magic(&self) -> bool { self.magic == MAGIC }
+
+    /// Returns true if the identifier section identifies a valid ELF file.
+    #[inline] pub fn is_valid(&self) -> bool {
+        // the ELF magic number is correct
+        self.check_magic() &&
+        // the file class is either 32- or 64-bits
+        self.class.is_valid() &&
+        // the data encoding is either big- or little-endian
+        self.encoding.is_valid()
+    }
 }
 
 /// Identifies the class of the ELF file
@@ -149,6 +174,16 @@ pub enum Class {
     Elf64 = 2
 }
 
+impl Class {
+    /// Returns true if the class field for this file is valid.
+    #[inline]
+    pub fn is_valid(&self) -> bool {
+        match *self { Class::None => false
+                    , _ => true
+                    }
+    }
+}
+
 /// Identifies the data encoding of the ELF file
 #[derive(Copy, Clone, PartialEq, Debug)]
 #[repr(u8)]
@@ -161,6 +196,16 @@ pub enum DataEncoding {
   , /// Twos-complement big-endian data encoding
     /// (`ELFDATA2MSB` in the standard)
     BigEndian = 2
+}
+
+impl DataEncoding {
+    /// Returns true if the data encoding field for this file is valid.
+    #[inline]
+    pub fn is_valid(&self) -> bool {
+        match *self { DataEncoding::None => false
+                    , _ => true
+                    }
+    }
 }
 
 /// Operating system ABI
