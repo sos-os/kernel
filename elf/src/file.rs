@@ -32,13 +32,34 @@ pub trait Header {
     fn entry_point(&self) -> usize;
     /// Offset of the start of program headers
     fn ph_offset(&self) -> usize;
+    /// Number of program headers.
+    fn ph_count(&self) -> usize;
+    /// Size of a program header.
+    /// TODO: add function for using this and `ph_count` to make a memrange
+    ///       representing the program header entries?
+    //          - eliza, 03/08/2017
+    fn ph_entry_size(&self) -> usize;
     /// Offset of the start of [section header]s.
     ///
     /// [section header]: ../section/struct.Header.html
     fn sh_offset(&self) -> usize;
+    /// Number of [section header]s.
+    ///
+    /// [section header]: ../section/struct.Header.html
+    fn sh_count(&self) -> usize;
+    /// Size of a [section header].
+    ///
+    /// [section header]: ../section/struct.Header.html
+    /// TODO: add function for using this and `sh_count` to make a memrange
+    ///       representing the section header entries?
+    //          - eliza, 03/08/2017
+    fn sh_entry_size(&self) -> usize;
     /// TODO: can this return the flags type?
     //          - eliza, 03/08/2017
     fn flags(&self) -> u32;
+    /// Index of the section header [string table].
+    ///
+    /// [string table]: ../section/struct.StrTable.html"]
     fn sh_str_idx(&self) -> usize;
 
 }
@@ -139,8 +160,14 @@ impl Header for HeaderRepr<u64> {
         #[doc = "Index for the start of [section header]s. \
                  [section header]: ../section/struct.Header.html"]
         fn sh_offset(&self) -> usize;
+        fn sh_entry_size(&self) -> usize;
+        fn sh_count(&self) -> usize;
+
         #[doc = "Index for the start of program headers"]
         fn ph_offset(&self) -> usize;
+        fn ph_entry_size(&self) -> usize;
+        fn ph_count(&self) -> usize;
+
         #[doc = "Index for the program entry point"]
         fn entry_point(&self) -> usize;
         #[doc = "Index of the section header [string table] \
@@ -196,8 +223,14 @@ impl Header for HeaderRepr<u32> {
         #[doc = "Index for the start of [section header]s. \
                  [section header]: ../section/struct.Header.html"]
         fn sh_offset(&self) -> usize;
+        fn sh_entry_size(&self) -> usize;
+        fn sh_count(&self) -> usize;
+
         #[doc = "Index for the start of program headers"]
         fn ph_offset(&self) -> usize;
+        fn ph_entry_size(&self) -> usize;
+        fn ph_count(&self) -> usize;
+
         #[doc = "Index for the program entry point"]
         fn entry_point(&self) -> usize;
         #[doc = "Index of the section header [string table] \
