@@ -32,7 +32,7 @@ pub mod program;
 /// An ELF section header.
 pub type Section<'a> = section::Header<'a>;
 /// An ELF header file.
-pub type FileHeader<W> = file::Header<W>;
+pub type FileHeader<W> = file::HeaderRepr<W>;
 
 pub type ElfResult<T> = Result<T, &'static str>;
 
@@ -48,11 +48,13 @@ impl ElfWord for u32 { }
 ///        to speed up section lookup?
 //          - eliza, 03/08/2017
 #[derive(Debug)]
-pub struct Image<'a, Word>
-where Word: ElfWord + 'a {
-    /// the binary's [file header](file/struct.Header.html)
-    pub header: &'a file::Header<Word>
-  , /// references to each [section header](section/enum.Header.html)
+pub struct Image<'a, Word, Header = file::HeaderRepr<Word>>
+where Word: ElfWord + 'a
+    , Header: file::Header<Word = Word> + 'a
+    {
+    /// the binary's [file header](file/trait.Header.html)
+    pub header: &'a Header
+  , /// references to each [section header](section/struct.Header.html)
     pub sections: &'a [section::Header<'a>]
   , /// the raw binary contents of the ELF binary.
     /// note that this includes the _entire_ binary contents of the file,
@@ -60,7 +62,10 @@ where Word: ElfWord + 'a {
     binary: &'a [u8]
 }
 
-impl<'a, Word: ElfWord + 'a> Image<'a, Word> {
+impl<'a, Word, Header> Image<'a, Word, Header>
+where Word: ElfWord + 'a
+    , Header: file::Header<Word = Word> + 'a
+    {
     /// Returns the section header [string table].
     ///
     /// [string table]: section/struct.StrTable.html
@@ -68,10 +73,9 @@ impl<'a, Word: ElfWord + 'a> Image<'a, Word> {
         // TODO: do we want to validate that the string table index is
         //       reasonable (e.g. it's not longer than the binary)?
         //          - eliza, 03/08/2017
-        let offset = self.header.sh_str_idx as usize;
         // TODO: do we want to cache a ref to the string table?
         //          - eliza, 03/08/2017
-        section::StrTable::from(&self.binary[offset..])
+        section::StrTable::from(&self.binary[self.header.sh_str_idx()..])
     }
 
 }
