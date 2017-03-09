@@ -20,6 +20,7 @@
 #![no_std]
 
 #[macro_use] extern crate bitflags;
+#[macro_use] extern crate macro_attr;
 
 extern crate memory;
 
