@@ -127,18 +127,10 @@ macro_rules! Header {
                     let end = start + self.sh_entry_size();
                     let raw = &input[start .. end];
 
-
-                    match self.ident.class {
-                        // Class::None is always invalid ----------------------
-                        Class::None =>
-                            Err("Invalid ELF class (ELFCLASSNONE).")
-                        // Class and header types mismatch --------------------
-                      , Class::Elf64 =>
-                            Err("Cannot parse 64-bit section from 32-bit ELF.")
-                        // class and header types match -----------------------
-                      , Class::Elf32 => unsafe {
-                            Ok(&*(raw as *const [u8] as *const u8 as *const Section))
-                        }
+                    unsafe {
+                        Ok(&*(raw as *const [u8]
+                                  as *const _
+                                  as *const Section))
                     }
                 }
             }
@@ -180,8 +172,6 @@ macro_attr! {
       , elftype: TypeRepr
       , pub machine: Machine
       , /// Program entry point
-        /// TODO: getters for turning these into `usize`?
-        //          - eliza, 03/08/2017
         entry_point: W
       , /// Offset for start of program headers
         ph_offset: W
