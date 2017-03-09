@@ -2,7 +2,7 @@
 //  SOS: the Stupid Operating System
 //  by Eliza Weisman (hi@hawkweisman.me)
 //
-//  Copyright (c) 2015-2016 Eliza Weisman
+//  Copyright (c) 2015-2017 Eliza Weisman
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
@@ -29,7 +29,8 @@ pub struct Header<W: ElfWord> {
   , pub ph_count: u16
   , pub sh_entry_size: u16
   , pub sh_count: u16
-  , pub sh_str_idx: u16
+  , /// Index of the section header string table
+    pub sh_str_idx: u16
 }
 
 impl<W> Header<W> where W: ElfWord {
@@ -45,6 +46,7 @@ impl<W> Header<W> where W: ElfWord {
 
     #[inline]
     pub fn get_type(&self) -> Type { self.elftype.as_type() }
+
 
 }
 

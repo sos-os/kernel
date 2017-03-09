@@ -43,13 +43,27 @@ pub trait ElfWord: Sized + Copy + Clone
 impl ElfWord for u64 { }
 impl ElfWord for u32 { }
 
-/// A handle on an ELF binary
+/// A handle on a parsed ELF binary
 #[derive(Debug)]
 pub struct Image<'a, Word>
 where Word: ElfWord + 'a {
     pub header: &'a file::Header<Word>
   , pub sections: &'a [section::Header<'a>]
   , binary: &'a [u8]
+}
+
+impl<'a, Word: ElfWord + 'a> Image<'a, Word> {
+    /// Returns the section header string table
+    pub fn sh_str_table(&'a self) -> section::StrTable<'a> {
+        // TODO: do we want to validate that the string table index is
+        //       reasonable (e.g. it's not longer than the binary)?
+        //          - eliza, 03/08/2017
+        let offset = self.header.sh_str_idx as usize;
+        // TODO: do we want to cache a ref to the string table?
+        //          - eliza, 03/08/2017
+        section::StrTable::from(&self.binary[offset..])
+    }
+
 }
 
 /// if `n` == 0, this will give you an `&[]`. just a warning.
