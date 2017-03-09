@@ -7,7 +7,7 @@
 //  directory of this repository for more information.
 //
 use super::{ElfResult, ElfWord, Section, section};
-
+use super::ValidatesWord;
 use core::{fmt, mem};
 
 pub trait Header {
@@ -112,18 +112,31 @@ macro_rules! Header {
                 if idx < section::SHN_LORESERVE {
                     Err("Cannot parse reserved section.")
                 } else {
+                    // use ValidatesWord to check if this section's Class field
+                    // will let us interpret the section with the requested
+                    // word length. this is a bit of a hack around the type
+                    // system not letting me do this the way I wanted to to....
+                    let validator: &ValidatesWord<Self::Word>
+                        = &self.ident.class;
+                    validator.check()?;
+
                     // start offset for section
-                    let start
-                        = self.sh_offset() + idx as usize * self.sh_entry_size();
+                    let start = self.sh_offset() + idx as usize *
+                                self.sh_entry_size();
                     // end offset for section
                     let end = start + self.sh_entry_size();
                     let raw = &input[start .. end];
-                    // FIXME: this is actually wrong
+
+
                     match self.ident.class {
-                        Class::None => Err("Invalid ELF class (ELFCLASSNONE).")
-                      , Class::Elf32 => Err("Cannot parse 32-bit section from \
-                                             64-bit ELF file.")
-                      , Class::Elf64 => unsafe {
+                        // Class::None is always invalid ----------------------
+                        Class::None =>
+                            Err("Invalid ELF class (ELFCLASSNONE).")
+                        // Class and header types mismatch --------------------
+                      , Class::Elf64 =>
+                            Err("Cannot parse 64-bit section from 32-bit ELF.")
+                        // class and header types match -----------------------
+                      , Class::Elf32 => unsafe {
                             Ok(&*(raw as *const [u8] as *const u8 as *const Section))
                         }
                     }
@@ -249,6 +262,34 @@ impl Class {
         match *self { Class::None => false
                     , _ => true
                     }
+    }
+
+}
+
+impl ValidatesWord<u64> for Class {
+    #[inline]
+    fn check(&self) -> ElfResult<()> {
+        use self::Class::*;
+        match *self {
+            None => Err("Invalid ELF type ELFCLASSNONE!")
+          , Elf32 => Err("Cannot extract 64-bit section from 32-bit ELF ")
+          , Elf64 => Ok(())
+        }
+    }
+}
+
+impl ValidatesWord<u32> for Class {
+    #[inline]
+    fn check(&self) -> ElfResult<()> {
+        use self::Class::*;
+        match *self {
+            None => Err("Invalid ELF type ELFCLASSNONE!")
+          , Elf64 =>
+                // TODO: is this actually true?
+                //          - eliza, 03/08/2017
+                Err("Cannot extract 32-bit section from 64-bit ELF ")
+          , Elf32 => Ok(())
+        }
     }
 }
 
