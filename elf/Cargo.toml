@@ -22,3 +22,8 @@ panic = "abort"
 [dependencies]
 bitflags = "0.7"
 memory = { path = "../memory" }
+
+[dependencies.macro-attr]
+git = "https://github.com/DanielKeep/rust-custom-derive.git"
+version = "0.2.1"
+default-features = false

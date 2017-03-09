@@ -64,32 +64,6 @@ pub trait Header {
 
 }
 
-/// An ELF file header
-#[derive(Copy, Clone, Debug)]
-#[repr(C, packed)]
-pub struct HeaderRepr<W: ElfWord> {
-    /// the ELF [file identifier](struct.Ident.html)
-    pub ident: Ident
-  , elftype: TypeRepr
-  , pub machine: Machine
-  , /// Program entry point
-    /// TODO: getters for turning these into `usize`?
-    //          - eliza, 03/08/2017
-    entry_point: W
-  , /// Offset for start of program headers
-    ph_offset: W
-  , /// Offset for start of [section header]s.
-    /// [section header]: ../section/struct.Header.html
-    sh_offset: W
-  , pub flags: u32
-  , pub header_size: u16
-  , pub ph_entry_size: u16
-  , pub ph_count: u16
-  , pub sh_entry_size: u16
-  , pub sh_count: u16
-  , /// Index of the section header string table
-    sh_str_idx: u16
-}
 
 /// FIXME(style): generate more stuff with macros/use `macro_attr` to derive
 ///               these...
@@ -112,135 +86,104 @@ macro_rules! impl_getters {
     () => {};
 }
 
-
-impl Header for HeaderRepr<u64> {
-    type Word = u64;
-
-    /// Attempt to extract an ELF file header from a slice of bytes.
-    /// TODO: can this also be macro-generated?
-    ///         - eliza, 03/08/2017
-    fn from_slice<'a>(input: &'a [u8]) -> ElfResult<&'a Self> {
-        if input.len() < mem::size_of::<Self>() {
-            Err("Input too short to extract ELF header")
-        } else {
-            unsafe { Ok(&super::extract_from_slice::<Self>(input, 0, 1)[0]) }
-        }
-    }
-
-    /// Attempt to extract a section header from a slice of bytes.
-    /// TODO: can this also be macro-generated?
-    ///         - eliza, 03/08/2017
-    fn parse_section<'a>(&'a self, input: &'a [u8], idx: u16)
-                            -> ElfResult<&'a Section>
-    {
-        if idx < section::SHN_LORESERVE {
-            Err("Cannot parse reserved section.")
-        } else {
-            let start: u64// start offset for section
-                = self.sh_offset + idx as u64 * self.sh_entry_size as u64;
-            let end: u64 // end offset for section
-                = start + self.sh_entry_size as u64;
-            let raw
-                = &input[start as usize .. end as usize];
-
-            match self.ident.class {
-                Class::None => Err("Invalid ELF class (ELFCLASSNONE).")
-              , Class::Elf32 => Err("Cannot parse 32-bit section from 64-bit \
-                                     ELF file.")
-              , Class::Elf64 => unsafe {
-                    Ok(&*(raw as *const [u8] as *const u8 as *const Section))
+macro_rules! Header {
+    (($($size:ty),+) $(pub)* enum $name:ident $($tail:tt)* ) => {
+        Header! { @impl $name, $($size)+ }
+    };
+    (($($size:ty),+) $(pub)* struct $name:ident $($tail:tt)*) => {
+        Header! { @impl $name, $($size)+ }
+    };
+    (@impl $name:ident, $($size:ty)+) => {
+        $(impl Header for $name<$size> {
+            type Word = $size;
+            /// Attempt to extract an ELF file header from a slice of bytes.
+            fn from_slice<'a>(input: &'a [u8]) -> ElfResult<&'a Self> {
+                if input.len() < mem::size_of::<Self>() {
+                    Err("Input too short to extract ELF header")
+                } else {
+                    unsafe { Ok(&super::extract_from_slice::<Self>(input, 0, 1)[0]) }
                 }
             }
-        }
+
+            /// Attempt to extract a section header from a slice of bytes.
+            fn parse_section<'a>(&'a self, input: &'a [u8], idx: u16)
+                                    -> ElfResult<&'a Section>
+            {
+                if idx < section::SHN_LORESERVE {
+                    Err("Cannot parse reserved section.")
+                } else {
+                    // start offset for section
+                    let start
+                        = self.sh_offset() + idx as usize * self.sh_entry_size();
+                    // end offset for section
+                    let end = start + self.sh_entry_size();
+                    let raw = &input[start .. end];
+                    // FIXME: this is actually wrong
+                    match self.ident.class {
+                        Class::None => Err("Invalid ELF class (ELFCLASSNONE).")
+                      , Class::Elf32 => Err("Cannot parse 32-bit section from \
+                                             64-bit ELF file.")
+                      , Class::Elf64 => unsafe {
+                            Ok(&*(raw as *const [u8] as *const u8 as *const Section))
+                        }
+                    }
+                }
+            }
+
+            #[inline] fn get_type(&self) -> Type { self.elftype.as_type() }
+
+            impl_getters! {
+                #[doc = "Index for the start of [section header]s. \
+                         [section header]: ../section/struct.Header.html"]
+                fn sh_offset(&self) -> usize;
+                fn sh_entry_size(&self) -> usize;
+                fn sh_count(&self) -> usize;
+
+                #[doc = "Index for the start of program headers"]
+                fn ph_offset(&self) -> usize;
+                fn ph_entry_size(&self) -> usize;
+                fn ph_count(&self) -> usize;
+
+                #[doc = "Index for the program entry point"]
+                fn entry_point(&self) -> usize;
+                #[doc = "Index of the section header [string table] \
+                         [string table]: ../section/struct.StrTable.html"]
+                fn sh_str_idx(&self) -> usize;
+                fn flags(&self) -> u32;
+                fn ident(&self) -> Ident;
+                fn machine(&self) -> Machine;
+            }
+        })+
     }
-
-    #[inline] fn get_type(&self) -> Type { self.elftype.as_type() }
-
-    impl_getters! {
-        #[doc = "Index for the start of [section header]s. \
-                 [section header]: ../section/struct.Header.html"]
-        fn sh_offset(&self) -> usize;
-        fn sh_entry_size(&self) -> usize;
-        fn sh_count(&self) -> usize;
-
-        #[doc = "Index for the start of program headers"]
-        fn ph_offset(&self) -> usize;
-        fn ph_entry_size(&self) -> usize;
-        fn ph_count(&self) -> usize;
-
-        #[doc = "Index for the program entry point"]
-        fn entry_point(&self) -> usize;
-        #[doc = "Index of the section header [string table] \
-                 [string table]: ../section/struct.StrTable.html"]
-        fn sh_str_idx(&self) -> usize;
-        fn flags(&self) -> u32;
-        fn ident(&self) -> Ident;
-        fn machine(&self) -> Machine;
-    }
-
 }
 
-impl Header for HeaderRepr<u32> {
-
-    type Word = u32;
-    /// Attempt to extract an ELF file header from a slice of bytes.
-    fn from_slice<'a>(input: &'a [u8]) -> ElfResult<&'a Self> {
-        if input.len() < mem::size_of::<Self>() {
-            Err("Input too short to extract ELF header")
-        } else {
-            unsafe { Ok(&super::extract_from_slice::<Self>(input, 0, 1)[0]) }
-        }
+macro_attr! {
+    /// An ELF file header
+    #[derive(Copy, Clone, Debug, Header!(u32, u64))]
+    #[repr(C, packed)]
+    pub struct HeaderRepr<W: ElfWord> {
+        /// the ELF [file identifier](struct.Ident.html)
+        pub ident: Ident
+      , elftype: TypeRepr
+      , pub machine: Machine
+      , /// Program entry point
+        /// TODO: getters for turning these into `usize`?
+        //          - eliza, 03/08/2017
+        entry_point: W
+      , /// Offset for start of program headers
+        ph_offset: W
+      , /// Offset for start of [section header]s.
+        /// [section header]: ../section/struct.Header.html
+        sh_offset: W
+      , pub flags: u32
+      , pub header_size: u16
+      , pub ph_entry_size: u16
+      , pub ph_count: u16
+      , pub sh_entry_size: u16
+      , pub sh_count: u16
+      , /// Index of the section header string table
+        sh_str_idx: u16
     }
-
-    /// Attempt to extract a section header from a slice of bytes.
-    fn parse_section<'a>(&'a self, input: &'a [u8], idx: u16)
-                            -> ElfResult<&'a Section>
-    {
-        if idx < section::SHN_LORESERVE {
-            Err("Cannot parse reserved section.")
-        } else {
-            let start: u32// start offset for section
-                = self.sh_offset + idx as u32 * self.sh_entry_size as u32;
-            let end: u32 // end offset for section
-                = start + self.sh_entry_size as u32;
-            let raw
-                = &input[start as usize .. end as usize];
-
-            match self.ident.class {
-                Class::None => Err("Invalid ELF class (ELFCLASSNONE).")
-              , Class::Elf32 => unsafe {
-                    Ok(&*(raw as *const [u8] as *const u8 as *const Section))
-                }
-              , Class::Elf64 => Err("Cannot parse 64-bit section from 32-bit \
-                                     ELF file.")
-            }
-        }
-    }
-
-    #[inline] fn get_type(&self) -> Type { self.elftype.as_type() }
-
-    impl_getters! {
-        #[doc = "Index for the start of [section header]s. \
-                 [section header]: ../section/struct.Header.html"]
-        fn sh_offset(&self) -> usize;
-        fn sh_entry_size(&self) -> usize;
-        fn sh_count(&self) -> usize;
-
-        #[doc = "Index for the start of program headers"]
-        fn ph_offset(&self) -> usize;
-        fn ph_entry_size(&self) -> usize;
-        fn ph_count(&self) -> usize;
-
-        #[doc = "Index for the program entry point"]
-        fn entry_point(&self) -> usize;
-        #[doc = "Index of the section header [string table] \
-                 [string table]: ../section/struct.StrTable.html"]
-        fn sh_str_idx(&self) -> usize;
-        fn flags(&self) -> u32;
-        fn ident(&self) -> Ident;
-        fn machine(&self) -> Machine;
-    }
-
 }
 
 /// ELF header magic
