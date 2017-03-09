@@ -44,16 +44,26 @@ impl ElfWord for u64 { }
 impl ElfWord for u32 { }
 
 /// A handle on a parsed ELF binary
+///  TODO: do we want this to own a HashMap of section names to section headers,
+///        to speed up section lookup?
+//          - eliza, 03/08/2017
 #[derive(Debug)]
 pub struct Image<'a, Word>
 where Word: ElfWord + 'a {
+    /// the binary's [file header](file/struct.Header.html)
     pub header: &'a file::Header<Word>
-  , pub sections: &'a [section::Header<'a>]
-  , binary: &'a [u8]
+  , /// references to each [section header](section/enum.Header.html)
+    pub sections: &'a [section::Header<'a>]
+  , /// the raw binary contents of the ELF binary.
+    /// note that this includes the _entire_ binary contents of the file,
+    /// so the file header and each section header is included in this slice.
+    binary: &'a [u8]
 }
 
 impl<'a, Word: ElfWord + 'a> Image<'a, Word> {
-    /// Returns the section header string table
+    /// Returns the section header [string table].
+    ///
+    /// [string table]: section/struct.StrTable.html
     pub fn sh_str_table(&'a self) -> section::StrTable<'a> {
         // TODO: do we want to validate that the string table index is
         //       reasonable (e.g. it's not longer than the binary)?
