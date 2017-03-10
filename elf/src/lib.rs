@@ -2,7 +2,7 @@
 //  SOS: the Stupid Operating System
 //  by Eliza Weisman (hi@hawkweisman.me)
 //
-//  Copyright (c) 2015-2016 Eliza Weisman
+//  Copyright (c) 2015-2017 Eliza Weisman
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
@@ -35,6 +35,7 @@ pub type Section<'a> = section::Header<'a>;
 /// An ELF header file.
 pub type FileHeader<W> = file::HeaderRepr<W>;
 
+/// TODO: should ELF have its own error type?
 pub type ElfResult<T> = Result<T, &'static str>;
 
 pub trait ElfWord: Sized + Copy + Clone
@@ -88,6 +89,8 @@ where Word: ElfWord + 'a
 
 /// if `n` == 0, this will give you an `&[]`. just a warning.
 //  thanks to Max for making  me figure this out.
+/// TODO: rewrite this as a `TryFrom` implementation (see issue #85)
+//          - eliza, 03/09/2017
 unsafe fn extract_from_slice<T: Sized>( data: &[u8]
                                       , offset: usize
                                       , n: usize)

@@ -273,6 +273,8 @@ pub enum Contents<'a> {
 struct TypeRepr(u32);
 
 impl TypeRepr {
+    /// TODO: rewrite this as a `TryFrom` implementation (see issue #85)
+    //          - eliza, 03/09/2017
     #[inline] fn as_type(&self) -> ElfResult<Type> {
         match self.0 {
             0 => Ok(Type::Null)

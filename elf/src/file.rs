@@ -30,8 +30,8 @@ pub trait Header {
     type Word: ElfWord;
 
     /// Attempt to extract an ELF file header from a slice of bytes.
-    /// TODO: should this be a From impl maybe?
-    //          - eliza, 03/08/2017
+    /// TODO: rewrite this as a `TryFrom` implementation (see issue #85)
+    //          - eliza, 03/09/2017
     fn from_slice<'a>(input: &'a [u8]) -> ElfResult<&'a Self>;
 
     /// Attempt to extract a section header from a slice of bytes.
@@ -80,10 +80,6 @@ pub trait Header {
 
 }
 
-
-/// FIXME(style): generate more stuff with macros/use `macro_attr` to derive
-///               these...
-//                  - eliza, 03/08/2017
 macro_rules! impl_getters {
     ($(#[$attr:meta])* pub fn $name:ident(&self) -> $ty:ident; $($rest:tt)*) => {
         $(#[$attr])* #[inline] pub fn $name(&self) -> $ty { self.$name as $ty }
