@@ -6,10 +6,26 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
+//! ELF file header
 use super::{ElfResult, ElfWord, Section, section};
 use super::ValidatesWord;
 use core::{fmt, mem};
 
+/// Trait representing an ELF File Header.
+///
+/// This trait allows [HeaderRepr] to provide a consistent API regardless
+/// of whether the header section uses 32- or 64-bit [ELF word]s. A number of
+/// field values in the header of various sizes are converted to `usize` by
+/// this API so that they can be used as indices, etc.
+///
+/// For more information on ELF File Headers, refer to:
+/// + the ELF [specification]
+/// + the [OS Dev Wiki]
+///
+/// [ELF word]: ../type.ElfWord.html
+/// [HeaderRepr]: struct.HeaderRepr.html
+/// [specification](http://www.sco.com/developers/gabi/latest/ch4.eheader.html)
+/// [OS Dev Wiki](http://wiki.osdev.org/ELF#Header)
 pub trait Header {
     type Word: ElfWord;
 
@@ -163,7 +179,7 @@ macro_rules! Header {
 }
 
 macro_attr! {
-    /// An ELF file header
+    /// Raw representation of an ELF file header.
     #[derive(Copy, Clone, Debug, Header!(u32, u64))]
     #[repr(C, packed)]
     pub struct HeaderRepr<W: ElfWord> {
