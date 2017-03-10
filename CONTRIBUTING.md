@@ -32,7 +32,7 @@ SOS is dual-licensed under the [MIT](LICENSE-MIT) and [Apache 2](LICENSE-APACHE)
 
 ### Setting Up a Dev Environment
 
-Building an OS is often a fairly difficult process, and can require a number of specific tools, libraries, and other dependencies installed and configured on the host system. In order to make contributing to SOS as easy as possible, we've tried to streamline the development environment setup process as much as possible, but there are still a few steps required before you can build SOS. Please see [BUILDING.md] for detailed instructions on how to build SOS.
+Building an OS is often a fairly difficult process, and can require a number of specific tools, libraries, and other dependencies installed and configured on the host system. In order to make contributing to SOS as easy as possible, we've tried to streamline the development environment setup process as much as possible, but there are still a few steps required before you can build SOS. Please see [BUILDING.md](BUILDING.md) for detailed instructions on how to build SOS.
 
 In addition, the [tools to assist with coding style](#tools-to-assist-with-coding-style) section in this document provides information on optional tools that can be used to ensure your contributions conform to SOS' preferred coding style.
 
@@ -172,11 +172,11 @@ The following deviations from the style guide are permitted:
 
 #### EditorConfig
 
-An [`.editorconfig` file](https://github.com/hawkw/sos-kernel/blob/master/.editorconfig) is available for [compatible text editors](http://editorconfig.org/#download). If the EditorConfig plugin is installed in your text editor, it will use this file to automatically configure certain formatting settings for the `an-editor` repository.
+An [`.editorconfig` file](.editorconfig) is available for [compatible text editors](http://editorconfig.org/#download). If the EditorConfig plugin is installed in your text editor, it will use this file to automatically configure certain formatting settings for the `an-editor` repository.
 
 #### rustfmt
 
-[`rustfmt`](https://github.com/rust-lang-nursery/rustfmt) is a tool for automatically formatting Rust source code according to style guidelines. This repository provides a `rustfmt.toml` file for automatically configuring `rustfmt` to use our style guidelines.
+[`rustfmt`](https://github.com/rust-lang-nursery/rustfmt) is a tool for automatically formatting Rust source code according to style guidelines. This repository provides a [`rustfmt.toml`](rustfmt.toml) file for automatically configuring `rustfmt` to use our style guidelines.
 
 `rustfmt` may be installed by running
 
