@@ -55,7 +55,8 @@ pub struct Info { pub length: u32
                 }
 
 impl Info {
-
+    /// TODO: rewrite this as a `TryFrom` implementation (see issue #85)
+    //          - eliza, 03/09/2017
     pub unsafe fn from(addr: PAddr) -> Result<&'static Self, &'static str> {
         let info: &Info = &*(addr.into(): u64 as *const Info);
         // TODO: check if the multiboot tag *exists* at this location as well?

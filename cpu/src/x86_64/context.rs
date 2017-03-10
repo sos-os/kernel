@@ -33,6 +33,8 @@ pub struct Registers { pub rsi: u64
  impl Registers {
      /// Transform this struct into an array of `u64`s
      /// (if you would ever want to do this)
+     /// TODO: rewrite this to be a `convert::Into` implementation.
+     //         - eliza, 03/09/2017
      pub unsafe fn to_array(&self) -> [u64; 9] {
         //  [ self.rsi, self.rdi, self.r11
         //  , self.r10, self.r9, self.r8
