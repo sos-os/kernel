@@ -17,6 +17,7 @@
 //!
 //! [elfspec]: http://www.skyfree.org/linux/references/ELF_Format.pdf
 #![feature(core_intrinsics)]
+#![feature(try_from)]
 #![no_std]
 
 #[macro_use] extern crate bitflags;
@@ -90,6 +91,12 @@ where Word: ElfWord + 'a
 /// if `n` == 0, this will give you an `&[]`. just a warning.
 //  thanks to Max for making  me figure this out.
 /// TODO: rewrite this as a `TryFrom` implementation (see issue #85)
+//          - eliza, 03/09/2017
+///       wait, possibly we should NOT do that. actually we should
+///       almost certainly not do that. since this function is unsafe,
+///       but `TryFrom` is not, and because this would be WAY generic.
+//          - eliza, 03/09/2017
+/// TODO: is this general enough to move into util?
 //          - eliza, 03/09/2017
 unsafe fn extract_from_slice<T: Sized>( data: &[u8]
                                       , offset: usize

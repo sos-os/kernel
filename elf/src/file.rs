@@ -9,7 +9,7 @@
 //! ELF file header
 use super::{ElfResult, ElfWord, Section, section};
 use super::ValidatesWord;
-use core::{fmt, mem};
+use core::{fmt, mem, convert};
 
 /// Trait representing an ELF File Header.
 ///
@@ -26,12 +26,10 @@ use core::{fmt, mem};
 /// [HeaderRepr]: struct.HeaderRepr.html
 /// [specification](http://www.sco.com/developers/gabi/latest/ch4.eheader.html)
 /// [OS Dev Wiki](http://wiki.osdev.org/ELF#Header)
-pub trait Header {
+pub trait Header: Sized {
     type Word: ElfWord;
 
     /// Attempt to extract an ELF file header from a slice of bytes.
-    /// TODO: rewrite this as a `TryFrom` implementation (see issue #85)
-    //          - eliza, 03/09/2017
     fn from_slice<'a>(input: &'a [u8]) -> ElfResult<&'a Self>;
 
     /// Attempt to extract a section header from a slice of bytes.
@@ -79,6 +77,8 @@ pub trait Header {
     fn sh_str_idx(&self) -> usize;
 
 }
+
+
 
 macro_rules! impl_getters {
     ($(#[$attr:meta])* pub fn $name:ident(&self) -> $ty:ident; $($rest:tt)*) => {
@@ -170,7 +170,17 @@ macro_rules! Header {
                 fn ident(&self) -> Ident;
                 fn machine(&self) -> Machine;
             }
-        })+
+        }
+
+        impl<'a> convert::TryFrom<&'a [u8]> for $name<$size>
+        where $name<$size>: Header {
+            type Err = &'static str;
+            #[inline]
+            fn try_from(slice: &'a [u8]) -> ElfResult<Self> {
+                <Self as Header>::from_slice(slice).map(|x| *x)
+            }
+        }
+        )+
     }
 }
 
@@ -344,6 +354,8 @@ pub enum Version { None = 0, Current = 1 }
 struct TypeRepr(u16);
 
 impl TypeRepr {
+    /// TODO: rewrite this as a `convert::Into` implementation
+    ///         - eliza, 03/09/2017
     pub fn as_type(&self) -> Type {
         match self.0 {
             0 => Type::None
