@@ -9,7 +9,9 @@
 //! ELF file header
 use super::{ElfResult, ElfWord, Section, section};
 use super::ValidatesWord;
+
 use core::{fmt, mem, convert};
+use core::ops::Range;
 
 /// Trait representing an ELF File Header.
 ///
@@ -38,6 +40,27 @@ pub trait Header: Sized {
     fn parse_section<'a>(&'a self, input: &'a [u8], idx: u16)
                             -> ElfResult<&'a Section>;
 
+    /// Calculate the index for a [section header]
+    ///
+    /// TODO: should this check the index is reasonable & return a `Result`
+    //          - eliza, 03/10/2017
+    /// [section header]: ../section/struct.Header.html
+    fn section_index(&self, idx: usize) -> Range<usize> {
+        let size = self.sh_entry_size();
+        let start = self.sh_offset() + (idx * size);
+        start .. start + size
+    }
+
+    /// Calculate the index for a program header
+    ///
+    /// TODO: should this check the index is reasonable & return a `Result`
+    //          - eliza, 03/10/2017
+    fn program_header_index(&self, idx: usize) -> Range<usize> {
+        let size = self.ph_entry_size();
+        let start = self.ph_offset() + (idx * size);
+        start .. start + size
+    }
+
     // Field accessors -------------------------------------------
     fn ident(&self) -> Ident;
     fn get_type(&self) -> Type;
@@ -49,9 +72,6 @@ pub trait Header: Sized {
     /// Number of program headers.
     fn ph_count(&self) -> usize;
     /// Size of a program header.
-    /// TODO: add function for using this and `ph_count` to make a memrange
-    ///       representing the program header entries?
-    //          - eliza, 03/08/2017
     fn ph_entry_size(&self) -> usize;
     /// Offset of the start of [section header]s.
     ///
@@ -64,9 +84,6 @@ pub trait Header: Sized {
     /// Size of a [section header].
     ///
     /// [section header]: ../section/struct.Header.html
-    /// TODO: add function for using this and `sh_count` to make a memrange
-    ///       representing the section header entries?
-    //          - eliza, 03/08/2017
     fn sh_entry_size(&self) -> usize;
     /// TODO: can this return the flags type?
     //          - eliza, 03/08/2017
@@ -75,10 +92,7 @@ pub trait Header: Sized {
     ///
     /// [string table]: ../section/struct.StrTable.html"]
     fn sh_str_idx(&self) -> usize;
-
 }
-
-
 
 macro_rules! impl_getters {
     ($(#[$attr:meta])* pub fn $name:ident(&self) -> $ty:ident; $($rest:tt)*) => {
@@ -117,9 +131,16 @@ macro_rules! Header {
                 }
             }
 
-            /// Attempt to extract a section header from a slice of bytes.
+            /// Attempt to extract a [section header] from a slice of bytes.
+            ///
+            /// TODO: should this move to the `File` type since it owns the
+            ///       byte slice (which then wouldn't have to be passed as an
+            ///       argument)?
+            //          - eliza, 03/10/2017
+            ///
+            /// [section header]: ../section/struct.Header.html
             fn parse_section<'a>(&'a self, input: &'a [u8], idx: u16)
-                                    -> ElfResult<&'a Section>
+                                -> ElfResult<&'a Section>
             {
                 if idx < section::SHN_LORESERVE {
                     Err("Cannot parse reserved section.")
@@ -132,12 +153,7 @@ macro_rules! Header {
                         = &self.ident.class;
                     validator.check()?;
 
-                    // start offset for section
-                    let start = self.sh_offset() + idx as usize *
-                                self.sh_entry_size();
-                    // end offset for section
-                    let end = start + self.sh_entry_size();
-                    let raw = &input[start .. end];
+                    let raw = &input[self.section_index(idx as usize)];
 
                     unsafe {
                         Ok(&*(raw as *const [u8]
