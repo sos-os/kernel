@@ -13,7 +13,9 @@
 //! [specification]: http://nongnu.askapache.com/grub/phcoder/multiboot.pdf
 use memory::PAddr;
 use elf::section::{Header as Section, Sections, HeaderRepr};
+
 use core::iter::IntoIterator;
+use core::fmt;
 
 const END_TAG_LEN: u32 = 8;
 
@@ -116,9 +118,12 @@ impl Info {
 
     /// Returns true if the multiboot structure has a valid end tag.
     fn has_end(&self) -> bool {
+        // TODO: we should be able to use ptr::offset() here?
+        //          - eliza, 03/05/2017
         let end_tag_addr
             = (self as *const _) as usize +
               (self.length - END_TAG_LEN) as usize;
+
         let end_tag = unsafe {&*(end_tag_addr as *const Tag)};
         end_tag.ty == TagType::End && end_tag.length == 8
     }
@@ -229,6 +234,8 @@ impl MemMapTag {
     /// Returns an iterator over all the memory areas in this tag.
     #[inline] pub fn areas(&'static self) -> MemAreas {
         MemAreas { curr: (&self.first_entry) as *const MemArea
+                    // TODO: we should be able to use ptr::offset() here?
+                    //          - eliza, 03/05/2017
                  , last: ((self as *const MemMapTag as u32) +
                          self.tag.length - self.entry_size)
                          as *const MemArea
@@ -276,6 +283,7 @@ pub enum MemAreaType { Available = 1
 
 /// A multiboot 2 memory area
 #[repr(C)]
+#[derive(Debug)]
 pub struct MemArea { /// the starting address of the memory area
                      pub base: PAddr
                    , /// the length of the memory area
@@ -288,6 +296,14 @@ pub struct MemArea { /// the starting address of the memory area
 impl MemArea {
     #[inline] pub fn address(&self) -> PAddr {
         self.base + self.length - 1
+    }
+}
+
+impl fmt::Display for MemArea {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!( f, "{:?} from {:#08x} to {:#08x}"
+              , self.ty, self.base, self.address())
     }
 }
 
@@ -306,12 +322,19 @@ impl Iterator for MemAreas {
             None
         } else {
             let current = unsafe { &*self.curr };
+            // TODO: we should be able to use ptr::offset() here.
+            //          - eliza, 03/05/2017
             self.curr = (self.curr as u32 + self.size) as *const MemArea;
-            if current.ty == MemAreaType::Available {
-                Some(current)
-            } else {
-                self.next()
-            }
+            // if current.ty == MemAreaType::Available {
+            // NOTE: this used to skip over unavailable or ACPI memory areas,
+            //       but i've disabled that as we may want to iterate over thsoe
+            //       memory areas. we can use `filter` on this iterator to get
+            //       only available memory areas.
+            //          - eliza, 03/05/2017
+            Some(current)
+            // } else {
+            //      self.next()
+            // }
         }
     }
 }

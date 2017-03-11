@@ -2,13 +2,16 @@
 //  SOS: the Stupid Operating System
 //  by Eliza Weisman (hi@hawkweisman.me)
 //
-//  Copyright (c) 2015-2016 Eliza Weisman
+//  Copyright (c) 2015-2017 Eliza Weisman
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
 use memory::PAddr;
-use core::fmt;
+
 use super::ElfResult;
+
+use core::{convert, fmt, ops};
+use core::iter::IntoIterator;
 
 // Distinguished section indices.
 pub const SHN_UNDEF: u16        = 0;
@@ -31,14 +34,43 @@ pub const SHT_HIUSER: u32 = 0xffffffff;
 
 /// Represents an ELF section header
 ///
-/// Refer to the [ELF standard](http://www.sco.com/developers/gabi/latest/ch4.sheader.html)
+/// Refer to [Figure 4-8], "Section Header", from Chapter 4 of the ELF standard
 /// for more information.
+///
+/// [Figure 4-8]: (http://www.sco.com/developers/gabi/latest/ch4.sheader.html#section_header)
 #[derive(Clone, Copy, Debug)]
 pub enum Header<'a> {
     ThirtyTwo(&'a HeaderRepr<u32>)
   , SixtyFour(&'a HeaderRepr<u64>)
 }
 
+impl<'a> fmt::Display for Header<'a> {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // TODO: do we want to actually get the section's name from the string
+        //       table and display it here?
+        //          - eliza, 03/05/2017
+        // TODO: do we want to print the header's flags, or would that make the //       format too long?
+        //          - eliza, 03/05/2017
+        if let Ok(ty) = self.get_type() {
+            // the ELF section was valid
+            write!(f, "{:?} section at {:#08x} to {:#08x}"
+                  , ty, self.addr(), self.end_addr())
+        } else {
+            // we couldn't successfully extract a type from the ELF section!
+            write!(f, "Bad ELF section {:?}", self)
+        }
+    }
+}
+
+/// Raw representation of an ELF section header in an ELF binary.
+///
+/// Refer to [Figure 4-8], "Section Header", from Chapter 4 of the ELF standard
+/// for more information.
+///
+/// [Figure 4-8]: (http://www.sco.com/developers/gabi/latest/ch4.sheader.html#section_header)
+//  TODO: add docs for all fields!
+//          - eliza, 03/05/2017
 #[derive(Debug)]
 #[repr(C)]
 pub struct HeaderRepr<Word> {
@@ -46,7 +78,7 @@ pub struct HeaderRepr<Word> {
     ///
     /// Its value is an index into the section header string table section,
     /// giving the location of a null-terminated string.
-    name_offset: u32
+    name_offset: Word
   , /// This member categorizes the section's contents and semantics.
     ty: TypeRepr
   , flags: Flags
@@ -59,6 +91,9 @@ pub struct HeaderRepr<Word> {
   , entry_length: Word
 }
 
+// TODO: does this need to be a trait? could we make this faster by simplifying
+//       dispatch here?
+//         - eliza, 03/05/2017
 pub trait AsHeader {
     fn as_header(&self) -> Header;
 }
@@ -77,6 +112,8 @@ impl AsHeader for HeaderRepr<u64> {
 
 
 bitflags! {
+    // TODO: add documentation to the flags
+    //          - eliza, 03/05/2017
     pub flags Flags: usize {
         // Flags (SectionHeader::flags)
         const SHF_WRITE            =        0x1
@@ -157,6 +194,7 @@ macro_rules! impl_getters {
 
 impl<'a> Header<'a> {
     impl_getters! { address: u64
+                  , name_offset: usize
                   , pub offset: u64
                   , pub length: u64
                   , pub link: u32
@@ -206,6 +244,12 @@ impl<'a> Header<'a> {
         get!(self, flags).contains(SHF_MERGE) &&
         !get!(self, flags).contains(SHF_STRINGS)
     }
+
+    /// Look up the name of this section in the passed string table.
+    #[inline] pub fn get_name(&self, strtab: StrTable<'a>) -> &'a str {
+        unimplemented!()
+    }
+
 }
 
 pub enum Contents<'a> {
@@ -220,10 +264,17 @@ pub enum Contents<'a> {
 /// Unfortunately, we cannot have enums with open ranges yet, so we have
 /// to convert between the ELF file underlying representation and our
 /// type-safe representation.
+///
+/// Refer to [Figure 4-9]: "Section Types, `sh_type`" in Section 4 of the
+/// ELF standard for more information.
+///
+/// [Figure 4-9]:  http://www.sco.com/developers/gabi/latest/ch4.sheader.html#sh_type
 #[derive(Debug, Copy, Clone)]
 struct TypeRepr(u32);
 
 impl TypeRepr {
+    /// TODO: rewrite this as a `TryFrom` implementation (see issue #85)
+    //          - eliza, 03/09/2017
     #[inline] fn as_type(&self) -> ElfResult<Type> {
         match self.0 {
             0 => Ok(Type::Null)
@@ -251,9 +302,10 @@ impl TypeRepr {
 
 /// Enum representing an ELF file section type.
 ///
-/// Refer to Figure 1-10: "Section Types, `sh_type`" in Section 1 of the
-/// [ELF standard](http://www.sco.com/developers/gabi/latest/ch4.sheader.html)
-/// for more information.
+/// Refer to [Figure 4-9]: "Section Types, `sh_type`" in Section 4 of the
+/// ELF standard for more information.
+///
+/// [Figure 4-9]:  http://www.sco.com/developers/gabi/latest/ch4.sheader.html#sh_type
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum Type {
     /// Section type 0: `SHT_NULL`
@@ -369,6 +421,8 @@ where HeaderRepr<W>: AsHeader {
         } else {
             let current = self.curr.as_header();
             self.curr = unsafe {
+                // TODO: we should be able to use ptr::offset() here?
+                //          - eliza, 03/05/2017
                 &*(((self.curr as *const HeaderRepr<W>) as u32 + self.size)
                     as *const HeaderRepr<W>)
             };
@@ -379,5 +433,135 @@ where HeaderRepr<W>: AsHeader {
                 Some(current)
             }
         }
+    }
+}
+
+/// Characters in the ELF string table are 8-bit ASCII characters.
+type ElfChar = u8;
+
+/// An ELF string table.
+///
+/// Refer to the String Table [entry] in Section 4 of the ELF standard
+/// for more information.
+///
+/// [entry]: http://www.sco.com/developers/gabi/latest/ch4.strtab.html
+//  TODO: this should be indexable by string number, possibly?
+//          - eliza, 03/07/2017
+//  TODO: add a function to get the name of the section (which always lives)
+//        at index 0.
+//          - eliza, 03/07/2017
+#[derive(Clone, Debug)]
+pub struct StrTable<'a>(&'a [ElfChar]);
+
+impl<'a> convert::From<&'a [ElfChar]> for StrTable<'a> {
+    #[inline(always)]
+    fn from(binary: &'a [ElfChar]) -> Self { StrTable(binary) }
+}
+
+impl<'a> StrTable<'a> {
+
+    /// Returns the string at a given index in the string table,
+    /// if there is one.
+    // TODO: these docs are Bad
+    //          - eliza, 03/07/2017
+    // TODO: this def. shouldn't be u64, but i didn't want to annotate the
+    //       string table type with ElfWord...figure this out
+    //          - eliza, 03/07/2017
+    // TODO: can this be replaced with an ops::Index implementation?
+    //       but then we can't implement Deref to a slice any more?
+    //          - eliza, 03/07/2017
+    pub fn at_index(&'a self, i: usize) -> Option<&'a str> {
+        use core::str::from_utf8_unchecked;
+        if i <= self.len() {
+            read_to_null(&self[i..])
+                .map(|bytes| unsafe {
+                    // TODO: should this be checked, or do we assume the ELF
+                    //       binary has only well-formed strings? this could be
+                    //       a Security Thing...
+                    //          - eliza, 03/07/2017
+                    from_utf8_unchecked(bytes)
+                    // TODO: can the conversion to a Rust string be moved to
+                    //       `read_to_null()`? we also do this in the iterator
+                    //          - eliza, 03/07/2017
+                })
+
+        } else {
+            None
+        }
+    }
+}
+
+// impl<'a> StrTable<'a> {
+//     #[inline] fn len(&self) -> usize { self.0.len}
+//
+// }
+impl<'a> ops::Deref for StrTable<'a> {
+    type Target = [ElfChar];
+
+    #[inline] fn deref(&self) -> &Self::Target { self.0 }
+}
+
+impl<'a> IntoIterator for StrTable<'a> {
+    type IntoIter = Strings<'a>;
+    type Item = &'a str;
+
+    //  TODO: this doesn't strictly need to consume the StringTable...
+    //          - eliza, 03/07/2017
+    #[inline] fn into_iter(self) -> Self::IntoIter { Strings(&self.0) }
+}
+
+/// Returns true if `ch` is the null-terminator character
+#[inline] fn is_null(ch: &ElfChar) -> bool { *ch == b'\0' }
+
+/// Read a series of bytes from a slice to the first null-terminator
+//  TODO: can this be moved to the StrTable type? no big deal but it would be
+//        somewhat prettier...
+//          - eliza, 03/07/2017
+#[inline] fn read_to_null<'a>(bytes: &'a [ElfChar]) -> Option<&'a [ElfChar]> {
+    bytes.iter().position(is_null)
+         .map(|i| &bytes[..i] )
+}
+
+/// Iterator over the strings in an ELF string table
+#[derive(Clone, Debug)]
+pub struct Strings<'a>(&'a [ElfChar]);
+
+impl<'a> Iterator for Strings<'a> {
+    type Item = &'a str;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        use core::str::from_utf8_unchecked;
+        if self.0.len() == 0 {
+            // if there are no bytes remaining in the iterator, then we've
+            // iterated over all the strings in the string table (or it was
+            // empty to begin with).
+            //
+            // N.B. that `read_to_null()` _will_ return None in this case, so
+            // this check isn't strictly necessary; it just saves us from
+            // having to create an iterator if the slice is empty, so I'm
+            // calling it an "optimisation".
+            None
+        } else {
+            // otherwise, try to read the iterator's slice to the first null
+            // character...
+            read_to_null(self.0).map(|bytes| {
+                // ...if we found a null character, remove the string's bytes
+                // from the slice in the iterator (since we're returning that
+                // string), and return a string slice containing those bytes
+                // interpreted as UTF-8 (which should be equivalent to ASCII)
+                self.0 = &self.0[bytes.len() + 1..];
+                unsafe {
+                    // TODO: should this be checked, or do we assume the ELF
+                    //       binary has only well-formed strings? this could be
+                    //       a Security Thing...
+                    //          - eliza, 03/07/2017
+                    from_utf8_unchecked(bytes)
+                }
+            })
+        }
+    }
+
+    #[inline] fn size_hint(&self) -> (usize, Option<usize>) {
+        (0, Some(self.0.len() / 2))
     }
 }

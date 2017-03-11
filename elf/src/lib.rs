@@ -2,7 +2,7 @@
 //  SOS: the Stupid Operating System
 //  by Eliza Weisman (hi@hawkweisman.me)
 //
-//  Copyright (c) 2015-2016 Eliza Weisman
+//  Copyright (c) 2015-2017 Eliza Weisman
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
@@ -17,9 +17,11 @@
 //!
 //! [elfspec]: http://www.skyfree.org/linux/references/ELF_Format.pdf
 #![feature(core_intrinsics)]
+#![feature(try_from)]
 #![no_std]
 
 #[macro_use] extern crate bitflags;
+#[macro_use] extern crate macro_attr;
 
 extern crate memory;
 
@@ -32,8 +34,9 @@ pub mod program;
 /// An ELF section header.
 pub type Section<'a> = section::Header<'a>;
 /// An ELF header file.
-pub type FileHeader<W> = file::Header<W>;
+pub type FileHeader<W> = file::HeaderRepr<W>;
 
+/// TODO: should ELF have its own error type?
 pub type ElfResult<T> = Result<T, &'static str>;
 
 pub trait ElfWord: Sized + Copy + Clone
@@ -43,17 +46,58 @@ pub trait ElfWord: Sized + Copy + Clone
 impl ElfWord for u64 { }
 impl ElfWord for u32 { }
 
-/// A handle on an ELF binary
+/// Hack to make the type-system let me do what I want
+trait ValidatesWord<Word: ElfWord> {
+    fn check(&self) -> ElfResult<()>;
+}
+
+/// A handle on a parsed ELF binary
+///  TODO: do we want this to own a HashMap of section names to section headers,
+///        to speed up section lookup?
+//          - eliza, 03/08/2017
 #[derive(Debug)]
-pub struct Image<'a, Word>
-where Word: ElfWord + 'a {
-    pub header: &'a file::Header<Word>
-  , pub sections: &'a [section::Header<'a>]
-  , binary: &'a [u8]
+pub struct Image<'a, Word, Header = file::HeaderRepr<Word>>
+where Word: ElfWord + 'a
+    , Header: file::Header<Word = Word> + 'a
+    {
+    /// the binary's [file header](file/trait.Header.html)
+    pub header: &'a Header
+  , /// references to each [section header](section/struct.Header.html)
+    pub sections: &'a [section::Header<'a>]
+  , /// the raw binary contents of the ELF binary.
+    /// note that this includes the _entire_ binary contents of the file,
+    /// so the file header and each section header is included in this slice.
+    binary: &'a [u8]
+}
+
+impl<'a, Word, Header> Image<'a, Word, Header>
+where Word: ElfWord + 'a
+    , Header: file::Header<Word = Word> + 'a
+    {
+    /// Returns the section header [string table].
+    ///
+    /// [string table]: section/struct.StrTable.html
+    pub fn sh_str_table(&'a self) -> section::StrTable<'a> {
+        // TODO: do we want to validate that the string table index is
+        //       reasonable (e.g. it's not longer than the binary)?
+        //          - eliza, 03/08/2017
+        // TODO: do we want to cache a ref to the string table?
+        //          - eliza, 03/08/2017
+        section::StrTable::from(&self.binary[self.header.sh_str_idx()..])
+    }
+
 }
 
 /// if `n` == 0, this will give you an `&[]`. just a warning.
 //  thanks to Max for making  me figure this out.
+/// TODO: rewrite this as a `TryFrom` implementation (see issue #85)
+//          - eliza, 03/09/2017
+///       wait, possibly we should NOT do that. actually we should
+///       almost certainly not do that. since this function is unsafe,
+///       but `TryFrom` is not, and because this would be WAY generic.
+//          - eliza, 03/09/2017
+/// TODO: is this general enough to move into util?
+//          - eliza, 03/09/2017
 unsafe fn extract_from_slice<T: Sized>( data: &[u8]
                                       , offset: usize
                                       , n: usize)
