@@ -88,8 +88,41 @@ where Word: ElfWord + 'a
 
 }
 
-/// if `n` == 0, this will give you an `&[]`. just a warning.
-//  thanks to Max for making  me figure this out.
+/// Extract `n` instances of type `T` from a byte slice.
+///
+/// This is essentially just a _slightly_ safer wrapper around
+/// [`slice::from_raw_parts`]. Unlike `from_raw_parts`, this function takes
+/// a valid byte slice, rather than a pointer.
+///
+/// # Arguments
+///
+/// + `data`: the byte slice to extract a slice of `&[T]`s from
+/// + `offset`: a start offset into `data`
+/// + `n`: the number of instances of `T` which should be contained
+///        in `data[offset..]`
+///
+/// # Safety
+///
+/// While this function is safer than [`slice::from_raw_parts`],
+/// it is still unsafe for the following reasons:
+///
+/// + The lifetime of the returned slice is inferred by `from_raw_parts`, and
+///   is not necessarily tied to the lifetime of `data`.
+/// + The contents of `data` may not be able to be interpreted as instances of
+///   type `T`.
+/// + `offset` may not be aligned on a `T`-sized boundary.
+///
+/// # Caveats
+///
+/// + If `n` == 0, this will give you an `&[]`. Just a warning.
+//    thanks to Max for making  me figure this out.
+/// + `offset` must be aligned on a `T`-sized boundary.
+///
+/// # Panics
+///
+/// + If the slice `data` is not long enough to contain `n` instances of `T`.
+/// + If the index `offset` is longer than `T`
+///
 /// TODO: rewrite this as a `TryFrom` implementation (see issue #85)
 //          - eliza, 03/09/2017
 ///       wait, possibly we should NOT do that. actually we should
@@ -98,6 +131,20 @@ where Word: ElfWord + 'a
 //          - eliza, 03/09/2017
 /// TODO: is this general enough to move into util?
 //          - eliza, 03/09/2017
+/// TODO: should this be refactored to return a `Result`?
+//          - eliza, 03/13/2017
+/// TODO: can we ensure that the lifetime of the returned slice is the same
+///       as the lifetime of the input byte slice, rather than inferred by
+///       [`slice::from_raw_parts`]?
+//          - eliza, 03/13/2017
+/// TODO: assert that `offset` is aligned on a `T`-sized boundary
+//          - eliza, 03/13/2017
+/// TODO: do we want to assert that `offset` is less than the length of `data`
+///       separately from asserting that the slice is long enough, so that
+///       we can panic with different messages?
+//          - eliza, 03/13/2017
+///
+/// [`slice::from_raw_parts`]: https://doc.rust-lang.org/stable/std/slice/fn.from_raw_parts.html
 unsafe fn extract_from_slice<T: Sized>( data: &[u8]
                                       , offset: usize
                                       , n: usize)
