@@ -92,7 +92,12 @@ where Word: ElfWord + 'a
 ///
 /// This is essentially just a _slightly_ safer wrapper around
 /// [`slice::from_raw_parts`]. Unlike `from_raw_parts`, this function takes
-/// a valid byte slice, rather than a pointer.
+/// a valid byte slice, rather than a pointer. Therefore, some of the safety
+/// issues with `from_raw_parts` are avoided:
+///
+/// + the lifetime (`'slice`) of the returned slice should be the same as the
+///   lifetime of the input slice (`data`), rather than inferred arbitrarily.
+/// + this function will panic rather than reading past the end of the slice.
 ///
 /// # Arguments
 ///
@@ -106,8 +111,6 @@ where Word: ElfWord + 'a
 /// While this function is safer than [`slice::from_raw_parts`],
 /// it is still unsafe for the following reasons:
 ///
-/// + The lifetime of the returned slice is inferred by `from_raw_parts`, and
-///   is not necessarily tied to the lifetime of `data`.
 /// + The contents of `data` may not be able to be interpreted as instances of
 ///   type `T`.
 /// + `offset` may not be aligned on a `T`-sized boundary.
@@ -133,22 +136,20 @@ where Word: ElfWord + 'a
 //          - eliza, 03/09/2017
 /// TODO: should this be refactored to return a `Result`?
 //          - eliza, 03/13/2017
-/// TODO: can we ensure that the lifetime of the returned slice is the same
-///       as the lifetime of the input byte slice, rather than inferred by
-///       [`slice::from_raw_parts`]?
-//          - eliza, 03/13/2017
 /// TODO: assert that `offset` is aligned on a `T`-sized boundary
 //          - eliza, 03/13/2017
 /// TODO: do we want to assert that `offset` is less than the length of `data`
 ///       separately from asserting that the slice is long enough, so that
 ///       we can panic with different messages?
 //          - eliza, 03/13/2017
+/// TODO: refactor this to take a `RangeArgument`?
+//          - eliza, 03/13/2017
 ///
 /// [`slice::from_raw_parts`]: https://doc.rust-lang.org/stable/std/slice/fn.from_raw_parts.html
-unsafe fn extract_from_slice<T: Sized>( data: &[u8]
-                                      , offset: usize
-                                      , n: usize)
-                                      -> &[T] {
+unsafe fn extract_from_slice<'slice, T: Sized>( data: &'slice [u8]
+                                              , offset: usize
+                                              , n: usize)
+                                              -> &'slice [T] {
     assert!( data.len() - offset >= mem::size_of::<T>() * n
            , "Slice too short to contain {} objects of type {}"
            , n
