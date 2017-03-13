@@ -25,7 +25,7 @@
 
 extern crate memory;
 
-use core::{ intrinsics, ops, mem, slice };
+use core::{ ops, mem, slice };
 
 pub mod section;
 pub mod file;
@@ -113,7 +113,6 @@ where Word: ElfWord + 'a
 ///
 /// + The contents of `data` may not be able to be interpreted as instances of
 ///   type `T`.
-/// + `offset` may not be aligned on a `T`-sized boundary.
 ///
 /// # Caveats
 ///
@@ -125,6 +124,7 @@ where Word: ElfWord + 'a
 ///
 /// + If the slice `data` is not long enough to contain `n` instances of `T`.
 /// + If the index `offset` is longer than `T`
+/// + If `offset` is not aligned on a `T`-sized boundary.
 ///
 /// TODO: rewrite this as a `TryFrom` implementation (see issue #85)
 //          - eliza, 03/09/2017
@@ -138,10 +138,6 @@ where Word: ElfWord + 'a
 //          - eliza, 03/13/2017
 /// TODO: assert that `offset` is aligned on a `T`-sized boundary
 //          - eliza, 03/13/2017
-/// TODO: do we want to assert that `offset` is less than the length of `data`
-///       separately from asserting that the slice is long enough, so that
-///       we can panic with different messages?
-//          - eliza, 03/13/2017
 /// TODO: refactor this to take a `RangeArgument`?
 //          - eliza, 03/13/2017
 ///
@@ -150,10 +146,15 @@ unsafe fn extract_from_slice<'slice, T: Sized>( data: &'slice [u8]
                                               , offset: usize
                                               , n: usize)
                                               -> &'slice [T] {
+    use core::intrinsics::type_name;
+    assert!( offset % mem::align_of::<T>() == 0
+           , "Offset {} not aligned on a {}-sized boundary (must be \
+              divisible by {})."
+           , offset, type_name::<T>(), mem::align_of::<T>()
+           );
     assert!( data.len() - offset >= mem::size_of::<T>() * n
            , "Slice too short to contain {} objects of type {}"
-           , n
-           , intrinsics::type_name::<T>()
+           , n, type_name::<T>()
            );
     slice::from_raw_parts(data[offset..].as_ptr() as *const T, n)
 }
