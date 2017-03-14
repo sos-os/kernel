@@ -74,23 +74,27 @@ trait ValidatesWord<Word: ElfWord> {
 ///        to speed up section lookup?
 //          - eliza, 03/08/2017
 #[derive(Debug)]
-pub struct Image<'a, Word, Header = file::HeaderRepr<Word>>
+pub struct Image<'a, Word, ProgHeader, Header = file::HeaderRepr<Word>>
 where Word: ElfWord + 'a
     , Header: file::Header<Word = Word> + 'a
+    , ProgHeader: program::Header<Word = Word> + 'a
     {
     /// the binary's [file header](file/trait.Header.html)
     pub header: &'a Header
   , /// references to each [section header](section/struct.Header.html)
     pub sections: &'a [section::Header<'a>]
+  , /// references to each [program header](program/trait.Header.html)
+    pub program_headers: &'a [ProgHeader]
   , /// the raw binary contents of the ELF binary.
     /// note that this includes the _entire_ binary contents of the file,
     /// so the file header and each section header is included in this slice.
     binary: &'a [u8]
 }
 
-impl<'a, Word, Header> Image<'a, Word, Header>
+impl<'a, Word, ProgHeader, Header> Image<'a, Word, ProgHeader, Header>
 where Word: ElfWord + 'a
     , Header: file::Header<Word = Word> + 'a
+    , ProgHeader: program::Header<Word = Word> + 'a
     {
     /// Returns the section header [string table].
     ///
