@@ -38,10 +38,10 @@ pub trait Header: Sized {
     fn offset(&self) -> usize;
 
     /// Returns the virtual address of the first byte in this segment.
-    fn vaddr(&self) -> VAddr;
+    fn vaddr(&self) -> Self::Word;
 
     /// Returns the physical address of the first byte in this segment.
-    fn paddr(&self) -> PAddr;
+    fn paddr(&self) -> Self::Word;
 
     /// Returns the number of bytes in the file image of the segment.
     ///
@@ -60,6 +60,34 @@ pub trait Header: Sized {
 
     fn align(&self) -> usize;
 
+}
+
+
+macro_rules! Header {
+    (($($size:ty),+) $(pub)* enum $name:ident $($tail:tt)* ) => {
+        Header! { @impl $name, $($size)+ }
+    };
+    (($($size:ty),+) $(pub)* struct $name:ident $($tail:tt)*) => {
+        Header! { @impl $name, $($size)+ }
+    };
+    (@impl $name:ident, $size:ty) => {
+        impl Header for $name {
+            type Word = $size;
+
+            impl_getters! {
+                fn ty(&self) -> Type;
+                fn flags(&self) -> Flags;
+                fn offset(&self) -> usize;
+
+                fn vaddr(&self) -> Self::Word;
+                fn paddr(&self) -> Self::Word;
+
+                fn file_size(&self) -> usize;
+                fn mem_size(&self) -> usize;
+                fn align(&self) -> usize;
+            }
+        }
+    };
 }
 
 /// The type field of an ELF program header
@@ -99,10 +127,17 @@ bitflags! {
     }
 }
 
-/// An ELF Program Header
-#[derive(Copy, Clone, Debug)]
-pub struct HeaderRepr64 {
-    pub ty: Type
-  , pub flags: Flags
-  ,
+macro_attr! {
+    /// A 64-bit ELF Program Header
+    #[derive(Copy, Clone, Debug, Header!(u64))]
+    pub struct HeaderRepr64 {
+        pub ty: Type
+      , pub flags: Flags
+      , pub offset: u64
+      , pub vaddr: u64
+      , pub paddr: u64
+      , pub file_size: u64
+      , pub mem_size: u64
+      , pub align: u64
+    }
 }

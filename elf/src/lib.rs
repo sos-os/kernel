@@ -27,6 +27,24 @@ extern crate memory;
 
 use core::{ ops, mem, slice };
 
+macro_rules! impl_getters {
+    ($(#[$attr:meta])* pub fn $name:ident(&self) -> $ty:ty; $($rest:tt)*) => {
+        $(#[$attr])* #[inline] pub fn $name(&self) -> $ty { self.$name as $ty }
+        impl_getters!{ $( $rest )* }
+    };
+    ($(#[$attr:meta])* fn $name:ident(&self) -> $ty:ty; $($rest:tt)*) => {
+        $(#[$attr])* #[inline] fn $name(&self) -> $ty { self.$name as $ty }
+        impl_getters!{ $( $rest )* }
+    };
+    ( $(#[$attr:meta])* pub fn $name: ident (&self)-> $ty:ty; ) => {
+        $(#[$attr])* #[inline] pub fn $name(&self) -> $ty { self.$name as $ty }
+    };
+    ( $(#[$attr:meta])* fn $name: ident (&self)-> $ty:ty; ) => {
+        $(#[$attr])* #[inline] fn $name(&self) -> $ty { self.$name as $ty }
+    };
+    () => {};
+}
+
 pub mod section;
 pub mod file;
 pub mod program;

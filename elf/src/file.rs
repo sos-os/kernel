@@ -94,24 +94,6 @@ pub trait Header: Sized {
     fn sh_str_idx(&self) -> usize;
 }
 
-macro_rules! impl_getters {
-    ($(#[$attr:meta])* pub fn $name:ident(&self) -> $ty:ident; $($rest:tt)*) => {
-        $(#[$attr])* #[inline] pub fn $name(&self) -> $ty { self.$name as $ty }
-        impl_getters!{ $( $rest )* }
-    };
-    ($(#[$attr:meta])* fn $name:ident(&self) -> $ty:ident; $($rest:tt)*) => {
-        $(#[$attr])* #[inline] fn $name(&self) -> $ty { self.$name as $ty }
-        impl_getters!{ $( $rest )* }
-    };
-    ( $(#[$attr:meta])* pub fn $name: ident (&self)-> $ty: ident; ) => {
-        $(#[$attr])* #[inline] pub fn $name(&self) -> $ty { self.$name as $ty }
-    };
-    ( $(#[$attr:meta])* fn $name: ident (&self)-> $ty: ident; ) => {
-        $(#[$attr])* #[inline] fn $name(&self) -> $ty { self.$name as $ty }
-    };
-    () => {};
-}
-
 macro_rules! Header {
     (($($size:ty),+) $(pub)* enum $name:ident $($tail:tt)* ) => {
         Header! { @impl $name, $($size)+ }
