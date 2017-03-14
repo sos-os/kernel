@@ -155,7 +155,7 @@ macro_rules! get {
     }
 }
 
-macro_rules! impl_getters {
+macro_rules! impl_sec_getters {
     ( pub $name: ident : $ty: ident, $( $rest: tt )* ) => {
         #[inline] pub fn $name(&self) -> $ty {
             match *self {
@@ -163,16 +163,17 @@ macro_rules! impl_getters {
               , Header::SixtyFour(x) => x.$name as $ty
             }
         }
-        impl_getters!{ $( $rest )* }
+        impl_sec_getters!{ $( $rest )* }
     };
     ( $name: ident : $ty: ident,  $( $rest: tt )* ) => {
-        #[inline] fn $name(&self) -> $ty {
+        #[inline]
+        fn $name(&self) -> $ty {
             match *self {
                 Header::ThirtyTwo(x) => x.$name as $ty
               , Header::SixtyFour(x) => x.$name as $ty
             }
         }
-        impl_getters!{ $( $rest )* }
+        impl_sec_getters!{ $( $rest )* }
     };
     ( $name: ident : $ty: ident ) => {
         #[inline] fn $name(&self) -> $ty {
@@ -193,15 +194,15 @@ macro_rules! impl_getters {
 }
 
 impl<'a> Header<'a> {
-    impl_getters! { address: u64
-                  , name_offset: usize
-                  , pub offset: u64
-                  , pub length: u64
-                  , pub link: u32
-                  , pub info: u32
-                  , pub address_align: u64
-                  , pub entry_length: u64
-                  }
+    impl_sec_getters! { address: u64
+                      , name_offset: usize
+                      , pub offset: u64
+                      , pub length: u64
+                      , pub link: u32
+                      , pub info: u32
+                      , pub address_align: u64
+                      , pub entry_length: u64
+                      }
 
     /// Returns the start address of this section
     #[inline] pub fn addr(&self) -> PAddr { PAddr::from(self.address()) }

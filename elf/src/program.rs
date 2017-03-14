@@ -141,3 +141,18 @@ macro_attr! {
       , pub align: u64
     }
 }
+
+macro_attr! {
+    /// A 32-bit ELF Program Header
+    #[derive(Copy, Clone, Debug, Header!(u32))]
+    pub struct HeaderRepr32 {
+        pub ty: Type
+      , pub offset: u32
+      , pub vaddr: u32
+      , pub paddr: u32
+      , pub file_size: u32
+      , pub mem_size: u32
+      , pub flags: Flags
+      , pub align: u32
+    }
+}
