@@ -25,7 +25,8 @@
 
 extern crate memory;
 
-use core::{ ops, mem, slice };
+use core::{ convert, ops, mem, slice };
+use core::convert::TryFrom;
 
 macro_rules! impl_getters {
     ($(#[$attr:meta])* pub fn $name:ident(&self) -> $ty:ty; $($rest:tt)*) => {
@@ -74,10 +75,10 @@ trait ValidatesWord<Word: ElfWord> {
 ///        to speed up section lookup?
 //          - eliza, 03/08/2017
 #[derive(Debug)]
-pub struct Image<'a, Word, ProgHeader, Header = file::HeaderRepr<Word>>
+pub struct Image<'a, Word, ProgHeader, Header = FileHeader<Word>>
 where Word: ElfWord + 'a
-    , Header: file::Header<Word = Word> + 'a
     , ProgHeader: program::Header<Word = Word> + 'a
+    , Header: file::Header<Word = Word> + 'a
     {
     /// the binary's [file header](file/trait.Header.html)
     pub header: &'a Header
@@ -93,8 +94,8 @@ where Word: ElfWord + 'a
 
 impl<'a, Word, ProgHeader, Header> Image<'a, Word, ProgHeader, Header>
 where Word: ElfWord + 'a
-    , Header: file::Header<Word = Word> + 'a
     , ProgHeader: program::Header<Word = Word> + 'a
+    , Header: file::Header<Word = Word> + 'a
     {
     /// Returns the section header [string table].
     ///
@@ -108,6 +109,39 @@ where Word: ElfWord + 'a
         section::StrTable::from(&self.binary[self.header.sh_str_idx()..])
     }
 
+}
+
+impl<'a, Word, PH, H> TryFrom<&'a [u8]> for Image<'a, Word, PH, H>
+where Word: ElfWord + 'a
+    , PH: program::Header<Word = Word> + 'a
+    , H: file::Header<Word = Word> + 'a
+    , &'a H: convert::TryFrom<&'a [u8], Err = &'static str>
+    {
+
+    type Err = &'static str;
+
+    fn try_from(bytes: &'a [u8]) -> ElfResult<Self> {
+        let header: &'a H = <&'a H>::try_from(bytes)?;
+
+        // TODO: this won't actually work; need to rewrite section headers to
+        //       work the same as program headers.
+        //          - eliza, 03/14/2017
+        let sections = unsafe { extract_from_slice::<Section<'a>>(
+            &bytes[header.sh_range()]
+          , 0
+          , header.sh_count()
+        ) };
+        let prog_headers = unsafe { extract_from_slice::<PH>(
+            &bytes[header.ph_range()]
+          , 0
+          , header.ph_count()
+        ) };
+        Ok(Image { header: header
+              , sections: sections
+              , program_headers: prog_headers
+              , binary: bytes
+        })
+    }
 }
 
 /// Extract `n` instances of type `T` from a byte slice.

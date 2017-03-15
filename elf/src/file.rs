@@ -40,6 +40,16 @@ pub trait Header: Sized {
     fn parse_section<'a>(&'a self, input: &'a [u8], idx: u16)
                             -> ElfResult<&'a Section>;
 
+    fn sh_range(&self) -> Range<usize> {
+        let start = self.sh_offset();
+        start .. start + (self.sh_entry_size() * self.sh_count())
+    }
+
+    fn ph_range(&self) -> Range<usize> {
+        let start = self.ph_offset();
+        start .. start + (self.ph_entry_size() * self.ph_count())
+    }
+
     /// Calculate the index for a [section header]
     ///
     /// TODO: should this check the index is reasonable & return a `Result`
@@ -170,12 +180,11 @@ macro_rules! Header {
             }
         }
 
-        impl<'a> convert::TryFrom<&'a [u8]> for $name<$size>
-        where $name<$size>: Header {
+        impl<'a> convert::TryFrom<&'a [u8]> for &'a $name<$size> {
             type Err = &'static str;
             #[inline]
             fn try_from(slice: &'a [u8]) -> ElfResult<Self> {
-                <Self as Header>::from_slice(slice).map(|x| *x)
+                <$name<$size> as Header>::from_slice(slice)
             }
         }
         )+
