@@ -10,6 +10,8 @@
 use super::{ElfResult, ElfWord, Section, section};
 use super::ValidatesWord;
 
+use section::Header as SectionHeader;
+
 use core::{fmt, mem, convert};
 use core::ops::Range;
 
@@ -38,7 +40,7 @@ pub trait Header: Sized {
     /// TODO: can/should the index be `usize`?
     //          - eliza, 03/08/2017
     fn parse_section<'a>(&'a self, input: &'a [u8], idx: u16)
-                            -> ElfResult<&'a Section>;
+                            -> ElfResult<&'a Section<Self::Word>>;
 
     fn sh_range(&self) -> Range<usize> {
         let start = self.sh_offset();
@@ -134,8 +136,8 @@ macro_rules! Header {
             ///
             /// [section header]: ../section/struct.Header.html
             fn parse_section<'a>(&'a self, input: &'a [u8], idx: u16)
-                                -> ElfResult<&'a Section>
-            {
+                                -> ElfResult<&'a Section<Self::Word>>
+            where section::HeaderRepr<Self::Word>: SectionHeader<Word = Self::Word> {
                 if idx < section::SHN_LORESERVE {
                     Err("Cannot parse reserved section.")
                 } else {
@@ -152,7 +154,7 @@ macro_rules! Header {
                     unsafe {
                         Ok(&*(raw as *const [u8]
                                   as *const _
-                                  as *const Section))
+                                  as *const section::HeaderRepr<Self::Word>))
                     }
                 }
             }

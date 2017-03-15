@@ -51,7 +51,8 @@ pub mod file;
 pub mod program;
 
 /// An ELF section header.
-pub type Section<'a> = section::Header<'a>;
+pub type Section<W> = section::Header<Word = W>;
+pub type ProgramHeader<W> = program::Header<Word = W>;
 /// An ELF header file.
 pub type FileHeader<W> = file::HeaderRepr<W>;
 
@@ -80,30 +81,34 @@ trait ValidatesWord<Word: ElfWord> {
 ///        to speed up section lookup?
 //          - eliza, 03/08/2017
 #[derive(Debug)]
-pub struct Image< 'a
-                , Word = DefaultWord
-                , ProgHeader = program::Header<Word = Word>
-                , Header = FileHeader<Word>
+pub struct Image< 'bytes             // lifetime of the byte slice
+                , Word = DefaultWord // default to machine's pointer size
+                , ProgHeader = ProgramHeader<Word> // same word type
+                , SectHeader = Section<Word>
+                , Header = FileHeader<Word> // must have same word type
                 > // jesus christ
-where Word: ElfWord + 'a
-    , ProgHeader: program::Header<Word = Word> + Sized + 'a
-    , Header: file::Header<Word = Word> + 'a
+where Word: ElfWord + 'bytes
+    , ProgHeader: program::Header<Word = Word> + Sized + 'bytes
+    , SectHeader: section::Header<Word = Word> + Sized + 'bytes
+    , Header: file::Header<Word = Word> + 'bytes
     {
     /// the binary's [file header](file/trait.Header.html)
-    pub header: &'a Header
+    pub header: &'bytes Header
   , /// references to each [section header](section/struct.Header.html)
-    pub sections: &'a [section::Header<'a>]
+    pub sections: &'bytes [SectHeader]
   , /// references to each [program header](program/trait.Header.html)
-    pub program_headers: &'a [ProgHeader]
+    pub program_headers: &'bytes [ProgHeader]
   , /// the raw binary contents of the ELF binary.
     /// note that this includes the _entire_ binary contents of the file,
     /// so the file header and each section header is included in this slice.
-    binary: &'a [u8]
+    binary: &'bytes [u8]
 }
 
-impl<'a, Word, ProgHeader, Header> Image<'a, Word, ProgHeader, Header>
+impl <'a, Word, ProgHeader, SectHeader, Header>
+Image<'a, Word, ProgHeader, SectHeader, Header>
 where Word: ElfWord + 'a
-    , ProgHeader: program::Header<Word = Word> + 'a
+    , ProgHeader: program::Header<Word = Word> + Sized + 'a
+    , SectHeader: section::Header<Word = Word> + Sized + 'a
     , Header: file::Header<Word = Word> + 'a
     {
     /// Returns the section header [string table].
@@ -120,22 +125,20 @@ where Word: ElfWord + 'a
 
 }
 
-impl<'a, Word, PH, H> TryFrom<&'a [u8]> for Image<'a, Word, PH, H>
+impl<'a, Word, PH, SH, FH> TryFrom<&'a [u8]> for Image<'a, Word, PH, SH, FH>
 where Word: ElfWord + 'a
     , PH: program::Header<Word = Word> + 'a
-    , H: file::Header<Word = Word> + 'a
-    , &'a H: convert::TryFrom<&'a [u8], Err = &'static str>
+    , SH: section::Header<Word = Word> + 'a
+    , FH: file::Header<Word = Word> + 'a
+    , &'a FH: convert::TryFrom<&'a [u8], Err = &'static str>
     {
 
     type Err = &'static str;
 
     fn try_from(bytes: &'a [u8]) -> ElfResult<Self> {
-        let header: &'a H = <&'a H>::try_from(bytes)?;
+        let header: &'a FH = <&'a FH>::try_from(bytes)?;
 
-        // TODO: this won't actually work; need to rewrite section headers to
-        //       work the same as program headers.
-        //          - eliza, 03/14/2017
-        let sections = unsafe { extract_from_slice::<Section<'a>>(
+        let sections = unsafe { extract_from_slice::<SH>(
             &bytes[header.sh_range()]
           , 0
           , header.sh_count()
