@@ -130,12 +130,12 @@ where Word: ElfWord + 'a
             &bytes[header.sh_range()]
           , 0
           , header.sh_count()
-        ) };
+        )? };
         let prog_headers = unsafe { extract_from_slice::<PH>(
             &bytes[header.ph_range()]
           , 0
           , header.ph_count()
-        ) };
+        )? };
         Ok(Image { header: header
               , sections: sections
               , program_headers: prog_headers
@@ -178,9 +178,7 @@ where Word: ElfWord + 'a
 ///
 /// # Panics
 ///
-/// + If the slice `data` is not long enough to contain `n` instances of `T`.
 /// + If the index `offset` is longer than `T`
-/// + If `offset` is not aligned on a `T`-sized boundary.
 ///
 /// TODO: rewrite this as a `TryFrom` implementation (see issue #85)
 //          - eliza, 03/09/2017
@@ -190,27 +188,37 @@ where Word: ElfWord + 'a
 //          - eliza, 03/09/2017
 /// TODO: is this general enough to move into util?
 //          - eliza, 03/09/2017
-/// TODO: should this be refactored to return a `Result`?
-//          - eliza, 03/13/2017
-/// TODO: assert that `offset` is aligned on a `T`-sized boundary
-//          - eliza, 03/13/2017
 /// TODO: refactor this to take a `RangeArgument`?
 //          - eliza, 03/13/2017
+///       or, we could just remove the offset and expect the caller to
+///       offset the slice?
+//          - eliza, 03/14/2017
 ///
 /// [`slice::from_raw_parts`]: https://doc.rust-lang.org/stable/std/slice/fn.from_raw_parts.html
 unsafe fn extract_from_slice<'slice, T: Sized>( data: &'slice [u8]
                                               , offset: usize
                                               , n: usize)
-                                              -> &'slice [T] {
+                                              -> ElfResult<&'slice [T]> {
     use core::intrinsics::type_name;
-    assert!( offset % mem::align_of::<T>() == 0
-           , "Offset {} not aligned on a {}-sized boundary (must be \
-              divisible by {})."
-           , offset, type_name::<T>(), mem::align_of::<T>()
-           );
-    assert!( data.len() - offset >= mem::size_of::<T>() * n
-           , "Slice too short to contain {} objects of type {}"
-           , n, type_name::<T>()
-           );
-    slice::from_raw_parts(data[offset..].as_ptr() as *const T, n)
+    if offset % mem::align_of::<T>() != 0 {
+        // TODO: these error messages don't contain as much information as they
+        //       used to, since the return type is `&'static str` that can't be
+        //       dynamically formatted as the panic was. refactor this?
+        //       (e.g. should ELF get its own error type?)
+        //        - eliza, 03/15/2017
+        Err("extract_from_slice: Offset not aligned on type T sized boundary!")
+        // assert!(
+        //        , "Offset {} not aligned on a {}-sized boundary (must be \
+        //           divisible by {})."
+        //        , offset, type_name::<T>(), mem::align_of::<T>()
+        //        );
+    } else if data.len() - offset < mem::size_of::<T>() * n {
+        Err("extract_from_slice: Slice too short to contain n instances of T!")
+        // assert!(
+        //        , "Slice too short to contain {} objects of type {}"
+        //        , n, type_name::<T>()
+        //        );
+    } else {
+        Ok(slice::from_raw_parts(data[offset..].as_ptr() as *const T, n))
+    }
 }

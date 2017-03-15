@@ -119,7 +119,9 @@ macro_rules! Header {
                 if input.len() < mem::size_of::<Self>() {
                     Err("Input too short to extract ELF header")
                 } else {
-                    unsafe { Ok(&super::extract_from_slice::<Self>(input, 0, 1)[0]) }
+                    unsafe {
+                        super::extract_from_slice::<Self>(input, 0, 1)
+                            .map(|x| &x[0]) }
                 }
             }
 
