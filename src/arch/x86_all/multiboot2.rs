@@ -12,7 +12,7 @@
 //!
 //! [specification]: http://nongnu.askapache.com/grub/phcoder/multiboot.pdf
 use memory::PAddr;
-use elf::section::{Header as Section, Sections, HeaderRepr};
+use elf::section::{Header as Section, Sections, HeaderRepr as SectionHeader};
 
 use core::iter::IntoIterator;
 use core::fmt;
@@ -353,7 +353,7 @@ pub struct ElfSectionsTag { tag: Tag
                           , /// the size of each ELF section
                             pub section_size: u32
                           , stringtable_idx: u32
-                          , first_section: HeaderRepr<Word>
+                          , first_section: SectionHeader<Word>
                           }
 
 impl ElfSectionsTag {
@@ -371,7 +371,7 @@ impl ElfSectionsTag {
 impl IntoIterator for &'static ElfSectionsTag {
     //  TODO: can the &'static bound be reduced to &'a? is there any reason to?
     //          - eliza, 03/04/2017
-    type Item = Section<'static>;
+    type Item = <Self::IntoIter as Iterator>::Item;
     type IntoIter = Sections<'static, Word>;
 
     #[inline] fn into_iter(self) -> Self::IntoIter { self.sections() }

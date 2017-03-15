@@ -8,7 +8,7 @@
 //
 use memory::PAddr;
 
-use super::ElfResult;
+use super::{ElfResult, ElfWord};
 
 use core::{convert, fmt, ops};
 use core::iter::IntoIterator;
@@ -38,13 +38,112 @@ pub const SHT_HIUSER: u32 = 0xffffffff;
 /// for more information.
 ///
 /// [Figure 4-8]: (http://www.sco.com/developers/gabi/latest/ch4.sheader.html#section_header)
-#[derive(Clone, Copy, Debug)]
-pub enum Header<'a> {
-    ThirtyTwo(&'a HeaderRepr<u32>)
-  , SixtyFour(&'a HeaderRepr<u64>)
+// #[derive(Clone, Copy, Debug)]
+// pub enum Header<'a> {
+//     ThirtyTwo(&'a HeaderRepr<u32>)
+//   , SixtyFour(&'a HeaderRepr<u64>)
+// }
+pub trait Header: fmt::Debug {
+    type Word: ElfWord;
+
+    // /// Returns the start address of this section
+    // fn addr(&self) -> PAddr;
+
+    /// Returns the end address of this section
+    /// TODO: refactor this to return a Range instead?
+    //          - eliza, 03/14/2017
+    #[inline] fn end_address(&self) -> usize {
+        self.address() + self.length()
+    }
+
+    /// Returns true if this section is writable.
+    #[inline] fn is_writable(&self) -> bool {
+        self.flags().contains(SHF_WRITE)
+    }
+
+    /// Returns true if this section occupies memory during program execution.
+    #[inline] fn is_allocated(&self) -> bool {
+        self.flags().contains(SHF_ALLOC)
+    }
+
+    /// Returns true if this section contains executable instructions.
+    #[inline] fn is_executable(&self) -> bool {
+        self.flags().contains(SHF_EXECINSTR)
+    }
+
+    /// Returns true if this section can be merged.
+    #[inline] fn is_mergeable(&self) -> bool {
+        self.flags().contains(SHF_MERGE)
+    }
+
+    /// Returns true if this section contains data that is of a uniform size.
+    #[inline] fn is_uniform(&self) -> bool {
+        let flags = self.flags();
+        flags.contains(SHF_MERGE) &&
+        !flags.contains(SHF_STRINGS)
+    }
+
+    /// Look up the name of this section in the passed string table.
+    #[inline] fn get_name<'a>(&self, strtab: StrTable<'a>) -> &'a str {
+        unimplemented!()
+    }
+
+    // Field accessors -------------------------------------------------
+    fn name_offset(&self) -> usize;
+    /// This member categorizes the section's contents and semantics.
+    fn get_type(&self) -> ElfResult<Type>;
+    fn flags(&self) -> Flags;
+    /// TODO: shold this return a PAddr?
+    //          - eliza, 03/14/2017
+    fn address(&self) -> usize;
+    fn offset(&self) -> usize;
+    /// TODO: should offset + length make a Range?
+    //          - eliza, 03/14/2017
+    fn length(&self) -> usize;
+    fn link(&self) -> u32;
+    fn info(&self) -> u32;
+    fn address_align(&self) -> Self::Word;
+    fn entry_length(&self) -> usize;
 }
 
-impl<'a> fmt::Display for Header<'a> {
+macro_rules! Header {
+    (($($size:ty),+) $(pub)* enum $name:ident $($tail:tt)* ) => {
+        Header! { @impl $name, $($size)+ }
+    };
+    (($($size:ty),+) $(pub)* struct $name:ident $($tail:tt)*) => {
+        Header! { @impl $name, $($size)+ }
+    };
+    (@impl $name:ident, $($size:ty)+) => {
+        $(impl Header for $name<$size> {
+            type Word = $size;
+
+            /// Returns the type of this section
+            #[inline] fn get_type(&self) -> ElfResult<Type> {
+                 self.ty.as_type()
+             }
+
+            impl_getters! {
+                fn name_offset(&self) -> usize;
+                fn flags(&self) -> Flags;
+                /// TODO: shold this return a PAddr?
+                //          - eliza, 03/14/2017
+                fn address(&self) -> usize;
+                fn offset(&self) -> usize;
+                /// TODO: should offset + length make a Range?
+                //          - eliza, 03/14/2017
+                fn length(&self) -> usize;
+                fn link(&self) -> u32;
+                fn info(&self) -> u32;
+                fn address_align(&self) -> Self::Word;
+                fn entry_length(&self) -> usize;
+            }
+        })+
+    };
+}
+
+impl<Word> fmt::Display for Header<Word = Word>
+where Word: ElfWord
+    , Header<Word = Word>: fmt::Debug {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // TODO: do we want to actually get the section's name from the string
@@ -55,7 +154,7 @@ impl<'a> fmt::Display for Header<'a> {
         if let Ok(ty) = self.get_type() {
             // the ELF section was valid
             write!(f, "{:?} section at {:#08x} to {:#08x}"
-                  , ty, self.addr(), self.end_addr())
+                  , ty, self.address(), self.end_address())
         } else {
             // we couldn't successfully extract a type from the ELF section!
             write!(f, "Bad ELF section {:?}", self)
@@ -63,50 +162,33 @@ impl<'a> fmt::Display for Header<'a> {
     }
 }
 
-/// Raw representation of an ELF section header in an ELF binary.
-///
-/// Refer to [Figure 4-8], "Section Header", from Chapter 4 of the ELF standard
-/// for more information.
-///
-/// [Figure 4-8]: (http://www.sco.com/developers/gabi/latest/ch4.sheader.html#section_header)
-//  TODO: add docs for all fields!
-//          - eliza, 03/05/2017
-#[derive(Debug)]
-#[repr(C)]
-pub struct HeaderRepr<Word> {
-    /// This member specifies the name of the section.
+macro_attr! {
+    /// Raw representation of an ELF section header in an ELF binary.
     ///
-    /// Its value is an index into the section header string table section,
-    /// giving the location of a null-terminated string.
-    name_offset: Word
-  , /// This member categorizes the section's contents and semantics.
-    ty: TypeRepr
-  , flags: Flags
-  , address: Word
-  , offset: Word
-  , length: Word
-  , link: u32
-  , info: u32
-  , address_align: Word
-  , entry_length: Word
-}
-
-// TODO: does this need to be a trait? could we make this faster by simplifying
-//       dispatch here?
-//         - eliza, 03/05/2017
-pub trait AsHeader {
-    fn as_header(&self) -> Header;
-}
-
-impl AsHeader for HeaderRepr<u32> {
-    #[inline] fn as_header(&self) -> Header {
-        Header::ThirtyTwo(self)
-    }
-}
-
-impl AsHeader for HeaderRepr<u64> {
-    #[inline] fn as_header(&self) -> Header {
-        Header::SixtyFour(self)
+    /// Refer to [Figure 4-8], "Section Header", from Chapter 4 of the ELF
+    /// standard for more information.
+    ///
+    /// [Figure 4-8]: (http://www.sco.com/developers/gabi/latest/ch4.sheader.html#section_header)
+    //  TODO: add docs for all fields!
+    //          - eliza, 03/05/2017
+    #[derive(Debug, Header!(u32, u64))]
+    #[repr(C)]
+    pub struct HeaderRepr<Word> {
+        /// This member specifies the name of the section.
+        ///
+        /// Its value is an index into the section header string table section,
+        /// giving the location of a null-terminated string.
+        name_offset: Word
+      , /// This member categorizes the section's contents and semantics.
+        ty: TypeRepr
+      , flags: Flags
+      , address: Word
+      , offset: Word
+      , length: Word
+      , link: u32
+      , info: u32
+      , address_align: Word
+      , entry_length: Word
     }
 }
 
@@ -155,7 +237,7 @@ macro_rules! get {
     }
 }
 
-macro_rules! impl_getters {
+macro_rules! impl_sec_getters {
     ( pub $name: ident : $ty: ident, $( $rest: tt )* ) => {
         #[inline] pub fn $name(&self) -> $ty {
             match *self {
@@ -163,16 +245,17 @@ macro_rules! impl_getters {
               , Header::SixtyFour(x) => x.$name as $ty
             }
         }
-        impl_getters!{ $( $rest )* }
+        impl_sec_getters!{ $( $rest )* }
     };
     ( $name: ident : $ty: ident,  $( $rest: tt )* ) => {
-        #[inline] fn $name(&self) -> $ty {
+        #[inline]
+        fn $name(&self) -> $ty {
             match *self {
                 Header::ThirtyTwo(x) => x.$name as $ty
               , Header::SixtyFour(x) => x.$name as $ty
             }
         }
-        impl_getters!{ $( $rest )* }
+        impl_sec_getters!{ $( $rest )* }
     };
     ( $name: ident : $ty: ident ) => {
         #[inline] fn $name(&self) -> $ty {
@@ -190,66 +273,6 @@ macro_rules! impl_getters {
             }
         }
     };
-}
-
-impl<'a> Header<'a> {
-    impl_getters! { address: u64
-                  , name_offset: usize
-                  , pub offset: u64
-                  , pub length: u64
-                  , pub link: u32
-                  , pub info: u32
-                  , pub address_align: u64
-                  , pub entry_length: u64
-                  }
-
-    /// Returns the start address of this section
-    #[inline] pub fn addr(&self) -> PAddr { PAddr::from(self.address()) }
-
-    /// Returns the end address of this section
-    #[inline] pub fn end_addr(&self) -> PAddr {
-        PAddr::from(self.address() + self.length())
-    }
-
-    /// Returns the type of this section
-    #[inline] pub fn flags(&self) -> Flags { get!(self, flags) }
-
-    /// Returns the type of this section
-    #[inline] pub fn get_type(&self) -> ElfResult<Type> {
-         get!(self, ty).as_type()
-     }
-
-    /// Returns true if this section is writable.
-    #[inline] pub fn is_writable(&self) -> bool {
-        get!(self, flags).contains(SHF_WRITE)
-    }
-
-    /// Returns true if this section occupies memory during program execution.
-    #[inline] pub fn is_allocated(&self) -> bool {
-        get!(self, flags).contains(SHF_ALLOC)
-    }
-
-    /// Returns true if this section contains executable instructions.
-    #[inline] pub fn is_executable(&self) -> bool {
-        get!(self, flags).contains(SHF_EXECINSTR)
-    }
-
-    /// Returns true if this section can be merged.
-    #[inline] pub fn is_mergeable(&self) -> bool {
-        get!(self, flags).contains(SHF_MERGE)
-    }
-
-    /// Returns true if this section contains data that is of a uniform size.
-    #[inline] pub fn is_uniform(&self) -> bool {
-        get!(self, flags).contains(SHF_MERGE) &&
-        !get!(self, flags).contains(SHF_STRINGS)
-    }
-
-    /// Look up the name of this section in the passed string table.
-    #[inline] pub fn get_name(&self, strtab: StrTable<'a>) -> &'a str {
-        unimplemented!()
-    }
-
 }
 
 pub enum Contents<'a> {
@@ -394,12 +417,14 @@ pub enum Type {
 
 /// Iterator over ELF64 sections
 #[derive(Clone,Debug)]
-pub struct Sections<'a, W: 'a> { curr: &'a HeaderRepr<W>
-                               , remaining: u32
-                               , size: u32
-                               }
+pub struct Sections<'a, W: 'a>
+where W: ElfWord { curr: &'a HeaderRepr<W>
+                 , remaining: u32
+                 , size: u32
+                 }
 
-impl<'a, W: 'a> Sections<'a, W> {
+impl<'a, W: 'a> Sections<'a, W>
+where W: ElfWord {
 
     pub fn new(curr: &'a HeaderRepr<W>, remaining: u32, size: u32)
                -> Sections<'a, W>
@@ -412,14 +437,15 @@ impl<'a, W: 'a> Sections<'a, W> {
 
 
 impl<'a, W> Iterator for Sections<'a, W>
-where HeaderRepr<W>: AsHeader {
-    type Item = Header<'a>;
+where W: ElfWord
+    , HeaderRepr<W>: Header<Word = W> {
+    type Item = &'a Header<Word = W>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.remaining == 0 {
             None
         } else {
-            let current = self.curr.as_header();
+            let current: Self::Item = self.curr;
             self.curr = unsafe {
                 // TODO: we should be able to use ptr::offset() here?
                 //          - eliza, 03/05/2017

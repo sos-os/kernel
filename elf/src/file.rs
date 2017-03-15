@@ -10,6 +10,8 @@
 use super::{ElfResult, ElfWord, Section, section};
 use super::ValidatesWord;
 
+use section::Header as SectionHeader;
+
 use core::{fmt, mem, convert};
 use core::ops::Range;
 
@@ -38,7 +40,17 @@ pub trait Header: Sized {
     /// TODO: can/should the index be `usize`?
     //          - eliza, 03/08/2017
     fn parse_section<'a>(&'a self, input: &'a [u8], idx: u16)
-                            -> ElfResult<&'a Section>;
+                            -> ElfResult<&'a Section<Self::Word>>;
+
+    fn sh_range(&self) -> Range<usize> {
+        let start = self.sh_offset();
+        start .. start + (self.sh_entry_size() * self.sh_count())
+    }
+
+    fn ph_range(&self) -> Range<usize> {
+        let start = self.ph_offset();
+        start .. start + (self.ph_entry_size() * self.ph_count())
+    }
 
     /// Calculate the index for a [section header]
     ///
@@ -94,24 +106,6 @@ pub trait Header: Sized {
     fn sh_str_idx(&self) -> usize;
 }
 
-macro_rules! impl_getters {
-    ($(#[$attr:meta])* pub fn $name:ident(&self) -> $ty:ident; $($rest:tt)*) => {
-        $(#[$attr])* #[inline] pub fn $name(&self) -> $ty { self.$name as $ty }
-        impl_getters!{ $( $rest )* }
-    };
-    ($(#[$attr:meta])* fn $name:ident(&self) -> $ty:ident; $($rest:tt)*) => {
-        $(#[$attr])* #[inline] fn $name(&self) -> $ty { self.$name as $ty }
-        impl_getters!{ $( $rest )* }
-    };
-    ( $(#[$attr:meta])* pub fn $name: ident (&self)-> $ty: ident; ) => {
-        $(#[$attr])* #[inline] pub fn $name(&self) -> $ty { self.$name as $ty }
-    };
-    ( $(#[$attr:meta])* fn $name: ident (&self)-> $ty: ident; ) => {
-        $(#[$attr])* #[inline] fn $name(&self) -> $ty { self.$name as $ty }
-    };
-    () => {};
-}
-
 macro_rules! Header {
     (($($size:ty),+) $(pub)* enum $name:ident $($tail:tt)* ) => {
         Header! { @impl $name, $($size)+ }
@@ -127,7 +121,9 @@ macro_rules! Header {
                 if input.len() < mem::size_of::<Self>() {
                     Err("Input too short to extract ELF header")
                 } else {
-                    unsafe { Ok(&super::extract_from_slice::<Self>(input, 0, 1)[0]) }
+                    unsafe {
+                        super::extract_from_slice::<Self>(input, 0, 1)
+                            .map(|x| &x[0]) }
                 }
             }
 
@@ -140,8 +136,8 @@ macro_rules! Header {
             ///
             /// [section header]: ../section/struct.Header.html
             fn parse_section<'a>(&'a self, input: &'a [u8], idx: u16)
-                                -> ElfResult<&'a Section>
-            {
+                                -> ElfResult<&'a Section<Self::Word>>
+            where section::HeaderRepr<Self::Word>: SectionHeader<Word = Self::Word> {
                 if idx < section::SHN_LORESERVE {
                     Err("Cannot parse reserved section.")
                 } else {
@@ -158,7 +154,7 @@ macro_rules! Header {
                     unsafe {
                         Ok(&*(raw as *const [u8]
                                   as *const _
-                                  as *const Section))
+                                  as *const section::HeaderRepr<Self::Word>))
                     }
                 }
             }
@@ -188,12 +184,11 @@ macro_rules! Header {
             }
         }
 
-        impl<'a> convert::TryFrom<&'a [u8]> for $name<$size>
-        where $name<$size>: Header {
+        impl<'a> convert::TryFrom<&'a [u8]> for &'a $name<$size> {
             type Err = &'static str;
             #[inline]
             fn try_from(slice: &'a [u8]) -> ElfResult<Self> {
-                <Self as Header>::from_slice(slice).map(|x| *x)
+                <$name<$size> as Header>::from_slice(slice)
             }
         }
         )+

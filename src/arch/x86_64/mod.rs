@@ -88,7 +88,7 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
             .map(|s| {
                 kinfoln!( dots: " . . ", "{}", s );
                 kinfoln!( dots: " . . . ", "flags: [ {:?} ]", s.flags());
-                s.addr() })
+                s.address() })
             .min()
             .expect("Could not find kernel start section!\
                     \nSomething is deeply wrong.");
@@ -96,7 +96,7 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
     let mut n_elf_sections = 0;
     let kernel_end
         = elf_sections_tag.sections()
-            .map(|s| { n_elf_sections += 1; s.addr() })
+            .map(|s| { n_elf_sections += 1; s.address() })
             .max()
             .expect("Could not find kernel end section!\
                     \nSomething is deeply wrong.");
@@ -110,8 +110,8 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
     kinfoln!(dots: " . . ", "Multiboot info begins at {:#x} and ends at {:#x}."
              , multiboot_addr, multiboot_end);
 
-    let params = InitParams { kernel_base: kernel_begin
-                            , kernel_top:  kernel_end
+    let params = InitParams { kernel_base: PAddr::from(kernel_begin as u64)
+                            , kernel_top:  PAddr::from(kernel_end as u64)
                             , heap_base:   unsafe { PAddr::from(HEAP_BASE) }
                             , heap_top:    unsafe { PAddr::from(HEAP_TOP) }
                             };
