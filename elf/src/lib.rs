@@ -84,9 +84,9 @@ pub struct Image< 'a
                 , Word = DefaultWord
                 , ProgHeader = program::Header<Word = Word>
                 , Header = FileHeader<Word>
-                >
+                > // jesus christ
 where Word: ElfWord + 'a
-    , ProgHeader: program::Header<Word = Word> + Sized +'a
+    , ProgHeader: program::Header<Word = Word> + Sized + 'a
     , Header: file::Header<Word = Word> + 'a
     {
     /// the binary's [file header](file/trait.Header.html)
