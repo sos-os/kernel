@@ -65,6 +65,11 @@ pub trait ElfWord: Sized + Copy + Clone
 impl ElfWord for u64 { }
 impl ElfWord for u32 { }
 
+#[cfg(target_pointer_width = "32")]
+type DefaultWord = u32;
+#[cfg(target_pointer_width = "64")]
+type DefaultWord = u64;
+
 /// Hack to make the type-system let me do what I want
 trait ValidatesWord<Word: ElfWord> {
     fn check(&self) -> ElfResult<()>;
@@ -75,9 +80,13 @@ trait ValidatesWord<Word: ElfWord> {
 ///        to speed up section lookup?
 //          - eliza, 03/08/2017
 #[derive(Debug)]
-pub struct Image<'a, Word, ProgHeader, Header = FileHeader<Word>>
+pub struct Image< 'a
+                , Word = DefaultWord
+                , ProgHeader = program::Header<Word = Word>
+                , Header = FileHeader<Word>
+                >
 where Word: ElfWord + 'a
-    , ProgHeader: program::Header<Word = Word> + 'a
+    , ProgHeader: program::Header<Word = Word> + Sized +'a
     , Header: file::Header<Word = Word> + 'a
     {
     /// the binary's [file header](file/trait.Header.html)
