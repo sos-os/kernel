@@ -14,15 +14,13 @@ SECTIONS {
     /* Load the kernel reasonably high in memory to avoid special addresses. */
     . = 1M;
 
-    .boot ALIGN(4K) :
-    {
+    .boot : ALIGN(4K) {
         /* This goes first. */
         KEEP(*(.multiboot_header))
         *(.rodata .rodata.*)
     }
 
-    .text ALIGN(4K) :
-    {
+    .text : ALIGN(4K) {
      /* NOTE we use KEEP here to prevent the linker from dropping
         these symbols
       */
@@ -31,13 +29,11 @@ SECTIONS {
         *(.text .text.*)
     }
 
-     .data ALIGN(4K) :
-     {
+     .data : ALIGN(4K)  {
        *(.data .data.*)
      }
 
-     .bss ALIGN(4K) :
-     {
+     .bss : ALIGN(4K) {
         /* Page-Map Level-4 Table (PML4) */
         pml4_table = .;
         . += 4096;
