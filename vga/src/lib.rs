@@ -195,7 +195,7 @@ impl Terminal {
 
     #[inline]
     fn buffer(&mut self) -> &mut  Buffer {
-        unsafe { self.buffer.get_mut() }
+        unsafe { self.buffer.as_mut() }
     }
 
     /// Set the color palette used for writing subsequent characters.
