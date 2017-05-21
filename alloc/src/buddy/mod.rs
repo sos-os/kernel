@@ -217,7 +217,7 @@ impl<'a> BuddyHeapAllocator<'a> {
     unsafe fn pop_block(&mut self, order: usize) -> Option<*mut u8>{
         self.free_lists[order]
             .pop_front()
-            .map(|block| block.get().as_ptr())
+            .map(|block| block.as_ref().as_ptr())
     }
 
 
