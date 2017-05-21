@@ -483,11 +483,11 @@ where T: OwnedRef<N>
 unsafe impl<T> OwnedRef<T> for Unique<T>  {
     #[inline]
     fn get(&self) -> &T {
-        unsafe { self.get() }
+        unsafe { self.as_ref() }
     }
 
     #[inline] fn get_mut(&mut self) -> &mut T {
-        unsafe { self.get_mut() }
+        unsafe { self.as_mut() }
     }
 
     #[inline]
