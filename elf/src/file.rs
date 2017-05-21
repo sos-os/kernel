@@ -185,7 +185,7 @@ macro_rules! Header {
         }
 
         impl<'a> convert::TryFrom<&'a [u8]> for &'a $name<$size> {
-            type Err = &'static str;
+            type Error = &'static str;
             #[inline]
             fn try_from(slice: &'a [u8]) -> ElfResult<Self> {
                 <$name<$size> as Header>::from_slice(slice)

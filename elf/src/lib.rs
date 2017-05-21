@@ -130,10 +130,10 @@ where Word: ElfWord + 'a
     , PH: program::Header<Word = Word> + 'a
     , SH: section::Header<Word = Word> + 'a
     , FH: file::Header<Word = Word> + 'a
-    , &'a FH: convert::TryFrom<&'a [u8], Err = &'static str>
+    , &'a FH: convert::TryFrom<&'a [u8], Error = &'static str>
     {
 
-    type Err = &'static str;
+    type Error = &'static str;
 
     fn try_from(bytes: &'a [u8]) -> ElfResult<Self> {
         let header: &'a FH = <&'a FH>::try_from(bytes)?;
