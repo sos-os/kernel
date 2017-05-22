@@ -142,7 +142,7 @@ use super::ErrorCodeHandler;
 pub struct Idt {
     pub divide_by_zero: Gate
   , /// debug interrupt handler - reserved
-    debug: Gate
+    pub debug: Gate
   , pub nmi: Gate
   , pub breakpoint: Gate
   , pub overflow: Gate

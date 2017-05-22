@@ -87,33 +87,9 @@ impl<H> Gate<H> {
             }
     }
 
-}
-
-impl Gate<ErrorCodeHandler> {
-
-    pub fn set_handler(&mut self, handler: ErrorCodeHandler) -> &mut Self {
-        let (low, mid, high): (u16, u16, u32)
-            = unsafe{ mem::transmute(handler) };
-
-        self.offset_lower = low;
-        self.offset_mid = mid;
-        self.offset_upper = high;
-
-        self
-    }
-
-}
-
-impl Gate<InterruptHandler> {
-
-    pub fn set_handler(&mut self, handler: InterruptHandler) -> &mut Self {
-        let (low, mid, high): (u16, u16, u32)
-            = unsafe{ mem::transmute(handler) };
-
-        self.offset_lower = low;
-        self.offset_mid = mid;
-        self.offset_upper = high;
-
+    pub fn set_handler<F>(&mut self, handler: F) -> &mut Self
+    where Self: convert::From<F> {
+        *self = Self::from(handler);
         self
     }
 
