@@ -87,6 +87,17 @@ impl<H> Gate<H> {
             }
     }
 
+    pub fn set_handler(&mut self, handler: H) -> &mut Self {
+        let (low, mid, high): (u16, u16, u32)
+            = unsafe{ mem::transmute(handler) };
+
+        self.offset_lower = low;
+        self.offset_mid = mid;
+        self.offset_high = high;
+
+        self
+    }
+
 }
 
 impl<H> Default for Gate<H> {
