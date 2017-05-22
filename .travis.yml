@@ -1,7 +1,5 @@
 language: rust
-
-rust:
-  - nightly
+rust: nightly
 
 # matrix:
 #   allow_failures:
@@ -49,13 +47,11 @@ install:
   - export PATH="$PATH:$(rustc --print sysroot)/cargo/bin:$HOME/.cargo/bin"
 
 jobs:
-  fast_finish: true
   include:
-    - script: make test
+    - stage: preflight
+      script: make test
     - stage: build
-      script:
-        - make kernel
-      os: linux
+      script: make kernel
     - stage: docs
       script: |
         pip install 'travis-cargo<0.2' --user &&
