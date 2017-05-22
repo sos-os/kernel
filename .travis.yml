@@ -7,24 +7,10 @@ os:
 rust:
   - nightly
 
-jobs:
-  include:
-    - stage: test
-      script: make test
-    - stage: kernel
-      script: make kernel
-      os: linux
-    - stage: docs
-      script: |
-        pip install 'travis-cargo<0.2' --user &&
-        export PATH=$HOME/.local/bin:$PATH &&
-        travis-cargo doc &&
-        travis-cargo doc-upload
-
-matrix:
-  allow_failures:
-    - os: osx
-  fast_finish: true
+# matrix:
+#   allow_failures:
+#     - os: osx
+#   fast_finish: true
 
 cache:
   cargo: true
@@ -71,6 +57,22 @@ install:
   - cargo install xargo --force
   - export PATH="$PATH:$(rustc --print sysroot)/cargo/bin:$HOME/.cargo/bin"
 
+jobs:
+  fast_finish: true
+  include:
+    - stage: test
+      script: make test
+    - stage: kernel
+      script: make kernel
+      os: linux
+    - stage: docs
+      script: |
+        pip install 'travis-cargo<0.2' --user &&
+        export PATH=$HOME/.local/bin:$PATH &&
+        travis-cargo doc &&
+        travis-cargo doc-upload
+  allow_failures:
+    - os: osx
 # before_script: |
 #   if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
 #       gcc=$(which gcc)
