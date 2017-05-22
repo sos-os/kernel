@@ -1,9 +1,5 @@
 language: rust
 
-os:
-  - linux
-  - osx
-
 rust:
   - nightly
 
@@ -61,9 +57,14 @@ jobs:
   fast_finish: true
   include:
     - stage: test
-      script: make test
-    - stage: kernel
-      script: make kernel
+      script:
+        - make test
+      os:
+        - linux
+        - osx
+    - stage: build
+      script:
+        - make kernel
       os: linux
     - stage: docs
       script: |
@@ -71,6 +72,7 @@ jobs:
         export PATH=$HOME/.local/bin:$PATH &&
         travis-cargo doc &&
         travis-cargo doc-upload
+      os: linux
   allow_failures:
     - os: osx
 # before_script: |
