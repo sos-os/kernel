@@ -93,7 +93,7 @@ impl<H> Gate<H> {
 
         self.offset_lower = low;
         self.offset_mid = mid;
-        self.offset_high = high;
+        self.offset_upper = high;
 
         self
     }
