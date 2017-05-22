@@ -46,10 +46,10 @@ install:
   - cargo install xargo --force
   - export PATH="$PATH:$(rustc --print sysroot)/cargo/bin:$HOME/.cargo/bin"
 
+script: make test
+
 jobs:
   include:
-    - stage: preflight
-      script: make test
     - stage: build
       script: make kernel
     - stage: docs
