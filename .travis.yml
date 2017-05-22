@@ -13,9 +13,6 @@ cache:
   directories:
     - /usr/local/bin/x86_64-pc-elf-*
     - /usr/local/bin/grub*
-    # brew directories on OS X
-    - /usr/local/Cellar/x86_64-pc-elf-*
-    - /usr/local/Cellar/grub
 
 notifications:
   email:
@@ -33,13 +30,11 @@ addons:
     # - libssh2-1
 
 before_install: |
-  if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-    objcopy=$(which objcopy) &&
-    strip=$(which strip) &&
-    mkdir -p $HOME/bin &&
-    ln -s $objcopy $HOME/bin/x86_64-elf-objcopy &&
-    ln -s $strip $HOME/bin/x86_64-elf-strip
-  fi
+  objcopy=$(which objcopy) &&
+  strip=$(which strip) &&
+  mkdir -p $HOME/bin &&
+  ln -s $objcopy $HOME/bin/x86_64-elf-objcopy &&
+  ln -s $strip $HOME/bin/x86_64-elf-strip
 
 install:
   ### install the "rust-src" rustup component ###############################
@@ -59,9 +54,6 @@ jobs:
     - stage: test
       script:
         - make test
-      os:
-        - linux
-        - osx
     - stage: build
       script:
         - make kernel
@@ -72,32 +64,6 @@ jobs:
         export PATH=$HOME/.local/bin:$PATH &&
         travis-cargo doc &&
         travis-cargo doc-upload
-      os: linux
-  allow_failures:
-    - os: osx
-# before_script: |
-#   if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-#       gcc=$(which gcc)
-#       echo "${bold}install-env-linux:${normal} Linking ${gcc} to ${HOME}/bin/x86_64-pc-elf-gcc."
-#       ln -s $gcc $HOME/bin/x86_64-pc-elf-gcc
-#
-#       objcopy=$(which objcopy)
-#       echo "${bold}install-env-linux:${normal} Linking ${objcopy} to ${HOME}/bin/x86_64-elf-objcopy."
-#       ln -s $objcopy $HOME/bin/x86_64-elf-objcopy
-#
-#       strip=$(which strip)
-#       echo "${bold}install-env-linux:${normal} Linking ${strip} to ${HOME}/bin/x86_64-elf-strip."
-#       ln -s $strip $HOME/bin/x86_64-elf-strip
-#
-#       export PATH="$PATH:$HOME/bin"
-#   fi
-
-# script:
-#   - make test
-#   - make kernel
-
-# after_success:
-#   - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then travis-cargo doc && travis-cargo doc-upload; fi
 
 deploy:
   provider: releases
