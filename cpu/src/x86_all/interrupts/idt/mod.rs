@@ -8,7 +8,7 @@
 //
 //! Common functionality for the `x86` and `x86_64` Interrupt Descriptor Table.
 #![warn(missing_docs)]
-use core::{mem, convert};
+use core::{default, mem, convert, ops};
 
 use ::dtable::DTable;
 use ::PrivilegeLevel;
@@ -134,17 +134,96 @@ impl Default for GateFlags {
 }
 
 //==------------------------------------------------------------------------==
+use super::ErrorCodeHandler;
 //  IDT implementation
 /// An Interrupt Descriptor Table
 ///
 /// The IDT is either 64-bit or 32-bit.
-pub struct Idt([Gate; ENTRIES]);
+pub struct Idt {
+    pub divide_by_zero: Gate
+  , /// debug interrupt handler - reserved
+    debug: Gate
+  , pub nmi: Gate
+  , pub breakpoint: Gate
+  , pub overflow: Gate
+  , pub bound_exceeded: Gate
+  , pub undefined_opcode: Gate
+  , pub device_not_available: Gate
+  , pub double_fault: Gate<ErrorCodeHandler>
+  , pub coprocessor_segment_overrun: Gate<ErrorCodeHandler>
+  , pub invalid_tss: Gate<ErrorCodeHandler>
+  , pub segment_not_present: Gate<ErrorCodeHandler>
+  , pub stack_segment_fault: Gate<ErrorCodeHandler>
+  , pub general_protection_fault: Gate<ErrorCodeHandler>
+  , pub page_fault: Gate<ErrorCodeHandler>
+  , _reserved: Gate
+  , pub floating_point_error: Gate
+  , pub alignment_check: Gate<ErrorCodeHandler>
+  , pub machine_check: Gate
+  , pub simd_fp_exception: Gate
+  , /// user-defined interrupts
+    pub interrupts: [Gate; ENTRIES - super::NUM_EXCEPTIONS]
+}
+
+impl Default for Idt {
+    #[inline]
+    fn default() -> Self {
+        Idt {
+            interrupts: [Default::default(); ENTRIES - super::NUM_EXCEPTIONS]
+            , ..Default::default()
+        }
+    }
+}
+
+impl ops::Index<usize> for Idt {
+    type Output = Gate;
+
+    #[inline]
+    fn index(&self, index: usize) -> &Gate {
+        unsafe {
+            &mem::transmute::<&Self, &[Gate; ENTRIES]>(self)[index]
+        }
+    }
+}
+
+impl ops::IndexMut<usize> for Idt {
+
+    #[inline]
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        unsafe {
+            &mut mem::transmute::<&mut Self, &mut [Gate; ENTRIES]>(self)[index]
+        }
+    }
+}
 
 impl Idt {
 
-    /// Construct a new IDT with all interrupt gates set to `absent`.
+    /// Construct a new IDT with all interrupt gates set to [`absent`].
+    ///
+    /// [`absent`]: struct.Gate.absent.html
     pub const fn new() -> Self {
-        Idt([Gate::absent(); ENTRIES])
+        Idt { divide_by_zero: Gate::absent()
+            , debug: Gate::absent()
+            , nmi: Gate::absent()
+            , breakpoint: Gate::absent()
+            , overflow: Gate::absent()
+            , bound_exceeded: Gate::absent()
+            , undefined_opcode: Gate::absent()
+            , device_not_available: Gate::absent()
+            , double_fault: Gate::absent()
+            , coprocessor_segment_overrun: Gate::absent()
+            , invalid_tss: Gate::absent()
+            , segment_not_present: Gate::absent()
+            , stack_segment_fault: Gate::absent()
+            , general_protection_fault: Gate::absent()
+            , page_fault: Gate::absent()
+            , _reserved: Gate::absent()
+            , floating_point_error: Gate::absent()
+            , alignment_check: Gate::absent()
+            , machine_check: Gate::absent()
+            , simd_fp_exception: Gate::absent()
+            , interrupts: [Gate::absent(); ENTRIES - super::NUM_EXCEPTIONS]
+            }
     }
 
     /// Enable interrupts
@@ -165,7 +244,7 @@ impl Idt {
     /// Add a [`Gate`](struct.Gate.html) to the IDT.
     #[inline]
     pub fn add_gate(&mut self, idx: usize, gate: Gate) -> &mut Self {
-        self.0[idx] = gate;
+        self[idx] = gate;
         self
     }
 

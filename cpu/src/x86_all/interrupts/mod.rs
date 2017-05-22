@@ -22,6 +22,8 @@ use core::fmt::Write;
 
 use context::InterruptFrame;
 
+pub const NUM_EXCEPTIONS: usize = 20;
+
 /// An ISR that handles a regular interrupt
 pub type InterruptHandler = extern "x86-interrupt" fn (&InterruptFrame);
 /// An ISR that handles an error with an error code
@@ -49,7 +51,7 @@ pub struct ExceptionInfo { /// The name of the exception
 ///
 /// Taken from the list at
 /// [http://wiki.osdev.org/Exceptions](http://wiki.osdev.org/Exceptions)
-pub static EXCEPTIONS: [ExceptionInfo; 20]
+pub static EXCEPTIONS: [ExceptionInfo; NUM_EXCEPTIONS]
     = [ ExceptionInfo { name: "Divide-By-Zero Error"
                       , mnemonic: "#DE", irq_type: "Fault"
                       , source: "DIV or IDIV instruction" }
