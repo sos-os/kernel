@@ -51,9 +51,7 @@ install:
 jobs:
   fast_finish: true
   include:
-    - stage: test
-      script:
-        - make test
+    - script: make test
     - stage: build
       script:
         - make kernel
