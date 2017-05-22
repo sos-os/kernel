@@ -8,10 +8,12 @@
 //
 
 use cpu::interrupts::{idt, pics};
-use cpu::interrupts::idt::Idt;
+use cpu::interrupts::idt::{Idt, Gate};
 
 use cpu::context::InterruptFrame;
 use cpu::dtable::DTable;
+
+use core::convert::From;
 
 //==--------------------------------------------------------------------------==
 // Top-level interrupt handling
@@ -39,38 +41,38 @@ pub unsafe fn initialize() {
 lazy_static! {
     static ref IDT: Idt = {
         let mut idt = Idt::new();
-        use cpu::interrupts::handlers::*;
+        use cpu::interrupts::*;
         use core::mem::transmute;
 
         // fill the IDT with empty ISRs so we don't throw faults
         for i in 0..idt::ENTRIES {
-            idt.add_handler(i, empty_handler as idt::Handler);
+            idt.add_handler(i, empty_handler as InterruptHandler);
         }
         unsafe {
             // TODO: we can do this in a type-safe manner...
-        idt .add_handler(0, transmute(ex0))
-            .add_handler(1, transmute(ex1))
-            .add_handler(2, transmute(ex2))
+        idt .add_handler(0, ex0 as InterruptHandler)
+            .add_handler(1, ex1 as InterruptHandler)
+            .add_handler(2, ex2 as InterruptHandler)
             // ISR 3 reserved for breakpoints
-            .add_handler(4, transmute(ex4))
-            .add_handler(5, transmute(ex5))
-            .add_handler(6, transmute(ex6))
-            .add_handler(7, transmute(ex7))
-            .add_handler(8, transmute(ex8))
+            .add_handler(4, ex4 as InterruptHandler)
+            .add_handler(5, ex5 as InterruptHandler)
+            .add_handler(6, ex6 as InterruptHandler)
+            .add_handler(7, ex7 as InterruptHandler)
+            .add_handler(8, ex8 as ErrorCodeHandler)
              // ISR 9 is reserved in x86_64
-            .add_handler(10, transmute(ex10))
-            .add_handler(11, transmute(ex11))
-            .add_handler(12, transmute(ex12))
-            .add_handler(13, transmute(ex13))
-            .add_handler(14, transmute(page_fault))
+            .add_handler(10, ex10 as ErrorCodeHandler)
+            .add_handler(11, ex11 as ErrorCodeHandler)
+            .add_handler(12, ex12 as ErrorCodeHandler)
+            .add_handler(13, ex13 as ErrorCodeHandler)
+            .add_handler(14, page_fault as ErrorCodeHandler)
              // ISR 15: reserved
-            .add_handler(16,  transmute(ex16))
-            .add_handler(17,  transmute(ex17))
-            .add_handler(18,  transmute(ex18))
-            .add_handler(19,  transmute(ex19))
-            .add_handler(0x20, transmute(timer))
-            .add_handler(0x21, transmute(keyboard))
-            .add_handler(0xff, transmute(test));
+            .add_handler(16,  ex16 as InterruptHandler)
+            .add_handler(17,  ex17 as ErrorCodeHandler)
+            .add_handler(18,  ex18 as InterruptHandler)
+            .add_handler(19,  ex19 as InterruptHandler)
+            .add_handler(0x20, timer as InterruptHandler)
+            .add_handler(0x21, keyboard as InterruptHandler)
+            .add_handler(0xff, test as InterruptHandler);
         }
 
 
@@ -82,7 +84,7 @@ lazy_static! {
 
 
 #[no_mangle] #[inline(never)]
-pub extern "C" fn keyboard(_frame: *const InterruptFrame) {
+pub extern "x86-interrupt" fn keyboard(_frame: &InterruptFrame) {
     use io::keyboard;
 
     // println!("keyboard happened");

@@ -34,6 +34,8 @@
 
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
+#![cfg_attr( any(target_arch = "x86_64", target_arch="x86")
+           , feature(abi_x86_interrupt))]
 
 #![no_std]
 #![cfg_attr(not(test), no_main)]

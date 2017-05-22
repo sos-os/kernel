@@ -8,8 +8,8 @@
 //
 //! 64-bit IDT gate implementation
 use ::segment;
-use super::{Handler, GateFlags};
-
+use super::{GateFlags};
+use super::super::{InterruptHandler, ErrorCodeHandler};
 use core::{convert, mem};
 
 impl GateFlags {
@@ -84,13 +84,33 @@ impl Gate {
 
 }
 
-impl convert::From<Handler> for Gate {
+impl convert::From<InterruptHandler> for Gate {
 
     /// Creates a new IDT gate pointing at the given handler function.
     ///
     /// The `handler` function must have been created with valid interrupt
     /// calling conventions.
-    fn from(handler: Handler) -> Self {
+    fn from(handler: InterruptHandler) -> Self {
+        unsafe { // trust me on this, `mem::transmute()` is glorious black magic
+                let (low, mid, high): (u16, u16, u32) = mem::transmute(handler);
+
+            Gate { offset_lower: low
+                 , flags: GateFlags::new_interrupt()
+                 , offset_mid: mid
+                 , offset_upper: high
+                 , ..Default::default()
+                 }
+        }
+    }
+}
+
+impl convert::From<ErrorCodeHandler> for Gate {
+
+    /// Creates a new IDT gate pointing at the given handler function.
+    ///
+    /// The `handler` function must have been created with valid interrupt
+    /// calling conventions.
+    fn from(handler: ErrorCodeHandler) -> Self {
         unsafe { // trust me on this, `mem::transmute()` is glorious black magic
                 let (low, mid, high): (u16, u16, u32) = mem::transmute(handler);
 

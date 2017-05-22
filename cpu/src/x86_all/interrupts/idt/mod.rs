@@ -8,13 +8,10 @@
 //
 //! Common functionality for the `x86` and `x86_64` Interrupt Descriptor Table.
 #![warn(missing_docs)]
-use core::mem;
+use core::{mem, convert};
 
 use ::dtable::DTable;
 use ::PrivilegeLevel;
-
-/// An interrupt handler function.
-pub type Handler = unsafe extern "x86-interrupt" fn() -> !;
 
 /// Number of entries in the system's Interrupt Descriptor Table.
 pub const ENTRIES: usize = 256;
@@ -157,7 +154,11 @@ impl Idt {
 
     /// Add a new interrupt gate pointing to the given handler
     #[inline]
-    pub fn add_handler(&mut self, idx: usize, handler: Handler) -> &mut Self {
+    pub fn add_handler<Handler>( &mut self
+                               , idx: usize
+                               , handler: Handler)
+                               -> &mut Self
+    where Gate: convert::From<Handler> {
         self.add_gate(idx, Gate::from(handler))
     }
 
