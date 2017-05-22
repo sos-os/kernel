@@ -7,6 +7,20 @@ os:
 rust:
   - nightly
 
+jobs:
+  include:
+    - stage: test
+      script: make test
+    - stage: kernel
+      script: make kernel
+      os: linux
+    - stage: docs
+      script: |
+        pip install 'travis-cargo<0.2' --user &&
+        export PATH=$HOME/.local/bin:$PATH &&
+        travis-cargo doc &&
+        travis-cargo doc-upload
+
 matrix:
   allow_failures:
     - os: osx
@@ -37,11 +51,7 @@ addons:
     # - libssh2-1
 
 before_install: |
-  if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-    brew update && brew tap homebrew/bundle &&
-    travis_wait 120 brew bundle;
-    printf "\n\n[target.x86_64-sos-kernel-gnu]\nlinker = \"/usr/local/bin/x86_64-pc-elf-gcc\"" >> $HOME/.cargo/config;
-  elif [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+  if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
     objcopy=$(which objcopy) &&
     strip=$(which strip) &&
     mkdir -p $HOME/bin &&
@@ -78,9 +88,9 @@ install:
 #       export PATH="$PATH:$HOME/bin"
 #   fi
 
-script:
-  - make test
-  - make kernel
+# script:
+#   - make test
+#   - make kernel
 
 # after_success:
 #   - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then travis-cargo doc && travis-cargo doc-upload; fi
