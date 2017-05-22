@@ -99,3 +99,12 @@ pub extern "x86-interrupt" fn keyboard(_frame: &InterruptFrame) {
        pics::end_pic_interrupt(0x21);
    }
 }
+
+#[no_mangle] #[inline(never)]
+pub extern "x86-interrupt" fn breakpoint(frame: &InterruptFrame) {
+    println!("Breakpoint! Frame: {:#?}", frame);
+   // send the PICs the end interrupt signal
+   unsafe {
+       pics::end_pic_interrupt(0x21);
+   }
+}
