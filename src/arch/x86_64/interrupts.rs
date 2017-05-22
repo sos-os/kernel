@@ -40,36 +40,38 @@ lazy_static! {
     static ref IDT: Idt = {
         let mut idt = Idt::new();
         use cpu::interrupts::handlers::*;
+        use core::mem::transmute;
 
         // fill the IDT with empty ISRs so we don't throw faults
         for i in 0..idt::ENTRIES {
-            idt.add_handler(i, isr!(interrupt: empty_handler) );
+            idt.add_handler(i, empty_handler as idt::Handler);
         }
-
-        idt .add_handler(0, isr!(interrupt: ex0))
-            .add_handler(1, isr!(interrupt: ex1))
-            .add_handler(2, isr!(interrupt: ex2))
+        unsafe {
+            // TODO: we can do this in a type-safe manner...
+        idt .add_handler(0, transmute(ex0))
+            .add_handler(1, transmute(ex1))
+            .add_handler(2, transmute(ex2))
             // ISR 3 reserved for breakpoints
-            .add_handler(4, isr!(interrupt: ex4))
-            .add_handler(5, isr!(interrupt: ex5))
-            .add_handler(6, isr!(interrupt: ex6))
-            .add_handler(7, isr!(interrupt: ex7))
-            .add_handler(8, isr!(error: ex8))
+            .add_handler(4, transmute(ex4))
+            .add_handler(5, transmute(ex5))
+            .add_handler(6, transmute(ex6))
+            .add_handler(7, transmute(ex7))
+            .add_handler(8, transmute(ex8))
              // ISR 9 is reserved in x86_64
-            .add_handler(10, isr!(error: ex10))
-            .add_handler(11, isr!(error: ex11))
-            .add_handler(12, isr!(error: ex12))
-            .add_handler(13, isr!(error: ex13))
-            .add_handler(14, isr!(error: page_fault))
+            .add_handler(10, transmute(ex10))
+            .add_handler(11, transmute(ex11))
+            .add_handler(12, transmute(ex12))
+            .add_handler(13, transmute(ex13))
+            .add_handler(14, transmute(page_fault))
              // ISR 15: reserved
-            .add_handler(16,  isr!(interrupt: ex16))
-            .add_handler(17,  isr!(error: ex17))
-            .add_handler(18,  isr!(interrupt: ex18))
-            .add_handler(19,  isr!(interrupt: ex19))
-            .add_handler(0x20, isr!(interrupt: timer))
-            .add_handler(0x21, isr!(interrupt: keyboard))
-            .add_handler(0xff, isr!(interrupt: test));
-
+            .add_handler(16,  transmute(ex16))
+            .add_handler(17,  transmute(ex17))
+            .add_handler(18,  transmute(ex18))
+            .add_handler(19,  transmute(ex19))
+            .add_handler(0x20, transmute(timer))
+            .add_handler(0x21, transmute(keyboard))
+            .add_handler(0xff, transmute(test));
+        }
 
 
         kinfoln!( dots: " . . ", target: "Adding interrupt handlers to IDT"

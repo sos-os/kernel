@@ -14,7 +14,7 @@ use ::dtable::DTable;
 use ::PrivilegeLevel;
 
 /// An interrupt handler function.
-pub type Handler = unsafe extern "C" fn() -> !;
+pub type Handler = unsafe extern "x86-interrupt" fn() -> !;
 
 /// Number of entries in the system's Interrupt Descriptor Table.
 pub const ENTRIES: usize = 256;

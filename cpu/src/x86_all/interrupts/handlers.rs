@@ -16,9 +16,9 @@ use core::fmt;
 use core::fmt::Write;
 
 /// An ISR that handles a regular interrupt
-pub type InterruptHandler = extern "C" fn (*const InterruptFrame);
+pub type InterruptHandler = extern "x86-interrupt" fn (&InterruptFrame);
 /// An ISR that handles an error with an error code
-pub type ErrorCodeHandler = extern "C" fn (*const InterruptFrame, usize);
+pub type ErrorCodeHandler = extern "x86-interrupt" fn (&InterruptFrame, usize);
 
 /// A description of a CPU exception
 #[derive(Debug)]
@@ -148,7 +148,7 @@ impl fmt::Display for PageFaultErrorCode {
 }
 
 /// Handler for the system timer interrupt
-pub extern "C" fn timer(_frame: *const InterruptFrame) {
+pub extern "x86-interrupt" fn timer(_frame: &InterruptFrame) {
     // do nothing, just signal the pics to end the IRQ
     // println!("timer!");
     unsafe { end_pic_interrupt(0x21); }
@@ -158,7 +158,7 @@ pub extern "C" fn timer(_frame: *const InterruptFrame) {
 
 /// Handles page fault exceptions
 #[no_mangle] #[inline(never)]
-pub extern "C" fn page_fault( frame: *const InterruptFrame, error_code: usize) {
+pub extern "x86-interrupt" fn page_fault( frame: &InterruptFrame, error_code: usize) {
    unsafe {
        let _ = write!( CONSOLE.lock()
                           .set_colors(Color::White, Color::Blue)
@@ -178,7 +178,7 @@ pub extern "C" fn page_fault( frame: *const InterruptFrame, error_code: usize) {
 
 /// Test interrupt handler for ensuring that the IDT is configured correctly.
 #[no_mangle] #[inline(never)]
-pub extern "C" fn test(_frame: *const InterruptFrame) {
+pub extern "x86-interrupt" fn test(_frame: &InterruptFrame) {
    // assert_eq!(state.int_id, 0x80);
    kinfoln!(dots: " . . ", target: "Testing interrupt handling:", "[ OKAY ]");
    // send the PICs the end interrupt signal
@@ -189,7 +189,7 @@ pub extern "C" fn test(_frame: *const InterruptFrame) {
 
 /// Empty dummy handler for undefined interrupts.
 #[no_mangle] #[inline(never)]
-pub extern "C" fn empty_handler(_frame: *const InterruptFrame) {
+pub extern "x86-interrupt" fn empty_handler(_frame: &InterruptFrame) {
    // assert_eq!(state.int_id, 0x80);
    println!("interrupt");
    // send the PICs the end interrupt signal
@@ -202,7 +202,7 @@ macro_rules! make_handlers {
     ( $(ex $ex_num:expr, $name:ident),+ ) => {
         $(
             #[no_mangle] #[allow(missing_docs)]
-            pub extern "C" fn $name(frame: *const InterruptFrame) {
+            pub extern "x86-interrupt" fn $name(frame: &InterruptFrame) {
                 unsafe {
                     let ex_info = &EXCEPTIONS[$ex_num];
                     // let cr_state = control_regs::dump();
@@ -225,7 +225,7 @@ macro_rules! make_handlers {
     ( $(err $ex_num:expr, $name:ident) ,+ ) => {
         $(
             #[no_mangle] #[allow(missing_docs)]
-            pub extern "C" fn $name( frame: *const InterruptFrame
+            pub extern "x86-interrupt" fn $name( frame: &InterruptFrame
                                    , err_code: usize) {
                 unsafe {
                     let ex_info = &EXCEPTIONS[$ex_num];
