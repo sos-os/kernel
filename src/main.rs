@@ -53,7 +53,7 @@ extern crate spin;
 #[macro_use] extern crate vga;
 
 extern crate alloc;
-#[macro_use] extern crate cpu;
+extern crate cpu;
 extern crate elf;
 extern crate util;
 extern crate memory;

@@ -7,13 +7,12 @@
 //  directory of this repository for more information.
 //
 
-use cpu::interrupts::{idt, pics};
-use cpu::interrupts::idt::{Idt, Gate};
+use cpu::interrupts::pics;
+use cpu::interrupts::idt::Idt;
 
 use cpu::context::InterruptFrame;
 use cpu::dtable::DTable;
 
-use core::convert::From;
 
 //==--------------------------------------------------------------------------==
 // Top-level interrupt handling
