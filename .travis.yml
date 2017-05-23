@@ -52,27 +52,28 @@ jobs:
   include:
     - stage: build
       script: make kernel
+      deploy:
+        provider: releases
+        api_key:
+          secure: DQ6EChkuPdDbCkPQIOVmq7SBxTG04GeoUXeguCb3RcX+lT5FqTG/2bAnElAxE+KHkLpxBav+CIaHyPQzT93LN70PSV0Vny8Oo3OCOprSn3gph12ZXPeebFk+EFArju3N/Du/cxlNK6zQ71Sw1Jr+nmutjpCGkN2ki04A6iY5f0cLmgsUXZxVBzMY4mb2tihAvH+0HgR96mmQ6xEvWU3mXnHvgpJhSwSHJlZao7C51vq0sr5bKPNVVHfwN7OlqG3uJYWcnFIlrkGbZyVtNZ//CjtGPhKufn+l1JOdQo47/Lh+iHPUNrWGsvNiy7yXrBdsVKI0oJwfssHrMPrXyWphk9wrD8ID1wpKXPxDikVB3uSU1OfQbSSsH+aF7i3mNwJSG4ORTjZeuBQpC4F9ZUAr2uS6RR+bW9tnb6/ZRQA0vqQVS1oi5miIHLe9FbMccOZLWYyHM6Lts3cd4zEldZTvPUmO7M5oP4Woo0DPRWvq48f7QW9x0ewjVRjfUkPZ8+H5BfFfqXQXZYtDRfTruVaYtS/We3QggvLaNZJOmq+jJQqrSARK5tB/HD8YZvu9Z1XU8UTcm6ORvlEsAMIk7+orUU1L4ibO/Tr1wEU9fgS2k9rCDPhfMljgn2EqBRfULnwqbzSwPrZmKyJlVZ6GsJtCAC1XQQCbZIMVShVbvL6JEKU=
+        file: build/os-x86_64.iso
+        skip_cleanup: true
+        on:
+          tags: true
+          repo: hawkw/sos-kernel
     - stage: docs
       install: skip
-      script: |
-        if [[ "$TRAVIS_BRANCH" == "master" && ""$TRAVIS_PULL_REQUEST" == "false" ]]
-        then
-          cargo doc &&
-          echo "<meta http-equiv=refresh content=0;url=`echo $TRAVIS_REPO_SLUG | cut -d '/' -f 2`/index.html>" > target/doc/index.html &&
-          sudo pip install ghp-import &&
-          ghp-import -n target/doc &&
-          git push -fq https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git gh-pages
-        fi
+      script: cargo doc
+      deploy:
+        provider:  pages
+        skip_cleanup: true
+        github_token: $GH_TOKEN # Set in travis-ci.org dashboard
+        target_branch: gh-pages
+        local_dir: target/doc
+        on:
+          branch: master
+          repo: hawkw/sos-kernel
 
-deploy:
-  provider: releases
-  api_key:
-    secure: DQ6EChkuPdDbCkPQIOVmq7SBxTG04GeoUXeguCb3RcX+lT5FqTG/2bAnElAxE+KHkLpxBav+CIaHyPQzT93LN70PSV0Vny8Oo3OCOprSn3gph12ZXPeebFk+EFArju3N/Du/cxlNK6zQ71Sw1Jr+nmutjpCGkN2ki04A6iY5f0cLmgsUXZxVBzMY4mb2tihAvH+0HgR96mmQ6xEvWU3mXnHvgpJhSwSHJlZao7C51vq0sr5bKPNVVHfwN7OlqG3uJYWcnFIlrkGbZyVtNZ//CjtGPhKufn+l1JOdQo47/Lh+iHPUNrWGsvNiy7yXrBdsVKI0oJwfssHrMPrXyWphk9wrD8ID1wpKXPxDikVB3uSU1OfQbSSsH+aF7i3mNwJSG4ORTjZeuBQpC4F9ZUAr2uS6RR+bW9tnb6/ZRQA0vqQVS1oi5miIHLe9FbMccOZLWYyHM6Lts3cd4zEldZTvPUmO7M5oP4Woo0DPRWvq48f7QW9x0ewjVRjfUkPZ8+H5BfFfqXQXZYtDRfTruVaYtS/We3QggvLaNZJOmq+jJQqrSARK5tB/HD8YZvu9Z1XU8UTcm6ORvlEsAMIk7+orUU1L4ibO/Tr1wEU9fgS2k9rCDPhfMljgn2EqBRfULnwqbzSwPrZmKyJlVZ6GsJtCAC1XQQCbZIMVShVbvL6JEKU=
-  file: build/os-x86_64.iso
-  skip_cleanup: true
-  on:
-    tags: true
-    repo: hawkw/sos-kernel
 env:
   global:
     # override the default `--features unstable` used for the nightly branch (optional)
