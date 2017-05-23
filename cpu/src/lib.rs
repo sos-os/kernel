@@ -14,6 +14,7 @@
 #![feature(slice_patterns)]
 #![feature(linkage)]
 #![feature(stmt_expr_attributes)]
+#![cfg_attr(target_arch = "x86_64", feature(abi_x86_interrupt))]
 #![no_std]
 
 #[macro_use] extern crate log;

@@ -12,7 +12,7 @@
 //!
 //! [specification]: http://nongnu.askapache.com/grub/phcoder/multiboot.pdf
 use memory::PAddr;
-use elf::section::{Header as Section, Sections, HeaderRepr as SectionHeader};
+use elf::section::{Sections, HeaderRepr as SectionHeader};
 
 use core::iter::IntoIterator;
 use core::fmt;

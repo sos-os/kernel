@@ -7,11 +7,12 @@
 //  directory of this repository for more information.
 //
 
-use cpu::interrupts::{idt, pics};
+use cpu::interrupts::pics;
 use cpu::interrupts::idt::Idt;
 
 use cpu::context::InterruptFrame;
 use cpu::dtable::DTable;
+
 
 //==--------------------------------------------------------------------------==
 // Top-level interrupt handling
@@ -39,38 +40,39 @@ pub unsafe fn initialize() {
 lazy_static! {
     static ref IDT: Idt = {
         let mut idt = Idt::new();
-        use cpu::interrupts::handlers::*;
+        use cpu::interrupts::*;
+        // TODO: use semantic names for handlers & idt field refs
+        //       (i was too lazy to look them up while porting this to the new
+        //        IDT api)
+        //          - eliza, 5/22/2017
 
-        // fill the IDT with empty ISRs so we don't throw faults
-        for i in 0..idt::ENTRIES {
-            idt.add_handler(i, isr!(interrupt: empty_handler) );
-        }
+        // TODO: log each handler as it's added to the IDT? that way we can
+        //       trace faults occurring during IDT population (if any)
+        //          - eliza, 5/22/2017
 
-        idt .add_handler(0, isr!(interrupt: ex0))
-            .add_handler(1, isr!(interrupt: ex1))
-            .add_handler(2, isr!(interrupt: ex2))
-            // ISR 3 reserved for breakpoints
-            .add_handler(4, isr!(interrupt: ex4))
-            .add_handler(5, isr!(interrupt: ex5))
-            .add_handler(6, isr!(interrupt: ex6))
-            .add_handler(7, isr!(interrupt: ex7))
-            .add_handler(8, isr!(error: ex8))
-             // ISR 9 is reserved in x86_64
-            .add_handler(10, isr!(error: ex10))
-            .add_handler(11, isr!(error: ex11))
-            .add_handler(12, isr!(error: ex12))
-            .add_handler(13, isr!(error: ex13))
-            .add_handler(14, isr!(error: page_fault))
-             // ISR 15: reserved
-            .add_handler(16,  isr!(interrupt: ex16))
-            .add_handler(17,  isr!(error: ex17))
-            .add_handler(18,  isr!(interrupt: ex18))
-            .add_handler(19,  isr!(interrupt: ex19))
-            .add_handler(0x20, isr!(interrupt: timer))
-            .add_handler(0x21, isr!(interrupt: keyboard))
-            .add_handler(0xff, isr!(interrupt: test));
+        // i don't know why these all need to be cast? very weird. should fix.
+        idt.divide_by_zero.set_handler(ex0 as InterruptHandler);
+        idt.debug.set_handler(ex1 as InterruptHandler);
+        idt.nmi.set_handler(ex2 as InterruptHandler);
 
+        idt.overflow.set_handler(ex4 as InterruptHandler);
+        idt.bound_exceeded.set_handler(ex5 as InterruptHandler);
+        idt.undefined_opcode.set_handler(ex6 as InterruptHandler);
+        idt.device_not_available.set_handler(ex7 as InterruptHandler);
+        idt.double_fault.set_handler(ex8 as ErrorCodeHandler);
 
+        idt.invalid_tss.set_handler(ex10 as ErrorCodeHandler);
+        idt.segment_not_present.set_handler(ex11 as ErrorCodeHandler);
+        idt.stack_segment_fault.set_handler(ex12 as ErrorCodeHandler);
+        idt.general_protection_fault.set_handler(ex13 as ErrorCodeHandler);
+        idt.page_fault.set_handler(page_fault as ErrorCodeHandler);
+        idt.floating_point_error.set_handler(ex16 as InterruptHandler);
+        idt.alignment_check.set_handler(ex17 as ErrorCodeHandler);
+        idt.machine_check.set_handler(ex18 as InterruptHandler);
+        idt.simd_fp_exception.set_handler(ex19 as InterruptHandler);
+        idt[0x20].set_handler(timer as InterruptHandler);
+        idt[0x21].set_handler(keyboard as InterruptHandler);
+        idt[0xff].set_handler(test as InterruptHandler);
 
         kinfoln!( dots: " . . ", target: "Adding interrupt handlers to IDT"
                 , "[ OKAY ]");
@@ -80,7 +82,7 @@ lazy_static! {
 
 
 #[no_mangle] #[inline(never)]
-pub extern "C" fn keyboard(_frame: *const InterruptFrame) {
+pub extern "x86-interrupt" fn keyboard(_frame: &InterruptFrame) {
     use io::keyboard;
 
     // println!("keyboard happened");
@@ -91,6 +93,15 @@ pub extern "C" fn keyboard(_frame: *const InterruptFrame) {
             print!("{}", input);
         }
     }
+   // send the PICs the end interrupt signal
+   unsafe {
+       pics::end_pic_interrupt(0x21);
+   }
+}
+
+#[no_mangle] #[inline(never)]
+pub extern "x86-interrupt" fn breakpoint(frame: &InterruptFrame) {
+    println!("Breakpoint! Frame: {:#?}", frame);
    // send the PICs the end interrupt signal
    unsafe {
        pics::end_pic_interrupt(0x21);
