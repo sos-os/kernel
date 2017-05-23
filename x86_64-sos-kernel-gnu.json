@@ -8,6 +8,7 @@
     "relocation-model": "static",
     "os": "sos",
     "arch": "x86_64",
+    "linker": "gcc",
     "linker-flavor": "gcc",
     "pre-link-args": {
         "gcc": [ "-Tsrc/arch/x86_64/linker.ld"
