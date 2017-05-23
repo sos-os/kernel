@@ -35,7 +35,6 @@
 #![feature(asm)]
 #![feature(lang_items)]
 #![feature(naked_functions)]
-#![feature(static_recursion)]
 #![feature(linkage)]
 #![feature(struct_field_attributes)]
 #![feature(stmt_expr_attributes)]

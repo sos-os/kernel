@@ -7,7 +7,6 @@
 //  directory of this repository for more information.
 //
 
-use memory::{PAddr, VAddr};
 use super::ElfWord;
 
 /// Trait representing an ELF Program Header.

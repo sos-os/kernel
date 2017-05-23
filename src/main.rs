@@ -102,7 +102,7 @@ pub fn kernel_init(params: InitParams) {
 
     // -- initialize the heap ------------------------------------------------
 
-    if let Ok(_) =  unsafe { heap::initialize(&params) } {
+    if unsafe { heap::initialize(&params) }.is_ok() {
         kinfoln!( dots: " . ", target: "Intializing heap"
                 , "[ OKAY ]"
                 );

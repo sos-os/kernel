@@ -23,7 +23,6 @@ extern crate spin;
 
 extern crate util;
 #[macro_use] extern crate vga;
-#[macro_use] extern crate lazy_static;
 
 use core::marker::PhantomData;
 

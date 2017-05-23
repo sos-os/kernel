@@ -28,7 +28,7 @@
 extern crate spin;
 
 #[cfg(feature = "kinfo")]
-#[macro_use] extern crate log;
+extern crate log;
 
 use core::{mem, ptr};
 use core::fmt::{Write, Result};

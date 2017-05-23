@@ -19,8 +19,6 @@
 
 #[macro_use] extern crate bitflags;
 #[macro_use] extern crate macro_attr;
-// #[macro_use] extern crate newtype_derive;
-#[macro_use] extern crate log;
 
 #[macro_use] extern crate util;
 // #[cfg(not(test))] #[macro_use] extern crate vga;

@@ -8,7 +8,7 @@
 //
 //! Common functionality for the `x86` and `x86_64` Interrupt Descriptor Table.
 #![warn(missing_docs)]
-use core::{default, mem, convert, ops};
+use core::{mem, convert, ops};
 
 use ::dtable::DTable;
 use ::PrivilegeLevel;

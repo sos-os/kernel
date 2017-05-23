@@ -211,7 +211,6 @@ unsafe fn extract_from_slice<'slice, T: Sized>( data: &'slice [u8]
                                               , offset: usize
                                               , n: usize)
                                               -> ElfResult<&'slice [T]> {
-    use core::intrinsics::type_name;
     if offset % mem::align_of::<T>() != 0 {
         // TODO: these error messages don't contain as much information as they
         //       used to, since the return type is `&'static str` that can't be
