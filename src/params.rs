@@ -8,7 +8,7 @@
 //
 //! Kernel parameters
 //!
-#[deny(missing_docs)]
+#![deny(missing_docs)]
 
 // use memory::paging::PageRange;
 use memory::PAddr;
