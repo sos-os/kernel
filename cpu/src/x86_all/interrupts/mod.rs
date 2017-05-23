@@ -168,18 +168,16 @@ pub extern "x86-interrupt" fn timer(_frame: &InterruptFrame) {
 /// Handles page fault exceptions
 #[no_mangle] #[inline(never)]
 pub extern "x86-interrupt" fn page_fault( frame: &InterruptFrame, error_code: usize) {
-   unsafe {
-       let _ = write!( CONSOLE.lock()
-                          .set_colors(Color::White, Color::Blue)
-                       //   .clear()
-                 , "IT'S NOT MY FAULT: Page Fault at {:p} \
-                    \nError code: {:#x}\n\n{}\n{:?}"
-                 , (*frame).rip
-                 , error_code
-                 , PageFaultErrorCode::from_bits_truncate(error_code as u32)
-                 , *frame
-                 );
-    }
+   let _ = write!( CONSOLE.lock()
+                      .set_colors(Color::White, Color::Blue)
+                   //   .clear()
+             , "IT'S NOT MY FAULT: Page Fault at {:p} \
+                \nError code: {:#x}\n\n{}\n{:?}"
+             , (*frame).rip
+             , error_code
+             , PageFaultErrorCode::from_bits_truncate(error_code as u32)
+             , *frame
+             );
    // TODO: stack dumps please
 
    loop { }
@@ -212,22 +210,20 @@ macro_rules! make_handlers {
         $(
             #[no_mangle] #[allow(missing_docs)]
             pub extern "x86-interrupt" fn $name(frame: &InterruptFrame) {
-                unsafe {
-                    let ex_info = &EXCEPTIONS[$ex_num];
-                    // let cr_state = control_regs::dump();
-                    let _ = write!( CONSOLE.lock()
-                                           .set_colors(Color::White, Color::Blue)
-                                  , "EVERYTHING IS FINE: {}{} at {:p}\n\
-                                     Exception on vector {}.\n\
-                                     Source: {}.\nThis is fine.\n\n\
-                                     {:?}"
-                                     , ex_info.name, ex_info.irq_type
-                                     , (*frame).rip
-                                     , $ex_num
-                                     , ex_info.source
-                                     , *frame);
-                    loop { }
-                }
+                let ex_info = &EXCEPTIONS[$ex_num];
+                // let cr_state = control_regs::dump();
+                let _ = write!( CONSOLE.lock()
+                                       .set_colors(Color::White, Color::Blue)
+                              , "EVERYTHING IS FINE: {}{} at {:p}\n\
+                                 Exception on vector {}.\n\
+                                 Source: {}.\nThis is fine.\n\n\
+                                 {:?}"
+                                 , ex_info.name, ex_info.irq_type
+                                 , (*frame).rip
+                                 , $ex_num
+                                 , ex_info.source
+                                 , *frame);
+                loop { }
             }
         )+
     };
@@ -235,23 +231,21 @@ macro_rules! make_handlers {
         $(
             #[no_mangle] #[allow(missing_docs)]
             pub extern "x86-interrupt" fn $name( frame: &InterruptFrame
-                                   , err_code: usize) {
-                unsafe {
-                    let ex_info = &EXCEPTIONS[$ex_num];
-                    // let cr_state = control_regs::dump();
-                    let _ = write!( CONSOLE.lock()
-                                           .set_colors(Color::White, Color::Blue)
-                                  , "EVERYTHING IS FINE: {}{} at {:p}\n\
-                                     Exception on vector {} with error code {:#x}.\n\
-                                     Source: {}.\nThis is fine.\n\n\
-                                     {:?}"
-                                  , ex_info.name, ex_info.irq_type
-                                  , (*frame).rip
-                                  , $ex_num, err_code
-                                  , ex_info.source
-                                  , *frame);
-                    loop { }
-                }
+                                                , err_code: usize) {
+                let ex_info = &EXCEPTIONS[$ex_num];
+                // let cr_state = control_regs::dump();
+                let _ = write!( CONSOLE.lock()
+                                       .set_colors(Color::White, Color::Blue)
+                              , "EVERYTHING IS FINE: {}{} at {:p}\n\
+                                 Exception on vector {} with error code {:#x}.\n\
+                                 Source: {}.\nThis is fine.\n\n\
+                                 {:?}"
+                              , ex_info.name, ex_info.irq_type
+                              , (*frame).rip
+                              , $ex_num, err_code
+                              , ex_info.source
+                              , *frame);
+                loop { }
             }
         )+
     };
