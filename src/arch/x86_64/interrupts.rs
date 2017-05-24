@@ -29,9 +29,9 @@ pub unsafe fn initialize() {
    // TODO: consider loading double-fault handler before anything else in case
    //       a double fault occurs during init?
     IDT.load();         // Load the IDT pointer
-
-    debug!("Testing interrupt handling");
-    asm!("int $0" :: "N" (0xff));
+    //
+    // debug!("Testing interrupt handling");
+    // asm!("int $0" :: "N" (0xff));
 
     Idt::enable_interrupts(); // enable interrupts
 
