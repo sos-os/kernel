@@ -150,7 +150,7 @@ pub struct Idt {
   , pub undefined_opcode: Gate
   , pub device_not_available: Gate
   , pub double_fault: Gate<ErrorCodeHandler>
-  , pub coprocessor_segment_overrun: Gate<ErrorCodeHandler>
+  , _coprocessor_segment_overrun: Gate<ErrorCodeHandler>
   , pub invalid_tss: Gate<ErrorCodeHandler>
   , pub segment_not_present: Gate<ErrorCodeHandler>
   , pub stack_segment_fault: Gate<ErrorCodeHandler>
@@ -161,6 +161,10 @@ pub struct Idt {
   , pub alignment_check: Gate<ErrorCodeHandler>
   , pub machine_check: Gate
   , pub simd_fp_exception: Gate
+  , pub virtualization: Gate
+  , _reserved_2: [Gate; 9]
+  , pub security_exception: Gate<ErrorCodeHandler>
+  , _reserved_3: Gate
   , /// user-defined interrupts
     pub interrupts: [Gate; ENTRIES - super::NUM_EXCEPTIONS]
 }
@@ -211,7 +215,7 @@ impl Idt {
             , undefined_opcode: Gate::absent()
             , device_not_available: Gate::absent()
             , double_fault: Gate::absent()
-            , coprocessor_segment_overrun: Gate::absent()
+            , _coprocessor_segment_overrun: Gate::absent()
             , invalid_tss: Gate::absent()
             , segment_not_present: Gate::absent()
             , stack_segment_fault: Gate::absent()
@@ -222,6 +226,10 @@ impl Idt {
             , alignment_check: Gate::absent()
             , machine_check: Gate::absent()
             , simd_fp_exception: Gate::absent()
+            , virtualization: Gate::absent()
+            , _reserved_2: [Gate::absent(); 9]
+            , security_exception: Gate::absent()
+            , _reserved_3: Gate::absent()
             , interrupts: [Gate::absent(); ENTRIES - super::NUM_EXCEPTIONS]
             }
     }

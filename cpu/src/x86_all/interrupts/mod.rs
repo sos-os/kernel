@@ -24,8 +24,8 @@ use context::InterruptFrame;
 
 /// Number of interrupt vectors corresponding to CPU exceptions.
 ///
-/// These are the first 20 vectors in the IDT.
-pub const NUM_EXCEPTIONS: usize = 20;
+/// These are the first 32 vectors in the IDT.
+pub const NUM_EXCEPTIONS: usize = 32;
 
 /// An ISR that handles a regular interrupt
 pub type InterruptHandler = extern "x86-interrupt" fn (&InterruptFrame);
@@ -54,7 +54,7 @@ pub struct ExceptionInfo { /// The name of the exception
 ///
 /// Taken from the list at
 /// [http://wiki.osdev.org/Exceptions](http://wiki.osdev.org/Exceptions)
-pub static EXCEPTIONS: [ExceptionInfo; NUM_EXCEPTIONS]
+pub static EXCEPTIONS: [ExceptionInfo; 20]
     = [ ExceptionInfo { name: "Divide-By-Zero Error"
                       , mnemonic: "#DE", irq_type: "Fault"
                       , source: "DIV or IDIV instruction" }
