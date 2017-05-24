@@ -1,8 +1,8 @@
 //
 //  SOS: the Stupid Operating System
-//  by Eliza Weisman (hi@hawkweisman.me)
+//  by Eliza Weisman (eliza@elizas.website)
 //
-//  Copyright (c) 2015-2016 Eliza Weisman
+//  Copyright (c) 2015-2017 Eliza Weisman
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
@@ -10,13 +10,13 @@
 //! This crate contains the kernel for SOS, the Stupid Operating System.
 //!
 //! # SOS: the Stupid Operating System
-//! SOS is a simple, tiny toy OS implemented in Rust. It targets the x86,
-//! x86_64, and ARM v7 CPU architectures.
+//! SOS is a simple, tiny toy OS implemented in Rust. It targets the `x86`,
+//! `x86_64`, and ARM v7 CPU architectures.
 //!
 //! I'm writing this mostly for fun, to learn more about OS design and kernel
 //! hacking, so don't expect anything new or exciting out of this project.
 //!
-//! SOS is copyright 2015-2016 Eliza Weisman, and is released under the terms
+//! SOS is copyright 2015-2017 Eliza Weisman, and is released under the terms
 //! of the MIT license.
 
 #![crate_name = "sos_kernel"]

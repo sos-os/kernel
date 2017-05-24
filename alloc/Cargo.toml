@@ -1,7 +1,7 @@
 [package]
 name = "alloc"
 version = "0.1.0"
-authors = ["Eliza Weisman <hi@hawkweisman.me>"]
+authors = ["Eliza Weisman <eliza@elizas.website>"]
 
 [features]
 default = ["buddy"]

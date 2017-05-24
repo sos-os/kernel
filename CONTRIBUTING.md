@@ -24,7 +24,7 @@ What do I need to know before contributing?
 
 This project adheres to the Contributor Covenant [code of conduct](CODE_OF_CONDUCT.md).
 By participating, you are expected to uphold this code.
-Please report unacceptable behavior to [hi@hawkweisman.me](mailto:hi@hawkweisman.me).
+Please report unacceptable behavior to [eliza@elizas.website](mailto:eliza@elizas.website).
 
 ### Licensing
 
