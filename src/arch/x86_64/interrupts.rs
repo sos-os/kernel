@@ -37,39 +37,119 @@ pub unsafe fn initialize() {
 
 }
 
+macro_rules! exception_inner {
+    ($title:expr, $kind:expr, $source:expr, $f:expr) => {
+        use vga::{CONSOLE, Color};
+        use core::fmt::Write;
+        let _ = write!( CONSOLE.lock()
+                               .set_colors(Color::White, Color::Blue)
+                      , "EVERYTHING IS FINE: {}{} at {:p}\n\
+                         Source: {}.\nThis is fine.\n\n\
+                         {:?}"
+                         , $title, $kind
+                         , (*$f).rip
+                         , $source
+                         , *$f);
+    };
+    ($title:expr, $kind:expr, $source:expr, $f:expr, $e:expr) => {
+        use vga::{CONSOLE, Color};
+        use core::fmt::Write;
+        let _ = write!( CONSOLE.lock()
+                               .set_colors(Color::White, Color::Blue)
+                      , "EVERYTHING IS FINE: {}{} at {:p}\n\
+                         Source: {}.\n
+                         Error code: {:x}\nThis is fine.\n\n\
+                         {:?}"
+                         , $title, $kind
+                         , (*$f).rip
+                         , $source
+                         , $e
+                         , *$f);
+    };
+}
+
+macro_rules! exceptions {
+    ( idt: $idt:expr, $($tail:tt)+ ) => {
+        exceptions! {  @impl $idt, $($tail)+  }
+    };
+    ( @impl $i:expr, fault: $name:ident, $title:expr, $source:expr, $($tail:tt)* ) => {
+        #[doc=$title]
+        extern "x86-interrupt" fn $name(frame: &InterruptFrame) {
+            exception_inner! ($title, "Fault", $source, frame);
+            loop {}
+        }
+        $i.$name.set_handler($name as InterruptHandler);
+        exceptions! {  @impl  $i, $($tail)* }
+    };
+     ( @impl $i:expr, fault (code): $name:ident, $title:expr, $source:expr, $($tail:tt)* ) => {
+        #[doc=$title]
+        extern "x86-interrupt" fn $name( frame: &InterruptFrame
+                                       , error_code: usize) {
+           exception_inner! ($title, "Fault", $source, frame, error_code);
+           loop {}
+       }
+       $i.$name.set_handler($name as ErrorCodeHandler);
+       exceptions! { @impl $i, $($tail)* };
+   };
+     ( @impl $i:expr, trap: $name:ident, $title:expr, $source:expr, $($tail:tt)* ) => {
+         #[doc=$title]
+         extern "x86-interrupt" fn $name(frame: &InterruptFrame) {
+             exception_inner! ($title, "Trap", $source, frame);
+         }
+         $i.$name.set_handler($name as InterruptHandler)
+           .set_trap();
+         exceptions! { @impl $i, $($tail)* };
+     };
+      ( @impl $i:expr, ) => {};
+
+}
+
 lazy_static! {
     static ref IDT: Idt = {
         let mut idt = Idt::new();
         use cpu::interrupts::*;
-        // TODO: use semantic names for handlers & idt field refs
-        //       (i was too lazy to look them up while porting this to the new
-        //        IDT api)
-        //          - eliza, 5/22/2017
 
         // TODO: log each handler as it's added to the IDT? that way we can
         //       trace faults occurring during IDT population (if any)
         //          - eliza, 5/22/2017
+        exceptions! { idt: idt,
+            fault: divide_by_zero, "Divide by Zero Error",
+                   "DIV or IDIV instruction",
+            fault: nmi, "Non-Maskable Interrupt",
+                  "Non-maskable external interrupt",
+            trap: overflow, "Overflow", "INTO instruction",
+            fault: bound_exceeded, "BOUND range exceeded",
+                  "BOUND instruction",
+            fault: undefined_opcode, "Undefined Opcode",
+                   "UD2 instruction or reserved opcode",
+            fault: device_not_available, "Device Not Available"
+                 , "Floating-point or WAIT/FWAIT instruction \
+                    (no math coprocessor)",
+            fault (code): double_fault, "Double Fault"
+                 , "Any instruction that can generate an exception, a NMI, or \
+                    an INTR",
+            fault (code): invalid_tss, "Invalid TSS"
+                 , "Task switch or TSS access",
+            fault (code): segment_not_present, "Segment Not Present"
+                 , "Loading segment registers or accessing \
+                    system segments",
+            fault (code): general_protection_fault, "General Protection Fault"
+                 , "Any memory reference or other protection checks",
+            fault (code): stack_segment_fault, "Stack Segment Fault"
+                 , "Stack operations and SS register loads",
+            fault: floating_point_error
+                 , "x87 FPU Floating-Point Error (Math Fault)"
+                 , "x87 FPU floating-point or WAIT/FWAIT instruction",
+            fault: machine_check, "Machine Check"
+                 , "Model-dependent (probably hardware!)",
+            fault (code): alignment_check, "Alignment Check"
+                 , "Any data reference in memory",
+            fault: simd_fp_exception, "SIMD Floating-Point Exception"
+                 , "SSE/SSE2/SSE3 floating-point instructions",
+        };
 
-        // i don't know why these all need to be cast? very weird. should fix.
-        idt.divide_by_zero.set_handler(ex0 as InterruptHandler);
-        idt.debug.set_handler(ex1 as InterruptHandler);
-        idt.nmi.set_handler(ex2 as InterruptHandler);
-
-        idt.overflow.set_handler(ex4 as InterruptHandler);
-        idt.bound_exceeded.set_handler(ex5 as InterruptHandler);
-        idt.undefined_opcode.set_handler(ex6 as InterruptHandler);
-        idt.device_not_available.set_handler(ex7 as InterruptHandler);
-        idt.double_fault.set_handler(ex8 as ErrorCodeHandler);
-
-        idt.invalid_tss.set_handler(ex10 as ErrorCodeHandler);
-        idt.segment_not_present.set_handler(ex11 as ErrorCodeHandler);
-        idt.stack_segment_fault.set_handler(ex12 as ErrorCodeHandler);
-        idt.general_protection_fault.set_handler(ex13 as ErrorCodeHandler);
+        idt.breakpoint.set_handler(breakpoint as InterruptHandler);
         idt.page_fault.set_handler(page_fault as ErrorCodeHandler);
-        idt.floating_point_error.set_handler(ex16 as InterruptHandler);
-        idt.alignment_check.set_handler(ex17 as ErrorCodeHandler);
-        idt.machine_check.set_handler(ex18 as InterruptHandler);
-        idt.simd_fp_exception.set_handler(ex19 as InterruptHandler);
         idt[0x20].set_handler(timer as InterruptHandler);
         idt[0x21].set_handler(keyboard as InterruptHandler);
         idt[0xff].set_handler(test as InterruptHandler);
