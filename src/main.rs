@@ -90,7 +90,7 @@ pub fn kernel_main() -> ! {
 /// that this is passed in the correct register as expected by the calling
 /// convention (`edi` on x86). If this isn't there, you can expect to have a
 /// bad problem and not go to space today.
-pub fn kernel_init(params: InitParams) {
+pub fn kernel_init(params: &InitParams) {
     kinfoln!("Hello from the kernel!");
 
     // -- initialize interrupts ----------------------------------------------

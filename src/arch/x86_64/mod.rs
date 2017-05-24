@@ -115,5 +115,5 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
                             , heap_base:   unsafe { PAddr::from(HEAP_BASE) }
                             , heap_top:    unsafe { PAddr::from(HEAP_TOP) }
                             };
-    kernel_init(params);
+    kernel_init(&params);
 }
