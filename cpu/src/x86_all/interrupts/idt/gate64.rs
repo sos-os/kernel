@@ -11,7 +11,7 @@ use ::segment;
 use super::{GateFlags};
 use super::super::{InterruptHandler, ErrorCodeHandler};
 
-use core::{convert, mem};
+use core::{convert, mem, ops};
 use core::marker::PhantomData;
 
 impl GateFlags {
@@ -110,6 +110,16 @@ impl<H> Default for Gate<H> {
              , _handler_type: PhantomData
              }
     }
+}
+
+impl<H> ops::Deref for Gate<H> {
+    type Target = GateFlags;
+
+    #[inline] fn deref(&self) -> &Self::Target { &self.flags }
+}
+
+impl<H> ops::DerefMut for Gate<H> {
+    #[inline] fn deref_mut(&mut self) -> &mut Self::Target { &mut self.flags }
 }
 
 impl convert::From<InterruptHandler> for Gate<InterruptHandler> {
