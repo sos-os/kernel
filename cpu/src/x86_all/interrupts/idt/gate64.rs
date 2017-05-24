@@ -87,6 +87,8 @@ impl<H> Gate<H> {
             }
     }
 
+    /// Set the handler function corresponding to this gate.
+    #[inline]
     pub fn set_handler<F>(&mut self, handler: F) -> &mut Self
     where Self: convert::From<F> {
         *self = Self::from(handler);

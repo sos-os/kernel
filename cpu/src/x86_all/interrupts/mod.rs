@@ -22,6 +22,9 @@ use core::fmt::Write;
 
 use context::InterruptFrame;
 
+/// Number of interrupt vectors corresponding to CPU exceptions.
+///
+/// These are the first 20 vectors in the IDT.
 pub const NUM_EXCEPTIONS: usize = 20;
 
 /// An ISR that handles a regular interrupt
