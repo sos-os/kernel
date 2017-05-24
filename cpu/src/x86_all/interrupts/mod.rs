@@ -89,7 +89,7 @@ impl fmt::Display for PageFaultErrorCode {
 pub extern "x86-interrupt" fn timer(_frame: &InterruptFrame) {
     // do nothing, just signal the pics to end the IRQ
     // println!("timer!");
-    unsafe { pics::end_pic_interrupt(0x21); }
+    unsafe { pics::end_pic_interrupt(0x20); }
 }
 
 

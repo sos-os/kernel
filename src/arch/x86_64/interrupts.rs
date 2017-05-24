@@ -184,6 +184,6 @@ pub extern "x86-interrupt" fn breakpoint(frame: &InterruptFrame) {
     println!("Breakpoint! Frame: {:#?}", frame);
    // send the PICs the end interrupt signal
    unsafe {
-       pics::end_pic_interrupt(0x21);
+       pics::end_pic_interrupt(0x03);
    }
 }
