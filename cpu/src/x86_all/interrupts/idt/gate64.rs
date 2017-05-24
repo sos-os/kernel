@@ -95,6 +95,13 @@ impl<H> Gate<H> {
         self
     }
 
+    /// Sets the TRAP GATE flag to true
+    #[inline]
+    pub fn set_trap(&mut self) -> &mut Self {
+        self.flags.insert(super::TRAP_GATE_32);
+        self
+    }
+
 }
 
 
