@@ -83,21 +83,16 @@ pub fn kernel_main() -> ! {
     loop { }
 }
 
-/// Kernel initialization function called from ASM
+/// Cross-architecture kernel initialization.
 ///
-/// The kernel main loop expects to be passed the address of a valid
-/// Multiboot 2 info struct. It's the bootloader's responsibility to ensure
-/// that this is passed in the correct register as expected by the calling
-/// convention (`edi` on x86). If this isn't there, you can expect to have a
-/// bad problem and not go to space today.
+/// This function is called by the arch specific init function.
 pub fn kernel_init(params: &InitParams) {
     kinfoln!("Hello from the kernel!");
 
     // -- initialize interrupts ----------------------------------------------
     kinfoln!(dots: " . ", "Initializing interrupts:");
-    unsafe {
-        arch::interrupts::initialize();
-    };
+    // TODO: this whole function *may* want to just be made `unsafe`...
+    unsafe { arch::interrupts::initialize(); };
     kinfoln!(dots: " . ", target: "Enabling interrupts", "[ OKAY ]");
 
     // -- initialize the heap ------------------------------------------------
