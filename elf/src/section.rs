@@ -11,6 +11,8 @@ use super::{ElfResult, ElfWord};
 use core::{convert, fmt, ops};
 use core::iter::IntoIterator;
 
+use memory::{Addr, PAddr};
+
 // Distinguished section indices.
 pub const SHN_UNDEF: u16        = 0;
 pub const SHN_LORESERVE: u16    = 0xff00;
@@ -50,8 +52,8 @@ pub trait Header: fmt::Debug {
     /// Returns the end address of this section
     /// TODO: refactor this to return a Range instead?
     //          - eliza, 03/14/2017
-    #[inline] fn end_address(&self) -> usize {
-        self.address() + self.length()
+    #[inline] fn end_address(&self) -> PAddr {
+        self.address() + self.length() as <PAddr as Addr>::Repr
     }
 
     /// Returns true if this section is writable.
@@ -91,9 +93,7 @@ pub trait Header: fmt::Debug {
     /// This member categorizes the section's contents and semantics.
     fn get_type(&self) -> ElfResult<Type>;
     fn flags(&self) -> Flags;
-    /// TODO: shold this return a PAddr?
-    //          - eliza, 03/14/2017
-    fn address(&self) -> usize;
+    fn address(&self) -> PAddr;
     fn offset(&self) -> usize;
     /// TODO: should offset + length make a Range?
     //          - eliza, 03/14/2017
@@ -125,7 +125,7 @@ macro_rules! Header {
                 fn flags(&self) -> Flags;
                 /// TODO: shold this return a PAddr?
                 //          - eliza, 03/14/2017
-                fn address(&self) -> usize;
+                fn address(&self) -> PAddr;
                 fn offset(&self) -> usize;
                 /// TODO: should offset + length make a Range?
                 //          - eliza, 03/14/2017

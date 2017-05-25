@@ -32,6 +32,34 @@ use memory::{ FrameRange, PhysicalPage };
 
 
 macro_rules! impl_getters {
+    ($(#[$attr:meta])* pub fn $name:ident(&self) -> PAddr; $($rest:tt)*) => {
+        $(#[$attr])* #[inline] pub fn $name(&self) -> ::memory::PAddr {
+            use ::memory::{PAddr, Addr};
+            PAddr::from(self.$name as <PAddr as Addr>::Repr)
+        }
+        impl_getters!{ $( $rest )* }
+    };
+    ($(#[$attr:meta])* fn $name:ident(&self) -> PAddr; $($rest:tt)*) => {
+        $(#[$attr])* #[inline] fn $name(&self) -> ::memory::PAddr {
+            use ::memory::{PAddr, Addr};
+            PAddr::from(self.$name as <PAddr as Addr>::Repr)
+        }
+        impl_getters!{ $( $rest )* }
+    };
+    ($(#[$attr:meta])* pub fn $name:ident(&self) -> PAddr;) => {
+        $(#[$attr])* #[inline] pub fn $name(&self) -> ::memory::PAddr {
+            use ::memory::{PAddr, Addr};
+            PAddr::from(self.$name as <PAddr as Addr>::Repr)
+        }
+        impl_getters!{ $( $rest )* }
+    };
+    ($(#[$attr:meta])* fn $name:ident(&self) -> PAddr;) => {
+        $(#[$attr])* #[inline] fn $name(&self) -> ::memory::PAddr {
+            use ::memory::{PAddr, Addr};
+            PAddr::from(self.$name as <PAddr as Addr>::Repr)
+        }
+        impl_getters!{ $( $rest )* }
+    };
     ($(#[$attr:meta])* pub fn $name:ident(&self) -> $ty:ty; $($rest:tt)*) => {
         $(#[$attr])* #[inline] pub fn $name(&self) -> $ty { self.$name as $ty }
         impl_getters!{ $( $rest )* }
@@ -240,10 +268,9 @@ unsafe fn extract_from_slice<'slice, T: Sized>( data: &'slice [u8]
 impl<'a, W: ElfWord> convert::Into<FrameRange> for &'a Section<W> {
     #[inline]
     fn into(self) -> FrameRange {
-        use memory::{Addr, PAddr};
-        // TODO: refactor this disgusting type cast monstrosity hell
-        let start = PhysicalPage::from(self.address() as <PAddr as Addr>::Repr);
-        let end = PhysicalPage::from(self.end_address() as <PAddr as Addr>::Repr);
+        use memory::Page;
+        let start = PhysicalPage::containing(self.address());
+        let end = PhysicalPage::containing(self.end_address());
         start .. end
     }
 }
