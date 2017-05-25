@@ -8,7 +8,7 @@
 //
 
 use cpu::interrupts::pics;
-use cpu::interrupts::idt::Idt;
+use cpu::interrupts::idt::{Gate, Idt};
 
 use cpu::context::InterruptFrame;
 use cpu::dtable::DTable;
@@ -78,7 +78,7 @@ macro_rules! exceptions {
             exception_inner! ($title, "Fault", $source, frame);
             loop {}
         }
-        $i.$name.set_handler($name as InterruptHandler);
+        $i.$name = Gate::from($name as InterruptHandler);
         exceptions! {  @impl  $i, $($tail)* }
     };
      ( @impl $i:expr, fault (code): $name:ident, $title:expr, $source:expr, $($tail:tt)* ) => {
@@ -88,7 +88,7 @@ macro_rules! exceptions {
            exception_inner! ($title, "Fault", $source, frame, error_code);
            loop {}
        }
-       $i.$name.set_handler($name as ErrorCodeHandler);
+       $i.$name = Gate::from($name as ErrorCodeHandler);
        exceptions! { @impl $i, $($tail)* };
    };
      ( @impl $i:expr, trap: $name:ident, $title:expr, $source:expr, $($tail:tt)* ) => {
@@ -96,8 +96,8 @@ macro_rules! exceptions {
          extern "x86-interrupt" fn $name(frame: &InterruptFrame) {
              exception_inner! ($title, "Trap", $source, frame);
          }
-         $i.$name.set_handler($name as InterruptHandler)
-           .set_trap();
+         $i.$name = Gate::from($name as InterruptHandler);
+         $i.$name.set_trap();
          exceptions! { @impl $i, $($tail)* };
      };
       ( @impl $i:expr, ) => {};
@@ -148,16 +148,16 @@ lazy_static! {
                  , "SSE/SSE2/SSE3 floating-point instructions",
         };
 
-        idt.breakpoint.set_handler(breakpoint as InterruptHandler);
-        idt.page_fault.set_handler(page_fault as ErrorCodeHandler);
+        idt.breakpoint = Gate::from(breakpoint as InterruptHandler);
+        idt.page_fault = Gate::from(page_fault as ErrorCodeHandler);
 
         for vector in idt.interrupts.iter_mut() {
-            vector.set_handler(empty_handler as InterruptHandler);
+            *vector = Gate::from(empty_handler as InterruptHandler);
         }
 
-        idt[0x20].set_handler(timer as InterruptHandler);
-        idt[0x21].set_handler(keyboard as InterruptHandler);
-        idt[0xff].set_handler(test as InterruptHandler);
+        idt[0x20] = Gate::from(timer as InterruptHandler);
+        idt[0x21] = Gate::from(keyboard as InterruptHandler);
+        idt[0xff] = Gate::from(test as InterruptHandler);
 
         kinfoln!( dots: " . . ", target: "Adding interrupt handlers to IDT"
                 , "[ OKAY ]");
