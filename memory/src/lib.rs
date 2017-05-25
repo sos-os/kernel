@@ -35,7 +35,6 @@ use util::Align;
 
 pub use arch::{PAddr, PAGE_SHIFT, PAGE_SIZE};
 
-pub mod alloc;
 
 /// Trait representing an address, whether physical or virtual.
 pub trait Addr: ops::Add<Self> + ops::Sub<Self>
