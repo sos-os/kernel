@@ -240,9 +240,10 @@ unsafe fn extract_from_slice<'slice, T: Sized>( data: &'slice [u8]
 impl<'a, W: ElfWord> convert::Into<FrameRange> for &'a Section<W> {
     #[inline]
     fn into(self) -> FrameRange {
-        use memory::PAddr;
-        let start = PhysicalPage::from(PAddr::from(self.address() as u64));
-        let end = PhysicalPage::from(PAddr::from(self.end_address() as u64));
+        use memory::{Addr, PAddr};
+        // TODO: refactor this disgusting type cast monstrosity hell
+        let start = PhysicalPage::from(self.address() as <PAddr as Addr>::Repr);
+        let end = PhysicalPage::from(self.end_address() as <PAddr as Addr>::Repr);
         start .. end
     }
 }
