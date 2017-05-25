@@ -359,16 +359,16 @@ where A: FrameAllocator {
                     .filter(|section| section.is_allocated());
 
         for section in sections { // remap ELF sections
-            assert!( section.addr().is_page_aligned()
+            assert!( section.address().is_page_aligned()
                    , "Section address must be page aligned to remap!");
             trace!( " . . Identity mapping section at {:?} with size {:?}"
-                    , section.addr()
+                    , section.address()
                     , section.length() );
 
-            let flags = EntryFlags::from(&section);
+            let flags = EntryFlags::from(section);
 
-            let start_frame = PhysicalPage::from(section.addr());
-            let end_frame = PhysicalPage::from(section.end_addr());
+            let start_frame = PhysicalPage::from(section.address());
+            let end_frame = PhysicalPage::from(section.end_address());
 
             for frame in start_frame .. end_frame {
                 pml4.identity_map(frame, flags, alloc)
