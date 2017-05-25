@@ -79,7 +79,7 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
 
     // -- Unpack multiboot tag ------------------------------------------------
     kinfoln!( dots: " . "
-            , "trying to unpack multiboot info at {:?}"
+            , "trying to unpack multiboot info at {:#p}"
             , multiboot_addr);
 
     // try to interpret the structure at the multiboot address as a multiboot
