@@ -1,6 +1,6 @@
 //
 //  SOS: the Stupid Operating System
-//  by Eliza Weisman (hi@hawkweisman.me)
+//  by Eliza Weisman (eliza@elizas.website)
 //
 //  Copyright (c) 2015-2017 Eliza Weisman
 //  Released under the terms of the MIT license. See `LICENSE` in the root
@@ -243,7 +243,7 @@ impl<'a> Heap<'a> {
     unsafe fn pop_block(&mut self, order: usize) -> Option<*mut u8>{
         self.free_lists[order]
             .pop_front()
-            .map(|block| block.get().as_ptr())
+            .map(|block| block.as_ref().as_ptr())
     }
 
 

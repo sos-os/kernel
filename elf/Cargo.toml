@@ -1,7 +1,7 @@
 [package]
 name = "elf"
-version = "0.0.1"
-authors = [ "Eliza Weisman <hi@hawkweisman.me>" ]
+version = "0.0.2"
+authors = [ "Eliza Weisman <eliza@elizas.website>" ]
 
 [profile.dev]
 opt-level = 3
@@ -22,3 +22,8 @@ panic = "abort"
 [dependencies]
 bitflags = "0.7"
 memory = { path = "../memory" }
+
+[dependencies.macro-attr]
+git = "https://github.com/DanielKeep/rust-custom-derive.git"
+version = "0.2.1"
+default-features = false

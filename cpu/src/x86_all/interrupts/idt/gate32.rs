@@ -1,15 +1,15 @@
 //
 //  SOS: the Stupid Operating System
-//  by Eliza Weisman (hi@hawkweisman.me)
+//  by Eliza Weisman (eliza@elizas.website)
 //
-//  Copyright (c) 2015-2016 Eliza Weisman
+//  Copyright (c) 2015-2017 Eliza Weisman
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
 //! 32-bit IDT gate implementation
 use ::segment;
-use super::{Handler, GateFlags};
-
+use super::{GateFlags};
+use super::super::{InterruptHandler, ErrorCodeHandler};
 use core::mem::transmute;
 
 extern {
@@ -75,13 +75,34 @@ impl Gate {
 
 }
 
-impl convert::From<Handler> for Gate {
+impl convert::From<ErrorCodeHandler> for Gate {
 
     /// Creates a new IDT gate pointing at the given handler function.
     ///
     /// The `handler` function must have been created with valid interrupt
     /// calling conventions.
-    fn from(handler: Handler) -> Self {
+    fn from(handler: ErrorCodeHandler) -> Self {
+        unsafe {
+            let (low, mid): (u16, u16) = mem::transmute(handler);
+
+            Gate { offset_lower: low
+                 , selector: segment::Selector::from_raw(GDT_OFFSET)
+                 , _zero: 0
+                 , type_attr: GateFlags::new_interrupt()
+                 , offset_upper: high
+                 , _reserved: 0
+                 }
+        }
+    }
+}
+
+impl convert::From<InterruptHandler> for Gate {
+
+    /// Creates a new IDT gate pointing at the given handler function.
+    ///
+    /// The `handler` function must have been created with valid interrupt
+    /// calling conventions.
+    fn from(handler: ErrorCodeHandler) -> Self {
         unsafe {
             let (low, mid): (u16, u16) = mem::transmute(handler);
 

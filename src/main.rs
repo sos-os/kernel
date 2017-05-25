@@ -1,8 +1,8 @@
 //
 //  SOS: the Stupid Operating System
-//  by Eliza Weisman (hi@hawkweisman.me)
+//  by Eliza Weisman (eliza@elizas.website)
 //
-//  Copyright (c) 2015-2016 Eliza Weisman
+//  Copyright (c) 2015-2017 Eliza Weisman
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
@@ -10,13 +10,13 @@
 //! This crate contains the kernel for SOS, the Stupid Operating System.
 //!
 //! # SOS: the Stupid Operating System
-//! SOS is a simple, tiny toy OS implemented in Rust. It targets the x86,
-//! x86_64, and ARM v7 CPU architectures.
+//! SOS is a simple, tiny toy OS implemented in Rust. It targets the `x86`,
+//! `x86_64`, and ARM v7 CPU architectures.
 //!
 //! I'm writing this mostly for fun, to learn more about OS design and kernel
 //! hacking, so don't expect anything new or exciting out of this project.
 //!
-//! SOS is copyright 2015-2016 Eliza Weisman, and is released under the terms
+//! SOS is copyright 2015-2017 Eliza Weisman, and is released under the terms
 //! of the MIT license.
 
 #![crate_name = "sos_kernel"]
@@ -34,6 +34,8 @@
 
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
+#![cfg_attr( any(target_arch = "x86_64", target_arch="x86")
+           , feature(abi_x86_interrupt))]
 
 #![no_std]
 #![cfg_attr(not(test), no_main)]
@@ -51,7 +53,7 @@ extern crate spin;
 #[macro_use] extern crate vga;
 
 extern crate alloc;
-#[macro_use] extern crate cpu;
+extern crate cpu;
 extern crate elf;
 extern crate paging;
 extern crate params;
@@ -141,19 +143,18 @@ pub fn kernel_main() -> ! {
 /// |   configuration                                               |
 /// +---------------------------------------------------------------+
 /// ```
-pub fn kernel_init(params: InitParams) {
+pub fn kernel_init(params: &InitParams) {
     kinfoln!("Hello from the kernel!");
     kinfoln!("Got init params: {:#?}", params );
     // -- initialize interrupts ----------------------------------------------
     kinfoln!(dots: " . ", "Initializing interrupts:");
-    unsafe {
-        arch::interrupts::initialize();
-    };
+    // TODO: this whole function *may* want to just be made `unsafe`...
+    unsafe { arch::interrupts::initialize(); };
     kinfoln!(dots: " . ", target: "Enabling interrupts", "[ OKAY ]");
 
     // -- initialize the heap ------------------------------------------------
     kinfoln!(dots: " . ", "Preparing to initialize heap.");
-    if let Ok(_) =  unsafe { heap::initialize(&params) } {
+    if unsafe { heap::initialize(params) }.is_ok() {
         kinfoln!( dots: " . ", target: "Intializing heap"
                 , "[ OKAY ]"
                 );

@@ -1,8 +1,8 @@
 //
 //  SOS: the Stupid Operating System
-//  by Eliza Weisman (hi@hawkweisman.me)
+//  by Eliza Weisman (eliza@elizas.website)
 //
-//  Copyright (c) 2015-2016 Eliza Weisman
+//  Copyright (c) 2015-2017 Eliza Weisman
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
@@ -483,11 +483,11 @@ where T: OwnedRef<N>
 unsafe impl<T> OwnedRef<T> for Unique<T>  {
     #[inline]
     fn get(&self) -> &T {
-        unsafe { self.get() }
+        unsafe { self.as_ref() }
     }
 
     #[inline] fn get_mut(&mut self) -> &mut T {
-        unsafe { self.get_mut() }
+        unsafe { self.as_mut() }
     }
 
     #[inline]

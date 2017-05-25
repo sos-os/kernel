@@ -1,0 +1,9 @@
+where_indent = "Inherit"
+struct_lit_style = "Visual"
+chain_base_indent = "Tabbed"
+chain_indent = "Visual"
+reorder_imports = true
+wrap_comments = true
+fn_brace_style = "PreferSameLine"
+item_brace_style = "PreferSameLine"
+use_try_shorthand = true

@@ -1,8 +1,8 @@
 //
 //  SOS: the Stupid Operating System
-//  by Hawk Weisman (hi@hawkweisman.me)
+//  by Eliza Weisman (eliza@elizas.website)
 //
-//  Copyright (c) 2015 Hawk Weisman
+//  Copyright (c) 2015-2017 Eliza Weisman
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
@@ -89,16 +89,13 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
                     .expect("Could not unpack multiboot2 information!") };
 
     // Extract the memory map tag from the multiboot info
-    let mmap_tag
-        = boot_info.mem_map()
-                   .expect("Memory map tag required!");
+    let mem_map = boot_info.mem_map()
+                           .expect("Memory map tag required!");
 
     kinfoln!(dots: " . ", "Detected memory areas:");
-    for a in mmap_tag.areas() {
-        kinfoln!( dots: " . . ", "start: {:#08x}, end: {:#08x}"
-                , a.base, a.length );
-        // TODO: add these to a list of memory areas?
-        //       - eliza, 1/23/2017
+    for area in mem_map {
+        kinfoln!( dots: " . . ", "{}", area);
+        // TODO: add memory map to init params here
     }
 
     // Extract ELF sections tag from the multiboot info
@@ -114,17 +111,11 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
     let kernel_begin
         = elf_sections_tag.sections()
             .filter(|s| s.is_allocated())
-            .inspect(|s| {
-                kinfoln!( dots: " . . "
-                        , "address: {:#08x}, size: {:#08x}, flags: {:#08x}"
-                        , s.addr()
-                        , s.length()
-                        , s.flags() );
-                n_elf_sections += 1;
-                })
-            // the ELF section with the lowest address is the kernel start
-            // section
-            .min_by_key(elf::Section::addr)
+            .map(|s| {
+                kinfoln!( dots: " . . ", "{}", s );
+                kinfoln!( dots: " . . . ", "flags: [ {:?} ]", s.flags());
+                s.address() })
+            .min()
             .expect("Could not find kernel start section!\
                     \nSomething is deeply wrong.");
 
@@ -132,7 +123,8 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
     let kernel_end
         = elf_sections_tag.sections()
             .filter(|s| s.is_allocated())
-            .max_by_key(elf::Section::addr)
+            .map(|s| { n_elf_sections += 1; s.address() })
+            .max()
             .expect("Could not find kernel end section!\
                     \nSomething is deeply wrong.");
 

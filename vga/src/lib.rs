@@ -1,8 +1,8 @@
 //
 //  SOS: the Stupid Operating System
-//  by Hawk Weisman (hi@hawkweisman.me)
+//  by Eliza Weisman (eliza@elizas.website)
 //
-//  Copyright (c) 2015 Hawk Weisman
+//  Copyright (c) 2015-2017 Eliza Weisman
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
@@ -28,7 +28,7 @@
 extern crate spin;
 
 #[cfg(feature = "kinfo")]
-#[macro_use] extern crate log;
+extern crate log;
 
 use core::{mem, ptr};
 use core::fmt::{Write, Result};
@@ -195,7 +195,7 @@ impl Terminal {
 
     #[inline]
     fn buffer(&mut self) -> &mut  Buffer {
-        unsafe { self.buffer.get_mut() }
+        unsafe { self.buffer.as_mut() }
     }
 
     /// Set the color palette used for writing subsequent characters.

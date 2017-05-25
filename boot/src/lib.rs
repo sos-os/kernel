@@ -1,6 +1,6 @@
 //
 //  SOS: the Stupid Operating System
-//  by Eliza Weisman (hi@hawkweisman.me)
+//  by Eliza Weisman (eliza@elizas.website)
 //
 //  Copyright (c) 2016-2017 Eliza Weisman
 //  Released under the terms of the MIT license. See `LICENSE` in the root
@@ -35,7 +35,6 @@
 #![feature(asm)]
 #![feature(lang_items)]
 #![feature(naked_functions)]
-#![feature(static_recursion)]
 #![feature(linkage)]
 #![feature(struct_field_attributes)]
 #![feature(stmt_expr_attributes)]

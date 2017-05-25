@@ -1,25 +1,16 @@
 language: rust
+rust: nightly
 
-os:
-  - linux
-  - osx
-
-rust:
-  - nightly
-
-matrix:
-  allow_failures:
-    - os: osx
-  fast_finish: true
+# matrix:
+#   allow_failures:
+#     - os: osx
+#   fast_finish: true
 
 cache:
   cargo: true
   directories:
     - /usr/local/bin/x86_64-pc-elf-*
     - /usr/local/bin/grub*
-    # brew directories on OS X
-    - /usr/local/Cellar/x86_64-pc-elf-*
-    - /usr/local/Cellar/grub
 
 notifications:
   email:
@@ -37,17 +28,11 @@ addons:
     # - libssh2-1
 
 before_install: |
-  if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-    brew update && brew tap homebrew/bundle &&
-    travis_wait 120 brew bundle;
-    printf "\n\n[target.x86_64-sos-kernel-gnu]\nlinker = \"/usr/local/bin/x86_64-pc-elf-gcc\"" >> $HOME/.cargo/config;
-  elif [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-    objcopy=$(which objcopy) &&
-    strip=$(which strip) &&
-    mkdir -p $HOME/bin &&
-    ln -s $objcopy $HOME/bin/x86_64-elf-objcopy &&
-    ln -s $strip $HOME/bin/x86_64-elf-strip
-  fi
+  objcopy=$(which objcopy) &&
+  strip=$(which strip) &&
+  mkdir -p $HOME/bin &&
+  ln -s $objcopy $HOME/bin/x86_64-elf-objcopy &&
+  ln -s $strip $HOME/bin/x86_64-elf-strip
 
 install:
   ### install the "rust-src" rustup component ###############################
@@ -61,39 +46,34 @@ install:
   - cargo install xargo --force
   - export PATH="$PATH:$(rustc --print sysroot)/cargo/bin:$HOME/.cargo/bin"
 
-# before_script: |
-#   if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-#       gcc=$(which gcc)
-#       echo "${bold}install-env-linux:${normal} Linking ${gcc} to ${HOME}/bin/x86_64-pc-elf-gcc."
-#       ln -s $gcc $HOME/bin/x86_64-pc-elf-gcc
-#
-#       objcopy=$(which objcopy)
-#       echo "${bold}install-env-linux:${normal} Linking ${objcopy} to ${HOME}/bin/x86_64-elf-objcopy."
-#       ln -s $objcopy $HOME/bin/x86_64-elf-objcopy
-#
-#       strip=$(which strip)
-#       echo "${bold}install-env-linux:${normal} Linking ${strip} to ${HOME}/bin/x86_64-elf-strip."
-#       ln -s $strip $HOME/bin/x86_64-elf-strip
-#
-#       export PATH="$PATH:$HOME/bin"
-#   fi
+script: make test
 
-script:
-  - make test
-  - make kernel
+jobs:
+  include:
+    - stage: build
+      script: make kernel
+      deploy:
+        provider: releases
+        api_key:
+          secure: DQ6EChkuPdDbCkPQIOVmq7SBxTG04GeoUXeguCb3RcX+lT5FqTG/2bAnElAxE+KHkLpxBav+CIaHyPQzT93LN70PSV0Vny8Oo3OCOprSn3gph12ZXPeebFk+EFArju3N/Du/cxlNK6zQ71Sw1Jr+nmutjpCGkN2ki04A6iY5f0cLmgsUXZxVBzMY4mb2tihAvH+0HgR96mmQ6xEvWU3mXnHvgpJhSwSHJlZao7C51vq0sr5bKPNVVHfwN7OlqG3uJYWcnFIlrkGbZyVtNZ//CjtGPhKufn+l1JOdQo47/Lh+iHPUNrWGsvNiy7yXrBdsVKI0oJwfssHrMPrXyWphk9wrD8ID1wpKXPxDikVB3uSU1OfQbSSsH+aF7i3mNwJSG4ORTjZeuBQpC4F9ZUAr2uS6RR+bW9tnb6/ZRQA0vqQVS1oi5miIHLe9FbMccOZLWYyHM6Lts3cd4zEldZTvPUmO7M5oP4Woo0DPRWvq48f7QW9x0ewjVRjfUkPZ8+H5BfFfqXQXZYtDRfTruVaYtS/We3QggvLaNZJOmq+jJQqrSARK5tB/HD8YZvu9Z1XU8UTcm6ORvlEsAMIk7+orUU1L4ibO/Tr1wEU9fgS2k9rCDPhfMljgn2EqBRfULnwqbzSwPrZmKyJlVZ6GsJtCAC1XQQCbZIMVShVbvL6JEKU=
+        file: build/os-x86_64.iso
+        skip_cleanup: true
+        on:
+          tags: true
+          repo: hawkw/sos-kernel
+    - stage: docs
+      install: skip
+      script: cargo doc
+      deploy:
+        provider:  pages
+        skip_cleanup: true
+        github_token: $GH_TOKEN # Set in travis-ci.org dashboard
+        target_branch: gh-pages
+        local_dir: target/doc
+        on:
+          branch: master
+          repo: hawkw/sos-kernel
 
-# after_success:
-#   - if [[ "$TRAVIS_OS_NAME" != "osx" ]]; then travis-cargo doc && travis-cargo doc-upload; fi
-
-deploy:
-  provider: releases
-  api_key:
-    secure: DQ6EChkuPdDbCkPQIOVmq7SBxTG04GeoUXeguCb3RcX+lT5FqTG/2bAnElAxE+KHkLpxBav+CIaHyPQzT93LN70PSV0Vny8Oo3OCOprSn3gph12ZXPeebFk+EFArju3N/Du/cxlNK6zQ71Sw1Jr+nmutjpCGkN2ki04A6iY5f0cLmgsUXZxVBzMY4mb2tihAvH+0HgR96mmQ6xEvWU3mXnHvgpJhSwSHJlZao7C51vq0sr5bKPNVVHfwN7OlqG3uJYWcnFIlrkGbZyVtNZ//CjtGPhKufn+l1JOdQo47/Lh+iHPUNrWGsvNiy7yXrBdsVKI0oJwfssHrMPrXyWphk9wrD8ID1wpKXPxDikVB3uSU1OfQbSSsH+aF7i3mNwJSG4ORTjZeuBQpC4F9ZUAr2uS6RR+bW9tnb6/ZRQA0vqQVS1oi5miIHLe9FbMccOZLWYyHM6Lts3cd4zEldZTvPUmO7M5oP4Woo0DPRWvq48f7QW9x0ewjVRjfUkPZ8+H5BfFfqXQXZYtDRfTruVaYtS/We3QggvLaNZJOmq+jJQqrSARK5tB/HD8YZvu9Z1XU8UTcm6ORvlEsAMIk7+orUU1L4ibO/Tr1wEU9fgS2k9rCDPhfMljgn2EqBRfULnwqbzSwPrZmKyJlVZ6GsJtCAC1XQQCbZIMVShVbvL6JEKU=
-  file: build/os-x86_64.iso
-  skip_cleanup: true
-  on:
-    tags: true
-    repo: hawkw/sos-kernel
 env:
   global:
     # override the default `--features unstable` used for the nightly branch (optional)

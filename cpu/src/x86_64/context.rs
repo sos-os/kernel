@@ -1,8 +1,8 @@
 //
 //  SOS: the Stupid Operating System
-//  by Eliza Weisman (hi@hawkweisman.me)
+//  by Eliza Weisman (eliza@elizas.website)
 //
-//  Copyright (c) 2015-2016 Eliza Weisman
+//  Copyright (c) 2015-2017 Eliza Weisman
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
@@ -33,6 +33,8 @@ pub struct Registers { pub rsi: u64
  impl Registers {
      /// Transform this struct into an array of `u64`s
      /// (if you would ever want to do this)
+     /// TODO: rewrite this to be a `convert::Into` implementation.
+     //         - eliza, 03/09/2017
      pub unsafe fn to_array(&self) -> [u64; 9] {
         //  [ self.rsi, self.rdi, self.r11
         //  , self.r10, self.r9, self.r8

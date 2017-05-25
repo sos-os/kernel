@@ -1,6 +1,6 @@
 //
 //  SOS: the Stupid Operating System
-//  by Eliza Weisman (hi@hawkweisman.me)
+//  by Eliza Weisman (eliza@elizas.website)
 //
 //  Copyright (c) 2016 Eliza eisman
 //  Released under the terms of the MIT license. See `LICENSE` in the root
@@ -14,6 +14,7 @@
 #![feature(slice_patterns)]
 #![feature(linkage)]
 #![feature(stmt_expr_attributes)]
+#![cfg_attr(target_arch = "x86_64", feature(abi_x86_interrupt))]
 #![no_std]
 
 //-- non-SOS dependencies ----------------------------------------------------
@@ -25,7 +26,6 @@ extern crate spin;
 extern crate util;
 extern crate memory;
 #[macro_use] extern crate vga;
-#[macro_use] extern crate lazy_static;
 
 use core::marker::PhantomData;
 

@@ -1,8 +1,8 @@
 //
 //  SOS: the Stupid Operating System
-//  by Eliza Weisman (hi@hawkweisman.me)
+//  by Eliza Weisman (eliza@elizas.website)
 //
-//  Copyright (c) 2015-2016 Eliza Weisman
+//  Copyright (c) 2015-2017 Eliza Weisman
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
@@ -11,7 +11,10 @@
 //! Consult the [Multiboot Specification](http://nongnu.askapache.com/grub/phcoder/multiboot.pdf)
 //! for more information.
 use memory::{PAddr, PhysicalPage, FrameRange};
-use elf::section::{Sections, HeaderRepr};
+use elf::section::{Sections, HeaderRepr as SectionHeader};
+
+use core::iter::IntoIterator;
+use core::fmt;
 
 const END_TAG_LEN: u32 = 8;
 
@@ -63,8 +66,17 @@ impl Info {
         PAddr::from(self.start_addr() + self.length as u64)
     }
 
+    /// TODO: rewrite this as a `TryFrom` implementation (see issue #85)
+    //          - eliza, 03/09/2017
     pub unsafe fn from(addr: PAddr) -> Result<&'static Self, &'static str> {
         let info: &Info = &*(addr.into(): u64 as *const Info);
+        // TODO: check if the multiboot tag *exists* at this location as well?
+        //       since if we pass in the wrong address, we'll still make the
+        //       "no end tag" error.
+        //
+        //       which, i suppose is *technically* correct, but not very
+        //       helpful...
+        //          - eliza, 03/04/2017
         if info.has_end() {
             Ok(info)
         } else {
@@ -80,7 +92,7 @@ impl Info {
     /// # Returns
     ///  - `Some(tag)` if a tag of the given type could be found.
     ///  - `None` if no tag of the given type could be found.
-    pub fn get_tag(&self, tag_type: TagType) -> Option<&'static Tag> {
+    pub fn get_tag(&'static self, tag_type: TagType) -> Option<&'static Tag> {
         self.tags()
             .find(|t| t.ty == tag_type)
     }
@@ -91,7 +103,7 @@ impl Info {
     ///  - `Some(MemMapTag)` if a memory map tag could be found
     ///  - `None` if no tag of the given type could be found.
     #[inline]
-    pub fn mem_map(&self) -> Option<&'static MemMapTag> {
+    pub fn mem_map(&'static self) -> Option<&'static MemMapTag> {
         self.get_tag(TagType::MemoryMap)
             .map(|tag| unsafe { &*((tag as *const Tag) as *const MemMapTag) })
     }
@@ -102,7 +114,7 @@ impl Info {
     ///  - `Some(ElfSectionsTag)` if a memory map tag could be found
     ///  - `None` if no tag of the given type could be found.
     #[inline]
-    pub fn elf_sections(&self) -> Option<&'static ElfSectionsTag> {
+    pub fn elf_sections(&'static self) -> Option<&'static ElfSectionsTag> {
         self.get_tag(TagType::ELFSections)
             .map(|tag| unsafe {
                 &*((tag as *const Tag) as *const ElfSectionsTag)
@@ -111,10 +123,12 @@ impl Info {
 
     /// Returns an iterator over all Multiboot tags.
     #[inline]
-    fn tags(&self) -> Tags { Tags(&self.tag_start as *const Tag) }
+    fn tags(&'static self) -> Tags { Tags(&self.tag_start as *const Tag) }
 
     /// Returns true if the multiboot structure has a valid end tag.
     fn has_end(&self) -> bool {
+        // TODO: we should be able to use ptr::offset() here?
+        //          - eliza, 03/05/2017
         let end_tag_addr
             = self as *const _ as usize +
               (self.length as usize - END_TAG_LEN as usize);
@@ -138,6 +152,13 @@ impl Info {
 
         Ok(PhysicalPage::from(kernel_start) .. PhysicalPage::from(kernel_end))
     }
+}
+
+impl IntoIterator for &'static Info {
+    type IntoIter = Tags;
+    type Item = &'static Tag;
+    #[inline]  fn into_iter(self) -> Self::IntoIter { self.tags() }
+
 }
 
 
@@ -201,7 +222,7 @@ pub enum TagType { /// Tag that indicates the end of multiboot tags
                  }
 
 /// An iterator over Multiboot 2 tags.
-struct Tags(*const Tag);
+pub struct Tags(*const Tag);
 
 impl Tags {
     #[inline] fn advance(&mut self, size: u32) {
@@ -213,10 +234,14 @@ impl Tags {
 impl Iterator for Tags {
     type Item = &'static Tag;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         match unsafe { &*self.0 } {
-            &Tag{ ty: TagType::End, length: END_TAG_LEN } => None
-          , tag => { self.advance(tag.length); Some(tag) }
+            &Tag { ty: TagType::End, length: END_TAG_LEN } => None
+          , tag => {
+              self.advance(tag.length);
+              Some(tag)
+            }
         }
     }
 }
@@ -232,8 +257,10 @@ pub struct MemMapTag { tag: Tag
 impl MemMapTag {
 
     /// Returns an iterator over all the memory areas in this tag.
-    pub fn areas(&self) -> MemAreas {
+    #[inline] pub fn areas(&'static self) -> MemAreas {
         MemAreas { curr: (&self.first_entry) as *const MemArea
+                    // TODO: we should be able to use ptr::offset() here?
+                    //          - eliza, 03/05/2017
                  , last: ((self as *const MemMapTag as u32) +
                          self.tag.length - self.entry_size)
                          as *const MemArea
@@ -241,6 +268,15 @@ impl MemMapTag {
                  }
     }
 }
+
+impl IntoIterator for &'static MemMapTag {
+    type Item = &'static MemArea;
+    type IntoIter = MemAreas;
+
+    #[inline] fn into_iter(self) -> Self::IntoIter { self.areas() }
+
+}
+
 
 /// A tag that stores the boot command line.
 #[repr(C)]
@@ -272,6 +308,7 @@ pub enum MemAreaType { Available = 1
 
 /// A multiboot 2 memory area
 #[repr(C)]
+#[derive(Debug)]
 pub struct MemArea { /// the starting address of the memory area
                      pub base: PAddr
                    , /// the length of the memory area
@@ -284,6 +321,14 @@ pub struct MemArea { /// the starting address of the memory area
 impl MemArea {
     #[inline] pub fn address(&self) -> PAddr {
         self.base + self.length - 1
+    }
+}
+
+impl fmt::Display for MemArea {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!( f, "{:?} from {:#08x} to {:#08x}"
+              , self.ty, self.base, self.address())
     }
 }
 
@@ -302,12 +347,19 @@ impl Iterator for MemAreas {
             None
         } else {
             let current = unsafe { &*self.curr };
+            // TODO: we should be able to use ptr::offset() here.
+            //          - eliza, 03/05/2017
             self.curr = (self.curr as u32 + self.size) as *const MemArea;
-            if current.ty == MemAreaType::Available {
-                Some(current)
-            } else {
-                self.next()
-            }
+            // if current.ty == MemAreaType::Available {
+            // NOTE: this used to skip over unavailable or ACPI memory areas,
+            //       but i've disabled that as we may want to iterate over thsoe
+            //       memory areas. we can use `filter` on this iterator to get
+            //       only available memory areas.
+            //          - eliza, 03/05/2017
+            Some(current)
+            // } else {
+            //      self.next()
+            // }
         }
     }
 }
@@ -326,15 +378,27 @@ pub struct ElfSectionsTag { tag: Tag
                           , /// the size of each ELF section
                             pub section_size: u32
                           , stringtable_idx: u32
-                          , first_section: HeaderRepr<Word>
+                          , first_section: SectionHeader<Word>
                           }
 
 impl ElfSectionsTag {
     /// Returns an iterator over the ELF sections pointed to by this tag.
-    pub fn sections(&'static self) -> Sections<'static, Word> {
+    //  TODO: can the &'static bound be reduced to &'a? is there any reason to?
+    //          - eliza, 03/04/2017
+    #[inline] pub fn sections(&'static self) -> Sections<'static, Word> {
         Sections::new( &self.first_section
                      , self.n_sections - 1
                      , self.section_size
                      )
     }
+}
+
+impl IntoIterator for &'static ElfSectionsTag {
+    //  TODO: can the &'static bound be reduced to &'a? is there any reason to?
+    //          - eliza, 03/04/2017
+    type Item = <Self::IntoIter as Iterator>::Item;
+    type IntoIter = Sections<'static, Word>;
+
+    #[inline] fn into_iter(self) -> Self::IntoIter { self.sections() }
+
 }

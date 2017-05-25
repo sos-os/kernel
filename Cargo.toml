@@ -2,7 +2,7 @@
 name = "sos_kernel"
 version = "0.1.0"
 authors = [ # hacked around by
-            "Hawk Weisman <hi@hawkweisman.me>"
+            "Eliza Weisman <eliza@elizas.website>"
           , # based on code by
             "Philipp Oppermann <dev@phil-opp.com>"
           ]

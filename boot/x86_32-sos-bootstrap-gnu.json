@@ -1,6 +1,7 @@
 {
     "llvm-target": "i386-unknown-unknown-elf",
     "executables": true,
+    "linker-flavor": "gcc",
     "target-endian": "little",
     "target-word-size": "32",
     "target-pointer-width": "32",
