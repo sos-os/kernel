@@ -122,14 +122,3 @@ pub extern "x86-interrupt" fn test(_frame: &InterruptFrame) {
        pics::end_pic_interrupt(0xff);
    }
 }
-
-/// Empty dummy handler for undefined interrupts.
-#[no_mangle] #[inline(never)]
-pub extern "x86-interrupt" fn empty_handler(_frame: &InterruptFrame) {
-   // assert_eq!(state.int_id, 0x80);
-   println!("interrupt");
-   // send the PICs the end interrupt signal
-   // unsafe {
-   //     end_pic_interrupt(0xff);
-   // }
-}

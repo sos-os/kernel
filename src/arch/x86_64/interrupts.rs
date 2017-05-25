@@ -150,6 +150,11 @@ lazy_static! {
 
         idt.breakpoint.set_handler(breakpoint as InterruptHandler);
         idt.page_fault.set_handler(page_fault as ErrorCodeHandler);
+
+        for vector in idt.interrupts.iter_mut() {
+            vector.set_handler(empty_handler as InterruptHandler);
+        }
+
         idt[0x20].set_handler(timer as InterruptHandler);
         idt[0x21].set_handler(keyboard as InterruptHandler);
         idt[0xff].set_handler(test as InterruptHandler);
@@ -186,4 +191,13 @@ pub extern "x86-interrupt" fn breakpoint(frame: &InterruptFrame) {
    unsafe {
        pics::end_pic_interrupt(0x03);
    }
+}
+
+/// Empty dummy handler for undefined interrupts.
+#[no_mangle] #[inline(never)]
+pub extern "x86-interrupt" fn empty_handler(_frame: &InterruptFrame) {
+    // TODO: it would be nice to know *which vector* the dummy interrupt
+    //      fired on, for debugging purposes...
+    //          - eliza, 05/25/2017
+    debug!("an empty interrupt fired!")
 }
