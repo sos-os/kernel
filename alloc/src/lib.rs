@@ -637,7 +637,7 @@ pub unsafe trait Allocator {
     /// Captures a common usage pattern for allocators.
     unsafe fn dealloc_one<T>(&mut self, mut ptr: Unique<T>)
         where Self: Sized {
-        let raw_ptr = ptr.get_mut() as *mut T as *mut u8;
+        let raw_ptr = ptr.as_mut() as *mut T as *mut u8;
         self.dealloc(raw_ptr, Layout::new::<T>());
     }
 
@@ -682,7 +682,9 @@ pub unsafe trait Allocator {
                                n_old: usize,
                                n_new: usize) -> Result<Unique<T>, AllocErr>
         where Self: Sized {
-        match (Layout::array::<T>(n_old), Layout::array::<T>(n_new), *ptr) {
+        match ( Layout::array::<T>(n_old)
+              , Layout::array::<T>(n_new)
+              , ptr.as_ptr()) {
             (Some(ref k_old), Some(ref k_new), ptr) if k_old.size() > 0 && k_new.size() > 0 => {
                 self.realloc(ptr as *mut u8, k_old.clone(), k_new.clone())
                     .map(|p|Unique::new(p as *mut T))
@@ -698,7 +700,7 @@ pub unsafe trait Allocator {
     /// Captures a common usage pattern for allocators.
     unsafe fn dealloc_array<T>(&mut self, ptr: Unique<T>, n: usize) -> Result<(), AllocErr>
         where Self: Sized {
-        let raw_ptr = *ptr as *mut u8;
+        let raw_ptr = ptr.as_ptr() as *mut u8;
         match Layout::array::<T>(n) {
             Some(ref k) if k.size() > 0 => {
                 Ok(self.dealloc(raw_ptr, k.clone()))
@@ -804,9 +806,9 @@ pub unsafe trait Allocator {
                                          n_old: usize,
                                          n_new: usize) -> Option<Unique<T>>
         where Self: Sized {
-        let (k_old, k_new, ptr) = (Layout::array_unchecked::<T>(n_old),
-                                   Layout::array_unchecked::<T>(n_new),
-                                   *ptr);
+        let (k_old, k_new, ptr) = ( Layout::array_unchecked::<T>(n_old)
+                                  , Layout::array_unchecked::<T>(n_new)
+                                  , ptr.as_ptr());
         self.realloc_unchecked(ptr as *mut u8, k_old, k_new)
             .map(|p|Unique::new(*p as *mut T))
     }
@@ -821,7 +823,7 @@ pub unsafe trait Allocator {
     unsafe fn dealloc_array_unchecked<T>(&mut self, ptr: Unique<T>, n: usize)
         where Self: Sized {
         let layout = Layout::array_unchecked::<T>(n);
-        self.dealloc(*ptr as *mut u8, layout);
+        self.dealloc(ptr.as_ptr() as *mut u8, layout);
     }
 }
 

@@ -251,11 +251,11 @@ impl ActivePML4 {
     }
 
     fn pml4(&self) -> &Table<PML4Level> {
-        unsafe { self.0.get() }
+        unsafe { self.0.as_ref() }
     }
 
     fn pml4_mut(&mut self) -> &mut Table<PML4Level> {
-        unsafe { self.0.get_mut() }
+        unsafe { self.0.as_mut() }
     }
 
     /// Returns true if the given page is mapped.

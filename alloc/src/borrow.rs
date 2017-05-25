@@ -46,8 +46,8 @@ where A: Allocator
 impl<'alloc, A> Deref for BorrowedPtr<'alloc, A>
 where A: Allocator
     , A: 'alloc {
-    type Target = Address;
-    fn deref(&self) ->  &Self::Target { &(*self.ptr) }
+    type Target = Unique<u8>;
+    fn deref(&self) ->  &Self::Target { &self.ptr }
 }
 
 impl<'alloc, A> Drop for BorrowedPtr<'alloc, A>
@@ -55,7 +55,7 @@ where A: Allocator
     , A: 'alloc {
     fn drop(&mut self) {
         unsafe {
-            self.allocator.lock().dealloc(*self.ptr, self.layout.clone())
+            self.allocator.lock().dealloc(self.ptr.as_ptr(), self.layout.clone())
         }
     }
 }
@@ -91,14 +91,14 @@ impl<'alloc, A, T> Deref for Borrowed<'alloc, A, T>
 where A: Allocator
     , A: 'alloc {
     type Target = T;
-    fn deref(&self) ->  &Self::Target { unsafe { self.value.get() } }
+    fn deref(&self) ->  &Self::Target { unsafe { self.value.as_ref() } }
 }
 
 impl<'alloc, A, T> DerefMut for Borrowed<'alloc, A, T>
 where A: Allocator
     , A: 'alloc {
     fn deref_mut(&mut self) ->  &mut Self::Target {
-        unsafe { self.value.get_mut() }
+        unsafe { self.value.as_mut() }
     }
 }
 
@@ -107,15 +107,15 @@ where A: Allocator
     , A: 'alloc {
     fn drop(&mut self) {
         use mem::drop;
-        let address = *self.value as Address;
+        let address = self.value.as_ptr() as Address;
         // ensure we drop the object _before_ deallocating it, so that
         // the object's destructor gets run first
         // i hope this is correct...
-        drop(*self.value);
+        drop(self.value.as_ptr());
         unsafe {
             self.allocator.lock()
                 .dealloc( address
-                        , Layout::for_value(self.value.get()))
+                        , Layout::for_value(self.value.as_ref()))
         }
     }
 }
