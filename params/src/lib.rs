@@ -25,11 +25,11 @@ use core::default::Default;
 
 /// If we are on x86_64 or armv7 this uses the 64-bit ELF word
 #[cfg(target_pointer_width = "64")]
-pub type ElfSections<'a> = elf::section::Sections<'a, u64>;
+pub type ElfSections = elf::section::Sections<'static, u64>;
 
 /// If we are on x86, this uses the 32-bit ELF word
 #[cfg(target_pointer_width = "32")]
-pub type ElfSections<'a> = elf::section::Sections<'a, u32>;
+pub type ElfSections = elf::section::Sections<'static, u32>;
 
 /// Parameters used during the init process
 #[derive(Copy, Clone, Debug)]
