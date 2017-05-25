@@ -443,12 +443,12 @@ where W: ElfWord
         if self.remaining == 0 {
             None
         } else {
-            let current: Self::Item = self.curr;
-            self.curr = unsafe {
-                // TODO: we should be able to use ptr::offset() here?
-                //          - eliza, 03/05/2017
-                &*(((self.curr as *const HeaderRepr<W>) as u32 + self.size)
-                    as *const HeaderRepr<W>)
+            let current = self.curr;
+            self.curr =  unsafe {
+                (self.curr as *const HeaderRepr<W>).offset(1)
+                    .as_ref()
+                    .expect("Expected an ELF section header, but got a null \
+                             pointer!\nThis shouldn't happen!")
             };
             self.remaining -= 1;
             if current.get_type().unwrap() == Type::Null {
