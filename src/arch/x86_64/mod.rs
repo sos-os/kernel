@@ -130,15 +130,15 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
 
     kinfoln!( dots: " . ", "Detected {} kernel ELF sections.", n_elf_sections);
     kinfoln!( dots: " . . ", "Kernel begins at {:#p} and ends at {:#p}."
-            , kernel_begin.addr(), kernel_end.addr() );
+            , kernel_begin, kernel_end );
 
     let multiboot_end = multiboot_addr + boot_info.length as u64;
 
     kinfoln!( dots: " . . ", "Multiboot info begins at {:#x} and ends at {:#x}."
             , multiboot_addr, multiboot_end);
 
-    let params = InitParams { kernel_base: kernel_begin.addr()
-                            , kernel_top: kernel_end.addr()
+    let params = InitParams { kernel_base: kernel_begin
+                            , kernel_top: kernel_end
                             , multiboot_start: Some(multiboot_addr)
                             , multiboot_end: Some(multiboot_end)
                             , heap_base: unsafe { PAddr::from(HEAP_BASE) }
@@ -158,5 +158,5 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
      }
 
     kinfoln!(dots: " . ", "Transferring to `kernel_init()`.");
-    ::kernel_init(params);
+    ::kernel_init(&params);
 }
