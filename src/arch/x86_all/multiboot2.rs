@@ -142,11 +142,11 @@ impl Info {
                                .ok_or("ELF sections tag required!")?;
 
         let kernel_start = sections_tag.sections()
-                              .map(|s| s.addr())
+                              .map(|s| s.address())
                               .min()
                               .ok_or("Couldn't find kernel start section!")?;
         let kernel_end = sections_tag.sections()
-                              .map(|s| s.addr())
+                              .map(|s| s.address())
                               .max()
                               .ok_or("Couldn't find kernel end section!")?;
 
