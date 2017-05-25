@@ -327,8 +327,8 @@ impl Entry {
 
 }
 
-impl<'a> convert::From<&'a elf::Section<'a>> for EntryFlags {
-    fn from(section: &'a elf::Section<'a>) -> Self {
+impl<'a> convert::From<&'a elf::Section<u64>> for EntryFlags {
+    fn from(section: &'a elf::Section<u64>) -> Self {
         *EntryFlags::empty()
             .set_present(section.is_allocated())
             .set_writable(section.is_writable())
