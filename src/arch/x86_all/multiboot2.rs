@@ -137,7 +137,7 @@ impl Info {
     }
 
     /// Returns the kernel frame range from the Multiboot 2 ELF Sections
-    pub fn kernel_frames(&self) -> Result<FrameRange, &'static str> {
+    pub fn kernel_frames(&'static self) -> Result<FrameRange, &'static str> {
         let sections_tag = self.elf_sections()
                                .ok_or("ELF sections tag required!")?;
 
