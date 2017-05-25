@@ -35,7 +35,6 @@ use util::Align;
 
 pub use arch::{PAddr, PAGE_SHIFT, PAGE_SIZE};
 
-
 /// Trait representing an address, whether physical or virtual.
 pub trait Addr: ops::Add<Self> + ops::Sub<Self>
               + ops::Mul<Self> + ops::Div<Self>
@@ -161,17 +160,6 @@ macro_attr!{
     pub struct VirtualPage { pub number: usize }
 }
 
-impl convert::From<PAddr> for PhysicalPage {
-    #[inline] fn from(addr: PAddr) -> Self {
-        PhysicalPage::containing(addr)
-    }
-}
-
-impl convert::From<VAddr> for VirtualPage {
-    #[inline] fn from(addr: VAddr) -> Self {
-        VirtualPage::containing(addr)
-    }
-}
 
 //
 ///// A range of `Page`s.

@@ -245,6 +245,13 @@ macro_rules! Page {
 
         }
 
+        impl<A> ::core::convert::From<A> for $ty
+        where <Self as Page>::Address: ::core::convert::From<A> {
+            #[inline] fn from(addr: A) -> Self {
+                $ty::containing(<Self as Page>::Address::from(addr))
+            }
+        }
+
         impl_page_ops! {
             Add, add, + for $ty, <<$ty as Page>::Address as Addr>::Repr
             Sub, sub, - for $ty, <<$ty as Page>::Address as Addr>::Repr
