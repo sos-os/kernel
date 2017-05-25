@@ -89,7 +89,7 @@ pub trait Header: fmt::Debug {
     }
 
     // Field accessors -------------------------------------------------
-    fn name_offset(&self) -> usize;
+    fn name_offset(&self) -> u32;
     /// This member categorizes the section's contents and semantics.
     fn get_type(&self) -> ElfResult<Type>;
     fn flags(&self) -> Flags;
@@ -121,7 +121,7 @@ macro_rules! Header {
              }
 
             impl_getters! {
-                fn name_offset(&self) -> usize;
+                fn name_offset(&self) -> u32;
                 fn flags(&self) -> Flags;
                 /// TODO: shold this return a PAddr?
                 //          - eliza, 03/14/2017
@@ -176,7 +176,7 @@ macro_attr! {
         ///
         /// Its value is an index into the section header string table section,
         /// giving the location of a null-terminated string.
-        name_offset: Word
+        name_offset: u32
       , /// This member categorizes the section's contents and semantics.
         ty: TypeRepr
       , flags: Flags
