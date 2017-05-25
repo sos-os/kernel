@@ -10,12 +10,13 @@
 #![crate_name = "util"]
 #![no_std]
 
-#![feature(zero_one)]
+#![feature(step_trait)]
 // #[cfg(not(test))] extern crate vga;
 
-use core::{fmt, ops, num};
+use core::{fmt, ops};
 use ops::*;
-use num::One;
+use core::iter::Step;
+// use core::num::One;
 
 pub mod io;
 
@@ -29,16 +30,17 @@ impl fmt::Debug for Void {
     }
 }
 
-pub trait Align: Sized + Copy + One
+pub trait Align: Sized + Copy //+ One
                + Add<Output=Self> + Sub<Output=Self>
                + BitAnd<Output=Self> + Not<Output=Self>
+               + Step
 {
     #[inline] fn align_up(&self, to: Self) -> Self {
-        let align = to - One::one();
+        let align = to.sub_one();
         (*self + align) & !align
     }
     #[inline] fn align_down(&self, to: Self) -> Self {
-        *self & !(to - One::one())
+        *self & !to.sub_one()
     }
 }
 
