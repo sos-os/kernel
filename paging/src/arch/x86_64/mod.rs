@@ -160,7 +160,7 @@ impl Mapper for ActivePML4 {
     /// + `flags`: the page table entry flags.
     /// + `alloc`: a memory allocator
     fn map<A>( &mut self, page: VirtualPage, frame: PhysicalPage
-             , flags: EntryFlags, alloc: &A)
+             , flags: EntryFlags, alloc: &mut A)
     where A: FrameAllocator {
         // base virtual address of page being mapped
         let addr = page.base();
@@ -186,7 +186,7 @@ impl Mapper for ActivePML4 {
     }
 
     fn identity_map<A>(&mut self, frame: PhysicalPage, flags: EntryFlags
-                      , alloc: &A)
+                      , alloc: &mut A)
     where A: FrameAllocator {
         self.map( Page::containing(VAddr::from(*frame.base_addr() as usize))
                 , frame
@@ -197,7 +197,7 @@ impl Mapper for ActivePML4 {
     fn map_to_any<A>( &mut self
                     , page: VirtualPage
                     , flags: EntryFlags
-                    , alloc: &A)
+                    , alloc: &mut A)
     where A: FrameAllocator {
         let frame = unsafe {
             alloc.allocate()
@@ -211,7 +211,7 @@ impl Mapper for ActivePML4 {
     /// Unmap the given `VirtualPage`.
     ///
     /// All freed frames are returned to the given `FrameAllocator`.
-    fn unmap<A>(&mut self, page: VirtualPage, alloc: &A)
+    fn unmap<A>(&mut self, page: VirtualPage, alloc: &mut A)
     where A: FrameAllocator {
         use self::tlb::Flush;
 
@@ -292,7 +292,7 @@ impl InactivePageTable {
     }
 }
 
-pub fn test_paging<A>(alloc: &A)
+pub fn test_paging<A>(alloc: &mut A)
 where A: FrameAllocator {
     // This testing code shamelessly stolen from Phil Oppermann.
     let mut pml4 = unsafe { ActivePML4::new() };
@@ -330,7 +330,7 @@ where A: FrameAllocator {
 }
 
 /// Remaps the kernel using 4KiB pages.
-pub fn kernel_remap<A>(params: &InitParams, alloc: &A) -> ActivePageTable
+pub fn kernel_remap<A>(params: &InitParams, alloc: &mut A) -> ActivePageTable
 where A: FrameAllocator {
     // create a  temporary page for switching page tables
     // page number chosen fairly arbitrarily.

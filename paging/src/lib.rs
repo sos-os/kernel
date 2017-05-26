@@ -56,7 +56,7 @@ pub trait Mapper {
     /// + `flags`: the page table entry flags.
     /// + `alloc`: a memory allocator
     fn map<A>( &mut self, page: VirtualPage, frame: PhysicalPage
-             , flags: Self::Flags, alloc: &A )
+             , flags: Self::Flags, alloc: &mut A )
     where A: FrameAllocator;
 
     /// Identity map a given `frame`.
@@ -66,7 +66,7 @@ pub trait Mapper {
     /// + `flags`: the page table entry flags.
     /// + `alloc`: a memory allocator
     fn identity_map<A>( &mut self, frame: PhysicalPage
-                      , flags: Self::Flags, alloc: &A )
+                      , flags: Self::Flags, alloc: &mut A )
     where A: FrameAllocator;
 
     /// Map the given `VirtualPage` to any free frame.
@@ -80,13 +80,13 @@ pub trait Mapper {
     /// + `alloc`: a memory allocator
     fn map_to_any<A>( &mut self, page: VirtualPage
                     , flags: Self::Flags
-                    , alloc: &A)
+                    , alloc: &mut A)
     where A: FrameAllocator;
 
     /// Unmap the given `VirtualPage`.
     ///
     /// All freed frames are returned to the given `FrameAllocator`.
-    fn unmap<A>(&mut self, page: VirtualPage, alloc: &A)
+    fn unmap<A>(&mut self, page: VirtualPage, alloc: &mut A)
     where A: FrameAllocator;
 
 }

@@ -171,7 +171,7 @@ impl<L: Sublevel> Table<L> {
 
 
     /// Returns the next table, creating it if it does not exist.
-    pub fn create_next<A>(&mut self, addr: VAddr, alloc: &A)
+    pub fn create_next<A>(&mut self, addr: VAddr, alloc: &mut A)
                          -> &mut Table<L::Next>
     where A: FrameAllocator {
         //println!("in create_next");

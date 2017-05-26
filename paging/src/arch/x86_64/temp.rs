@@ -1,5 +1,5 @@
-use memory::{Page, PhysicalPage, VAddr, VirtualPage, FrameRange};
-use alloc::FrameAllocator;
+use memory::{PAGE_SIZE, Page, PhysicalPage, VAddr, VirtualPage, FrameRange};
+use alloc::{AllocResult, AllocErr, Layout, FrameAllocator};
 // use memory::VAddr;
 
 use spin::Mutex;
@@ -34,7 +34,7 @@ impl TempPage {
     /// + `number`: the page number for the temporary page
     /// + `alloc`: a `FrameAllocator` for allocating the frames to use
     ///            for the temporary page.
-    pub fn new<A>(number: usize, alloc: &A) -> Self
+    pub fn new<A>(number: usize, alloc: &mut A) -> Self
     where A: FrameAllocator {
         TempPage { page: VirtualPage { number: number }
                  , frames: FrameCache::new(alloc)
@@ -57,7 +57,7 @@ impl TempPage {
                 //, "Cannot map {:?}, as it is already mapped", self);
         use super::table::WRITABLE;
         trace!(" . . TempPage::map_to({:?})", frame);
-        table.map(self.page, frame, WRITABLE, &self.frames);
+        table.map(self.page, frame, WRITABLE, &mut self.frames);
         self.page.base()
     }
 
@@ -73,48 +73,51 @@ impl TempPage {
     pub fn unmap(&mut self, table: &mut ActivePageTable) {
         assert!( table.is_mapped(self)
                 , "Cannot unmap {:?}, as it is not mapped", self);
-        table.unmap(self.page, &self.frames);
+        table.unmap(self.page, &mut self.frames);
     }
 }
 
 #[derive(Debug)]
-pub struct FrameCache(Mutex<[Option<PhysicalPage>; 3]>);
+pub struct FrameCache([Option<PhysicalPage>; 3]);
 
 impl FrameCache {
 
-    pub fn new<A>(alloc: &A) -> Self
+    pub fn new<A>(alloc: &mut A) -> Self
     where A: FrameAllocator {
         unsafe {
-            let frames = [ alloc.allocate()
-                         , alloc.allocate()
-                         , alloc.allocate() ];
-            FrameCache(Mutex::new(frames))
+            let frames = [ alloc.allocate().ok()
+                         , alloc.allocate().ok()
+                         , alloc.allocate().ok() ];
+            FrameCache(frames)
         }
     }
 }
 
 impl FrameAllocator for FrameCache {
 
-    unsafe fn allocate(&self) -> Option<PhysicalPage> {
-        self.0.lock()
-            .iter_mut()
+    unsafe fn allocate(&mut self) -> AllocResult<PhysicalPage> {
+        self.0.iter_mut()
             .find(    |frame| frame.is_some())
             .and_then(|mut frame| frame.take())
+            .ok_or(AllocErr::Exhausted {
+                    request: Layout::from_size_align( PAGE_SIZE as usize
+                                                    , PAGE_SIZE as usize)
+                })
     }
 
-    unsafe fn deallocate(&self, frame: PhysicalPage) {
-        self.0.lock()
-            .iter_mut()
+    unsafe fn deallocate(&mut self, frame: PhysicalPage) {
+        self.0.iter_mut()
             .find(    |slot| slot.is_none())
             .and_then(|mut slot| { *slot = Some(frame); Some(()) })
             .expect("FrameCache can only hold three frames!");
     }
 
-    unsafe fn allocate_range(&self, _num: usize) -> Option<FrameRange> {
+    unsafe fn allocate_range(&mut self, _num: usize)
+                            -> AllocResult<FrameRange> {
         unimplemented!()
     }
 
-    unsafe fn deallocate_range(&self, _range: FrameRange) {
+    unsafe fn deallocate_range(&mut self, _range: FrameRange) {
         unimplemented!()
     }
 
