@@ -77,9 +77,6 @@ extern crate spin;
 
 use core::{cmp, ops, ptr, mem};
 use ptr::Unique;
-use memory::{PhysicalPage, FrameRange};
-
-use spin::Mutex;
 
 pub type AllocResult<T> = Result<T, AllocErr>;
 
@@ -88,6 +85,9 @@ pub type Capacity = usize;
 pub type Alignment = usize;
 
 pub type Address = *mut u8;
+
+pub mod frame;
+pub use frame::{Allocator as FrameAllocator, Lender as FrameLender};
 
 /// Represents the combination of a starting address and
 /// a total capacity of the returned block.
@@ -827,137 +827,6 @@ pub unsafe trait Allocator {
     }
 }
 
-pub trait FrameAllocator: Sized  {
-
-    unsafe fn allocate(&self) -> Option<PhysicalPage>;
-    unsafe fn deallocate(&self, frame: PhysicalPage);
-
-
-    unsafe fn allocate_range(&self, num: usize) -> Option<FrameRange>;
-    unsafe fn deallocate_range(&self, range: FrameRange);
-
-
-}
-
-pub trait FrameLender<A>
-where A: FrameAllocator {
-    /// Borrow a `Frame` from this allocator.
-    ///e
-    /// The `BorrowedFrame` will live as long as this allocator, and will
-    /// contain a handle on a `Frame` that will be automatically deallocated
-    /// when the `BorrowedFrame` is dropped.
-    ///
-    /// # Returns
-    /// + `Some(BorrowedFrame)` if there are frames remaining in this
-    ///    allocator.
-    /// + `None` if the allocator is out of frames.
-    //  TODO: do we want to refactor this into returning Results?
-    //          - eliza, 02/21/2017
-    fn borrow(&self) -> Option<BorrowedFrame<A>>;
-
-    /// Borrow a `FrameRange` from this allocator.
-    ///
-    /// The `BorrowedFrameRange` will live as long as this allocator, and will
-    /// contain a handle on a range of `Frame`s that will be automatically
-    /// deallocated when the `BorrowedFrameRange` is dropped.
-    ///
-    /// # Arguments
-    /// + `num`: The number of frames to allocate.
-    ///
-    /// # Returns
-    /// + `Some(BorrowedFrameRange)` if there are enough `Frame`s
-    ///    remaining in the allocator to fulfill the allocation
-    ///    request.
-    /// + `None` if there are not enough frames in the allocator to fulfill the
-    ///   allocation request.
-    //  TODO: do we want to refactor this into returning Results?
-    //          - eliza, 02/21/2017
-    fn borrow_range(&self, num: usize) -> Option<BorrowedFrameRange<A>>;
-
-}
-
-impl<A: FrameAllocator> FrameLender<A> for Mutex<A> {
-
-    fn borrow(&self) -> Option<BorrowedFrame<A>> {
-        // TODO: can this be rewritten to just use `self.borrow_range(1)`?
-        //          - eliza, 02/21/2017
-        unsafe { self.lock().allocate() }
-                     .map(|frame| BorrowedFrame { frame: frame
-                                                , allocator: self })
-    }
-
-    fn borrow_range(&self, num: usize) -> Option<BorrowedFrameRange<A>> {
-        unsafe { self.lock().allocate_range(num) }
-                     .map(|range| BorrowedFrameRange { range: range
-                                                     , allocator: self })
-    }
-
-
-
-}
-
-/// A borrowed handle on a frame with a specified lifetime.
-///
-/// This automatically deallocates the frame when the borrow's lifetime
-/// ends. It also ensures that the borrow only lives as long as the allocator
-/// that provided it, and that the borrow is dropped if the allocator is
-/// dropped.
-pub struct BorrowedFrame<'a, A>
-where A: FrameAllocator
-    , A: 'a {
-    frame: PhysicalPage
-  , allocator: &'a Mutex<A>
-}
-
-impl<'a, A> ops::Deref for BorrowedFrame<'a, A>
-where A: FrameAllocator
-    , A: 'a {
-    type Target = PhysicalPage;
-    fn deref(&self) ->  &Self::Target { &self.frame }
-}
-
-impl<'a, A> ops::DerefMut for BorrowedFrame<'a, A>
-where A: FrameAllocator
-    , A: 'a {
-    fn deref_mut(&mut self) ->  &mut Self::Target { &mut self.frame }
-}
-
-impl<'a, A> Drop for BorrowedFrame<'a, A>
-where A: FrameAllocator
-    , A: 'a {
-    fn drop(&mut self) {
-        unsafe { self.allocator.lock().deallocate(self.frame) }
-    }
-}
-
-/// Identical to a `BorrowedFrame` but borrowing a range of `Frame`s.
-pub struct BorrowedFrameRange<'a, A>
-where A: FrameAllocator
-    , A: 'a {
-    range: FrameRange
-  , allocator: &'a Mutex<A>
-}
-
-impl<'a, A> ops::Deref for BorrowedFrameRange<'a, A>
-where A: FrameAllocator
-    , A: 'a {
-    type Target = FrameRange;
-    fn deref(&self) -> &Self::Target { &self.range }
-}
-
-impl<'a, A> ops::DerefMut for BorrowedFrameRange<'a, A>
-where A: FrameAllocator
-    , A: 'a {
-    fn deref_mut(&mut self) -> &mut Self::Target { &mut self.range }
-}
-
-impl<'a, A> Drop for BorrowedFrameRange<'a, A>
-where A: FrameAllocator
-    , A: 'a {
-    fn drop(&mut self) {
-        unsafe { self.allocator.lock().deallocate_range(self.range.clone()) }
-    }
-}
 
 #[cfg(feature = "borrow")] pub mod borrow;
 
@@ -970,8 +839,6 @@ pub mod bump_ptr;
 
 #[cfg(feature = "system")] pub mod system;
 #[cfg(feature = "system")] pub use system::*;
-
-
 
 #[cfg(feature = "placement_in")] pub mod place;
 #[cfg(feature = "placement_in")] pub use place::*;
