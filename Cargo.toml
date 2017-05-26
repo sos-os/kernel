@@ -63,7 +63,7 @@ features = ["kinfo", "system_term"]
 
 [dependencies.alloc]
 path = "alloc"
-features = ["buddy", "system", "borrow"]
+features = ["buddy", "system", "borrow", "buddy_as_system"]
 
 [dependencies.clippy]
 version = "0.0.60"

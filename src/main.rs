@@ -107,12 +107,12 @@ pub const VERSION_STRING: &'static str
 
 /// Kernel main loop
 pub fn kernel_main() -> ! {
-    // let mut a_vec = collections::vec::Vec::<usize>::new();
-    // info!(target: "test", "Created a vector in kernel space! {:?}", a_vec);
-    // a_vec.push(1);
-    // info!(target: "test", "pushed to vec: {:?}", a_vec);
-    // a_vec.push(2);
-    // info!(target: "test", "pushed to vec: {:?}", a_vec);
+    let mut a_vec = collections::vec::Vec::<usize>::new();
+    info!(target: "test", "Created a vector in kernel space! {:?}", a_vec);
+    a_vec.push(1);
+    info!(target: "test", "pushed to vec: {:?}", a_vec);
+    a_vec.push(2);
+    info!(target: "test", "pushed to vec: {:?}", a_vec);
 
     // let mut frame_allocator = frame_alloc::FrameAllocator::new();
     // paging::test_paging(&mut frame_allocator);
