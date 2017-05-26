@@ -101,7 +101,7 @@ impl<'a> Heap<'a> {
     ///
     /// [`FreeList`]: type.FreeList.html
     /// [`FreeBlock`]: struct.FreeBlock.html
-    pub unsafe fn new( start_addr: *mut u8
+    pub unsafe fn new( start_addr: Address
                      , free_lists: &'a mut [FreeList]
                      , heap_size: usize)
                      -> Heap<'a> {
@@ -159,7 +159,7 @@ impl<'a> Heap<'a> {
     /// # Safety
     /// + This function has no way to guarantee that the given `block` of
     ///   uninitialized memory is not already in use.
-    pub unsafe fn add_block(&mut self, block: *mut u8) {
+    pub unsafe fn add_block(&mut self, block: Address) {
         // TODO: assert the passed block is not a null pointer?
         //       - eliza, 1/23/2017
         let order = self.free_lists.len() -1;
@@ -267,7 +267,7 @@ impl<'a> Heap<'a> {
     ///   splitting it.
     /// + If `old_order` is larger than the maximum order of this allocator
     unsafe fn split_block( &mut self
-                         , block: *mut u8
+                         , block: Address
                          , old_order: usize
                          , new_order: usize ) {
         // TODO: assert the passed block is not a null pointer?
@@ -306,8 +306,8 @@ impl<'a> Heap<'a> {
     /// + `None` if the block was the size of the entire heap
     pub unsafe fn get_buddy( &self
                            , order: usize
-                           , block: *mut u8)
-                            -> Option<*mut u8> {
+                           , block: Address)
+                            -> Option<Address> {
         // Determine the size of the block allocated for the given order
         let block_size = self.order_alloc_size(order);
         if block_size < self.heap_size {
@@ -319,6 +319,7 @@ impl<'a> Heap<'a> {
 
             // Determine the block's position in the heap.
             let block_pos = (block as usize) - (start_addr as usize);
+
             // Calculate the block's buddy by XORing the block's position
             // in the heap with its size.
             let block_offset = (block_pos ^ block_size) as isize;
@@ -339,7 +340,7 @@ impl<'a> Heap<'a> {
     /// # Returns
     /// + `true` if the block was found and removed from the free List
     /// + `false` if the block was not found
-    pub fn remove_block(&mut self, order: usize, block: *mut u8) -> bool {
+    pub fn remove_block(&mut self, order: usize, block: Address) -> bool {
         self.free_lists[order]
             .cursor_mut()
             .find_and_remove(|b| b as *const FreeBlock as *const u8 == block)
