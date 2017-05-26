@@ -59,6 +59,9 @@ macro_rules! Addr {
             #[inline(always)]
             pub const fn as_ptr<T>(&self) -> *const T { self.0 as *const _ }
 
+            #[inline(always)]
+            pub const fn new(value: $size) -> Self { $ty(value) }
+
 
         }
 
