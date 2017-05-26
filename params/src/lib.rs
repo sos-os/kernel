@@ -19,9 +19,17 @@
 
 extern crate memory;
 extern crate elf;
+extern crate arrayvec;
 
 use memory::{ PAddr, Page, PhysicalPage, FrameRange };
 use core::default::Default;
+
+use core::slice::Iter as SliceIter;
+use arrayvec::{ArrayVec};
+
+pub mod mem;
+
+const MAX_MEM_AREAS: usize = 0x100;
 
 /// If we are on x86_64 or armv7 this uses the 64-bit ELF word
 #[cfg(target_pointer_width = "64")]
@@ -32,7 +40,7 @@ pub type ElfSections = elf::section::Sections<'static, u64>;
 pub type ElfSections = elf::section::Sections<'static, u32>;
 
 /// Parameters used during the init process
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub struct InitParams {
     /// The base of the kernel memory range
     pub kernel_base: PAddr
@@ -56,6 +64,8 @@ pub struct InitParams {
     /// N.B. that this is currently never `None`, as we only support multiboot.
     /// However, this may change at a later date.
     pub multiboot_end: Option<PAddr>
+  , /// Map of memory areas
+    pub mem_map: ArrayVec<[mem::Area; MAX_MEM_AREAS]>
 }
 
 impl Default for InitParams {
@@ -74,6 +84,7 @@ impl Default for InitParams {
                    , stack_top: PAddr::from(0x0)
                    , multiboot_start: None
                    , multiboot_end: None
+                   , mem_map: ArrayVec::<[mem::Area; MAX_MEM_AREAS]>::new()
                    }
     }
 }
@@ -92,6 +103,8 @@ impl InitParams {
     ///
     /// # Panics
     /// If this is a non-Multiboot kernel
+    // TODO: instead of panicking, return Option!
+    //          - eliza, 5/26/2017
     #[inline]
     pub fn multiboot_start(&self) -> PAddr {
         self.multiboot_start
@@ -103,6 +116,8 @@ impl InitParams {
     ///
     /// # Panics
     /// If this is a non-Multiboot kernel
+    // TODO: instead of panicking, return Option!
+    //          - eliza, 5/26/2017
     pub fn multiboot_end(&self) -> PAddr {
         self.multiboot_end
             .expect("Attempted to access Multiboot info structure on a \
@@ -142,6 +157,12 @@ impl InitParams {
     #[inline]
     pub fn stack_frames(&self) -> FrameRange {
         unimplemented!()
+    }
+
+    /// returns an iterator over the memory map
+    #[inline]
+    pub fn mem_map(&self) -> mem::Map {
+        self.mem_map.iter()
     }
 
 

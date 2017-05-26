@@ -23,3 +23,7 @@ panic = "abort"
 util = { path = "../util" }
 memory = { path = "../memory" }
 elf = { path = "../elf" }
+
+[dependencies.arrayvec]
+version = "0.3.16"
+default-features = false

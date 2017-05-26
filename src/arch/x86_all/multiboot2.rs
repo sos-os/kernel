@@ -12,6 +12,7 @@
 //! for more information.
 use memory::{PAddr, PhysicalPage, FrameRange};
 use elf::section::{Sections, HeaderRepr as SectionHeader};
+use core::convert::Into;
 
 use core::iter::IntoIterator;
 use core::fmt;
@@ -321,6 +322,18 @@ pub struct MemArea { /// the starting address of the memory area
 impl MemArea {
     #[inline] pub fn address(&self) -> PAddr {
         self.base + self.length - 1
+    }
+}
+
+impl convert::Into<params::mem::Area> for MemArea {
+    #[inline]
+    fn into(self) -> params::mem::Area {
+        params::mem::Area {
+            start_addr: self.base
+          , end_addr: self.address()
+          , is_usable: if let MemAreaType::Available == self.ty { true }
+                       else { false }
+        }
     }
 }
 

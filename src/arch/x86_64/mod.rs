@@ -88,16 +88,6 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
         = unsafe { multiboot2::Info::from(multiboot_addr)
                     .expect("Could not unpack multiboot2 information!") };
 
-    // Extract the memory map tag from the multiboot info
-    let mem_map = boot_info.mem_map()
-                           .expect("Memory map tag required!");
-
-    kinfoln!(dots: " . ", "Detected memory areas:");
-    for area in mem_map {
-        kinfoln!( dots: " . . ", "{}", area);
-        // TODO: add memory map to init params here
-    }
-
     // Extract ELF sections tag from the multiboot info
     let elf_sections_tag
         = boot_info.elf_sections()
@@ -146,7 +136,17 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
                             , stack_base: unsafe { PAddr::from(STACK_BASE) }
                             , stack_top: unsafe { PAddr::from(STACK_TOP) }
                             , ..Default::default()
-                            };
+                        };
+
+    // Extract the memory map tag from the multiboot info
+    let mem_map = boot_info.mem_map()
+                           .expect("Memory map tag required!");
+
+    kinfoln!(dots: " . ", "Detected memory areas:");
+    for area in mem_map {
+        kinfoln!( dots: " . . ", "{}", area);
+        params.mem_map.push(area.into());
+    }
 
      // -- enable flags needed for paging ------------------------------------
      unsafe {
