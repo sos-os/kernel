@@ -29,7 +29,7 @@ use arrayvec::{ArrayVec};
 
 pub mod mem;
 
-const MAX_MEM_AREAS: usize = 0x100;
+const MAX_MEM_AREAS: usize = 32;
 
 /// If we are on x86_64 or armv7 this uses the 64-bit ELF word
 #[cfg(target_pointer_width = "64")]
