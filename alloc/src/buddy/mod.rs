@@ -66,7 +66,7 @@ macro_rules! max {
 pub struct Heap<'a> {
     /// Address of the base of the heap. This must be aligned
     /// on a `MIN_ALIGN` boundary.
-    pub start_addr: *mut u8
+    pub start_addr: Unique<u8>
   , /// The allocator's free list
     free_lists: &'a mut [FreeList]
   , /// Number of blocks in the heap (must be a power of 2)
@@ -136,11 +136,11 @@ impl<'a> Heap<'a> {
         }
 
         let mut heap
-            = Heap { start_addr: start_addr
-                                 , free_lists: free_lists
-                                 , heap_size: heap_size
-                                 , min_block_size: min_block_size
-                                 };
+            = Heap { start_addr: Unique::new(start_addr)
+                   , free_lists: free_lists
+                   , heap_size: heap_size
+                   , min_block_size: min_block_size
+                   };
 
         // the order needed to allocate the entire heap as a single block
         let root_order
@@ -311,11 +311,18 @@ impl<'a> Heap<'a> {
         // Determine the size of the block allocated for the given order
         let block_size = self.order_alloc_size(order);
         if block_size < self.heap_size {
+
+            let start_addr = self.start_addr.as_ptr();
+            debug_assert!( !start_addr.is_null(),
+                "Start address of a (supposedly) valid heap was null. Something\
+                 has gone horribly, horribly wrong!");
+
             // Determine the block's position in the heap.
-            let block_pos = (block as usize) - (self.start_addr as usize);
+            let block_pos = (block as usize) - (start_addr as usize);
             // Calculate the block's buddy by XORing the block's position
             // in the heap with its size.
-            Some(self.start_addr.offset((block_pos ^ block_size) as isize))
+            let block_offset = (block_pos ^ block_size) as isize;
+            Some(start_addr.offset(block_offset))
         } else {
             // If the block is the size of the entire heap, it (obviously)
             // cannot have a buddy block.
