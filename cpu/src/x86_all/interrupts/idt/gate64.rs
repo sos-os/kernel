@@ -79,7 +79,7 @@ impl<H> Gate<H> {
        Gate { offset_lower: 0
             , selector: segment::Selector::from_raw(0)
             , _zero: 0
-            , flags: GateFlags { bits: 0 }
+            , flags: GateFlags { bits:  0b1000_1110 }
             , offset_mid: 0
             , offset_upper: 0
             , _reserved: 0
@@ -110,7 +110,7 @@ impl<H> Default for Gate<H> {
         Gate { offset_lower: 0
              , selector: segment::Selector::from_raw(0)
              , _zero: 0
-             , flags: GateFlags { bits: 0 }
+             , flags: GateFlags { bits: 0b1000_1110 }
              , offset_mid: 0
              , offset_upper: 0
              , _reserved: 0

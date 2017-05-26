@@ -23,6 +23,7 @@ use cpu::dtable::DTable;
 /// handlers, loads the IDT pointer, and enables interrupts.
 ///
 /// This is called from the kernel during the init process.
+#[inline]
 pub unsafe fn initialize() {
 
     pics::initialize();
@@ -69,39 +70,69 @@ macro_rules! exception_inner {
 }
 
 macro_rules! exceptions {
-    ( idt: $idt:expr, $($tail:tt)+ ) => {
-        exceptions! {  @impl $idt, $($tail)+  }
-    };
-    ( @impl $i:expr, fault: $name:ident, $title:expr, $source:expr, $($tail:tt)* ) => {
+    ( fault: $name:ident, $title:expr, $source:expr, $($tail:tt)* ) => {
         #[doc=$title]
         extern "x86-interrupt" fn $name(frame: &InterruptFrame) {
             exception_inner! ($title, "Fault", $source, frame);
             loop {}
         }
-        $i.$name = Gate::from($name as InterruptHandler);
-        exceptions! {  @impl  $i, $($tail)* }
+
+        exceptions! {  $($tail)* }
     };
-     ( @impl $i:expr, fault (code): $name:ident, $title:expr, $source:expr, $($tail:tt)* ) => {
+     ( fault (code): $name:ident, $title:expr, $source:expr, $($tail:tt)* ) => {
         #[doc=$title]
         extern "x86-interrupt" fn $name( frame: &InterruptFrame
                                        , error_code: usize) {
            exception_inner! ($title, "Fault", $source, frame, error_code);
            loop {}
        }
-       $i.$name = Gate::from($name as ErrorCodeHandler);
-       exceptions! { @impl $i, $($tail)* };
+       exceptions! { $($tail)* }
    };
-     ( @impl $i:expr, trap: $name:ident, $title:expr, $source:expr, $($tail:tt)* ) => {
+     ( trap: $name:ident, $title:expr, $source:expr, $($tail:tt)* ) => {
          #[doc=$title]
          extern "x86-interrupt" fn $name(frame: &InterruptFrame) {
              exception_inner! ($title, "Trap", $source, frame);
          }
-         $i.$name = Gate::from($name as InterruptHandler);
-         $i.$name.set_trap();
-         exceptions! { @impl $i, $($tail)* };
-     };
-      ( @impl $i:expr, ) => {};
 
+         exceptions! { $($tail)* }
+     };
+      ( ) => {};
+
+}
+exceptions! {
+    fault: divide_by_zero, "Divide by Zero Error",
+           "DIV or IDIV instruction",
+    fault: nmi, "Non-Maskable Interrupt",
+          "Non-maskable external interrupt",
+    trap: overflow, "Overflow", "INTO instruction",
+    fault: bound_exceeded, "BOUND range exceeded",
+          "BOUND instruction",
+    fault: undefined_opcode, "Undefined Opcode",
+           "UD2 instruction or reserved opcode",
+    fault: device_not_available, "Device Not Available"
+         , "Floating-point or WAIT/FWAIT instruction \
+            (no math coprocessor)",
+    fault (code): double_fault, "Double Fault"
+         , "Any instruction that can generate an exception, a NMI, or \
+            an INTR",
+    fault (code): invalid_tss, "Invalid TSS"
+         , "Task switch or TSS access",
+    fault (code): segment_not_present, "Segment Not Present"
+         , "Loading segment registers or accessing \
+            system segments",
+    fault (code): general_protection_fault, "General Protection Fault"
+         , "Any memory reference or other protection checks",
+    fault (code): stack_segment_fault, "Stack Segment Fault"
+         , "Stack operations and SS register loads",
+    fault: floating_point_error
+         , "x87 FPU Floating-Point Error (Math Fault)"
+         , "x87 FPU floating-point or WAIT/FWAIT instruction",
+    fault: machine_check, "Machine Check"
+         , "Model-dependent (probably hardware!)",
+    fault (code): alignment_check, "Alignment Check"
+         , "Any data reference in memory",
+    fault: simd_fp_exception, "SIMD Floating-Point Exception"
+         , "SSE/SSE2/SSE3 floating-point instructions",
 }
 
 lazy_static! {
@@ -112,52 +143,31 @@ lazy_static! {
         // TODO: log each handler as it's added to the IDT? that way we can
         //       trace faults occurring during IDT population (if any)
         //          - eliza, 5/22/2017
-        exceptions! { idt: idt,
-            fault: divide_by_zero, "Divide by Zero Error",
-                   "DIV or IDIV instruction",
-            fault: nmi, "Non-Maskable Interrupt",
-                  "Non-maskable external interrupt",
-            trap: overflow, "Overflow", "INTO instruction",
-            fault: bound_exceeded, "BOUND range exceeded",
-                  "BOUND instruction",
-            fault: undefined_opcode, "Undefined Opcode",
-                   "UD2 instruction or reserved opcode",
-            fault: device_not_available, "Device Not Available"
-                 , "Floating-point or WAIT/FWAIT instruction \
-                    (no math coprocessor)",
-            fault (code): double_fault, "Double Fault"
-                 , "Any instruction that can generate an exception, a NMI, or \
-                    an INTR",
-            fault (code): invalid_tss, "Invalid TSS"
-                 , "Task switch or TSS access",
-            fault (code): segment_not_present, "Segment Not Present"
-                 , "Loading segment registers or accessing \
-                    system segments",
-            fault (code): general_protection_fault, "General Protection Fault"
-                 , "Any memory reference or other protection checks",
-            fault (code): stack_segment_fault, "Stack Segment Fault"
-                 , "Stack operations and SS register loads",
-            fault: floating_point_error
-                 , "x87 FPU Floating-Point Error (Math Fault)"
-                 , "x87 FPU floating-point or WAIT/FWAIT instruction",
-            fault: machine_check, "Machine Check"
-                 , "Model-dependent (probably hardware!)",
-            fault (code): alignment_check, "Alignment Check"
-                 , "Any data reference in memory",
-            fault: simd_fp_exception, "SIMD Floating-Point Exception"
-                 , "SSE/SSE2/SSE3 floating-point instructions",
-        };
+        idt.divide_by_zero = Gate::from(divide_by_zero as InterruptHandler);
+        idt.nmi = Gate::from(nmi as InterruptHandler);
+        idt.overflow = Gate::from(overflow as InterruptHandler);
+        idt.overflow.set_trap();
+        idt.bound_exceeded = Gate::from(bound_exceeded as InterruptHandler);
+        idt.undefined_opcode = Gate::from(undefined_opcode as InterruptHandler);
+        idt.device_not_available = Gate::from(device_not_available as InterruptHandler);
+        idt.double_fault = Gate::from(double_fault as ErrorCodeHandler);
+        idt.invalid_tss = Gate::from(invalid_tss as ErrorCodeHandler);
+        idt.segment_not_present = Gate::from(segment_not_present as ErrorCodeHandler);
+        idt.stack_segment_fault = Gate::from(stack_segment_fault as ErrorCodeHandler);
+        idt.general_protection_fault = Gate::from(general_protection_fault as ErrorCodeHandler);
+        idt.page_fault = Gate::from(page_fault as ErrorCodeHandler);
+
+        idt.floating_point_error = Gate::from(floating_point_error as InterruptHandler);
+        idt.alignment_check = Gate::from(alignment_check as ErrorCodeHandler);
+        idt.machine_check = Gate::from(machine_check as InterruptHandler);
+        idt.simd_fp_exception = Gate::from(simd_fp_exception as InterruptHandler);
 
         idt.breakpoint = Gate::from(breakpoint as InterruptHandler);
         idt.page_fault = Gate::from(page_fault as ErrorCodeHandler);
 
-        for vector in idt.interrupts.iter_mut() {
-            *vector = Gate::from(empty_handler as InterruptHandler);
-        }
-
-        idt[0x20] = Gate::from(timer as InterruptHandler);
-        idt[0x21] = Gate::from(keyboard as InterruptHandler);
-        idt[0xff] = Gate::from(test as InterruptHandler);
+        idt.interrupts[0x20 - 32] = Gate::from(timer as InterruptHandler);
+        idt.interrupts[0x21 - 32] = Gate::from(keyboard as InterruptHandler);
+        idt.interrupts[0xff - 32] = Gate::from(test as InterruptHandler);
 
         kinfoln!( dots: " . . ", target: "Adding interrupt handlers to IDT"
                 , "[ OKAY ]");
