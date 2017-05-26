@@ -13,7 +13,7 @@ use super::AllocResult;
 use core::ops;
 use spin::Mutex;
 
-pub mod area;
+pub mod mem_map;
 
 /// An allocator for allocating physical frames.
 pub trait Allocator: Sized  {
