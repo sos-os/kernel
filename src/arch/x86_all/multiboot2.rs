@@ -12,8 +12,9 @@
 //! for more information.
 use memory::{PAddr, PhysicalPage, FrameRange};
 use elf::section::{Sections, HeaderRepr as SectionHeader};
-use core::convert::Into;
+use params::mem;
 
+use core::convert::Into;
 use core::iter::IntoIterator;
 use core::fmt;
 
@@ -325,13 +326,13 @@ impl MemArea {
     }
 }
 
-impl convert::Into<params::mem::Area> for MemArea {
+impl<'a> Into<mem::Area> for &'a MemArea {
     #[inline]
-    fn into(self) -> params::mem::Area {
-        params::mem::Area {
+    fn into(self) -> mem::Area {
+        mem::Area {
             start_addr: self.base
           , end_addr: self.address()
-          , is_usable: if let MemAreaType::Available == self.ty { true }
+          , is_usable: if let MemAreaType::Available = self.ty { true }
                        else { false }
         }
     }
