@@ -139,6 +139,7 @@ use super::ErrorCodeHandler;
 /// An Interrupt Descriptor Table
 ///
 /// The IDT is either 64-bit or 32-bit.
+#[repr(C)]
 pub struct Idt {
     pub divide_by_zero: Gate
   , /// debug interrupt handler - reserved

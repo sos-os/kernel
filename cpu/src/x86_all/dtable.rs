@@ -74,6 +74,7 @@ pub trait DTable: Sized {
     //        DTable rray, but I imagine it will probably never do that...
     //              – eliza, 06/03/2016
     //
+    #[inline]
     fn get_ptr(&self) -> Pointer<Self> {
         Pointer {
             limit: (size_of::<Self::Entry>() * self.entry_count()) as u16
