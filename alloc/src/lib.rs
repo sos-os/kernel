@@ -75,6 +75,8 @@ extern crate spin;
 
 #[macro_use] extern crate log;
 
+extern crate params;
+
 use core::{cmp, ops, ptr, mem};
 use ptr::Unique;
 

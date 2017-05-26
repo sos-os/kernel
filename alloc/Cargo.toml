@@ -7,7 +7,7 @@ authors = ["Eliza Weisman <eliza@elizas.website>"]
 default = ["buddy", "bump_ptr", "borrow"]
 buddy = ["sos_intrusive"]
 buddy_as_system = ["buddy", "once"]
-system = ["params"]
+system = []
 bump_ptr = []
 placement_in = ["system"]
 borrow = []
@@ -40,4 +40,3 @@ optional = true
 
 [dependencies.params]
 path = "../params"
-optional = true

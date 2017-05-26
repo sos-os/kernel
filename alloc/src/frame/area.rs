@@ -1,28 +1,7 @@
-use multiboot::{MemArea, MemAreas};
-use super::{Framesque, Allocator};
-
-/// A `Frame` is just a newtype around a `usize` containing the frame number.
-#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Copy, Clone)]
-pub struct FrameNumber(usize);
-
-impl FrameNumber {
-    #[inline] pub fn containing(address: usize) -> FrameNumber {
-        FrameNumber( address / ::PAGE_SIZE )
-    }
-
-    #[inline] fn next(&self) -> FrameNumber { FrameNumber(self.0 + 1) }
-
-    // #[inline] fn as_ptr(&self) -> Frame {
-    //         self.0 as *mut u8 // HOPEFULLY this is good
-    //     }
-}
-
-impl Framesque for FrameNumber {
-    #[inline] fn as_ptr(&self) -> *mut u8 {
-        self.0 as *mut u8 // HOPEFULLY this is good
-    }
-}
-
+use super::{Frame, FrameRange, Allocator};
+use ::{AllocResult, AllocErr, Layout};
+use params::{InitParams, mem};
+use memory::{Page, PAGE_SIZE, PAddr};
 /// A simple area allocator.
 ///
 /// This is based on the memory area allocation scheme described
@@ -32,59 +11,58 @@ impl Framesque for FrameNumber {
 /// reallocation of freed frames. The plan is that it will only be used
 /// initially, and after we've allocated everything once, we'll switch over
 /// to a better allocator.
-pub struct SimpleAreaAllocator { next_free: FrameNumber
-                               , current_area: Option<&'static MemArea>
-                               , areas: MemAreas
-                               , kern_start: FrameNumber
-                               , kern_end: FrameNumber
-                               , mb_start: FrameNumber
-                               , mb_end: FrameNumber
+pub struct MemMapAllocator<'a> { next_free: Frame
+                               , current_area: Option<&'a mem::Area>
+                               , areas: mem::Map<'a>
+                               , kern_start: Frame
+                               , kern_end: Frame
+                               , mb_start: Frame
+                               , mb_end: Frame
                                }
-impl SimpleAreaAllocator {
+impl<'a> MemMapAllocator<'a> {
     fn next_area(&mut self) {
         // println!("In next_area");
         self.current_area
             = self.areas
                   .clone()
                   .filter(|a|
-                      FrameNumber::containing(a.address()) >= self.next_free)
-                  .min_by_key(|a| a.base);
+                      Frame::containing(a.end_addr) >= self.next_free)
+                  .min_by_key(|a| a.start_addr);
 
         self.current_area
             .map(|area| {
-                let start = FrameNumber::containing(area.base as usize);
+                let start = Frame::containing(area.start_addr);
                 if self.next_free > start { self.next_free = start }
             });
     }
 
     pub fn new( kernel_start: usize, kernel_end: usize
               , multiboot_start: usize, multiboot_end: usize
-              , areas: MemAreas )
+              , areas: mem::Map )
               -> Self {
-        let mut new_allocator = SimpleAreaAllocator {
-              next_free: FrameNumber::containing(0x0)
+        let mut new_allocator = MemMapAllocator {
+              next_free: Frame::containing(PAddr::new(0x0))
             , current_area: None
             , areas: areas
-            , kern_start: FrameNumber::containing(kernel_start)
-            , kern_end: FrameNumber::containing(kernel_end)
-            , mb_start: FrameNumber::containing(multiboot_start)
-            , mb_end: FrameNumber::containing(multiboot_end)
+            , kern_start: Frame::containing(kernel_start)
+            , kern_end: Frame::containing(kernel_end)
+            , mb_start: Frame::containing(multiboot_start)
+            , mb_end: Frame::containing(multiboot_end)
             };
         new_allocator.next_area();
         new_allocator
     }
 }
 
-impl Allocator for SimpleAreaAllocator {
-    // type Frame = FrameNumber;
+impl<'a> Allocator for MemMapAllocator<'a> {
+    // type Frame = Frame;
 
-    unsafe fn allocate(&mut self, size: usize, align: usize)
-                       -> Option<*mut u8> {
+    unsafe fn allocate(&mut self) -> AllocResult<Frame> {
         // // println!("In alloc method");
         if let Some(area) = self.current_area {
             match self.next_free {
                 // all frames in the current memory area are in use
-                f if f > FrameNumber::containing(area.address()) => {
+                f if f > Frame::containing(area.end_addr()) => {
                     // so we advance to the next free area
 
                     // println!("All frames in current area in use.");
@@ -111,19 +89,21 @@ impl Allocator for SimpleAreaAllocator {
                     // println!("In free frame, advancing...");
                     self.next_free = self.next_free.next();
                     // println!("...and returning {:?}", frame);
-                    return Some(frame.as_ptr())
+                    return Ok(frame)
                 }
             };
-            self.allocate(size, align)
+            self.allocate()
         } else {
             // println!("No free frames remain!");
-            None
+            Err(AllocErr::Exhausted {
+                    layout: Layout::from_size_align( PAGE_SIZE, PAGE_SIZE)
+            })
         }
         // self.current_area    // If current area is None, no free frames remain.
         //     .and_then(|area| // Otherwise, try to allocate...
         //         match self.next_free {
         //             // all frames in the current memory area are in use
-        //             f if f > FrameNumber::containing(area.address()) => {
+        //             f if f > Frame::containing(area.address()) => {
         //                 // so we advance to the next free area
         //
         //                 // println!("All frames in current area in use.");
@@ -160,14 +140,17 @@ impl Allocator for SimpleAreaAllocator {
 
     }
 
-    unsafe fn deallocate( &mut self, block: *mut u8
-                        , old_size: usize, align: usize ) {
-        unimplemented!()
+    /// Deallocate a frame
+    unsafe fn deallocate(&mut self, frame: Frame) {
+        // just leak it
     }
 
-    // fn reallocate( &mut self, frame: FrameNumber
-    //              , size: usize, align: usize) -> Option<FrameNumber> {
-    //     panic!("The simple allocator doesn't support reallocation \
-    //             (as it is not intended for use as a system allocator).")
-    // }
+    /// Allocate a range of frames
+    unsafe fn allocate_range(&mut self, num: usize) -> AllocResult<FrameRange> {
+        unimplemented!()
+    }
+    /// Deallocate a range of frames
+    unsafe fn deallocate_range(&mut self, range: FrameRange) {
+        //just leak it
+    }
 }

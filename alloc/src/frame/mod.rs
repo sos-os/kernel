@@ -13,18 +13,20 @@ use super::AllocResult;
 use core::ops;
 use spin::Mutex;
 
+pub mod area;
+
 /// An allocator for allocating physical frames.
 pub trait Allocator: Sized  {
 
     /// Allocate a new frame
-    unsafe fn allocate(&self) -> AllocResult<Frame>;
+    unsafe fn allocate(&mut self) -> AllocResult<Frame>;
     /// Deallocate a frame
-    unsafe fn deallocate(&self, frame: Frame);
+    unsafe fn deallocate(&mut self, frame: Frame);
 
     /// Allocate a range of frames
-    unsafe fn allocate_range(&self, num: usize) -> AllocResult<FrameRange>;
+    unsafe fn allocate_range(&mut self, num: usize) -> AllocResult<FrameRange>;
     /// Deallocate a range of frames
-    unsafe fn deallocate_range(&self, range: FrameRange);
+    unsafe fn deallocate_range(&mut self, range: FrameRange);
 
 }
 

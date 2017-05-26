@@ -5,16 +5,13 @@ use core::ops::Deref;
 #[cfg(feature = "borrow")]
 use borrow::{Borrowed, BorrowedPtr};
 
-extern crate params;
-
-use self::params::InitParams;
-
 #[cfg(feature = "bump_ptr")]
 use bump_ptr::BumpPtr;
 
 #[cfg(feature = "buddy")]
 use buddy::Heap as BuddyHeap;
 
+use params::InitParams;
 
 pub enum Tier<'a> {
     Uninitialized
