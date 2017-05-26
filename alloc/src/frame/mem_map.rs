@@ -28,13 +28,12 @@ impl<'a> MemMapAllocator<'a> {
                   .clone()
                   .filter(|a|
                       Frame::containing(a.end_addr) >= self.next_free)
-                  .min_by_key(|a| a.start_addr);
-
-        self.current_area
-            .map(|area| {
-                let start = Frame::containing(area.start_addr);
-                if self.next_free > start { self.next_free = start }
-            });
+                  .min_by_key(|a| a.start_addr)
+                  .map(|area| {
+                      let start = Frame::containing(area.start_addr);
+                      if self.next_free > start { self.next_free = start };
+                      area
+                  })
     }
 
 }
