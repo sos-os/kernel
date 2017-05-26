@@ -127,7 +127,7 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
     kinfoln!( dots: " . . ", "Multiboot info begins at {:#x} and ends at {:#x}."
             , multiboot_addr, multiboot_end);
 
-    let params = InitParams { kernel_base: kernel_begin
+    let mut params = InitParams { kernel_base: kernel_begin
                             , kernel_top: kernel_end
                             , multiboot_start: Some(multiboot_addr)
                             , multiboot_end: Some(multiboot_end)
