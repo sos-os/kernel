@@ -18,8 +18,7 @@ pub struct MemMapAllocator<'a> { next_free: Frame
                                , current_area: Option<&'a mem::Area>
                                , areas: mem::Map<'a>
                                , kernel_frames: FrameRange
-                               , mb_start: Frame
-                               , mb_end: Frame
+                               , mb_frames: FrameRange
                                }
 impl<'a> MemMapAllocator<'a> {
     fn next_area(&mut self) {
@@ -48,8 +47,8 @@ impl<'a> From<&'a InitParams> for MemMapAllocator<'a> {
             , areas: params.mem_map()
             , kernel_frames: params.kernel_frames()
             // TODO: handle non-multiboot case
-            , mb_start: Frame::containing(params.multiboot_start())
-            , mb_end: Frame::containing(params.multiboot_end())
+            , mb_frames: Frame::containing(params.multiboot_start()) ..
+                         Frame::containing(params.multiboot_end())
             };
         new_allocator.next_area();
         new_allocator
@@ -72,17 +71,17 @@ impl<'a> Allocator for MemMapAllocator<'a> {
                     // println!("...and returning None");
                 }
               , // this frame is in use by the kernel.
-                kernel_frames => {
+                f if self.kernel_frames.contains(f) => {
                     // skip ahead to the end of the kernel
                     // println!("In kernel frame, skipping.");
                     self.next_free = self.kernel_frames.end.add_one();
                     // println!("...and returning None");
                 }
               , // this frame is part of the multiboot info.
-                f if f >= self.mb_start || f <= self.mb_end => {
+                f if self.mb_frames.contains(f) => {
                     // skip ahead to the end of the multiboot info.
                     // println!("In multiboot frame, skipping...");
-                    self.next_free = self.mb_end.add_one();
+                    self.next_free = self.mb_frames.end.add_one();
                     // println!("...and returning None");
                 }
               , // this frame is free.

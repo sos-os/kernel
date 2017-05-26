@@ -54,7 +54,7 @@
 #![feature(const_fn)]
 #![feature(unique)]
 #![feature(core_intrinsics)]
-#![feature(step_trait)]
+#![feature(step_trait, range_contains)]
 
 #![cfg_attr(all(test, feature = "bench"), feature(test))]
 #![cfg_attr(test, feature(collections))]
