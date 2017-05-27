@@ -12,7 +12,7 @@
 //! `alloc` crates.
 #![feature(asm)]
 #![feature(unique)]
-#![feature(associated_consts)]
+#![feature(associated_consts, const_fn)]
 #![no_std]
 
 #[macro_use] extern crate bitflags;
@@ -27,6 +27,7 @@ extern crate elf;
 extern crate params;
 
 pub mod arch;
+pub mod stack;
 pub use self::arch::{kernel_remap, test_paging};
 
 use memory::{PAddr, PhysicalPage, VAddr, VirtualPage};
