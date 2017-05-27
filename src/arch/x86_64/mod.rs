@@ -113,7 +113,7 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
     let kernel_end
         = elf_sections_tag.sections()
             .filter(|s| s.is_allocated())
-            .map(|s| { n_elf_sections += 1; s.address() })
+            .map(|s| { n_elf_sections += 1; s.end_address() })
             .max()
             .expect("Could not find kernel end section!\
                     \nSomething is deeply wrong.");
