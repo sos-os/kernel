@@ -13,6 +13,7 @@
 #![feature(asm)]
 #![feature(unique)]
 #![feature(associated_consts, const_fn)]
+#![feature(core_intrinsics)]
 #![no_std]
 
 #[macro_use] extern crate bitflags;

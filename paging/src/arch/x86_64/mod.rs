@@ -130,24 +130,23 @@ impl Mapper for ActivePML4 {
     }
 
     fn translate_page(&self, page: VirtualPage) -> Option<PhysicalPage> {
-        let addr = page.base();
-        let pdpt = self.pml4().next_table(addr);
+        let pdpt = self.pml4().next_table(page);
 
         let huge_page = || {
             pdpt.and_then(|pdpt|
-                pdpt[addr]
-                    .do_huge(PDLevel::index_of(addr) + PTLevel::index_of(addr))
+                pdpt[page]
+                    .do_huge(PDLevel::index_of_page(page) + PTLevel::index_of_page(page))
                     .or_else(|| {
-                        pdpt.next_table(addr).and_then(|pd|
-                            pd[addr].do_huge(PTLevel::index_of(addr))
+                        pdpt.next_table(page).and_then(|pd|
+                            pd[page].do_huge(PTLevel::index_of_page(page))
                         )
                     })
                 )
         };
 
-        pdpt.and_then(|pdpt| pdpt.next_table(addr))
-            .and_then(|pd| pd.next_table(addr))
-            .and_then(|pt| pt[addr].get_frame())
+        pdpt.and_then(|pdpt| pdpt.next_table(page))
+            .and_then(|pd| pd.next_table(page))
+            .and_then(|pt| pt[page].get_frame())
             .or_else(huge_page)
     }
 
@@ -163,26 +162,25 @@ impl Mapper for ActivePML4 {
              , flags: EntryFlags, alloc: &mut A)
     where A: FrameAllocator {
         // base virtual address of page being mapped
-        let addr = page.base();
+        // let addr = page.base();
 
         // access or create all the lower-level page tables.
-        let mut page_table
-            // get the PML4
+        let mut page_table // get the PML4
             = self.pml4_mut()
                   // get or create the PDPT table at the page's PML4 index
-                  .create_next(addr, alloc)
+                  .create_next(page, alloc)
                   // get or create the PD table at the page's PDPT index
-                  .create_next(addr, alloc)
+                  .create_next(page, alloc)
                   // get or create the page table at the  page's PD table index
-                  .create_next(addr, alloc);
+                  .create_next(page, alloc);
         trace!(" . . Map: Got page table");
         // check if the page at that index is not currently in use, as we
         // cannot map a page which is currently in use.
-        assert!(page_table[addr].is_unused()
+        assert!(page_table[page].is_unused()
                , "Could not map frame {:?}, page table entry {} is already \
-                  in use!", frame, PTLevel::index_of(addr));
+                  in use!", frame, PTLevel::index_of_page(page));
         // set the page table entry at that index
-        page_table[addr].set(frame, flags | table::PRESENT);
+        page_table[page].set(frame, flags | table::PRESENT);
     }
 
     fn identity_map<A>(&mut self, frame: PhysicalPage, flags: EntryFlags
@@ -214,29 +212,30 @@ impl Mapper for ActivePML4 {
     fn unmap<A>(&mut self, page: VirtualPage, alloc: &mut A)
     where A: FrameAllocator {
         use self::tlb::Flush;
-
+        trace!("unmapping {:?}", page);
         // get the page table entry corresponding to the page.
         let ref mut entry
             = self.pml4_mut()
                   .page_table_mut_for(page) // get the page table for the page
                   .expect("Could not unmap, huge pages not supported!")
-                  [page.base()];        // index the entry from the table
-
+                  [page];        // index the entry from the table
+        trace!("got page table entry for {:?}", page);
         // get the pointed frame for the page table entry.
         let frame = entry.get_frame()
                          .expect("Could not unmap page that was not mapped!");
-
+        trace!("page table entry for {:?} points to {:?}", page, frame);
         // mark the page table entry as unused
         entry.set_unused();
-
+        trace!("set page table entry for {:?} as unused", page);
         // deallocate the frame and flush the translation lookaside buffer
         // this is safe because we're in kernel mode
-        assert!( page.flush()
-               , "Could not flush TLB, we were not in kernel mode!");
+        unsafe { page.invlpg() };
+        trace!("flushed TLB");
         unsafe {
             // this is hopefully safe because nobody else should be using an
             // allocated page frame
             alloc.deallocate(frame);
+            trace!("deallocated page {:?}", frame);
         }
         // TODO: check if page tables containing the unmapped page are empty
         //       and deallocate them too?
@@ -278,8 +277,9 @@ impl InactivePageTable {
               , temp: &mut TempPage)
               -> Self {
         {
+            trace!("Mapping page {} to frame {}", temp.number, frame.number);
             let table = temp.map_to_table(frame.clone(), active_table);
-            trace!( " . . . Mapped temp page to table frame.");
+            trace!( " . . . Mapped temp page to table frame .");
             table.zero();
             trace!( " . . . Zeroed inactive table frame.");
             table[511].set( frame.clone(), PRESENT | WRITABLE);
@@ -294,6 +294,7 @@ impl InactivePageTable {
 
 pub fn test_paging<A>(alloc: &mut A)
 where A: FrameAllocator {
+    info!("testing paging");
     // This testing code shamelessly stolen from Phil Oppermann.
     let mut pml4 = unsafe { ActivePML4::new() };
 
@@ -330,7 +331,8 @@ where A: FrameAllocator {
 }
 
 /// Remaps the kernel using 4KiB pages.
-pub fn kernel_remap<A>(params: &InitParams, alloc: &mut A) -> ActivePageTable
+pub fn kernel_remap<A>(params: &InitParams, alloc: &mut A)
+                       -> Result<ActivePageTable, &'static str>
 where A: FrameAllocator {
     // create a  temporary page for switching page tables
     // page number chosen fairly arbitrarily.
@@ -344,7 +346,7 @@ where A: FrameAllocator {
 
     let mut new_table = unsafe {
         InactivePageTable::new(
-             alloc.allocate().expect("Out of physical pages!")
+             alloc.allocate().map_err(|_| { "Out of physical pages!" })?
           , &mut current_table
           , &mut temp_page
           )
@@ -359,8 +361,12 @@ where A: FrameAllocator {
                     .filter(|section| section.is_allocated());
 
         for section in sections { // remap ELF sections
+
+            // TODO: can we get this to return a Result?
+            //          eliza, 5/27/2017
             assert!( section.address().is_page_aligned()
                    , "Section address must be page aligned to remap!");
+
             trace!( " . . Identity mapping section at {:?} with size {:?}"
                     , section.address()
                     , section.length() );
@@ -402,6 +408,5 @@ where A: FrameAllocator {
         );
     current_table.unmap(old_pml4_page, alloc);
     trace!(" . . Unmapped guard page at {:?}", old_pml4_page.base());
-
-    current_table
+    Ok(current_table)
 }

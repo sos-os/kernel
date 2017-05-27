@@ -2,6 +2,8 @@ use memory::{PAGE_SIZE, Page, PhysicalPage, VAddr, VirtualPage, FrameRange};
 use alloc::{AllocResult, AllocErr, Layout, FrameAllocator};
 // use memory::VAddr;
 
+use spin::Mutex;
+
 use core::ops;
 
 use super::ActivePageTable;
@@ -69,6 +71,7 @@ impl TempPage {
    }
 
     pub fn unmap(&mut self, table: &mut ActivePageTable) {
+        trace!("unmapping temp page");
         assert!( table.is_mapped(self)
                 , "Cannot unmap {:?}, as it is not mapped", self);
         table.unmap(self.page, &mut self.frames);
@@ -97,6 +100,7 @@ impl FrameAllocator for FrameCache {
         self.0.iter_mut()
             .find(    |frame| frame.is_some())
             .and_then(|mut frame| frame.take())
+            .map(|frame| { trace!("frameCache: alloced {:?}", &frame); frame})
             .ok_or(AllocErr::Exhausted {
                     request: Layout::from_size_align( PAGE_SIZE as usize
                                                     , PAGE_SIZE as usize)

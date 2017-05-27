@@ -16,33 +16,33 @@ pub trait Flush {
     ///
     /// # Safety
     /// + Causes a general protection fault if not executed in kernel mode.
-    unsafe fn invlpg(&self);
-
-    /// Invalidate this object in the TLB instruction if we are in kernel mode.
-    ///
-    /// # Returns
-    /// + True if the object was flushed
-    /// + False if it was not flushed.
-    #[inline]
-    fn flush(&self) -> bool {
-        use cpu::PrivilegeLevel;
-
-        if PrivilegeLevel::current_iopl() != PrivilegeLevel::KernelMode {
-            false // can't flush, we are not in kernel mode
-        } else {
-            // this is safe since we know we are in kernel mode
-            unsafe { self.invlpg() };
-            true
-        }
-    }
+    unsafe fn invlpg(self);
+    //
+    // /// Invalidate this object in the TLB instruction if we are in kernel mode.
+    // ///
+    // /// # Returns
+    // /// + True if the object was flushed
+    // /// + False if it was not flushed.
+    // #[inline]
+    // fn flush(&self) -> bool {
+    //     use cpu::PrivilegeLevel;
+    //
+    //     if PrivilegeLevel::current_iopl() != PrivilegeLevel::KernelMode {
+    //         false // can't flush, we are not in kernel mode
+    //     } else {
+    //         // this is safe since we know we are in kernel mode
+    //         unsafe { self.invlpg() };
+    //         true
+    //     }
+    // }
 }
 
 impl Flush for VAddr {
     #[inline]
-    unsafe fn invlpg(&self) {
+    unsafe fn invlpg(self) {
          asm!( "invlpg [$0]"
              :
-             : "r" (**self)
+             : "r" (*self)
              : "memory"
              : "intel", "volatile" );
     }
@@ -50,7 +50,7 @@ impl Flush for VAddr {
 
 impl Flush for VirtualPage {
     #[inline]
-    unsafe fn invlpg(&self) {
+    unsafe fn invlpg(self) {
         self.base().invlpg()
     }
 }

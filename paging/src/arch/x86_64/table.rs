@@ -13,6 +13,7 @@ use memory::{Addr, PAGE_SIZE, PAddr, Page, PhysicalPage, VAddr, VirtualPage};
 use core::marker::PhantomData;
 use core::ops::{Index, IndexMut};
 use core::convert;
+use core::intrinsics;
 
 /// The number of entries in a page table.
 pub const N_ENTRIES: usize = 512;
@@ -29,6 +30,7 @@ pub const PML4_PTR: *mut Table<PML4Level> = PML4_VADDR as *mut _;
 pub const ENTRY_FLAGS_MASK: u64 = (PAGE_SIZE as u64 - 1) as u64;
 
 /// A page table
+#[repr(C)]
 pub struct Table<L>
 where L: TableLevel { /// The entries in the page table.
                       entries: [Entry; N_ENTRIES]
@@ -38,12 +40,16 @@ where L: TableLevel { /// The entries in the page table.
 pub trait TableLevel {
     /// How much to shift an address by to find its index in this table.
     const SHIFT_AMOUNT: usize;
+    const PAGE_SHIFT_AMOUNT: usize;
 
     /// Returns the index in this table for the given virtual address
     #[inline]
     fn index_of(addr: VAddr) -> usize {
         (addr.as_usize() >> Self::SHIFT_AMOUNT) & 0b111111111
     }
+    /// Returns the index in this table for the given virtual address
+    #[inline]
+    fn index_of_page(page: VirtualPage) -> usize;
 }
 
 pub enum PML4Level {}
@@ -51,10 +57,42 @@ pub enum PDPTLevel {}
 pub enum PDLevel   {}
 pub enum PTLevel   {}
 
-impl TableLevel for PML4Level { const SHIFT_AMOUNT: usize = 39; }
-impl TableLevel for PDPTLevel { const SHIFT_AMOUNT: usize = 30; }
-impl TableLevel for PDLevel   { const SHIFT_AMOUNT: usize = 21; }
-impl TableLevel for PTLevel   { const SHIFT_AMOUNT: usize = 12; }
+impl TableLevel for PML4Level {
+    const SHIFT_AMOUNT: usize = 39;
+    const PAGE_SHIFT_AMOUNT: usize = 27;
+    /// Returns the index in this table for the given virtual address
+    #[inline]
+    fn index_of_page(page: VirtualPage) -> usize {
+        (page.number >> 27) & 0o777
+    }
+}
+impl TableLevel for PDPTLevel {
+    const SHIFT_AMOUNT: usize = 30;
+    const PAGE_SHIFT_AMOUNT: usize = 18;
+    /// Returns the index in this table for the given virtual address
+    #[inline]
+    fn index_of_page(page: VirtualPage) -> usize {
+        (page.number >> 18) & 0o777
+    }
+}
+impl TableLevel for PDLevel   {
+    const SHIFT_AMOUNT: usize = 21;
+    const PAGE_SHIFT_AMOUNT: usize = 9;
+    /// Returns the index in this table for the given virtual address
+    #[inline]
+    fn index_of_page(page: VirtualPage) -> usize {
+        (page.number >> 9) & 0o777
+    }
+}
+impl TableLevel for PTLevel   {
+    const SHIFT_AMOUNT: usize = 12;
+    const PAGE_SHIFT_AMOUNT: usize = 0;
+    /// Returns the index in this table for the given virtual address
+    #[inline]
+    fn index_of_page(page: VirtualPage) -> usize {
+        (page.number >> 0) & 0o777
+    }
+}
 
 pub trait Sublevel: TableLevel {
     type Next: TableLevel;
@@ -72,19 +110,17 @@ impl Sublevel for PDLevel {
 impl Table<PML4Level> {
     #[inline]
     pub fn page_table_for(&self, page: VirtualPage) -> Option<&Table<PTLevel>> {
-        let addr = page.base();
-        self.next_table(addr)
-            .and_then(|pdpt| pdpt.next_table(addr))
-            .and_then(|pd| pd.next_table(addr))
+        self.next_table(page)
+            .and_then(|pdpt| pdpt.next_table(page))
+            .and_then(|pd| pd.next_table(page))
     }
 
     #[inline]
     pub fn page_table_mut_for(&mut self, page: VirtualPage)
                              -> Option<&mut Table<PTLevel>> {
-        let addr = page.base();
-        self.next_table_mut(addr)
-            .and_then(|pdpt| pdpt.next_table_mut(addr))
-            .and_then(|pd| pd.next_table_mut(addr))
+        self.next_table_mut(page)
+            .and_then(|pdpt| pdpt.next_table_mut(page))
+            .and_then(|pd| pd.next_table_mut(page))
     }
 }
 
@@ -116,16 +152,28 @@ impl<L: TableLevel> IndexMut<VAddr> for Table<L> {
         self.index_mut(L::index_of(addr))
     }
 }
+impl<L: TableLevel> Index<VirtualPage> for Table<L> {
+    type Output = Entry;
+
+    #[inline] fn index(&self, page: VirtualPage) -> &Entry {
+        self.index(L::index_of_page(page))
+    }
+}
+
+impl<L: TableLevel> IndexMut<VirtualPage> for Table<L> {
+    #[inline] fn index_mut(&mut self, page: VirtualPage) -> &mut Entry {
+        self.index_mut(L::index_of_page(page))
+    }
+}
 
 
 impl<L: TableLevel> Table<L>  {
 
     /// Zeroes out the page table by setting all entries "unused"
     pub fn zero(&mut self) {
-        trace!("zeroing");
-        for i in 0..self.entries.len() {
-            self[i].set_unused();
-            trace!("zeroed {}", i);
+        trace!("zeroing {} at {:#p}", unsafe { intrinsics::type_name::<L>() }, self);
+        for entry in self.entries.iter_mut() {
+            entry.set_unused();
         }
     }
 
@@ -147,36 +195,36 @@ impl<L: Sublevel> Table<L> {
 
 
     /// Returns the address of the next table, or None if none exists.
-    fn next_table_addr(&self, addr: VAddr) -> Option<VAddr> {
-        let flags = self[addr].flags();
+    fn next_table_addr(&self, i: usize) -> Option<VAddr> {
+        let flags = self[i].flags();
         if flags.contains(PRESENT) && !flags.contains(HUGE_PAGE) {
-            let table_addr = VAddr::from(self as *const _ as usize);
-            Some((table_addr << 9) | (addr << 12))
+            let table_addr = self as *const _ as usize;
+            Some(VAddr::from(table_addr << 9) | (i << 12))
         } else {
             None
         }
     }
 
     /// Returns the next table, or `None` if none exists
-    pub fn next_table(&self, addr: VAddr) -> Option<&Table<L::Next>> {
-        self.next_table_addr(addr)
+    pub fn next_table(&self, i: VirtualPage) -> Option<&Table<L::Next>> {
+        self.next_table_addr(L::index_of_page(i))
             .map(|table_addr| unsafe { &*(table_addr.as_ptr()) })
     }
 
     /// Mutably borrows the next table.
-    pub fn next_table_mut(&self, addr: VAddr) -> Option<& mut Table<L::Next>> {
-        self.next_table_addr(addr)
+    pub fn next_table_mut(&self, i: VirtualPage) -> Option<& mut Table<L::Next>> {
+        self.next_table_addr(L::index_of_page(i))
             .map(|table_addr| unsafe { &mut *(table_addr.as_mut_ptr()) })
     }
 
 
     /// Returns the next table, creating it if it does not exist.
-    pub fn create_next<A>(&mut self, addr: VAddr, alloc: &mut A)
+    pub fn create_next<A>(&mut self, i: VirtualPage, alloc: &mut A)
                          -> &mut Table<L::Next>
     where A: FrameAllocator {
         //println!("in create_next");
-        if self.next_table(addr).is_none() {
-            assert!( !self[addr].is_huge()
+        if self.next_table(i).is_none() {
+            assert!( !self[i].is_huge()
                    , "Couldn't create next table: huge pages not \
                       currently supported.");
             //print!("allocating...");
@@ -188,12 +236,12 @@ impl<L: Sublevel> Table<L> {
             };
             //println!("done.");
 
-            self[addr].set(frame, PRESENT | WRITABLE);
+            self[i].set(frame, PRESENT | WRITABLE);
             //println!("setted.");
-            self.next_table_mut(addr).unwrap().zero();
+            self.next_table_mut(i).unwrap().zero();
             trace!("zeroed");
         }
-        self.next_table_mut(addr).unwrap()
+        self.next_table_mut(i).unwrap()
     }
 }
 
