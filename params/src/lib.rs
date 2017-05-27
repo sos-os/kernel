@@ -16,6 +16,7 @@
 //! [`paging`](../paging)
 #![no_std]
 #![deny(missing_docs)]
+#![feature(step_trait)]
 
 extern crate memory;
 extern crate elf;
@@ -23,7 +24,7 @@ extern crate arrayvec;
 
 use memory::{ PAddr, Page, PhysicalPage, FrameRange };
 use core::default::Default;
-
+use core::iter::Step;
 use core::slice::Iter as SliceIter;
 use arrayvec::{ArrayVec};
 
@@ -137,7 +138,7 @@ impl InitParams {
         //       this should maybe be a debug assertion?
         //          - eliza, 1/22/2017
         PhysicalPage::containing(self.kernel_base) ..
-        PhysicalPage::containing(self.kernel_top)
+        PhysicalPage::containing(self.kernel_top).add_one()
     }
 
     /// Returns the range of frames containing the kernel heap
@@ -150,7 +151,7 @@ impl InitParams {
         //       this should maybe be a debug assertion?
         //          - eliza, 1/22/2017
         PhysicalPage::containing(self.heap_base) ..
-        PhysicalPage::containing(self.heap_top)
+        PhysicalPage::containing(self.heap_top).add_one()
     }
 
     /// Returns the range of frames containing the kernel stack.
