@@ -36,7 +36,7 @@ macro_attr! {
 }
 impl fmt::Debug for PhysicalPage {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "frame #{}", self.number)
+        write!(f, "frame #{} at {:#p}", self.number, self.base_addr())
     }
 }
 
