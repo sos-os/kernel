@@ -9,8 +9,7 @@
 //! Architecture-specific memory management.
 use ::{Addr, Page};
 
-use core::mem;
-use core::ops;
+use core::{fmt, ops, mem};
 
 pub const PAGE_SHIFT: u8 = 12;
 /// The size of a page (4KiB), in bytes
@@ -32,8 +31,13 @@ macro_attr! {
     /// A frame (physical page)
     //  TODO: consider renaming this to `Frame` (less typing)?
     //      - eliza, 2/28/2017
-    #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Page!(PAddr) )]
+    #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Page!(PAddr) )]
     pub struct PhysicalPage { pub number: u64 }
+}
+impl fmt::Debug for PhysicalPage {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "frame #{}", self.number)
+    }
 }
 
 impl ops::Add<usize> for PhysicalPage {

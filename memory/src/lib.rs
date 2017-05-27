@@ -30,7 +30,7 @@ pub mod arch;
 
 // use alloc::buddy;
 // use ::params::InitParams;
-use core::{ops, cmp, convert};
+use core::{ops, cmp, convert, fmt};
 use util::Align;
 
 pub use arch::{PAddr, PAGE_SHIFT, PAGE_SIZE};
@@ -159,10 +159,15 @@ where Self: Sized
 
 macro_attr!{
     /// A virtual page
-    #[derive( Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Page!(VAddr) )]
+    #[derive( Copy, Clone, Eq, Ord, PartialEq, PartialOrd, Page!(VAddr) )]
     pub struct VirtualPage { pub number: usize }
 }
 
+impl fmt::Debug for VirtualPage {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "page #{}", self.number)
+    }
+}
 
 //
 ///// A range of `Page`s.
