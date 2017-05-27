@@ -114,16 +114,16 @@ impl<'a> Allocator for MemMapAllocator<'a> {
     }
 
     /// Deallocate a frame
-    unsafe fn deallocate(&mut self, frame: Frame) {
+    unsafe fn deallocate(&mut self, _frame: Frame) {
         // just leak it
     }
 
     /// Allocate a range of frames
-    unsafe fn allocate_range(&mut self, num: usize) -> AllocResult<FrameRange> {
+    unsafe fn allocate_range(&mut self, _num: usize) -> AllocResult<FrameRange> {
         unimplemented!()
     }
     /// Deallocate a range of frames
-    unsafe fn deallocate_range(&mut self, range: FrameRange) {
+    unsafe fn deallocate_range(&mut self, _range: FrameRange) {
         //just leak it
     }
 }

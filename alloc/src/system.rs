@@ -11,8 +11,6 @@ use bump_ptr::BumpPtr;
 #[cfg(feature = "buddy")]
 use buddy::Heap as BuddyHeap;
 
-use params::InitParams;
-
 pub enum Tier<'a> {
     Uninitialized
     , #[cfg(feature = "bump_ptr")]
