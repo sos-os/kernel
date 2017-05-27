@@ -64,9 +64,11 @@ impl ActivePageTable {
                 cr3::current_pagetable_frame()
             };
 
+            // map temporary_page to current p4 table
+            let pml4 = temp_page.map_to_table(prev_pml4_frame.clone(), self);
+
             // remap the 511th PML4 entry (the recursive entry) to map to the // frame containing the new PML4.
-            self.pml4_mut()[511]
-                .set(table.pml4_frame, PRESENT | WRITABLE);
+            self.pml4_mut()[511].set(table.pml4_frame, PRESENT | WRITABLE);
             unsafe {
                 // this is safe to execute; we are in kernel mode
                 flush_all();
@@ -76,8 +78,7 @@ impl ActivePageTable {
             f(self);
 
             // remap the 511th entry to point back to the original frame
-            self.pml4_mut()[511]
-                .set(prev_pml4_frame, PRESENT | WRITABLE);
+            pml4[511].set(prev_pml4_frame, PRESENT | WRITABLE);
 
             unsafe {
                 // this is safe to execute; we are in kernel mode
@@ -213,11 +214,15 @@ impl Mapper for ActivePML4 {
     where A: FrameAllocator {
         use self::tlb::Flush;
         trace!("unmapping {:?}", page);
+        assert!(self.translate_page(page).is_some());
+
         // get the page table entry corresponding to the page.
-        let ref mut entry
-            = self.pml4_mut()
-                  .page_table_mut_for(page) // get the page table for the page
-                  .expect("Could not unmap, huge pages not supported!")
+        let entry
+            =  &mut self.pml4_mut()
+                        .next_table_mut(page)
+                        .and_then(|pdpt| pdpt.next_table_mut(page))
+                        .and_then(|pd| pd.next_table_mut(page))
+                        .expect("Could not unmap, huge pages not supported!")
                   [page];        // index the entry from the table
         trace!("got page table entry for {:?}", page);
         // get the pointed frame for the page table entry.
@@ -336,7 +341,7 @@ pub fn kernel_remap<A>(params: &InitParams, alloc: &mut A)
 where A: FrameAllocator {
     // create a  temporary page for switching page tables
     // page number chosen fairly arbitrarily.
-    const TEMP_PAGE_NUMBER: usize = 0xcafebabe;
+    const TEMP_PAGE_NUMBER: usize = 0xfacade;
     let mut temp_page = TempPage::new(TEMP_PAGE_NUMBER, alloc);
     trace!(" . . Created temporary page.");
 
@@ -361,15 +366,14 @@ where A: FrameAllocator {
                     .filter(|section| section.is_allocated());
 
         for section in sections { // remap ELF sections
-
+            trace!( " Identity mapping {:?} section at {:?} with size {:?}"
+                    , section
+                    , section.address()
+                    , section.length() );
             // TODO: can we get this to return a Result?
             //          eliza, 5/27/2017
             assert!( section.address().is_page_aligned()
                    , "Section address must be page aligned to remap!");
-
-            trace!( " . . Identity mapping section at {:?} with size {:?}"
-                    , section.address()
-                    , section.length() );
 
             let flags = EntryFlags::from(section);
 
