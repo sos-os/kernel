@@ -1,3 +1,15 @@
+//
+//  SOS: the Stupid Operating System
+//  by Eliza Weisman (eliza@elizas.website)
+//
+//  Copyright (c) 2015-2017 Eliza Weisman
+//  Released under the terms of the MIT license. See `LICENSE` in the root
+//  directory of this repository for more information.
+//
+//! A simple allocator using the [`InitParams`] memory map.
+//!
+//! This is basically just a bump pointer allocator for frames; since
+//! it doesn't support deallocating frames.
 use super::{Frame, FrameRange, Allocator};
 use ::{AllocResult, AllocErr, Layout};
 use params::{InitParams, mem};
