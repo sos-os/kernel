@@ -188,11 +188,17 @@ macro_rules! Page {
                 $ty { number: *addr >> PAGE_SHIFT as <Self::Address as Addr>::Repr }
             }
 
-            /// Return the start virtual address of this page
+            /// Return the start address of this page
             #[inline]
             fn base(&self) -> $addr {
                 Self::Address::from(
                     self.number << PAGE_SHIFT as <Self::Address as Addr>::Repr )
+            }
+
+            /// Return the end address of this page
+            #[inline]
+            fn end_address(&self) -> $addr {
+                self.base() + PAGE_SIZE as <Self::Address as Addr>::Repr
             }
 
             #[inline] fn number(&self) -> usize {

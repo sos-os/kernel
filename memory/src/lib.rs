@@ -99,6 +99,7 @@ pub use arch::PhysicalPage;
 pub type PageRange = Range<VirtualPage>;
 pub type FrameRange = Range<PhysicalPage>;
 
+
 /// Trait for a page. These can be virtual pages or physical frames.
 pub trait Page
 where Self: Sized
@@ -124,6 +125,8 @@ where Self: Sized
     /// Returns the base `Address` where this page starts.
     fn base(&self) -> Self::Address;
 
+    /// Returns the end `Address` of this `Page`.
+    fn end_address(&self) -> Self::Address;
 
     ///// Convert the frame into a raw pointer to the frame's base address
     //#[inline]
