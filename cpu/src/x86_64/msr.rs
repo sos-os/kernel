@@ -18,7 +18,8 @@ pub const IA32_EFER: u32 = 0xc0000080;
 /// + `msr`: which MSR to write to
 /// + `value`: the  bits to write
 pub unsafe fn write(msr: u32, value: u64) {
-    let (high, low): (u32, u32) = mem::transmute(value);
+    let low = value as u32;
+    let high = (value >> 32) as u32;
     asm!(   "wrmsr"
          :: "{ecx}" (msr), "{eax}" (low), "{edx}" (high)
          :  "memory"
@@ -34,7 +35,7 @@ pub unsafe fn read(msr: u32) -> u64 {
         : "{ecx}" (msr)
         : "memory"
         : "volatile" );
-    mem::transmute((high,low))
+    ((high as u64) << 32) | (low as u64)
 }
 
 
@@ -43,6 +44,6 @@ pub unsafe fn read(msr: u32) -> u64 {
 /// This allows us to set the NXE bit on pages.
 pub unsafe fn enable_nxe() {
     let nxe_bit = 1 << 11;
-    let efer = read(IA32_EFER);
-    write(IA32_EFER, efer | nxe_bit);
+    let efer = read(IA32_EFER) | nxe_bit;
+    write(IA32_EFER, efer);
 }
