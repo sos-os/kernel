@@ -17,16 +17,17 @@ use core::ops::Range;
 
 pub type Stack = Range<VAddr>;
 
-pub struct StackAllocator {
-    pages: PageRange
+pub trait StackAllocator {
+    fn allocate<A>( &mut self
+                      , page_table: &mut ActivePageTable
+                      , frames: &mut A
+                      , num_pages: usize) -> AllocResult<Stack>
+    where A: FrameAllocator;
 }
 
-impl StackAllocator {
-    pub const fn new(pages: PageRange) -> Self {
-        StackAllocator { pages: pages }
-    }
+impl StackAllocator for PageRange {
 
-    pub fn allocate<A>( &mut self
+    fn allocate<A>( &mut self
                       , page_table: &mut ActivePageTable
                       , frames: &mut A
                       , num_pages: usize) -> AllocResult<Stack>
@@ -47,7 +48,7 @@ impl StackAllocator {
             // clone a working copy of the stack allocator's page range
             // we will only write it back if we successfully allocate a new
             // stack
-            let mut working_pages = self.pages.clone();
+            let mut working_pages = self.clone();
 
             // try to get a guard page
             working_pages.next().ok_or_else(&exhausted)?;
@@ -59,7 +60,7 @@ impl StackAllocator {
                              };
 
             // successfully allocated! write back the working page range
-            self.pages = working_pages;
+            *self = working_pages;
 
             for page in start_page .. end_page {
                 page_table.map_to_any(page, WRITABLE, frames);
