@@ -840,8 +840,6 @@ pub mod first_fit;
 #[cfg(feature = "bump_ptr")]
 pub mod bump_ptr;
 
-pub mod stack;
-
 #[cfg(feature = "system")] pub mod system;
 #[cfg(feature = "system")] pub use system::*;
 
