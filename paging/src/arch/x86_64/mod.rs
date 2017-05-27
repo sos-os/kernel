@@ -12,7 +12,7 @@
 //! page table is called the Page Meta-Level 4 (PML4) table, followed by
 //! the Page Directory Pointer Table (PDPT), Page Directory (PD) table, and
 //! finally the bottom-level Page Table (PT).
-use core::ops;
+use core::{fmt, ops};
 use core::ptr::Unique;
 
 use alloc::FrameAllocator;
@@ -27,7 +27,7 @@ pub mod table;
 pub mod tlb;
 pub mod temp;
 pub mod cr3;
-
+#[derive(Debug)]
 pub struct ActivePageTable { pml4: ActivePML4 }
 
 impl ops::Deref for ActivePageTable {
@@ -100,6 +100,7 @@ impl ActivePageTable {
     pub fn replace_with(&mut self, new_table: &mut InactivePageTable)
                        -> InactivePageTable {
         unsafe {
+            trace!("replacing {:?} with {:?}", self, new_table);
             // this is safe to execute; we are in kernel mode
             let old_pml4_frame = cr3::current_pagetable_frame();
 
@@ -119,7 +120,12 @@ impl ActivePageTable {
 /// unique because, well, there can only be one active PML4 at a given time.
 ///
 pub struct ActivePML4(Unique<Table<PML4Level>>);
-
+impl fmt::Debug for ActivePML4 {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Active {:?}", unsafe { self.0.as_ref() })
+    }
+}
 /// The active PML4 table is the single point of entry for page mapping.
 impl Mapper for ActivePML4 {
     type Flags = EntryFlags;
@@ -272,6 +278,7 @@ impl ActivePML4 {
 }
 
 /// An inactive page table that the CPU is not currently using
+#[derive(Debug)]
 pub struct InactivePageTable {
     pml4_frame: PhysicalPage
 }
@@ -401,6 +408,7 @@ where A: FrameAllocator {
 
     });
 
+    trace!("replacing old page table with new page table");
     // switch page tables ---------------------------------------------------
     let old_table = current_table.replace_with(&mut new_table);
     trace!(" . . Successfully switched to remapped page table!");

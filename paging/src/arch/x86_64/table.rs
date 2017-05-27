@@ -12,8 +12,7 @@ use memory::{Addr, PAGE_SIZE, PAddr, Page, PhysicalPage, VAddr, VirtualPage};
 
 use core::marker::PhantomData;
 use core::ops::{Index, IndexMut};
-use core::convert;
-use core::intrinsics;
+use core::{convert, fmt, intrinsics};
 
 /// The number of entries in a page table.
 pub const N_ENTRIES: usize = 512;
@@ -36,6 +35,15 @@ where L: TableLevel { /// The entries in the page table.
                       entries: [Entry; N_ENTRIES]
                     , _level_marker: PhantomData<L>
                     }
+
+impl<L:TableLevel> fmt::Debug for Table<L> {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{} at {:#p}"
+              , unsafe { intrinsics::type_name::<L>() }
+              , self)
+    }
+}
 
 pub trait TableLevel {
     /// How much to shift an address by to find its index in this table.
@@ -171,7 +179,7 @@ impl<L: TableLevel> Table<L>  {
 
     /// Zeroes out the page table by setting all entries "unused"
     pub fn zero(&mut self) {
-        trace!("zeroing {} at {:#p}", unsafe { intrinsics::type_name::<L>() }, self);
+        trace!("zeroing {:?}", self);
         for entry in self.entries.iter_mut() {
             entry.set_unused();
         }
@@ -195,6 +203,7 @@ impl<L: Sublevel> Table<L> {
 
 
     /// Returns the address of the next table, or None if none exists.
+    #[inline]
     fn next_table_addr(&self, i: usize) -> Option<VAddr> {
         let flags = self[i].flags();
         if flags.contains(PRESENT) && !flags.contains(HUGE_PAGE) {
@@ -206,13 +215,16 @@ impl<L: Sublevel> Table<L> {
     }
 
     /// Returns the next table, or `None` if none exists
+        #[inline]
     pub fn next_table(&self, i: VirtualPage) -> Option<&Table<L::Next>> {
         self.next_table_addr(L::index_of_page(i))
             .map(|table_addr| unsafe { &*(table_addr.as_ptr()) })
     }
 
     /// Mutably borrows the next table.
+    #[inline]
     pub fn next_table_mut(&self, i: VirtualPage) -> Option<& mut Table<L::Next>> {
+        trace!("{:?}, {:?}", self, i);
         self.next_table_addr(L::index_of_page(i))
             .map(|table_addr| unsafe { &mut *(table_addr.as_mut_ptr()) })
     }
