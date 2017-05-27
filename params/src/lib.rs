@@ -67,6 +67,9 @@ pub struct InitParams {
     pub multiboot_end: Option<PAddr>
   , /// Map of memory areas
     pub mem_map: ArrayVec<[mem::Area; MAX_MEM_AREAS]>
+    , /// Map of elf sections
+    // todo: construct using convert::From<multiboot>
+     pub elf_sections: Option<ElfSections>
 }
 
 impl Default for InitParams {
@@ -86,6 +89,7 @@ impl Default for InitParams {
                    , multiboot_start: None
                    , multiboot_end: None
                    , mem_map: ArrayVec::<[mem::Area; MAX_MEM_AREAS]>::new()
+                   , elf_sections: None
                    }
     }
 }
@@ -97,7 +101,9 @@ impl InitParams {
     //       case...
     //          – eliza, 1/22/2017
     pub fn elf_sections(&self) ->  ElfSections {
-        unimplemented!()
+        self.elf_sections.clone()
+        .expect("Attempted to access ELF sections on a \
+                 non-ELF kernel!")
     }
 
     /// Returns the start address of the multiboot info struct

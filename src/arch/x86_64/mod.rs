@@ -68,7 +68,7 @@ pub unsafe extern "C" fn long_mode_init() {
 pub extern "C" fn arch_init(multiboot_addr: PAddr) {
     use cpu::{control_regs, msr};
     use elf;
-    use params::InitParams;
+    use params::{InitParams, mem};
 
     kinfoln!(dots: " . ", "Beginning `arch_init()` for x86_64");
 
@@ -100,7 +100,7 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
 
     let kernel_begin
         = elf_sections_tag.sections()
-            .filter(|s| s.is_allocated())
+            // .filter(|s| s.is_allocated())
             .map(|s| {
                 kinfoln!( dots: " . . ", "{}", s );
                 kinfoln!( dots: " . . . ", "flags: [ {:?} ]", s.flags());
@@ -112,7 +112,7 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
 
     let kernel_end
         = elf_sections_tag.sections()
-            .filter(|s| s.is_allocated())
+            // .filter(|s| s.is_allocated())
             .map(|s| { n_elf_sections += 1; s.end_address() })
             .max()
             .expect("Could not find kernel end section!\
@@ -135,6 +135,7 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
                             , heap_top: unsafe { PAddr::from(HEAP_TOP) }
                             , stack_base: unsafe { PAddr::from(STACK_BASE) }
                             , stack_top: unsafe { PAddr::from(STACK_TOP) }
+                            , elf_sections: Some(elf_sections_tag.sections())
                             , ..Default::default()
                         };
 
@@ -145,17 +146,18 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
     kinfoln!(dots: " . ", "Detected memory areas:");
     for area in mem_map {
         kinfoln!( dots: " . . ", "{}", area);
-        params.mem_map.push(area.into());
+        let a: mem::Area = area.into();
+        if a.is_usable == true { params.mem_map.push(a); }
     }
 
      // -- enable flags needed for paging ------------------------------------
-     unsafe {
-         control_regs::cr0::enable_write_protect(true);
-         kinfoln!(dots: " . ", "Page write protect ENABED" );
-
-         msr::enable_nxe();
-         kinfoln!(dots: " . ", "Page no execute bit ENABLED");
-     }
+    //  unsafe {
+    //      control_regs::cr0::enable_write_protect(true);
+    //      kinfoln!(dots: " . ", "Page write protect ENABED" );
+     //
+    //      msr::enable_nxe();
+    //      kinfoln!(dots: " . ", "Page no execute bit ENABLED");
+    //  }
 
     kinfoln!(dots: " . ", "Transferring to `kernel_init()`.");
     ::kernel_init(&params);
