@@ -16,18 +16,16 @@
 #![no_std]
 
 #[macro_use] extern crate bitflags;
-#[macro_use] extern crate macro_attr;
 #[macro_use] extern crate log;
 extern crate spin;
 
-#[macro_use] extern crate util;
-#[macro_use] extern crate memory;
+extern crate util;
+extern crate memory;
 extern crate alloc;
 extern crate cpu;
 extern crate elf;
 extern crate params;
 
-#[macro_use] pub mod macros;
 pub mod arch;
 pub use self::arch::{kernel_remap, test_paging};
 

@@ -2,8 +2,6 @@ use memory::{PAGE_SIZE, Page, PhysicalPage, VAddr, VirtualPage, FrameRange};
 use alloc::{AllocResult, AllocErr, Layout, FrameAllocator};
 // use memory::VAddr;
 
-use spin::Mutex;
-
 use core::ops;
 
 use super::ActivePageTable;
