@@ -70,17 +70,15 @@ use params::InitParams;
 
 #[macro_use]
 macro_rules! init_log {
-    (f$dots:expr, $task:expr, $msg:expr) => (
-        println!( "{task:<40}{res:>38}\n{msg:>.width$}"
-                , task = format!("{:>.width$}", $task, width = $dots)
+    (fail: $dots:expr, $task:expr, $msg:expr) => (
+        kinfoln!( dots: $dots, "{task:<40}{res:>38}"
+                , task = $task
                 , res = "[ FAIL ]"
-                , msg = $msg
-                , width = $dots + 1
                 )
     );
     (fail: $dots:expr, $task:expr) => (
-            println!( "{task:<40}{res:>38}"
-                    , task = format!("{:>.width$}", $task, width = $dots)
+            kinfoln!( "{task:<40}{res:>38}"
+                    , task = $task
                     , res = "[ FAIL ]"
                     )
     );
@@ -93,8 +91,8 @@ macro_rules! init_log {
                 )
     );
     (okay: $dots:expr, $task:expr) => (
-            println!( "{task:<40}{res:>38}"
-                    , task = format!("{:>.width$}", $task, width = $dots)
+            kinfoln!( dots: $dots, "{task:<40}{res:>38}"
+                    , task = $task
                     , res = "[ OKAY ]"
                     )
     );
@@ -129,12 +127,12 @@ pub const VERSION_STRING: &'static str
 
 /// Kernel main loop
 pub fn kernel_main() -> ! {
-    let mut a_vec = collections::vec::Vec::<usize>::new();
-    info!(target: "test", "Created a vector in kernel space! {:?}", a_vec);
-    a_vec.push(1);
-    info!(target: "test", "pushed to vec: {:?}", a_vec);
-    a_vec.push(2);
-    info!(target: "test", "pushed to vec: {:?}", a_vec);
+    // let mut a_vec = collections::vec::Vec::<usize>::new();
+    // info!(target: "test", "Created a vector in kernel space! {:?}", a_vec);
+    // a_vec.push(1);
+    // info!(target: "test", "pushed to vec: {:?}", a_vec);
+    // a_vec.push(2);
+    // info!(target: "test", "pushed to vec: {:?}", a_vec);
 
     // let mut frame_allocator = frame_alloc::FrameAllocator::new();
     // paging::test_paging(&mut frame_allocator);
@@ -166,37 +164,36 @@ pub fn kernel_main() -> ! {
 /// +---------------------------------------------------------------+
 /// ```
 pub fn kernel_init(params: &InitParams) {
-    kinfoln!("Hello from the kernel!");
-    kinfoln!("Got init params: {:#?}", params );
-    // -- initialize interrupts ----------------------------------------------
-    kinfoln!(dots: " . ", "Initializing interrupts:");
-    // TODO: this whole function *may* want to just be made `unsafe`...
-    unsafe { arch::interrupts::initialize(); };
-    kinfoln!(dots: " . ", target: "Enabling interrupts", "[ OKAY ]");
+    use alloc::frame::mem_map::MemMapAllocator;
+    use ::paging::kernel_remap;
 
-    // -- initialize the heap ------------------------------------------------
-    kinfoln!(dots: " . ", "Preparing to initialize heap.");
-    if unsafe { heap::initialize(params) }.is_ok() {
-        kinfoln!( dots: " . ", target: "Intializing heap"
-                , "[ OKAY ]"
-                );
-        kinfoln!( dots: " . . "
-                , "Heap begins at {:#x} and ends at {:#x}"
-                , params.heap_base, params.heap_top);
-    } else {
-        kinfoln!( dots: " . ", target: "Intializing heap"
-                , "[ FAIL ]"
-                );
-    }
+    kinfoln!("Hello from the kernel!");
+    // kinfoln!("Got init params: {:#?}", params );
 
     // -- remap the kernel ----------------------------------------------------
-    kinfoln!(dots: " . ", "Remapping the kernel:");
+    let mut frame_allocator = MemMapAllocator::from(params);
+    kinfoln!(dots: " . ", "Remapping the kernel...");
+    let page_table = match kernel_remap(&params, &mut frame_allocator) {
+        Ok(p) => { init_log!(okay: " . ", "Remapping the kernel"); p}
+      , Err(why) => {
+            init_log!(fail: " . ", "Remapping the kernel");
+            panic!( "Could not remap kernel: {}", why)
+        }
+    };
 
-    // let frame_allocator = alloc::buddy::BuddyFrameAllocator::new();
+    paging::test_paging(&mut frame_allocator);
 
-    // ::paging::kernel_remap(&params, &frame_allocator);
+    // -- initialize the heap ------------------------------------------------
+    attempt!( unsafe { heap::initialize(params) } =>
+             "Intializing heap...", dots: " . ");
+    kinfoln!( dots: " . . "
+            , "Heap begins at {:#x} and ends at {:#x}"
+            , params.heap_base, params.heap_top);
 
-    kinfoln!( dots: " . ", target: "Remapping the kernel", "[ OKAY ]");
+
+    // -- initialize interrupts ----------------------------------------------
+    // attempt!( unsafe { arch::interrupts::initialize() } =>
+    //           "Initializing interrupts...", dots: " . " );
 
     println!("\n{} {}-bit\n", VERSION_STRING, arch::ARCH_BITS);
 
