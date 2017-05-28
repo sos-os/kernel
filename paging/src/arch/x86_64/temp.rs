@@ -71,10 +71,11 @@ impl TempPage {
    }
 
     pub fn unmap(&mut self, table: &mut ActivePageTable) {
-        trace!("unmapping temp page");
-        assert!( table.is_mapped(self)
-                , "Cannot unmap {:?}, as it is not mapped", self);
+        trace!("unmapping temp page {:?}", self);
+        // assert!( table.is_mapped(self)
+        //         , "Cannot unmap {:?}, as it is not mapped", self);
         table.unmap(self.page, &mut self.frames);
+        trace!("temp page unmapped");
     }
 }
 

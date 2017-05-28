@@ -97,14 +97,16 @@ impl ActivePageTable {
     ///
     /// # Returns
     /// + the old active page table as an `InactivePageTable`.
-    pub fn replace_with(&mut self, new_table: &mut InactivePageTable)
+    pub fn replace_with(&mut self, new_table: InactivePageTable)
                        -> InactivePageTable {
         unsafe {
             trace!("replacing {:?} with {:?}", self, new_table);
             // this is safe to execute; we are in kernel mode
             let old_pml4_frame = cr3::current_pagetable_frame();
+            trace!("current pml4 frame is {:?}", old_pml4_frame);
 
             cr3::set_pagetable_frame(new_table.pml4_frame);
+            trace!("set new pml4 frame to {:?}", new_table.pml4_frame);
 
             InactivePageTable {
                 pml4_frame: old_pml4_frame
@@ -370,10 +372,10 @@ where A: FrameAllocator {
         // extract allocated ELF sections
         let sections
             = params.elf_sections()
-                    .filter(|section| section.is_allocated());
+                    .filter(|s| s.is_allocated());
 
         for section in sections { // remap ELF sections
-            trace!( " Identity mapping {:?} section at {:?} with size {:?}"
+            trace!( " Identity mapping {} section at {:?} with size {:?}"
                     , section
                     , section.address()
                     , section.length() );
