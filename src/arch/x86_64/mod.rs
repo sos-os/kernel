@@ -150,14 +150,18 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
         if a.is_usable == true { params.mem_map.push(a); }
     }
 
-     // -- enable flags needed for paging ------------------------------------
-    //  unsafe {
-    //      control_regs::cr0::enable_write_protect(true);
-    //      kinfoln!(dots: " . ", "Page write protect ENABED" );
-     //
-    //      msr::enable_nxe();
-    //      kinfoln!(dots: " . ", "Page no execute bit ENABLED");
-    //  }
+     //-- enable flags needed for paging ------------------------------------
+     unsafe {
+        //  control_regs::cr0::enable_write_protect(true);
+        //  kinfoln!(dots: " . ", "Page write protect ENABED" );
+
+        let efer = msr::read(msr::IA32_EFER);
+        trace!("EFER = {:#x}", efer);
+        msr::write(msr::IA32_EFER, efer | (1 << 11));
+        let efer = msr::read(msr::IA32_EFER);
+        trace!("EFER = {:#x}", efer);
+        kinfoln!(dots: " . ", "Page no execute bit ENABLED");
+     }
 
     kinfoln!(dots: " . ", "Transferring to `kernel_init()`.");
     ::kernel_init(&params);
