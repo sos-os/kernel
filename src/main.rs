@@ -100,6 +100,28 @@ macro_rules! init_log {
     );
 }
 
+macro_rules! attempt {
+    ($task:expr => $msg:expr, dots: $dots:expr) => {
+        {
+            print!("{}{}", $dots, $msg);
+            match $task {
+               Ok(result) => {
+                    println!( "{:indent$}[ OKAY ]"
+                            , indent=80 - concat!($dots,$msg).len());
+                    info!("{} [ OKAY ]", $msg);
+                    result
+                }
+              , Err(why) => {
+                    println!( "{:indent$}[ FAIL ]"
+                            , indent=80 - concat!($dots,$msg).len());
+                    panic!("{:?}", why);
+              }
+            }
+        }
+
+    };
+}
+
 /// SOS version number
 pub const VERSION_STRING: &'static str
     = concat!("Stupid Operating System v", env!("CARGO_PKG_VERSION"));

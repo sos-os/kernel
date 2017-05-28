@@ -23,8 +23,9 @@ use cpu::dtable::DTable;
 /// handlers, loads the IDT pointer, and enables interrupts.
 ///
 /// This is called from the kernel during the init process.
+// TODO: make the result returned by this meaningful?
 #[inline]
-pub unsafe fn initialize() {
+pub unsafe fn initialize() -> Result<(), ()>{
 
     pics::initialize();
    // TODO: consider loading double-fault handler before anything else in case
@@ -35,6 +36,7 @@ pub unsafe fn initialize() {
     // asm!("int $0" :: "N" (0xff));
 
     Idt::enable_interrupts(); // enable interrupts
+    Ok(())
 
 }
 
