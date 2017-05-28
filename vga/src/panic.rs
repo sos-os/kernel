@@ -34,5 +34,6 @@ pub extern "C" fn rust_begin_unwind( args: Arguments
                     This is fine."
                   , file, line, args
                   );
+    error!(target: file, "{}", args);
     loop { }
 }
