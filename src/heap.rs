@@ -6,7 +6,6 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-use alloc::buddy;
 use params::InitParams;
 
 /// Initialise the kernel heap.

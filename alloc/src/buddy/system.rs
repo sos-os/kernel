@@ -2,10 +2,8 @@
 use spin::Mutex;
 use core::ptr;
 
-use ::{Allocator, FrameAllocator, Layout};
+use ::{Allocator, Layout};
 use super::{Heap, FreeList};
-
-use memory::{ PAGE_SIZE, PAddr, PhysicalPage, FrameRange, VAddr };
 
 /// The number of free lists for the kernel heap
 pub const NUM_FREE_LISTS: usize = 19;

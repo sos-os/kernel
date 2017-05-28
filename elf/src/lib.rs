@@ -25,7 +25,7 @@
 
 extern crate memory;
 
-use core::{ intrinsics, ops, mem, slice, convert };
+use core::{ ops, mem, slice, convert };
 use core::convert::TryFrom;
 
 use memory::{ FrameRange, PhysicalPage };

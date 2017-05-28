@@ -226,53 +226,6 @@ bitflags! {
     }
 }
 
-macro_rules! get {
-    ($s: expr, $name: ident) => {
-        match *$s {
-            Header::ThirtyTwo(x) => x.$name
-          , Header::SixtyFour(x) => x.$name
-        }
-    }
-}
-
-macro_rules! impl_sec_getters {
-    ( pub $name: ident : $ty: ident, $( $rest: tt )* ) => {
-        #[inline] pub fn $name(&self) -> $ty {
-            match *self {
-                Header::ThirtyTwo(x) => x.$name as $ty
-              , Header::SixtyFour(x) => x.$name as $ty
-            }
-        }
-        impl_sec_getters!{ $( $rest )* }
-    };
-    ( $name: ident : $ty: ident,  $( $rest: tt )* ) => {
-        #[inline]
-        fn $name(&self) -> $ty {
-            match *self {
-                Header::ThirtyTwo(x) => x.$name as $ty
-              , Header::SixtyFour(x) => x.$name as $ty
-            }
-        }
-        impl_sec_getters!{ $( $rest )* }
-    };
-    ( $name: ident : $ty: ident ) => {
-        #[inline] fn $name(&self) -> $ty {
-            match *self {
-                Header::ThirtyTwo(x) => x.$name as $ty
-              , Header::SixtyFour(x) => x.$name as $ty
-            }
-        }
-    };
-    ( pub $name: ident : $ty: ident ) => {
-        #[inline] pub fn $name(&self) -> $ty {
-            match *self {
-                Header::ThirtyTwo(x) => x.$name as $ty
-              , Header::SixtyFour(x) => x.$name as $ty
-            }
-        }
-    };
-}
-
 pub enum Contents<'a> {
     Empty
   , Undefined(&'a [u8])

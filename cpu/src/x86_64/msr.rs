@@ -7,7 +7,6 @@
 //  directory of this repository for more information.
 //
 //! Code for interacting with the Model-Specific Registers (MSRs).
-use core::mem;
 
 /// Extended Feature Enable Register (EFER) on IA-32
 pub const IA32_EFER: u32 = 0xc0000080;

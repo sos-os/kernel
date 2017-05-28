@@ -18,9 +18,7 @@
 #![feature(linkage)]
 #![no_std]
 
-#[macro_use] extern crate bitflags;
 #[macro_use] extern crate macro_attr;
-
 #[macro_use] extern crate util;
 // #[cfg(not(test))] #[macro_use] extern crate vga;
 // extern crate alloc as liballoc; // TODO: workaround
