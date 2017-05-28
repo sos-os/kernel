@@ -134,7 +134,8 @@ pub mod cr3 {
         let value: u64 = addr.into();
         asm!(  "mov cr3, $0"
             :: "r"(value)
-            :: "intel");
+            :  "memory"
+            :  "intel");
     }
 
     /// Write a value to `$cr3`.
