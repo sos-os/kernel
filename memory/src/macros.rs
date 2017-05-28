@@ -100,6 +100,19 @@ macro_rules! Addr {
             UpperHex for $ty
         }
 
+        impl ::core::cmp::PartialEq<$size> for $ty {
+            #[inline] fn eq(&self, rhs: &$size) -> bool {
+                self.0 == *rhs
+            }
+        }
+
+        impl ::core::cmp::PartialOrd<$size> for $ty {
+            #[inline]
+            fn partial_cmp(&self, rhs: &$size) -> Option<::core::cmp::Ordering> {
+                self.0.partial_cmp(rhs)
+            }
+        }
+
         impl Addr for $ty {
             type Repr = $size;
 
