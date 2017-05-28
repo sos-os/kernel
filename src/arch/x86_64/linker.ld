@@ -7,9 +7,6 @@
 ENTRY(_start)
 
 SECTIONS {
-    . = 0xb8000;
-    __vga_buffer = .;
-    . += 80 * 24 * 2;
 
     /* Load the kernel reasonably high in memory to avoid special addresses. */
     . = 1M;
@@ -22,27 +19,34 @@ SECTIONS {
         . = ALIGN(4K);
     }
 
-    .text ALIGN(4K) :
+    .boot : ALIGN(4K)
+    {
+        KEEP(*(.boot._start))
+        libboot.a(*)
+        KEEP(*(.gdt))
+        . = ALIGN(4K);
+    }
+
+    .text :
     {
      /* NOTE we use KEEP here to prevent the linker from dropping
         these symbols
       */
-        KEEP(*(.text._start))
         KEEP(*(.text.arch_init))
         *(.text .text.*)
+        . = ALIGN(4K);
     }
 
-     .data ALIGN(4K) :
+     .data :
      {
        *(.data .data.*)
+       . = ALIGN(4K);
      }
 
-     .bss ALIGN(4K) :
+     .bss :
      {
-
-        *(.bss .bss.*)
-        . = ALIGN(4K);
-
+         *(.bss .bss.*)
+         . = ALIGN(4K);
         /* Page-Map Level-4 Table (PML4) */
         pml4_table = .;
         . += 4K;
@@ -52,14 +56,15 @@ SECTIONS {
         /* Page-Directory Table (PD) */
         pd_table = .;
         . += 4K;
-
+            . = ALIGN(4K);
         stack_base = .;
         . += 4K * 8;
         stack_top = .;
-
+            . = ALIGN(4K);
         heap_base_addr = .;
         . += 4K * 2K;
         heap_top_addr = .;
+        . = ALIGN(4K);
      }
 
     .got :
