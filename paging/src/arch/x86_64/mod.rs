@@ -396,7 +396,7 @@ where A: FrameAllocator {
 
         // remap VGA buffer
         trace!( " . . Identity mapping VGA buffer" );
-        let vga_buffer_frame = PhysicalPage::from(PAddr::from(0xb8000));
+        let vga_buffer_frame = PhysicalPage::containing(PAddr::from(0xb8000));
         pml4.identity_map(vga_buffer_frame, WRITABLE, alloc);
 
         // remap Multiboot info
@@ -412,7 +412,7 @@ where A: FrameAllocator {
 
     trace!("replacing old page table with new page table");
     // switch page tables ---------------------------------------------------
-    let old_table = current_table.replace_with(&mut new_table);
+    let old_table = current_table.replace_with(new_table);
     trace!(" . . Successfully switched to remapped page table!");
 
     // create guard page at the location of the old PML4 table
