@@ -18,6 +18,7 @@
 
 #[macro_use] extern crate bitflags;
 #[macro_use] extern crate log;
+#[macro_use] extern crate vga;
 extern crate spin;
 
 extern crate util;

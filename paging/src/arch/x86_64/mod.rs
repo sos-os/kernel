@@ -352,11 +352,11 @@ where A: FrameAllocator {
     // page number chosen fairly arbitrarily.
     const TEMP_PAGE_NUMBER: usize = 0xfacade;
     let mut temp_page = TempPage::new(TEMP_PAGE_NUMBER, alloc);
-    trace!(" . . Created temporary page.");
+    trace!("Created temporary page.");
 
     // old and new page tables
     let mut current_table = unsafe { ActivePageTable::new() };
-    trace!(" . . Got current page table.");
+    trace!("Got current page table.");
 
     let mut new_table = unsafe {
         InactivePageTable::new(
@@ -365,7 +365,7 @@ where A: FrameAllocator {
           , &mut temp_page
           )
     };
-    trace!(" . . Created new page table.");
+    kinfoln!(dots: " . . ", "Created new {:?}", new_table);
 
     // actually remap the kernel --------------------------------------------
     current_table.using(&mut new_table, &mut temp_page, |pml4| {
@@ -374,11 +374,10 @@ where A: FrameAllocator {
             = params.elf_sections()
                     .filter(|s| s.is_allocated());
 
+        kinfoln!(dots: " . . ", "Remapping kernel ELF sections.");
+
         for section in sections { // remap ELF sections
-            trace!( " Identity mapping {} section at {:?} with size {:?}"
-                    , section
-                    , section.address()
-                    , section.length() );
+            kinfoln!( dots: " . . . ", " Identity mapping {}", section);
             // TODO: can we get this to return a Result?
             //          eliza, 5/27/2017
             assert!( section.address().is_page_aligned()
@@ -395,12 +394,12 @@ where A: FrameAllocator {
         }
 
         // remap VGA buffer
-        trace!( " . . Identity mapping VGA buffer" );
+        kinfoln!( dots: " . . ", "Identity mapping VGA buffer" );
         let vga_buffer_frame = PhysicalPage::containing(PAddr::from(0xb8000));
         pml4.identity_map(vga_buffer_frame, WRITABLE, alloc);
 
         // remap Multiboot info
-        trace!( " . . Identity mapping multiboot info" );
+        kinfoln!( dots: " . . ", "Identity mapping multiboot info" );
         let multiboot_start = PhysicalPage::from(params.multiboot_start());
         let multiboot_end = PhysicalPage::from(params.multiboot_end());
 
@@ -413,7 +412,7 @@ where A: FrameAllocator {
     trace!("replacing old page table with new page table");
     // switch page tables ---------------------------------------------------
     let old_table = current_table.replace_with(new_table);
-    trace!(" . . Successfully switched to remapped page table!");
+    kinfoln!(dots: " . . ", "Successfully switched to remapped page table!");
 
     // create guard page at the location of the old PML4 table
     let old_pml4_page
@@ -421,6 +420,6 @@ where A: FrameAllocator {
             VAddr::from(*(old_table.pml4_frame.base()) as usize)
         );
     current_table.unmap(old_pml4_page, alloc);
-    trace!(" . . Unmapped guard page at {:?}", old_pml4_page.base());
+    trace!("Unmapped guard page at {:?}", old_pml4_page.base());
     Ok(current_table)
 }
