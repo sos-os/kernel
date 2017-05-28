@@ -15,7 +15,7 @@ pub mod timestamp {
 
     /// Read the current value of the timestamp counter.
     ///
-    /// # Unsafe Because:
+    /// # Safety
     /// + This will cause a General Protection Fault if the TSD flag in register
     ///   `%cr4` is set and the CPL is greater than 0.
     pub unsafe fn rtdsc() -> u64 {
@@ -27,7 +27,7 @@ pub mod timestamp {
 
     /// Read the current timestamp, after other instructions have been executed.
     ///
-    /// # Unsafe Because:
+    /// # Safety
     /// + This will cause a General Protection Fault if the TSD flag in register
     ///   `%cr4` is set and the CPL is greater than 0.
     pub unsafe fn rtdscp() -> u64 {

@@ -17,15 +17,19 @@
 #![cfg_attr(target_arch = "x86_64", feature(abi_x86_interrupt))]
 #![no_std]
 
+//-- non-SOS dependencies ----------------------------------------------------
+extern crate spin;
 #[macro_use] extern crate log;
 #[macro_use] extern crate bitflags;
-extern crate spin;
 
+//-- SOS dependencies --------------------------------------------------------
 extern crate util;
+extern crate memory;
 #[macro_use] extern crate vga;
 
 use core::marker::PhantomData;
 
+//-- re-exports --------------------------------------------------------------
 // 64-bit x86_64 (long mode)
 #[cfg(target_arch="x86_64")] mod x86_64;
 #[cfg(target_arch="x86_64")] pub use self::x86_64::*;

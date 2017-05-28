@@ -8,11 +8,14 @@
 //
 //! Simple buddy-block allocator
 
+#![warn(missing_docs)]
 mod math;
 #[cfg(feature = "buddy_as_system")]
 pub mod system;
+#[cfg(feature = "buddy_as_system")]
+pub use self::system::BuddyFrameAllocator;
 
-use super::Framesque;
+use super::{Allocator, Layout, Address, AllocErr};
 use self::math::PowersOf2;
 
 use core::mem;
@@ -21,11 +24,8 @@ use core::ptr::Unique;
 
 use intrusive::list::{List, Node};
 use intrusive::rawlink::RawLink;
+use memory::PAGE_SIZE;
 
-use memory::alloc::Allocator;
-use memory::arch::PAGE_SIZE;
-
-#[cfg(target_os = "linux")]
 #[cfg(test)]
 mod test;
 
@@ -36,11 +36,8 @@ pub type FreeList = List<Unique<FreeBlock>, FreeBlock>;
 pub struct FreeBlock { next: RawLink<FreeBlock>
                      , prev: RawLink<FreeBlock>
                      }
-
-impl Framesque for FreeBlock {
-    #[inline] fn as_ptr(&self) -> *mut u8 {
-        unsafe { mem::transmute(self) } // HOPEFULLY this is good
-    }
+impl FreeBlock {
+    #[inline] unsafe fn as_ptr(&self) -> *mut u8 { mem::transmute(self) }
 }
 
 impl Node for FreeBlock {
@@ -66,10 +63,10 @@ macro_rules! max {
 }
 
 /// Structure with data for implementing the buddy block allocation strategy.
-pub struct BuddyHeapAllocator<'a> {
+pub struct Heap<'a> {
     /// Address of the base of the heap. This must be aligned
     /// on a `MIN_ALIGN` boundary.
-    pub start_addr: *mut u8
+    pub start_addr: Unique<u8>
   , /// The allocator's free list
     free_lists: &'a mut [FreeList]
   , /// Number of blocks in the heap (must be a power of 2)
@@ -78,22 +75,36 @@ pub struct BuddyHeapAllocator<'a> {
     pub min_block_size: usize
 }
 
-impl<'a> BuddyHeapAllocator<'a> {
-    /// Construct a new `BuddyHeapAllocator`.
+impl<'a> Heap<'a> {
+    /// Construct a new `Heap`.
     ///
-    /// # Arguments:
+    /// # Arguments
     /// + `start_addr`: a pointer to the start location of the heap
-    /// + `free_lists`: an array of `FreeList`s. The cardinality
-    ///     of the `free_lists` array should be equal to the maximum
-    ///     allocateable order.
+    /// + `free_lists`: an array of [`FreeList`]s. The cardinality
+    ///    of the `free_lists` array should be equal to the maximum
+    ///    allocateable order.
     /// + `heap_size`: the size of the heap (in bytes)
     ///
-    /// # Returns:
-    /// + A new `BuddyHeapAllocator`, obviously.
-    pub unsafe fn new( start_addr: *mut u8
+    /// # Returns
+    /// + A new `Heap`, obviously.
+    ///
+    /// # Panics
+    /// + If `start_addr` is a null pointer or is not page-aligned
+    /// + If the array of `free_lists` is empty
+    /// + If the `heap_size` is too small to contain at least one block, or is
+    ///   not a power of two.
+    /// + If the calculated minimum block size is to small to contain a
+    ///   [`FreeBlock`] header
+    ///
+    /// # Safety
+    /// + If `start_addr` is not valid, you will have a bad time
+    ///
+    /// [`FreeList`]: type.FreeList.html
+    /// [`FreeBlock`]: struct.FreeBlock.html
+    pub unsafe fn new( start_addr: Address
                      , free_lists: &'a mut [FreeList]
                      , heap_size: usize)
-                     -> BuddyHeapAllocator<'a> {
+                     -> Heap<'a> {
         // Cache the number of free lists hopefully saving performance.
         let n_free_lists = free_lists.len();
 
@@ -101,8 +112,8 @@ impl<'a> BuddyHeapAllocator<'a> {
                 , "Heap start address cannot be null." );
         assert!( n_free_lists > 0
                , "Allocator must have at least one free list.");
-        assert!( start_addr as usize & (PAGE_SIZE-1) as usize == 0
-               , "Heap start address must be aligned on a 4k boundary.");
+        // assert!( start_addr as usize & (PAGE_SIZE-1) as usize == 0
+        //        , "Heap start address must be aligned on a 4k boundary.");
 
         let min_block_size = heap_size >> (n_free_lists - 1);
 
@@ -125,15 +136,15 @@ impl<'a> BuddyHeapAllocator<'a> {
         }
 
         let mut heap
-            = BuddyHeapAllocator { start_addr: start_addr
-                                 , free_lists: free_lists
-                                 , heap_size: heap_size
-                                 , min_block_size: min_block_size
-                                 };
+            = Heap { start_addr: Unique::new(start_addr)
+                   , free_lists: free_lists
+                   , heap_size: heap_size
+                   , min_block_size: min_block_size
+                   };
 
         // the order needed to allocate the entire heap as a single block
         let root_order
-            = heap.alloc_order(heap_size, 1)
+            = heap.alloc_order(&Layout::from_size_align(heap_size, 1))
                   .expect("Couldn't determine heap root allocation order!\
                            This should be (as far as I know) impossible.\
                            Something is seriously amiss.");
@@ -144,7 +155,13 @@ impl<'a> BuddyHeapAllocator<'a> {
     }
 
     /// Add a block of max order
-    pub unsafe fn add_block(&mut self, block: *mut u8) {
+    ///
+    /// # Safety
+    /// + This function has no way to guarantee that the given `block` of
+    ///   uninitialized memory is not already in use.
+    pub unsafe fn add_block(&mut self, block: Address) {
+        // TODO: assert the passed block is not a null pointer?
+        //       - eliza, 1/23/2017
         let order = self.free_lists.len() -1;
         self.push_block(block, order);
     }
@@ -159,28 +176,37 @@ impl<'a> BuddyHeapAllocator<'a> {
     /// + `None` if the request is invalid
     /// + `Some(usize)` containing the size needed if the request is valid
     #[inline]
-    pub fn alloc_size(&self, size: usize, align: usize) -> Option<usize> {
+    pub fn alloc_size(&self, layout: &Layout) -> Result<usize, AllocErr> {
         // Pre-check if this is a valid allocation request:
         //  - allocations must be aligned on power of 2 boundaries
         //  - we cannot allocate requests with alignments greater than the
         //    base alignment of the heap without jumping through a bunch of
         //    hoops.
-        if !align.is_pow2() || align > PAGE_SIZE as usize {
-            None
+        let align = layout.align();
+        debug_assert!(align.is_power_of_two());
+        if align > PAGE_SIZE as usize {
+            Err(AllocErr::Unsupported {
+                details: "Cannot allocate requests with alignments greater \
+                          than the base alignment of the heap!"
+                })
         // If the request is valid, compute the size we need to allocate
         } else {
             // the allocation size for the request is the next power of 2
             // after the size of the request, the alignment of the request,
             // or the minimum block size (whichever is greatest).
-            let alloc_size = max!(size, self.min_block_size, align).next_pow2();
+            let alloc_size
+                = max!( layout.size(), self.min_block_size, align)
+                    .next_power_of_two();
 
             if alloc_size > self.heap_size {
                 // if the calculated size is greater than the size of the heap,
                 // we (obviously) cannot allocate this request.
-                None
+                Err(AllocErr::Unsupported {
+                    details: "Cannot allocate requests larger than the heap!"
+                })
             } else {
                 // otherwise, return the calculated size.
-                Some(alloc_size)
+                Ok(alloc_size)
             }
         }
     }
@@ -191,11 +217,11 @@ impl<'a> BuddyHeapAllocator<'a> {
     /// double the minimum block size to get a large enough block for that
     /// allocation.
     #[inline]
-    pub fn alloc_order(&self, size: usize, align: usize) -> Option<usize> {
+    pub fn alloc_order(&self, layout: &Layout) -> Result<usize, AllocErr> {
         trace!(target: "alloc", "TRACE: alloc_order() called");
-        self.alloc_size(size, align)
+        self.alloc_size(layout)
             .map(|s| {
-                trace!(target: "alloc"
+                trace!( target: "alloc"
                       , "in alloc_order(): alloc_size() returned {}", s);
                 s.log2() - self.min_block_size.log2()
             })
@@ -222,10 +248,30 @@ impl<'a> BuddyHeapAllocator<'a> {
 
 
     /// Splits a block
+    ///
+    /// # Arguments
+    /// + `block`: a pointer to the block to split
+    /// + `old_order`: the current order of `block`
+    /// + `new_order`: the requested order for the split block
+    ///
+    /// # Safety
+    /// + This function has no guarantee that `block` is not a null pointer.
+    /// + This function has no guarantee that `block` is not already in use --
+    ///   if it is invoked on an already allocated block, that block may be
+    ///   clobbered without warning.
+    /// + This function has no guarantee that `old_order` is the correct order
+    ///   for `block`.
+    ///
+    /// # Panics
+    /// + If `new_order` is less than `old_order`: we make a block _larger_ by
+    ///   splitting it.
+    /// + If `old_order` is larger than the maximum order of this allocator
     unsafe fn split_block( &mut self
-                         , block: *mut u8
+                         , block: Address
                          , old_order: usize
                          , new_order: usize ) {
+        // TODO: assert the passed block is not a null pointer?
+        //       - eliza, 1/23/2017
         trace!( target: "alloc"
               , "split_block() was called, target order: {}.", new_order);
 
@@ -260,16 +306,24 @@ impl<'a> BuddyHeapAllocator<'a> {
     /// + `None` if the block was the size of the entire heap
     pub unsafe fn get_buddy( &self
                            , order: usize
-                           , block: *mut u8)
-                            -> Option<*mut u8> {
+                           , block: Address)
+                            -> Option<Address> {
         // Determine the size of the block allocated for the given order
         let block_size = self.order_alloc_size(order);
         if block_size < self.heap_size {
+
+            let start_addr = self.start_addr.as_ptr();
+            debug_assert!( !start_addr.is_null(),
+                "Start address of a (supposedly) valid heap was null. Something\
+                 has gone horribly, horribly wrong!");
+
             // Determine the block's position in the heap.
-            let block_pos = (block as usize) - (self.start_addr as usize);
+            let block_pos = (block as usize) - (start_addr as usize);
+
             // Calculate the block's buddy by XORing the block's position
             // in the heap with its size.
-            Some(self.start_addr.offset((block_pos ^ block_size) as isize))
+            let block_offset = (block_pos ^ block_size) as isize;
+            Some(start_addr.offset(block_offset))
         } else {
             // If the block is the size of the entire heap, it (obviously)
             // cannot have a buddy block.
@@ -286,7 +340,7 @@ impl<'a> BuddyHeapAllocator<'a> {
     /// # Returns
     /// + `true` if the block was found and removed from the free List
     /// + `false` if the block was not found
-    pub fn remove_block(&mut self, order: usize, block: *mut u8) -> bool {
+    pub fn remove_block(&mut self, order: usize, block: Address) -> bool {
         self.free_lists[order]
             .cursor_mut()
             .find_and_remove(|b| b as *const FreeBlock as *const u8 == block)
@@ -295,27 +349,26 @@ impl<'a> BuddyHeapAllocator<'a> {
 }
 
 
-impl<'a> Allocator for BuddyHeapAllocator<'a> {
+unsafe impl<'a> Allocator for Heap<'a> {
 
-    /// Allocate a new block of size `size` on alignment `align`.
+    /// Returns a pointer suitable for holding data described by
+    /// `layout`, meeting its size and alignment guarantees.
     ///
-    /// # Arguments:
-    /// + `size`: the amount of memory to allocate (in bytes)
-    /// + `align`: the alignment for the allocation request
+    /// The returned block of storage may or may not have its contents
+    /// initialized. (Extension subtraits might restrict this
+    /// behavior, e.g. to ensure initialization.)
     ///
-    /// # Returns:
-    /// + `Some(*mut u8)` if the request was allocated successfully
-    /// + `None` if the allocator is out of memory or if the request was
-    ///     invalid.
-    unsafe fn allocate( &mut self
-                      , size: usize
-                      , align: usize)
-                      -> Option<*mut u8> {
+    /// Returning `Err` indicates that either memory is exhausted or `layout`
+    /// does not meet allocator's size or alignment constraints.
+    ///
+    unsafe fn alloc(&mut self, layout: Layout) -> Result<Address, AllocErr> {
         trace!(target: "alloc", "allocate() was called!");
         // First, compute the allocation order for this request
-        self.alloc_order(size, align)
-            .and_then(|order| if order > self.free_lists.len() - 1 { None }
-                              else {Some(order)} )
+        self.alloc_order(&layout)
+            .and_then(|order|
+                if order > self.free_lists.len() - 1 {
+                    Err(AllocErr::Exhausted { request: layout.clone() })
+                } else { Ok(order) } )
             // If the allocation order is defined, then we try to allocate
             // a block of that order. Otherwise, the request is invalid.
             .and_then(|min_order| {
@@ -336,10 +389,10 @@ impl<'a> Allocator for BuddyHeapAllocator<'a> {
                                   , "in allocate(): split_block() done");
 
                         }
-                        return Some(block)
+                        return Ok(block)
                     }
                 }
-                None
+                Err(AllocErr::Exhausted { request: layout })
             })
     }
 
@@ -349,23 +402,19 @@ impl<'a> Allocator for BuddyHeapAllocator<'a> {
     /// size and alignment of the frame being deallocated, otherwise our
     /// heap will become corrupted.
     ///
-    /// # Arguments:
+    /// # Arguments
     /// + `frame`: a pointer to the block of memory to deallocate
     /// + `size`: the size of the block being deallocated
     /// + `align`: the alignment of the block being deallocated
-    unsafe fn deallocate( &mut self
-                        , block: *mut u8
-                        , old_size: usize
-                        , align: usize ) {
-        let min_order = self.alloc_order(old_size, align)
-                            .unwrap();
+    unsafe fn dealloc(&mut self, ptr: Address, layout: Layout) {
+        let min_order = self.alloc_order(&layout).unwrap();
 
         // Check if the deallocated block's buddy block is also free.
         // If it is, merge the two blocks.
-        let mut new_block = block;
+        let mut new_block = ptr;
         for order in min_order..self.free_lists.len() {
             // If there is a buddy for this block of the given order...
-            if let Some(buddy) = self.get_buddy(order, block) {
+            if let Some(buddy) = self.get_buddy(order, ptr) {
                 // ...and if the buddy was free...
                 if self.remove_block(order, buddy) {
                     // ...merge the buddy with the new block (just use

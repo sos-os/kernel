@@ -8,12 +8,13 @@
 //
 //! Code for reading & extracting data from Multiboot 2 boot information.
 //!
-//! Consult the Multiboot [specification]  for more information.
-//!
-//! [specification]: http://nongnu.askapache.com/grub/phcoder/multiboot.pdf
-use memory::PAddr;
+//! Consult the [Multiboot Specification](http://nongnu.askapache.com/grub/phcoder/multiboot.pdf)
+//! for more information.
+use memory::{PAddr, PhysicalPage, FrameRange};
 use elf::section::{Sections, HeaderRepr as SectionHeader};
+use params::mem;
 
+use core::convert::Into;
 use core::iter::IntoIterator;
 use core::fmt;
 
@@ -57,6 +58,16 @@ pub struct Info { pub length: u32
                 }
 
 impl Info {
+
+    #[inline]
+    pub fn start_addr(&self) -> PAddr {
+        PAddr::from(self as *const _ as u64)
+    }
+
+    pub fn end_addr(&self) -> PAddr {
+        PAddr::from(self.start_addr() + self.length as u64)
+    }
+
     /// TODO: rewrite this as a `TryFrom` implementation (see issue #85)
     //          - eliza, 03/09/2017
     pub unsafe fn from(addr: PAddr) -> Result<&'static Self, &'static str> {
@@ -121,11 +132,27 @@ impl Info {
         // TODO: we should be able to use ptr::offset() here?
         //          - eliza, 03/05/2017
         let end_tag_addr
-            = (self as *const _) as usize +
-              (self.length - END_TAG_LEN) as usize;
-
+            = self as *const _ as usize +
+              (self.length as usize - END_TAG_LEN as usize);
         let end_tag = unsafe {&*(end_tag_addr as *const Tag)};
         end_tag.ty == TagType::End && end_tag.length == 8
+    }
+
+    /// Returns the kernel frame range from the Multiboot 2 ELF Sections
+    pub fn kernel_frames(&'static self) -> Result<FrameRange, &'static str> {
+        let sections_tag = self.elf_sections()
+                               .ok_or("ELF sections tag required!")?;
+
+        let kernel_start = sections_tag.sections()
+                              .map(|s| s.address())
+                              .min()
+                              .ok_or("Couldn't find kernel start section!")?;
+        let kernel_end = sections_tag.sections()
+                              .map(|s| s.address())
+                              .max()
+                              .ok_or("Couldn't find kernel end section!")?;
+
+        Ok(PhysicalPage::from(kernel_start) .. PhysicalPage::from(kernel_end))
     }
 }
 
@@ -296,6 +323,18 @@ pub struct MemArea { /// the starting address of the memory area
 impl MemArea {
     #[inline] pub fn address(&self) -> PAddr {
         self.base + self.length - 1
+    }
+}
+
+impl<'a> Into<mem::Area> for &'a MemArea {
+    #[inline]
+    fn into(self) -> mem::Area {
+        mem::Area {
+            start_addr: self.base
+          , end_addr: self.address()
+          , is_usable: if let MemAreaType::Available = self.ty { true }
+                       else { false }
+        }
     }
 }
 

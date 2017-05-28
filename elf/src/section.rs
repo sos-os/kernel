@@ -11,6 +11,8 @@ use super::{ElfResult, ElfWord};
 use core::{convert, fmt, ops};
 use core::iter::IntoIterator;
 
+use memory::{Addr, PAddr};
+
 // Distinguished section indices.
 pub const SHN_UNDEF: u16        = 0;
 pub const SHN_LORESERVE: u16    = 0xff00;
@@ -50,8 +52,8 @@ pub trait Header: fmt::Debug {
     /// Returns the end address of this section
     /// TODO: refactor this to return a Range instead?
     //          - eliza, 03/14/2017
-    #[inline] fn end_address(&self) -> usize {
-        self.address() + self.length()
+    #[inline] fn end_address(&self) -> PAddr {
+        self.address() + self.length() as <PAddr as Addr>::Repr
     }
 
     /// Returns true if this section is writable.
@@ -87,13 +89,11 @@ pub trait Header: fmt::Debug {
     }
 
     // Field accessors -------------------------------------------------
-    fn name_offset(&self) -> usize;
+    fn name_offset(&self) -> u32;
     /// This member categorizes the section's contents and semantics.
     fn get_type(&self) -> ElfResult<Type>;
     fn flags(&self) -> Flags;
-    /// TODO: shold this return a PAddr?
-    //          - eliza, 03/14/2017
-    fn address(&self) -> usize;
+    fn address(&self) -> PAddr;
     fn offset(&self) -> usize;
     /// TODO: should offset + length make a Range?
     //          - eliza, 03/14/2017
@@ -121,11 +121,11 @@ macro_rules! Header {
              }
 
             impl_getters! {
-                fn name_offset(&self) -> usize;
+                fn name_offset(&self) -> u32;
                 fn flags(&self) -> Flags;
                 /// TODO: shold this return a PAddr?
                 //          - eliza, 03/14/2017
-                fn address(&self) -> usize;
+                fn address(&self) -> PAddr;
                 fn offset(&self) -> usize;
                 /// TODO: should offset + length make a Range?
                 //          - eliza, 03/14/2017
@@ -176,7 +176,7 @@ macro_attr! {
         ///
         /// Its value is an index into the section header string table section,
         /// giving the location of a null-terminated string.
-        name_offset: Word
+        name_offset: u32
       , /// This member categorizes the section's contents and semantics.
         ty: TypeRepr
       , flags: Flags
@@ -224,53 +224,6 @@ bitflags! {
       , const GRP_MASKOS	= 0x0ff00000
       , const GRP_MASKPROC	= 0xf0000000
     }
-}
-
-macro_rules! get {
-    ($s: expr, $name: ident) => {
-        match *$s {
-            Header::ThirtyTwo(x) => x.$name
-          , Header::SixtyFour(x) => x.$name
-        }
-    }
-}
-
-macro_rules! impl_sec_getters {
-    ( pub $name: ident : $ty: ident, $( $rest: tt )* ) => {
-        #[inline] pub fn $name(&self) -> $ty {
-            match *self {
-                Header::ThirtyTwo(x) => x.$name as $ty
-              , Header::SixtyFour(x) => x.$name as $ty
-            }
-        }
-        impl_sec_getters!{ $( $rest )* }
-    };
-    ( $name: ident : $ty: ident,  $( $rest: tt )* ) => {
-        #[inline]
-        fn $name(&self) -> $ty {
-            match *self {
-                Header::ThirtyTwo(x) => x.$name as $ty
-              , Header::SixtyFour(x) => x.$name as $ty
-            }
-        }
-        impl_sec_getters!{ $( $rest )* }
-    };
-    ( $name: ident : $ty: ident ) => {
-        #[inline] fn $name(&self) -> $ty {
-            match *self {
-                Header::ThirtyTwo(x) => x.$name as $ty
-              , Header::SixtyFour(x) => x.$name as $ty
-            }
-        }
-    };
-    ( pub $name: ident : $ty: ident ) => {
-        #[inline] pub fn $name(&self) -> $ty {
-            match *self {
-                Header::ThirtyTwo(x) => x.$name as $ty
-              , Header::SixtyFour(x) => x.$name as $ty
-            }
-        }
-    };
 }
 
 pub enum Contents<'a> {
@@ -443,12 +396,12 @@ where W: ElfWord
         if self.remaining == 0 {
             None
         } else {
-            let current: Self::Item = self.curr;
-            self.curr = unsafe {
-                // TODO: we should be able to use ptr::offset() here?
-                //          - eliza, 03/05/2017
-                &*(((self.curr as *const HeaderRepr<W>) as u32 + self.size)
-                    as *const HeaderRepr<W>)
+            let current = self.curr;
+            self.curr =  unsafe {
+                (self.curr as *const HeaderRepr<W>).offset(1)
+                    .as_ref()
+                    .expect("Expected an ELF section header, but got a null \
+                             pointer!\nThis shouldn't happen!")
             };
             self.remaining -= 1;
             if current.get_type().unwrap() == Type::Null {

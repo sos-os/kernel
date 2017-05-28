@@ -38,23 +38,20 @@ trace = []
 
 [dependencies]
 rlibc = "0.1.4"
-spin = "0.3.5"
+spin = "0.4.5"
 once = "0.3.2"
 bitflags = "0.7"
 cpu = { path = "cpu" }
 memory = { path = "memory" }
 util = { path = "util" }
 elf = { path = "elf" }
+paging = { path = "paging" }
+params = { path = "params" }
 
 [dependencies.log]
 version = "0.3.6"
 default-features = false
 features = ["release_max_level_info"]
-
-# [dependencies.custom_derive]
-# git = "https://github.com/DanielKeep/rust-custom-derive.git"
-# version = "0.1.6"
-# default-features = false
 
 [dependencies.lazy_static]
 version = "0.2.*"
@@ -66,7 +63,7 @@ features = ["kinfo", "system_term"]
 
 [dependencies.alloc]
 path = "alloc"
-features = ["buddy_as_system"]
+features = ["buddy", "system", "borrow", "buddy_as_system"]
 
 [dependencies.clippy]
 version = "0.0.60"

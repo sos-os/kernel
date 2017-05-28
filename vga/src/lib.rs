@@ -28,7 +28,7 @@
 extern crate spin;
 
 #[cfg(feature = "kinfo")]
-extern crate log;
+#[macro_use] extern crate log;
 
 use core::{mem, ptr};
 use core::fmt::{Write, Result};
@@ -177,7 +177,7 @@ impl Terminal {
 
     /// Constructs a new `Terminal` for abuffer starting at the given address.
     ///
-    /// # Arguments:
+    /// # Arguments
     /// + `colors`: the default color palette for the terminal
     /// + `buffer_start`: the address of the to the memory location where
     ///                   the terminal's VGA buffer begins

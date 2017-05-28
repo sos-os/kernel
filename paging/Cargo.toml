@@ -1,7 +1,7 @@
 [package]
-name = "memory"
+name = "paging"
 version = "0.0.1"
-authors = [ "Eliza Weisman <eliza@elizas.website>" ]
+authors = [ "Eliza Weisman <hi@hawkweisman.me>" ]
 
 [profile.dev]
 opt-level = 3
@@ -21,6 +21,11 @@ panic = "abort"
 
 [dependencies]
 util = { path = "../util" }
+memory = { path = "../memory" }
+alloc = { path = "../alloc" }
+elf = { path = "../elf" }
+cpu = { path = "../cpu" }
+params = { path = "../params" }
 bitflags = "0.7"
 spin = "0.4.5"
 
@@ -29,7 +34,7 @@ path = "../vga"
 features = ["kinfo"]
 
 [dependencies.lazy_static]
-version = "^0.2.*"
+version = "0.2.*"
 features = ["spin_no_std"]
 
 [dependencies.macro-attr]
@@ -42,6 +47,6 @@ default-features = false
 # default-features = false
 
 [dependencies.log]
-version = "^0.3.6"
+version = "0.3.6"
 default-features = false
 features = ["release_max_level_info"]

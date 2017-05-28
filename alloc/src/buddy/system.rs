@@ -2,12 +2,13 @@
 use spin::Mutex;
 use core::ptr;
 
-use memory::alloc::Allocator;
-use super::{BuddyHeapAllocator, FreeList};
+use ::{Allocator, Layout};
+use super::{Heap, FreeList};
 
+/// The number of free lists for the kernel heap
 pub const NUM_FREE_LISTS: usize = 19;
 
-static ALLOC: Mutex<Option<BuddyHeapAllocator<'static>>>
+static ALLOC: Mutex<Option<Heap<'static>>>
     = Mutex::new(None);
 
 static mut KERNEL_FREE_LISTS: [FreeList; NUM_FREE_LISTS]
@@ -21,40 +22,57 @@ static mut KERNEL_FREE_LISTS: [FreeList; NUM_FREE_LISTS]
       , FreeList::new()
       , ];
 
+/// Initialize the system heap at the given start address
+///
+/// # Arguments
+/// + `start_addr`: a pointer to the start address of the kernel heap
+/// + `heap_size`: the maximum size (in bytes) of the kernel heap
+///
+/// # Panics
+/// + If called once the kernel heap is already initialized
 pub unsafe fn init_heap(start_addr: *mut u8, heap_size: usize ) {
+    assert_has_not_been_called!("the kernel heap may not be initialized \
+                                 more than once!");
     trace!(target: "alloc", "init_heap() was called.");
     *(ALLOC.lock())
-        = Some(BuddyHeapAllocator::new( start_addr
+        = Some(Heap::new( start_addr
                                       , &mut KERNEL_FREE_LISTS
                                       , heap_size));
 }
 
+// -- integrate the heap allocator into the Rust runtime ------------------
+#[allow(missing_docs)]
 #[no_mangle]
 pub extern "C" fn __rust_allocate(size: usize, align: usize) -> *mut u8 {
     trace!("__rust_allocate() was called.");
     unsafe {
         ALLOC.lock().as_mut()
              .expect("Cannot allocate memory, no system allocator exists!")
-             .allocate(size, align)
+             .alloc(Layout::from_size_align(size, align))
              .map(|blck| {
+                 // TODO: can we use `inspect()` here instead?
+                 //       - eliza, 1/23/2017
                  trace!( target: "alloc"
-                       , "__rust_allocate: allocatedd {:?}", blck);
+                       , "__rust_allocate: allocated {:?}", blck);
                  blck })
-             .unwrap_or(ptr::null_mut())
+            // TODO: how to handle various error conditions here in
+            //       ways the stdlib expects?
+            //          - eliza, 02/02/2017
+             .unwrap()
     }
 }
-
+#[allow(missing_docs)]
 #[no_mangle]
 pub extern "C" fn __rust_deallocate( ptr: *mut u8, old_size: usize
                                    , align: usize ) {
     unsafe {
         ALLOC.lock().as_mut()
              .expect("Cannot deallocate memory, no system allocator exists!")
-             .deallocate(ptr, old_size, align)
+             .dealloc(ptr, Layout::from_size_align(old_size, align))
     }
 }
 
-
+#[allow(missing_docs)]
 #[no_mangle]
 pub extern "C" fn __rust_reallocate( ptr: *mut u8, old_size: usize
                                    , size: usize, align: usize )
@@ -62,8 +80,13 @@ pub extern "C" fn __rust_reallocate( ptr: *mut u8, old_size: usize
     unsafe {
         ALLOC.lock().as_mut()
              .expect("Cannot reallocate memory, no system allocator exists!")
-             .reallocate(ptr, old_size, size, align)
-             .unwrap_or(ptr::null_mut())
+             .realloc( ptr
+                     , Layout::from_size_align(old_size, align)
+                     , Layout::from_size_align(size, align))
+             // TODO: how to handle various error conditions here in
+             //       ways the stdlib expects?
+             //          - eliza, 02/02/2017
+             .unwrap()
      }
 }
 
@@ -77,7 +100,60 @@ pub extern "C" fn __rust_reallocate_inplace( _ptr: *mut u8
     old_size
 }
 
+#[allow(missing_docs)]
 #[no_mangle]
 pub extern "C" fn __rust_usable_size(size: usize, _: usize) -> usize {
     size
 }
+
+/// A frame allocator using the system's buddy-block heap allocator
+// quick first pass on using the heap allocator as a frame allocator
+// TODO: this is Extremely Bad And Ugly And Awful. pleae make better.
+//       – eliza, 1/21/2017
+pub struct BuddyFrameAllocator;
+
+impl BuddyFrameAllocator {
+    /// Construct a new `BuddyFrameAllocator`
+    pub const fn new() -> Self { BuddyFrameAllocator }
+}
+//
+// impl FrameAllocator for BuddyFrameAllocator {
+//
+//     unsafe fn allocate(&self) -> Option<PhysicalPage> {
+//         ALLOC.lock().as_mut()
+//              .expect("Cannot allocate frame, no system allocator exists!")
+//              .allocate(PAGE_SIZE as usize, PAGE_SIZE as usize)
+//              .map(|block| {
+//                 let addr = VAddr::from_ptr(block);
+//                 // TODO: make this not be bad and ugly.
+//                 PhysicalPage::containing_addr(
+//                     PAddr::from(addr.as_usize() as u64))
+//              })
+//
+//     }
+//
+//     unsafe fn deallocate(&self, frame: PhysicalPage) {
+//         ALLOC.lock().as_mut()
+//              .expect("Cannot deallocate frame, no system allocator exists!")
+//              .deallocate( frame.as_mut_ptr()
+//                         , PAGE_SIZE as usize
+//                         , PAGE_SIZE as usize);
+//
+//     }
+//
+//     unsafe fn allocate_range(&self, _num: usize) -> Option<FrameRange> {
+//         unimplemented!()
+//     }
+//
+//     unsafe fn deallocate_range(&self, range: FrameRange) {
+//         for frame in range {
+//             ALLOC.lock().as_mut()
+//                  .expect("Cannot deallocate frames, no system allocator exists")
+//                  .deallocate( frame.as_mut_ptr()
+//                             , PAGE_SIZE as usize
+//                             , PAGE_SIZE as usize);
+//         }
+//     }
+//
+//
+// }

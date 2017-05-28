@@ -30,7 +30,7 @@
           , associated_consts
           , type_ascription
           , custom_derive )]
-#![feature( collections )]
+#![feature(collections)]
 
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
@@ -55,66 +55,128 @@ extern crate spin;
 extern crate alloc;
 extern crate cpu;
 extern crate elf;
-extern crate util;
+extern crate paging;
+extern crate params;
 extern crate memory;
+extern crate util;
 
 #[macro_use] pub mod io;
 
 pub mod heap;
-pub mod params;
 pub mod arch;
 pub mod logger;
+
+use params::InitParams;
+
+macro_rules! attempt {
+    ($task:expr => $msg:expr, dots: $dots:expr) => {
+        {
+            print!("{}{}", $dots, $msg);
+            match $task {
+               Ok(result) => {
+                    println!( "{:indent$}{res:}"
+                            , ""
+                            , indent = 70 - concat!($dots,$msg).len()
+                            , res = "[ OKAY ]");
+                    info!("{} [ OKAY ]", $msg);
+                    result
+                }
+              , Err(why) => {
+                    println!( "{:indent$}{res:}"
+                              , ""
+                              , indent = 70 - concat!($dots,$msg).len()
+                              , res = "[ FAIL ]");
+                    panic!("{:?}", why);
+              }
+            }
+        }
+
+    };
+}
 
 /// SOS version number
 pub const VERSION_STRING: &'static str
     = concat!("Stupid Operating System v", env!("CARGO_PKG_VERSION"));
 
-use params::InitParams;
 
 /// Kernel main loop
 pub fn kernel_main() -> ! {
-    let mut a_vec = collections::vec::Vec::<usize>::new();
-    info!(target: "test", "Created a vector in kernel space! {:?}", a_vec);
-    a_vec.push(1);
-    info!(target: "test", "pushed to vec: {:?}", a_vec);
-    a_vec.push(2);
-    info!(target: "test", "pushed to vec: {:?}", a_vec);
+    // let mut a_vec = collections::vec::Vec::<usize>::new();
+    // info!(target: "test", "Created a vector in kernel space! {:?}", a_vec);
+    // a_vec.push(1);
+    // info!(target: "test", "pushed to vec: {:?}", a_vec);
+    // a_vec.push(2);
+    // info!(target: "test", "pushed to vec: {:?}", a_vec);
+
+    // let mut frame_allocator = frame_alloc::FrameAllocator::new();
+    // paging::test_paging(&mut frame_allocator);
 
     loop { }
 }
 
-/// Cross-architecture kernel initialization.
+/// Kernel initialization function called into by architecture-specific init
 ///
-/// This function is called by the arch specific init function.
+/// Our initialization process essentially looks like this:
+///
+/// ```text
+/// +-------------+
+/// | bootloader  |
+/// | (multiboot) |
+/// +------|------+
+/// +------V------+
+/// | start.asm   |
+/// +------|------+
+/// +------|--------------------------------------------------------+
+/// |      |           RUST-LAND KERNEL FUNCTIONS                   |
+/// |      V                                                        |
+/// | arch_init() ----------> kernel_init() --------> kernel_main() |
+/// | + collects boot info   + initializes interrupts               |
+/// |   from arch-specific   + initializes the heap                 |
+/// |   sources              + remaps the kernel into the higher    |
+/// | + some CPU-specific      half of the address space            |
+/// |   configuration                                               |
+/// +---------------------------------------------------------------+
+/// ```
 pub fn kernel_init(params: &InitParams) {
-    kinfoln!("Hello from the kernel!");
+    use alloc::frame::mem_map::MemMapAllocator;
+    use ::paging::kernel_remap;
 
-    // -- initialize interrupts ----------------------------------------------
-    kinfoln!(dots: " . ", "Initializing interrupts:");
-    // TODO: this whole function *may* want to just be made `unsafe`...
-    unsafe { arch::interrupts::initialize(); };
-    kinfoln!(dots: " . ", target: "Enabling interrupts", "[ OKAY ]");
+    kinfoln!("Hello from the kernel!");
+    // kinfoln!("Got init params: {:#?}", params );
+
+    // -- remap the kernel ----------------------------------------------------
+    let mut frame_allocator = MemMapAllocator::from(params);
+    kinfoln!(dots: " . ", "Remapping the kernel...");
+    let page_table = match kernel_remap(&params, &mut frame_allocator) {
+        Ok(p) => {
+            kinfoln!(dots: " . ", target: "Remapping the kernel", "[ OKAY ]");
+            p
+        }
+      , Err(why) => {
+            kinfoln!(dots: " . ", target: "Remapping the kernel", "[ FAIL ]");
+            panic!( "Could not remap kernel: {}", why)
+        }
+    };
+
+    paging::test_paging(&mut frame_allocator);
 
     // -- initialize the heap ------------------------------------------------
+    attempt!( unsafe { heap::initialize(params) } =>
+             "Intializing heap...", dots: " . ");
+    kinfoln!( dots: " . . "
+            , "Heap begins at {:#x} and ends at {:#x}"
+            , params.heap_base, params.heap_top);
 
-    if unsafe { heap::initialize(params) }.is_ok() {
-        kinfoln!( dots: " . ", target: "Intializing heap"
-                , "[ OKAY ]"
-                );
-        kinfoln!( dots: " . . "
-                , "Heap begins at {:#x} and ends at {:#x}"
-                , params.heap_base, params.heap_top);
-    } else {
-        kinfoln!( dots: " . ", target: "Intializing heap"
-                , "[ FAIL ]"
-                );
-    }
+
+    // -- initialize interrupts ----------------------------------------------
+    // attempt!( unsafe { arch::interrupts::initialize() } =>
+    //           "Initializing interrupts...", dots: " . " );
 
     println!("\n{} {}-bit\n", VERSION_STRING, arch::ARCH_BITS);
+
     // -- call into kernel main loop ------------------------------------------
     // (currently, this does nothing)
     kernel_main()
-
 }
 
 

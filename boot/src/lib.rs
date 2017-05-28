@@ -191,7 +191,10 @@ unsafe fn set_long_mode() {
     boot_write(b"3.3");
 
     // // enable PAE flag in cr4
-    set_flags!(%cr4 |= 1 << 5 );
+    // set_flags!(%cr4 |= 1 << 5 );
+    asm!("mov eax, cr4
+          or eax, 1 << 5
+          mov cr4, eax" ::: "memory" : "intel", "volatile");
     boot_write(b"3.4");
 
     // set the long mode bit in EFER MSR (model specific register)
@@ -199,12 +202,16 @@ unsafe fn set_long_mode() {
            rdmsr
            or    eax, 1 << 8
            wrmsr"
-        :::: "intel");
+        :::"memory": "intel", "volatile");
     boot_write(b"3.5");
 
     // enable paging in cr0
-    set_flags!(%cr0 |= 1 << 31;
-                    |= 1 << 16 );
+    // set_flags!(%cr0 |= 1 << 31;
+    //                 |= 1 << 16 );
+
+    asm!("mov eax, cr0
+          or eax, 0x80000000
+          mov cr0, eax" :::"memory": "intel", "volatile");
     boot_write(b"3.6")
 }
 
@@ -225,6 +232,7 @@ unsafe fn is_multiboot_supported() -> bool {
 pub unsafe extern "C" fn _start() {
     boot_write(b"0");
     asm!("cli");
+
 
     // 1. Move Multiboot info pointer to edi
     asm!("mov edi, ebx" :::: "intel");

@@ -14,11 +14,28 @@ pub mod interrupts;
 #[path = "../x86_all/bda.rs"] pub mod bda;
 #[path = "../x86_all/multiboot2.rs"] pub mod multiboot2;
 
-use memory::PAddr;
-use params::InitParams;
-use ::kernel_init;
-
 pub const ARCH_BITS: u8 = 64;
+
+extern {
+    // TODO: It would be really nice if there was a less ugly way of doing
+    // this... (read: after the Revolution when we add memory regions to the
+    // heap programmatically.)
+    #[link_name = "heap_base_addr"]
+    #[linkage = "external"]
+    pub static HEAP_BASE: *mut u8;
+    #[link_name = "heap_top_addr"]
+    #[linkage = "external"]
+    pub static HEAP_TOP: *mut u8;
+    // Of course, we will still need to export the kernel stack addresses like
+    // this, but it would be nice if they could be, i dont know, not mut u8s
+    // pointers, like God intended.
+    #[link_name = "stack_base"]
+    pub static STACK_BASE: *mut u8;
+    #[link_name = "stack_top"]
+    pub static STACK_TOP: *mut u8;
+}
+
+use memory::PAddr;
 
 /// Trampoline to ensure we have a correct stack frame for calling [`arch_init`]
 ///
@@ -49,31 +66,27 @@ pub unsafe extern "C" fn long_mode_init() {
 /// bad problem and not go to space today.
 #[no_mangle]
 pub extern "C" fn arch_init(multiboot_addr: PAddr) {
-    use memory::arch::{HEAP_BASE, HEAP_TOP};
+    use cpu::{control_regs, msr};
+    use elf;
+    use params::{InitParams, mem};
+
+    kinfoln!(dots: " . ", "Beginning `arch_init()` for x86_64");
 
     ::io::term::CONSOLE.lock().clear();
     ::logger::initialize()
         .expect("Could not initialize logger!");
 
-    kinfoln!("in arch_init");
 
     // -- Unpack multiboot tag ------------------------------------------------
     kinfoln!( dots: " . "
-            , "trying to unpack multiboot info at {:?}"
+            , "trying to unpack multiboot info at {:#p}"
             , multiboot_addr);
 
+    // try to interpret the structure at the multiboot address as a multiboot
+    // info struct. if it's invalid, fail.
     let boot_info
         = unsafe { multiboot2::Info::from(multiboot_addr)
                     .expect("Could not unpack multiboot2 information!") };
-    // Extract the memory map tag from the multiboot info
-    let mem_map = boot_info.mem_map()
-                           .expect("Memory map tag required!");
-
-    kinfoln!(dots: " . ", "Detected memory areas:");
-    for area in mem_map {
-        kinfoln!( dots: " . . ", "{}", area);
-        // TODO: add memory map to init params here
-    }
 
     // Extract ELF sections tag from the multiboot info
     let elf_sections_tag
@@ -83,8 +96,11 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
     kinfoln!(dots: " . ", "Detecting kernel ELF sections:");
 
     // Extract kernel ELF sections from  multiboot info
+    let mut n_elf_sections = 0;
+
     let kernel_begin
         = elf_sections_tag.sections()
+            // .filter(|s| s.is_allocated())
             .map(|s| {
                 kinfoln!( dots: " . . ", "{}", s );
                 kinfoln!( dots: " . . . ", "flags: [ {:?} ]", s.flags());
@@ -93,27 +109,60 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
             .expect("Could not find kernel start section!\
                     \nSomething is deeply wrong.");
 
-    let mut n_elf_sections = 0;
+
     let kernel_end
         = elf_sections_tag.sections()
-            .map(|s| { n_elf_sections += 1; s.address() })
+            // .filter(|s| s.is_allocated())
+            .map(|s| { n_elf_sections += 1; s.end_address() })
             .max()
             .expect("Could not find kernel end section!\
                     \nSomething is deeply wrong.");
 
     kinfoln!( dots: " . ", "Detected {} kernel ELF sections.", n_elf_sections);
-    kinfoln!(dots: " . . ", "Kernel begins at {:#x} and ends at {:#x}."
-             , kernel_begin, kernel_end );
+    kinfoln!( dots: " . . ", "Kernel begins at {:#p} and ends at {:#p}."
+            , kernel_begin, kernel_end );
 
     let multiboot_end = multiboot_addr + boot_info.length as u64;
 
-    kinfoln!(dots: " . . ", "Multiboot info begins at {:#x} and ends at {:#x}."
-             , multiboot_addr, multiboot_end);
+    kinfoln!( dots: " . . ", "Multiboot info begins at {:#x} and ends at {:#x}."
+            , multiboot_addr, multiboot_end);
 
-    let params = InitParams { kernel_base: PAddr::from(kernel_begin as u64)
-                            , kernel_top:  PAddr::from(kernel_end as u64)
-                            , heap_base:   unsafe { PAddr::from(HEAP_BASE) }
-                            , heap_top:    unsafe { PAddr::from(HEAP_TOP) }
-                            };
-    kernel_init(&params);
+    let mut params = InitParams { kernel_base: kernel_begin
+                            , kernel_top: kernel_end
+                            , multiboot_start: Some(multiboot_addr)
+                            , multiboot_end: Some(multiboot_end)
+                            , heap_base: unsafe { PAddr::from(HEAP_BASE) }
+                            , heap_top: unsafe { PAddr::from(HEAP_TOP) }
+                            , stack_base: unsafe { PAddr::from(STACK_BASE) }
+                            , stack_top: unsafe { PAddr::from(STACK_TOP) }
+                            , elf_sections: Some(elf_sections_tag.sections())
+                            , ..Default::default()
+                        };
+
+    // Extract the memory map tag from the multiboot info
+    let mem_map = boot_info.mem_map()
+                           .expect("Memory map tag required!");
+
+    kinfoln!(dots: " . ", "Detected memory areas:");
+    for area in mem_map {
+        kinfoln!( dots: " . . ", "{}", area);
+        let a: mem::Area = area.into();
+        if a.is_usable == true { params.mem_map.push(a); }
+    }
+
+     //-- enable flags needed for paging ------------------------------------
+     unsafe {
+        //  control_regs::cr0::enable_write_protect(true);
+        //  kinfoln!(dots: " . ", "Page write protect ENABED" );
+
+        let efer = msr::read(msr::IA32_EFER);
+        trace!("EFER = {:#x}", efer);
+        msr::write(msr::IA32_EFER, efer | (1 << 11));
+        let efer = msr::read(msr::IA32_EFER);
+        trace!("EFER = {:#x}", efer);
+        kinfoln!(dots: " . ", "Page no execute bit ENABLED");
+     }
+
+    kinfoln!(dots: " . ", "Transferring to `kernel_init()`.");
+    ::kernel_init(&params);
 }

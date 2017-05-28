@@ -66,7 +66,7 @@ pub mod cr2 {
 
     /// Read the current value from `$cr2`.
     ///
-    /// # Unsafe Because:
+    /// # Safety
     /// + Reading from control registers while not in kernel mode will cause
     ///   a general protection fault.
     pub unsafe fn read() -> usize {
@@ -79,7 +79,7 @@ pub mod cr2 {
 
     /// Write a value to `$cr2`.
     ///
-    /// # Unsafe Because:
+    /// # Safety
     /// + Control registers should generally not be modified during normal
     ///   operation.
     pub unsafe fn write(value: usize) {
@@ -91,27 +91,82 @@ pub mod cr2 {
 
 /// `%cr3` contains the page table root pointer
 pub mod cr3 {
+    use memory::{PAddr, PhysicalPage};
+
+    // #[cfg(target_arch = "x86_64")]
+    // use paging::table::{Table, PML4Level};
+
     /// Read the current value from `$cr3`.
     ///
-    /// # Unsafe Because:
+    /// # Safety
     /// + Reading from control registers while not in kernel mode will cause
     ///   a general protection fault.
-    pub unsafe fn read() -> usize {
-        let result: usize;
+    #[cfg(target_arch = "x86_64")]
+    pub unsafe fn read() -> PAddr {
+        let result: u64;
         asm!(   "mov $0, cr3"
             :   "=r"(result)
             ::: "intel" );
-        result
+        PAddr::from(result)
+    }
+
+    /// Read the current value from `$cr3`.
+    ///
+    /// # Safety
+    /// + Reading from control registers while not in kernel mode will cause
+    ///   a general protection fault.
+    #[cfg(target_arch = "x86")]
+    pub unsafe fn read() -> PAddr {
+        let result: u32;
+        asm!(   "mov $0, cr3"
+            :   "=r"(result)
+            ::: "intel" );
+        PAddr::from(result)
     }
 
     /// Write a value to `$cr3`.
     ///
-    /// # Unsafe Because:
+    /// # Safety
     /// + Control registers should generally not be modified during normal
     ///   operation.
-    pub unsafe fn write(value: usize) {
+    #[cfg(target_arch = "x86_64")]
+    pub unsafe fn write(addr: PAddr) {
+        let value: u64 = addr.into();
+        asm!(  "mov cr3, $0"
+            :: "r"(value)
+            :  "memory"
+            :  "intel");
+    }
+
+    /// Write a value to `$cr3`.
+    ///
+    /// # Safety
+    /// + Control registers should generally not be modified during normal
+    ///   operation.
+    #[cfg(target_arch = "x86")]
+    pub unsafe fn write(addr: PAddr) {
+        let value: u32 = addr.into();
         asm!(  "mov cr3, $0"
             :: "r"(value)
             :: "intel");
+    }
+
+    /// Returns the current Page Directory base frame.
+    ///
+    /// # Safety
+    /// + Reading from control registers while not in kernel mode will cause
+    ///   a general protection fault.
+    pub unsafe fn current_pagetable_frame() -> PhysicalPage {
+        PhysicalPage::containing_addr(read())
+    }
+
+    /// Returns the current Page Directory base frame.
+    ///
+    /// # Safety
+    /// + Reading from control registers while not in kernel mode will cause
+    ///   a general protection fault.
+    #[inline]
+    pub unsafe fn set_pagetable_frame(frame: PhysicalPage) {
+        write(frame.base_addr())
     }
 }

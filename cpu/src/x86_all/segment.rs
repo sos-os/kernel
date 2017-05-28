@@ -17,16 +17,15 @@
 // because some extern types have bitflags members, which cannot
 // be marked repr(C) but should compile down to an unsigned integer
 #![allow(improper_ctypes)]
-#![warn(missing_docs)]
+#![deny(missing_docs)]
 
 use core::{fmt, mem};
 use super::{PrivilegeLevel, dtable};
-
 /// The number of entries in the GDT
 #[cfg(target_arch = "x86_64")]
-pub const GDT_SIZE: usize = 3;
+pub const GDT_SIZE: usize = 2;
 
-/// Structure representing a GDT
+/// Structure representing a Global Descriptor Table
 #[cfg(target_arch = "x86_64")]
 #[repr(C, packed)]
 pub struct Gdt { _null: Descriptor
@@ -40,20 +39,38 @@ pub struct Gdt { _null: Descriptor
 #[cfg(target_arch = "x86")]
 pub const GDT_SIZE: usize = 512;
 
-/// The Global Descriptor Table
 #[cfg(target_arch = "x86")]
 pub type Gdt = [Descriptor; GDT_SIZE];
 
-extern {
-    /// The Global Descriptor Table
-    #[link_name = ".gdt64"]
-    pub static GDT: Gdt;
+impl dtable::DTable for Gdt {
+    type Entry = Descriptor;
+
+    /// Returns the number of Entries in the `DTable`.
+    ///
+    /// This is used for calculating the limit.
+    #[inline(always)] fn entry_count(&self) -> usize { GDT_SIZE }
+
+    /// Load the GDT table with the `lgdt` instruction.
+    #[inline] fn load(&self) {
+        unsafe {
+            asm!(  "lgdt ($0)"
+            :: "r"(&self.get_ptr())
+            :  "memory" );
+        }
+    }
 }
 
-impl dtable::DTable for Gdt {
-    type Entry = u64;
-    fn entry_count(&self) -> usize { GDT_SIZE }
-    fn load (&'static self) { unimplemented!() }
+
+extern {
+
+    /// A Global Descriptor Table (GDT)
+    ///
+    /// This is used for configuring segmentation. Since we use paging rather than
+    /// segmentation for memory protection, we never actually _use_ the GDT, but
+    /// x86 requires that it be properly configured nonetheless. So, here it is.
+    #[cfg(target_arch = "x86_64")]
+    #[link_section = ".gdt64"]
+    pub static GDT: Gdt;
 }
 
 bitflags! {
@@ -99,7 +116,7 @@ bitflags! {
 impl Selector {
     /// Create a new `Selector`
     ///
-    /// # Arguments:
+    /// # Arguments
     ///   - `index`: the index in the GDT or LDT
     pub const fn new(index: u16) -> Self {
         Selector { bits: index << 3 }

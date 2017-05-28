@@ -10,9 +10,13 @@
 #![crate_name = "util"]
 #![no_std]
 
+#![feature(step_trait)]
 // #[cfg(not(test))] extern crate vga;
 
-use core::fmt;
+use core::{fmt, ops};
+use ops::*;
+use core::iter::Step;
+// use core::num::One;
 
 pub mod io;
 
@@ -25,3 +29,21 @@ impl fmt::Debug for Void {
         unreachable!()
     }
 }
+
+pub trait Align: Sized + Copy //+ One
+               + Add<Output=Self> + Sub<Output=Self>
+               + BitAnd<Output=Self> + Not<Output=Self>
+               + Step
+{
+    #[inline] fn align_up(&self, to: Self) -> Self {
+        let align = to.sub_one();
+        (*self + align) & !align
+    }
+    #[inline] fn align_down(&self, to: Self) -> Self {
+        *self & !to.sub_one()
+    }
+}
+
+impl Align for u64 { }
+impl Align for u32 { }
+impl Align for usize { }

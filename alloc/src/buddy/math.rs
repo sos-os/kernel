@@ -75,6 +75,8 @@ impl PowersOf2 for usize {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(feature = "bench")]
+    use test::{self, Bencher};
 
     #[test]
     fn test_next_pow2() {
@@ -117,5 +119,53 @@ mod tests {
     assert_eq!(1, 2.log2());
     assert_eq!(5, 32.log2());
     assert_eq!(10, 1024.log2());
+    }
+
+    #[cfg(feature = "bench")]
+    #[bench]
+    fn our_next_pow2(b: &mut Bencher) {
+        use collections::Vec;
+        b.iter(|| {
+            let n = test::black_box(100_000);
+
+            (0..n).map(|x: usize| x.next_pow2())
+                  .collect::<Vec<_>>() // force the map to return so it doesn't get optimised away
+        })
+    }
+
+    #[cfg(feature = "bench")]
+    #[bench]
+    fn std_next_power_of_two(b: &mut Bencher) {
+        use collections::Vec;
+        b.iter(|| {
+            let n = test::black_box(100_000);
+
+            (0..n).map(|x: usize| x.next_power_of_two())
+                  .collect::<Vec<_>>() // force the map to return so it doesn't get optimised away
+        })
+    }
+
+    #[cfg(feature = "bench")]
+    #[bench]
+    fn our_is_pow2(b: &mut Bencher) {
+        use collections::Vec;
+        b.iter(|| {
+            let n = test::black_box(100_000);
+
+            (0..n).map(|ref x: usize| x.is_pow2())
+                  .collect::<Vec<_>>() // force the map to return so it doesn't get optimised away
+        })
+    }
+
+    #[cfg(feature = "bench")]
+    #[bench]
+    fn std_is_power_of_two(b: &mut Bencher) {
+        use collections::Vec;
+        b.iter(|| {
+            let n = test::black_box(100_000);
+
+            (0..n).map(|x: usize| x.next_power_of_two())
+                  .collect::<Vec<_>>() // force the map to return so it doesn't get optimised away
+        })
     }
 }

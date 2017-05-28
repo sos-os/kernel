@@ -13,13 +13,12 @@
 //! re-exports memory-related definitions.
 #![crate_name = "memory"]
 #![feature(const_fn)]
-#![feature(unique)]
 #![feature(asm)]
+#![feature(step_trait)]
+#![feature(linkage)]
 #![no_std]
 
-#[macro_use] extern crate bitflags;
 #[macro_use] extern crate macro_attr;
-
 #[macro_use] extern crate util;
 // #[cfg(not(test))] #[macro_use] extern crate vga;
 // extern crate alloc as liballoc; // TODO: workaround
@@ -29,24 +28,26 @@ pub mod arch;
 
 // use alloc::buddy;
 // use ::params::InitParams;
-use core::{ops, cmp, convert};
+use core::{ops, cmp, convert, fmt};
+use util::Align;
 
-pub use arch::PAddr;
-
-pub mod alloc;
-pub mod paging;
+pub use arch::{PAddr, PAGE_SHIFT, PAGE_SIZE};
 
 /// Trait representing an address, whether physical or virtual.
-pub trait Addr<R>: ops::Add<Self> + ops::Add<R>
-                 + ops::Sub<Self> + ops::Sub<R>
-                 + ops::Mul<Self> + ops::Mul<R>
-                 + ops::Div<Self> + ops::Div<R>
-                 + ops::Shl<Self> + ops::Shl<R>
-                 + ops::Shr<Self> + ops::Shr<R>
-                 + ops::Deref<Target = R>
-                 + convert::From<R> + convert::Into<R>
-                 + convert::From<*mut u8> + convert::From<*const u8>
-                 + Sized { }
+pub trait Addr: ops::Add<Self> + ops::Sub<Self>
+              + ops::Mul<Self> + ops::Div<Self>
+              + ops::Shl<Self> + ops::Shr<Self>
+              + ops::BitOr<Self> + ops::BitAnd<Self>
+              + convert::From<*mut u8> + convert::From<*const u8>
+              + Sized {
+    type Repr: Align;
+
+    fn align_down(&self, align: Self::Repr) -> Self;
+    fn align_up(&self, align: Self::Repr) -> Self;
+
+    /// Returns true if this address is aligned on a page boundary.
+    fn is_page_aligned(&self) -> bool;
+}
 
 //impl Addr<usize> for VAddr { }
 
@@ -54,7 +55,7 @@ pub trait Addr<R>: ops::Add<Self> + ops::Add<R>
 
 macro_attr! {
     /// A virtual address is a machine-sized unsigned integer
-    #[derive(Copy, Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Addr!(usize))]
+    #[derive(Copy, Clone, Eq, Ord, PartialEq, PartialOrd, Addr!(usize))]
     pub struct VAddr(usize);
 }
 
@@ -89,17 +90,19 @@ impl VAddr {
     }
 }
 
+use core::ops::Range;
 
-//
-//impl<A, P> convert::From<A> for P
-//where P: Page<Address = A>  {
-//
-//}
+pub use arch::PhysicalPage;
+
+pub type PageRange = Range<VirtualPage>;
+pub type FrameRange = Range<PhysicalPage>;
+
 
 /// Trait for a page. These can be virtual pages or physical frames.
 pub trait Page
 where Self: Sized
     , Self: ops::AddAssign<usize> + ops::SubAssign<usize>
+    , Self: ops::Add<usize, Output=Self> + ops::Sub<usize, Output=Self>
     , Self: cmp::PartialEq<Self> + cmp::PartialOrd<Self>
     , Self: Copy + Clone {
 
@@ -108,9 +111,7 @@ where Self: Sized
     /// Typically, this is a `PAddr` or `VAddr` (but it could be a "MAddr")
     /// in schemes where we differentiate between physical and machine
     /// addresses. If we ever have those.
-    type Address: Addr<Self::R>;
-    /// The numeric type representing `Self::Address`.
-    type R;
+    type Address: Addr;
 
     /// Returns a new `Page` containing the given `Address`.
     ///
@@ -119,9 +120,11 @@ where Self: Sized
     /// outside of the `impl` block and then wrap them here.
     fn containing(addr: Self::Address) -> Self;
 
-    /// Returns the base `address` where this page starts.
+    /// Returns the base `Address` where this page starts.
     fn base(&self) -> Self::Address;
 
+    /// Returns the end `Address` of this `Page`.
+    fn end_address(&self) -> Self::Address;
 
     ///// Convert the frame into a raw pointer to the frame's base address
     //#[inline]
@@ -135,46 +138,125 @@ where Self: Sized
     //    mem::transmute(self.base())
     //}
 
-    /// Returns a `PageRange` between two pages
-    fn range_between(start: Self, end: Self) -> PageRange<Self> {
-        PageRange { start: start, end: end }
+    /// Returns a `PageRange` of this `Page` and the next `n` pages.
+    #[inline]
+    fn range_of(&self, n: usize) -> Range<Self> {
+        self.range_until(*self + n)
     }
 
-    /// Returns a `FrameRange` on the frames from this frame until the end frame
-    fn range_until(&self, end: Self) -> PageRange<Self> {
-        PageRange { start: *self, end: end }
+    /// Returns a `PageRange` on the frames from this frame until the end frame
+    #[inline]
+    fn range_until(&self, end: Self) -> Range<Self> {
+        Range { start: *self, end: end }
     }
 
-    //fn number(&self) -> R;
+    fn number(&self) -> usize;
 
 }
 
-/// A range of `Page`s.
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub struct PageRange<P>
-where P: Page { start: P, end: P }
 
-impl<P> PageRange<P>
-where P: Page
-    , P: Clone {
+macro_attr!{
+    /// A virtual page
+    #[derive( Copy, Clone, Eq, Ord, PartialEq, PartialOrd, Page!(VAddr) )]
+    pub struct VirtualPage { pub number: usize }
+}
 
-    /// Returns an iterator over this `PageRange`
-    pub fn iter<'a>(&'a self) -> PageRangeIter<'a, P> {
-        PageRangeIter { range: self, current: self.start.clone() }
+impl VirtualPage {
+    fn containing_addr( addr: VAddr) -> Self {
+        use ::PAGE_SHIFT;
+        assert!( (addr < 0x0000_8000_0000_0000) || (addr >= 0xffff_8000_0000_0000)
+               , "invalid address : 0x{:x}", addr );
+        Self { number: addr.0 >> PAGE_SHIFT }
+    }
+}
+
+impl fmt::Debug for VirtualPage {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "page #{}", self.number)
+    }
+}
+
+//
+///// A range of `Page`s.
+//#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+//pub struct Range<P>
+//where P: Page { start: P, end: P }
+//
+pub trait MemRange {
+    /// Returns the number of `Page`s in this ranage
+    #[inline]
+    fn length(&self) -> usize;
+
+    /// Remove `n` pages from the beginning of this `PageRange`
+    fn drop_front(&mut self, n: usize) -> &mut Self;
+
+    /// Remove `n` pages from the end of this `PageRange`
+    fn drop_back(&mut self, n: usize) -> &mut Self;
+
+    /// Add `n` pages at the front of this `PageRange`
+    fn add_front(&mut self, n: usize) -> &mut Self;
+
+    /// Add `n` pages at the back of this `PageRange`
+    fn add_back(&mut self, n: usize) -> &mut Self;
+}
+    //pub const fn start(&self) -> P { self.start }
+   //
+   ///// Returns a `PageRange` between two pages
+   //pub const fn between(start: P, end: P) -> Range<P> {
+   //    Range { start: start, end: end }
+   //}
+   //
+   // /// Returns an iterator over this `PageRange`
+   // pub fn iter<'a>(&'a self) -> RangeIter<'a, P> {
+   //     RangeIter { range: self, current: self.start.clone() }
+   // }
+
+impl<P> MemRange for Range<P>
+where P: Page {
+
+    /// Returns the number of `Page`s in this ranage
+    #[inline]
+    fn length(&self) -> usize {
+        self.end.number() - self.start.number()
+    }
+
+    /// Remove `n` pages from the beginning of this `PageRange`
+    fn drop_front(&mut self, n: usize) -> &mut Self {
+        assert!(n < self.length());
+        self.start += n;
+        self
+    }
+
+    /// Remove `n` pages from the end of this `PageRange`
+    fn drop_back(&mut self, n: usize) -> &mut Self {
+        assert!(n < self.length());
+        self.end -= n;
+        self
+    }
+
+    /// Add `n` pages at the front of this `PageRange`
+    fn add_front(&mut self, n: usize) -> &mut Self {
+        self.start -= n;
+        self
+    }
+
+    /// Add `n` pages at the back of this `PageRange`
+    fn add_back(&mut self, n: usize) -> &mut Self {
+        self.end += n;
+        self
     }
 }
 
 /// An iterator over a range of pages
-pub struct PageRangeIter<'a, P>
+pub struct RangeIter<'a, P>
 where P: Page
-    , P: 'a { range: &'a PageRange<P>, current: P }
+    , P: 'a { range: &'a Range<P>, current: P }
 
-impl<'a, P> Iterator for PageRangeIter<'a, P>
+impl<'a, P> Iterator for RangeIter<'a, P>
 where P: Page
     , P: Clone {
     type Item = P;
 
-    ///
     fn next(&mut self) -> Option<P> {
         let end = self.range.end;
       assert!(self.range.start <= end);
@@ -188,9 +270,3 @@ where P: Page
   }
 
 }
-
-//macro_rules! make_addr_range {
-//    $($name:ident, $addr:ty),+ => {$(
-//
-//    )+}
-//}

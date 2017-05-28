@@ -244,7 +244,7 @@ static PICS: Mutex<BothPICs>
 
 /// Initialize the system's Programmable Interrupt Controller
 ///
-/// # Unsafe Because:
+/// # Safety
 ///  - This should only ever be called by the kernel boot process.
 ///    Initializing the PICs once they have already been inicialized
 ///    will probably cause Bad Things to take place.
@@ -260,7 +260,7 @@ pub unsafe fn initialize() {
 /// This is called by the interrupt handler at the end of all interrupts.
 /// If the interrupt is not a PIC interrupt, it silently does nothing.
 ///
-/// # Unsafe Because:
+/// # Safety
 ///  - This should only be called by interrupt handler functions.
 pub unsafe fn end_pic_interrupt(interrupt_id: u8) {
     let pics = PICS.lock();
