@@ -68,50 +68,24 @@ pub mod logger;
 
 use params::InitParams;
 
-#[macro_use]
-macro_rules! init_log {
-    (fail: $dots:expr, $task:expr, $msg:expr) => (
-        kinfoln!( dots: $dots, "{task:<40}{res:>38}"
-                , task = $task
-                , res = "[ FAIL ]"
-                )
-    );
-    (fail: $dots:expr, $task:expr) => (
-            kinfoln!( "{task:<40}{res:>38}"
-                    , task = $task
-                    , res = "[ FAIL ]"
-                    )
-    );
-    (okay: $dots:expr, $task:expr, $msg:expr) => (
-        println!( "{task:<40}{res:>38}\n{msg:>.width$}"
-                , task = format!("{:>.width$}", $task, width = $dots)
-                , res = "[ OKAY ]"
-                , msg = $msg
-                , width = $dots + 1
-                )
-    );
-    (okay: $dots:expr, $task:expr) => (
-            kinfoln!( dots: $dots, "{task:<40}{res:>38}"
-                    , task = $task
-                    , res = "[ OKAY ]"
-                    )
-    );
-}
-
 macro_rules! attempt {
     ($task:expr => $msg:expr, dots: $dots:expr) => {
         {
             print!("{}{}", $dots, $msg);
             match $task {
                Ok(result) => {
-                    println!( "{:indent$}[ OKAY ]"
-                            , indent=80 - concat!($dots,$msg).len());
+                    println!( "{:indent$}{res:}"
+                            , ""
+                            , indent = 70 - concat!($dots,$msg).len()
+                            , res = "[ OKAY ]");
                     info!("{} [ OKAY ]", $msg);
                     result
                 }
               , Err(why) => {
-                    println!( "{:indent$}[ FAIL ]"
-                            , indent=80 - concat!($dots,$msg).len());
+                    println!( "{:indent$}{res:}"
+                              , ""
+                              , indent = 70 - concat!($dots,$msg).len()
+                              , res = "[ FAIL ]");
                     panic!("{:?}", why);
               }
             }
@@ -174,9 +148,12 @@ pub fn kernel_init(params: &InitParams) {
     let mut frame_allocator = MemMapAllocator::from(params);
     kinfoln!(dots: " . ", "Remapping the kernel...");
     let page_table = match kernel_remap(&params, &mut frame_allocator) {
-        Ok(p) => { init_log!(okay: " . ", "Remapping the kernel"); p}
+        Ok(p) => {
+            kinfoln!(dots: " . ", target: "Remapping the kernel", "[ OKAY ]");
+            p
+        }
       , Err(why) => {
-            init_log!(fail: " . ", "Remapping the kernel");
+            kinfoln!(dots: " . ", target: "Remapping the kernel", "[ FAIL ]");
             panic!( "Could not remap kernel: {}", why)
         }
     };
