@@ -415,10 +415,8 @@ where A: FrameAllocator {
     kinfoln!(dots: " . . ", "Successfully switched to remapped page table!");
 
     // create guard page at the location of the old PML4 table
-    let old_pml4_page
-        = VirtualPage::containing(
-            VAddr::from(*(old_table.pml4_frame.base()) as usize)
-        );
+    let old_pml4_vaddr = VAddr::from(*(old_table.pml4_frame.base()) as usize);
+    let old_pml4_page  = VirtualPage::containing(old_pml4_vaddr);
     current_table.unmap(old_pml4_page, alloc);
     trace!("Unmapped guard page at {:?}", old_pml4_page.base());
     Ok(current_table)

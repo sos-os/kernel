@@ -163,6 +163,15 @@ macro_attr!{
     pub struct VirtualPage { pub number: usize }
 }
 
+impl VirtualPage {
+    fn containing_addr( addr: VAddr) -> Self {
+        use ::PAGE_SHIFT;
+        assert!( (addr < 0x0000_8000_0000_0000) || (addr >= 0xffff_8000_0000_0000)
+               , "invalid address : 0x{:x}", addr );
+        Self { number: addr.0 >> PAGE_SHIFT }
+    }
+}
+
 impl fmt::Debug for VirtualPage {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "page #{}", self.number)

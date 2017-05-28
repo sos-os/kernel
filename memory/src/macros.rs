@@ -191,16 +191,13 @@ macro_rules! Page {
         impl Page for $ty {
             type Address = $addr;
 
+
             /// Create a new `Page` containing the given address.
             //  TODO: rewrite this as `up`/`down` using the page shift, instead.
+            #[inline(always)]
             fn containing(addr: $addr) -> Self {
-                use ::PAGE_SHIFT;
-                assert!( *addr < 0x0000_8000_0000_0000 ||
-                         *addr >= 0xffff_8000_0000_0000
-                       , "invalid address: 0x{:x}", addr );
-                $ty { number: *addr >> PAGE_SHIFT as <Self::Address as Addr>::Repr }
+                $ty::containing_addr(addr)
             }
-
             /// Return the start address of this page
             #[inline]
             fn base(&self) -> $addr {
