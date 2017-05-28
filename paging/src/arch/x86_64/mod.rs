@@ -377,7 +377,7 @@ where A: FrameAllocator {
         kinfoln!(dots: " . . ", "Remapping kernel ELF sections.");
 
         for section in sections { // remap ELF sections
-            kinfoln!( dots: " . . . ", " Identity mapping {}", section);
+            kinfoln!( dots: " . . . ", "Identity mapping {}", section);
             // TODO: can we get this to return a Result?
             //          eliza, 5/27/2017
             assert!( section.address().is_page_aligned()
