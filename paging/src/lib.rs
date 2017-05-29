@@ -44,6 +44,7 @@ pub enum MapErr<P: Page + fmt::Debug = VirtualPage> {
   , Other { message: &'static str, page: P, cause: &'static str }
   , TableNotFound { message: &'static str, page: VirtualPage, what: &'static str }
   , AlreadyInUse { message: &'static str, page: VirtualPage, frame: PhysicalPage }
+  , NoPage { message: &'static str, cause: &'static str}
 }
 
 impl<P> fmt::Debug for MapErr<P> where P: Page + fmt::Debug {

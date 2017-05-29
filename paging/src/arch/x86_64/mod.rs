@@ -56,7 +56,8 @@ impl ActivePageTable {
                    , temp_page: &mut temp::TempPage
                    , f: F)
                    -> MapResult
-    where F: FnOnce(&mut ActivePML4) {
+    where F: FnOnce(&mut ActivePML4) -> MapResult {
+        let result: MapResult;
         use self::tlb::flush_all;
         {
             // back up the current PML4 frame
@@ -76,7 +77,7 @@ impl ActivePageTable {
             }
 
             // execute the closure
-            f(self);
+            result = f(self);
 
             // remap the 511th entry to point back to the original frame
             pml4[511].set(prev_pml4_frame, PRESENT | WRITABLE);
@@ -86,7 +87,8 @@ impl ActivePageTable {
                 flush_all();
             }
         }
-        temp_page.unmap(self)
+        let _ = temp_page.unmap(self)?;
+        return result
 
     }
 
@@ -231,8 +233,6 @@ impl Mapper for ActivePML4 {
     fn unmap<A>(&mut self, page: VirtualPage, alloc: &mut A) -> MapResult<()>
     where A: FrameAllocator {
         use self::tlb::Flush;
-        trace!("unmapping {:?}", page);
-        assert!(self.translate_page(page).is_some());
 
         // get the page table entry corresponding to the page.
         let page_table = self.pml4_mut()
@@ -252,7 +252,7 @@ impl Mapper for ActivePML4 {
                          .ok_or(MapErr::Other {
                            message: "unmap"
                          , page: page
-                         , cause: "it was already mapped"
+                         , cause: "it was not mapped"
                        })?;
         trace!("page table entry for {:?} points to {:?}", page, frame);
         // mark the page table entry as unused
@@ -368,6 +368,7 @@ where A: FrameAllocator {
 pub fn kernel_remap<A>(params: &InitParams, alloc: &mut A)
                        -> MapResult<ActivePageTable>
 where A: FrameAllocator {
+    use elf::Section;
     // create a  temporary page for switching page tables
     // page number chosen fairly arbitrarily.
     const TEMP_PAGE_NUMBER: usize = 0xfacade;
@@ -402,28 +403,32 @@ where A: FrameAllocator {
         kinfoln!(dots: " . . ", "Remapping kernel ELF sections.");
 
         for section in sections { // remap ELF sections
-            kinfoln!( dots: " . . . ", "Identity mapping {}", section);
-            // TODO: can we get this to return a Result?
-            //          eliza, 5/27/2017
-            assert!( section.address().is_page_aligned()
-                   , "Section address must be page aligned to remap!");
+            attempt!(
+                if section.address().is_page_aligned() {
+                    let flags = EntryFlags::from(section);
 
-            let flags = EntryFlags::from(section);
+                    let start_frame = PhysicalPage::from(section.address());
+                    let end_frame = PhysicalPage::from(section.end_address());
 
-            let start_frame = PhysicalPage::from(section.address());
-            let end_frame = PhysicalPage::from(section.end_address());
-
-            for frame in start_frame .. end_frame {
-                let _ = pml4.identity_map(frame, flags, alloc).unwrap();
-                    // .expect("couldn't identity map ELF section {:?}", frame);
-            }
+                    for frame in start_frame .. end_frame {
+                        let _ = pml4.identity_map(frame, flags, alloc)?;
+                    }
+                    Ok(())
+                } else {
+                    Err(MapErr::NoPage::<VirtualPage> {
+                        message: "identity map section"
+                      , cause: "the start address was not page aligned"
+                    })
+                } =>
+                      dots: " . . . ",
+                      "Identity mapping {}", section );
         }
 
         // remap VGA buffer
-        kinfoln!( dots: " . . ", "Identity mapping VGA buffer" );
         let vga_buffer_frame = PhysicalPage::containing(PAddr::from(0xb8000));
-        let _ = pml4.identity_map(vga_buffer_frame, WRITABLE, alloc).unwrap();
-            // .expect("couldn't identity map VGA {:?}", vga_buffer_frame);
+        attempt!( pml4.identity_map(vga_buffer_frame, WRITABLE, alloc) =>
+                  dots: " . . ", "Identity mapping VGA buffer" );
+
 
         // remap Multiboot info
         kinfoln!( dots: " . . ", "Identity mapping multiboot info" );
@@ -431,11 +436,11 @@ where A: FrameAllocator {
         let multiboot_end = PhysicalPage::from(params.multiboot_end());
 
         for frame in multiboot_start .. multiboot_end {
-            let _ = pml4.identity_map(frame, PRESENT, alloc).unwrap();
+            let _ = pml4.identity_map(frame, PRESENT, alloc)?;
                 // .expect("couldn't identity map Multiboot {:?}", frame);
         }
-
-    });
+        Ok(())
+    })?;
 
     trace!("replacing old page table with new page table");
     // switch page tables ---------------------------------------------------
@@ -445,7 +450,7 @@ where A: FrameAllocator {
     // create guard page at the location of the old PML4 table
     let old_pml4_vaddr = VAddr::from(*(old_table.pml4_frame.base()) as usize);
     let old_pml4_page  = VirtualPage::containing(old_pml4_vaddr);
-    current_table.unmap(old_pml4_page, alloc);
+    let _ = current_table.unmap(old_pml4_page, alloc)?;
     trace!("Unmapped guard page at {:?}", old_pml4_page.base());
     Ok(current_table)
 }

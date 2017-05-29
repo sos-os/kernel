@@ -5,7 +5,7 @@ use core::ops;
 
 use super::ActivePageTable;
 use super::table::{Table, PTLevel};
-use ::{Mapper, MapResult, MapErr};
+use ::{Mapper, MapResult};
 
 #[derive(Debug)]
 pub struct TempPage { page: VirtualPage

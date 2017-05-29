@@ -136,7 +136,7 @@ pub fn kernel_init(params: &InitParams) {
 
     // -- initialize the heap ------------------------------------------------
     attempt!( unsafe { heap::initialize(params) } =>
-             "Intializing heap...", dots: " . ");
+             dots: " . ", "Intializing heap...");
     kinfoln!( dots: " . . "
             , "Heap begins at {:#x} and ends at {:#x}"
             , params.heap_base, params.heap_top);
