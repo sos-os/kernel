@@ -62,7 +62,7 @@ fi
 
 if [ -f ~/.bash_profile ]
 then
-    export PATH=$PATH:$HOME/.cargo/bin
+    echo "export PATH=$PATH:$HOME/.cargo/bin" >> ~/.bash_profile
 fi
 
 
