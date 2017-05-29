@@ -60,6 +60,11 @@ else
     curl https://sh.rustup.rs -sSf | sh
 fi
 
+if [ -f ~/.bash_profile ]
+then
+    echo "export PATH=$PATH:$HOME/.cargo/bin" >> ~/.bash_profile
+fi
+
 
 echo "${bold}install-env:${normal} Updating Rust version"
 rustup update nightly
