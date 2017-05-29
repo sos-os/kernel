@@ -10,36 +10,29 @@
 
 #[macro_export]
 macro_rules! attempt {
-    ($task:expr => dots: $dots:expr, $msg:expr ) => {
+    ($task:expr => dots: $dots:expr, $msg:expr ) => ({
+            use $crate::status::Status;
             print!("{}{}", $dots, $msg);
-            {
-                let mut console = $crate::CONSOLE.lock();
-                while console.x_position() < 71 {
-                    console.write_byte(b' ');
-                }
-
-            }
             match $task {
                Ok(result) => {
-                    println!("[ OKAY ]");
+                    $crate::CONSOLE.lock().okay();
                     info!("{} [ OKAY ]", $msg);
                     result
                 }
               , Err(why) => {
-                    println!("[ FAIL ]");
+                    $crate::CONSOLE.lock().fail();
                     panic!("{:?}", why);
               }
         }
-    };
+    });
     ($task:expr => dots: $dots:expr, $($msg:tt)* ) => {
         attempt!($task => dots: $dots, format_args!($($msg)*))
     };
 
 }
-
 #[macro_export]
 macro_rules! kinfo {
-    ( dots: $dots:expr, target: $target:expr, $status:expr ) => {
+    ( dots: $dots:expr, target: $target:expr, "[ OKAY ]") => {
         // {
         //     use core::fmt::Write;
         //
@@ -48,7 +41,28 @@ macro_rules! kinfo {
         //                   , "[info] {}: {} {}"
         //                   , module_path!()
         //                   , $msg, $status);
-            print!("{:<38}{:>40}", concat!($dots, $target), $status );
+            print!("{:<38}{:>40}", concat!($dots, $target));
+            {
+                use $crate::status::Status;
+                $crate::CONSOLE.lock().okay();
+            }
+            info!(target: $target, $status);
+        // }
+    };
+    ( dots: $dots:expr, target: $target:expr, "[ FAIL ]") => {
+        // {
+        //     use core::fmt::Write;
+        //
+        //     // suppress warnings because we don't care if there's no serial port
+        //     let _ = write!( $crate::arch::drivers::serial::COM1.lock()
+        //                   , "[info] {}: {} {}"
+        //                   , module_path!()
+        //                   , $msg, $status);
+            print!("{:<38}{:>40}", concat!($dots, $target));
+            {
+                use $crate::status::Status;
+                $crate::CONSOLE.lock().fail();
+            }
             info!(target: $target, $status);
         // }
     };

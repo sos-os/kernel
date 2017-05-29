@@ -27,8 +27,7 @@
 #[cfg(feature = "system_term")]
 extern crate spin;
 
-#[cfg(feature = "kinfo")]
-#[macro_use] extern crate log;
+
 
 use core::{mem, ptr};
 use core::fmt::{Write, Result};
@@ -36,7 +35,8 @@ use core::fmt::{Write, Result};
 
 #[cfg(feature = "system_term")]
 use spin::Mutex;
-
+#[cfg(feature = "kinfo")]
+#[macro_use] extern crate log;
 
 #[cfg(all( feature = "system_term"
           , not(test)))]
@@ -80,6 +80,8 @@ macro_rules! print {
 
 #[cfg(feature = "kinfo")]
 #[macro_use] pub mod kinfo;
+pub mod status;
+
 
 /// The system's global VGA terminal
 /// TODO: should this live in the kernel instead?
@@ -89,6 +91,8 @@ pub static CONSOLE: Mutex<Terminal>
          Palette::new(Color::LightGrey, Color::Black )
        , 0xB8000
     )});
+
+
 
 // TODO: support varying VGA screen sizes?
 pub const X_MAX: usize = 80;
@@ -174,6 +178,7 @@ pub struct Terminal { buffer: ptr::Unique<Buffer>
                     , colors: Palette
                     }
 impl Terminal {
+
     #[inline]
     pub fn x_position(&self) -> usize {
         self.x
