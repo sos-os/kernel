@@ -174,6 +174,10 @@ pub struct Terminal { buffer: ptr::Unique<Buffer>
                     , colors: Palette
                     }
 impl Terminal {
+    #[inline]
+    pub fn x_position(&self) -> usize {
+        self.x
+    }
 
     /// Constructs a new `Terminal` for abuffer starting at the given address.
     ///

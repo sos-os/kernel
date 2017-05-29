@@ -11,10 +11,14 @@
 #[macro_export]
 macro_rules! attempt {
     ($task:expr => dots: $dots:expr, $msg:expr ) => {
-            print!("{}{:<indent$}"
-                    , $dots
-                    , $msg
-                    , indent = 70 - $dots.len());
+            print!("{}{}", $dots, $msg);
+            {
+                let mut console = $crate::CONSOLE.lock();
+                while console.x_position() < 71 {
+                    console.write_byte(b' ');
+                }
+
+            }
             match $task {
                Ok(result) => {
                     println!("[ OKAY ]");
@@ -28,21 +32,7 @@ macro_rules! attempt {
         }
     };
     ($task:expr => dots: $dots:expr, $($msg:tt)* ) => {
-            print!("{}{:<indent$}"
-                    , $dots
-                    , format_args!($($msg)*)
-                    , indent = 70 - $dots.len());
-            match $task {
-               Ok(result) => {
-                    println!("[ OKAY ]");
-                    info!("{} [ OKAY ]", format_args!($($msg)*));
-                    result
-                }
-              , Err(why) => {
-                    println!("[ FAIL ]");
-                    panic!("{:?}", why);
-              }
-        }
+        attempt!($task => dots: $dots, format_args!($($msg)*))
     };
 
 }
@@ -100,7 +90,7 @@ macro_rules! kinfoln {
         //                   , "[info] {}: {} {}"
         //                   , module_path!()
         //                   , $msg, $status);
-            println!("{:<38}{:>40}", concat!($dots, $target), $status );
+            println!("{:<39}{:>40}", concat!($dots, $target), $status );
             info!(target: $target, $status);
         // }
     };
