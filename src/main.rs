@@ -154,7 +154,7 @@ pub fn kernel_init(params: &InitParams) {
         }
       , Err(why) => {
             kinfoln!(dots: " . ", target: "Remapping the kernel", "[ FAIL ]");
-            panic!( "Could not remap kernel: {}", why)
+            panic!( "Could not remap kernel: {:?}", why)
         }
     };
 

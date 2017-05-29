@@ -32,8 +32,26 @@ pub mod arch;
 pub mod stack;
 pub use self::arch::{kernel_remap, test_paging};
 
-use memory::{PAddr, PhysicalPage, VAddr, VirtualPage};
-use alloc::FrameAllocator;
+use memory::{Page, PAddr, PhysicalPage, VAddr, VirtualPage};
+use alloc::{FrameAllocator, AllocErr};
+use core::fmt;
+
+pub type MapResult<T = ()> = Result<T, MapErr>;
+
+#[derive(Clone)]
+pub enum MapErr<P: Page + fmt::Debug = VirtualPage> {
+    Alloc { message: &'static str, page: P, cause: AllocErr }
+  , Other { message: &'static str, page: P, cause: &'static str }
+  , TableNotFound { message: &'static str, page: VirtualPage, what: &'static str }
+  , AlreadyInUse { message: &'static str, page: VirtualPage, frame: PhysicalPage }
+}
+
+impl<P> fmt::Debug for MapErr<P> where P: Page + fmt::Debug {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        unimplemented!()
+    }
+}
 
 pub trait Mapper {
     type Flags;
@@ -58,6 +76,7 @@ pub trait Mapper {
     /// + `alloc`: a memory allocator
     fn map<A>( &mut self, page: VirtualPage, frame: PhysicalPage
              , flags: Self::Flags, alloc: &mut A )
+             -> MapResult<()>
     where A: FrameAllocator;
 
     /// Identity map a given `frame`.
@@ -68,6 +87,7 @@ pub trait Mapper {
     /// + `alloc`: a memory allocator
     fn identity_map<A>( &mut self, frame: PhysicalPage
                       , flags: Self::Flags, alloc: &mut A )
+                      -> MapResult<()>
     where A: FrameAllocator;
 
     /// Map the given `VirtualPage` to any free frame.
@@ -82,12 +102,13 @@ pub trait Mapper {
     fn map_to_any<A>( &mut self, page: VirtualPage
                     , flags: Self::Flags
                     , alloc: &mut A)
+                    -> MapResult<()>
     where A: FrameAllocator;
 
     /// Unmap the given `VirtualPage`.
     ///
     /// All freed frames are returned to the given `FrameAllocator`.
-    fn unmap<A>(&mut self, page: VirtualPage, alloc: &mut A)
+    fn unmap<A>(&mut self, page: VirtualPage, alloc: &mut A) -> MapResult<()>
     where A: FrameAllocator;
 
 }

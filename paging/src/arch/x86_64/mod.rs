@@ -18,7 +18,7 @@ use core::ptr::Unique;
 use alloc::FrameAllocator;
 use memory::{Addr, PAGE_SIZE, PAddr, Page, PhysicalPage, VAddr, VirtualPage};
 use params::InitParams;
-use ::Mapper;
+use ::{Mapper, MapResult, MapErr};
 
 use self::table::*;
 use self::temp::TempPage;
@@ -55,6 +55,7 @@ impl ActivePageTable {
                    , table: &mut InactivePageTable
                    , temp_page: &mut temp::TempPage
                    , f: F)
+                   -> MapResult
     where F: FnOnce(&mut ActivePML4) {
         use self::tlb::flush_all;
         {
@@ -65,7 +66,7 @@ impl ActivePageTable {
             };
 
             // map temporary_page to current p4 table
-            let pml4 = temp_page.map_to_table(prev_pml4_frame.clone(), self);
+            let pml4 = temp_page.map_to_table(prev_pml4_frame.clone(), self)?;
 
             // remap the 511th PML4 entry (the recursive entry) to map to the // frame containing the new PML4.
             self.pml4_mut()[511].set(table.pml4_frame, PRESENT | WRITABLE);
@@ -85,7 +86,7 @@ impl ActivePageTable {
                 flush_all();
             }
         }
-        temp_page.unmap(self);
+        temp_page.unmap(self)
 
     }
 
@@ -169,6 +170,7 @@ impl Mapper for ActivePML4 {
     /// + `alloc`: a memory allocator
     fn map<A>( &mut self, page: VirtualPage, frame: PhysicalPage
              , flags: EntryFlags, alloc: &mut A)
+             -> MapResult<()>
     where A: FrameAllocator {
         // base virtual address of page being mapped
         // let addr = page.base();
@@ -179,21 +181,28 @@ impl Mapper for ActivePML4 {
                   // get or create the PDPT table at the page's PML4 index
                   .create_next(page, alloc)
                   // get or create the PD table at the page's PDPT index
-                  .create_next(page, alloc)
+                  .and_then(|pdpt| pdpt.create_next(page, alloc))
                   // get or create the page table at the  page's PD table index
-                  .create_next(page, alloc);
+                  .and_then(|pd| pd.create_next(page, alloc))?;
         trace!(" . . Map: Got page table");
         // check if the page at that index is not currently in use, as we
         // cannot map a page which is currently in use.
-        assert!(page_table[page].is_unused()
-               , "Could not map frame {:?}, page table entry {} is already \
-                  in use!", frame, PTLevel::index_of(page));
-        // set the page table entry at that index
-        page_table[page].set(frame, flags | table::PRESENT);
+        if page_table[page].is_unused() {
+            // set the page table entry at that index
+            page_table[page].set(frame, flags | table::PRESENT);
+            Ok(())
+        } else {
+            Err(MapErr::AlreadyInUse {
+                message: "map frame"
+              , page: page
+              , frame: frame
+            })
+        }
     }
 
     fn identity_map<A>(&mut self, frame: PhysicalPage, flags: EntryFlags
                       , alloc: &mut A)
+                      -> MapResult<()>
     where A: FrameAllocator {
         self.map( Page::containing(VAddr::from(*frame.base_addr() as usize))
                 , frame
@@ -205,37 +214,46 @@ impl Mapper for ActivePML4 {
                     , page: VirtualPage
                     , flags: EntryFlags
                     , alloc: &mut A)
+                    -> MapResult<()>
     where A: FrameAllocator {
-        let frame = unsafe {
-            alloc.allocate()
-             // TODO: would we rather rewrite this to return
-             // a `Result`? I think so.
-                 .expect("Couldn't map page, out of frames!")
-        };
-        self.map(page, frame, flags, alloc);
+        let frame = unsafe { alloc.allocate() }
+            .map_err(|err| MapErr::Alloc {
+                message: "map to any"
+              , page: page
+              , cause: err
+          })?;
+        self.map(page, frame, flags, alloc)
     }
 
     /// Unmap the given `VirtualPage`.
     ///
     /// All freed frames are returned to the given `FrameAllocator`.
-    fn unmap<A>(&mut self, page: VirtualPage, alloc: &mut A)
+    fn unmap<A>(&mut self, page: VirtualPage, alloc: &mut A) -> MapResult<()>
     where A: FrameAllocator {
         use self::tlb::Flush;
         trace!("unmapping {:?}", page);
         assert!(self.translate_page(page).is_some());
 
         // get the page table entry corresponding to the page.
-        let entry
-            =  &mut self.pml4_mut()
-                        .next_table_mut(page)
-                        .and_then(|pdpt| pdpt.next_table_mut(page))
-                        .and_then(|pd| pd.next_table_mut(page))
-                        .expect("Could not unmap, huge pages not supported!")
-                  [page];        // index the entry from the table
+        let page_table = self.pml4_mut()
+                             .next_table_mut(page)
+                             .and_then(|pdpt| pdpt.next_table_mut(page))
+                             .and_then(|pd| pd.next_table_mut(page))
+                             .ok_or(MapErr::Other {
+                                message: "unmap"
+                              , page: page
+                              , cause: "huge pages not supported"
+                            })?;
+        // index the entry from the table
+        let entry = &mut page_table[page];
         trace!("got page table entry for {:?}", page);
         // get the pointed frame for the page table entry.
         let frame = entry.get_frame()
-                         .expect("Could not unmap page that was not mapped!");
+                         .ok_or(MapErr::Other {
+                           message: "unmap"
+                         , page: page
+                         , cause: "it was already mapped"
+                       })?;
         trace!("page table entry for {:?} points to {:?}", page, frame);
         // mark the page table entry as unused
         entry.set_unused();
@@ -252,6 +270,7 @@ impl Mapper for ActivePML4 {
         }
         // TODO: check if page tables containing the unmapped page are empty
         //       and deallocate them too?
+        Ok(())
     }
 
 }
@@ -289,24 +308,24 @@ impl InactivePageTable {
     pub fn new( frame: PhysicalPage
               , active_table: &mut ActivePageTable
               , temp: &mut TempPage)
-              -> Self {
+              -> MapResult<Self> {
         {
             trace!("Mapping page {} to frame {}", temp.number, frame.number);
-            let table = temp.map_to_table(frame.clone(), active_table);
+            let table = temp.map_to_table(frame.clone(), active_table)?;
             trace!( " . . . Mapped temp page to table frame .");
             table.zero();
             trace!( " . . . Zeroed inactive table frame.");
             table[511].set( frame.clone(), PRESENT | WRITABLE);
             trace!(" . . . Set active table to point to new inactive table.")
         }
-        temp.unmap(active_table);
+        let _ = temp.unmap(active_table)?;
         trace!(" . . Unmapped temp page.");
 
-        InactivePageTable { pml4_frame: frame }
+        Ok(InactivePageTable { pml4_frame: frame })
     }
 }
 
-pub fn test_paging<A>(alloc: &mut A)
+pub fn test_paging<A>(alloc: &mut A) -> MapResult<()>
 where A: FrameAllocator {
     info!("testing paging");
     // This testing code shamelessly stolen from Phil Oppermann.
@@ -332,21 +351,22 @@ where A: FrameAllocator {
     trace!("None = {:?}, map to {:?}",
              pml4.translate(addr),
              frame);
-    pml4.map(page, frame, EntryFlags::empty(), alloc);
+    let _ = pml4.map(page, frame, EntryFlags::empty(), alloc)?;
     trace!("Some = {:?}", pml4.translate(addr));
     trace!( "next free frame: {:?}"
             , unsafe { alloc.allocate() });
 
     //trace!("{:#x}", *(Page::containing(addr).as_ptr()));
 
-    pml4.unmap(Page::containing(addr), alloc);
+    let _ = pml4.unmap(Page::containing(addr), alloc)?;
     trace!("None = {:?}", pml4.translate(addr));
+    Ok(())
 
 }
 
 /// Remaps the kernel using 4KiB pages.
 pub fn kernel_remap<A>(params: &InitParams, alloc: &mut A)
-                       -> Result<ActivePageTable, &'static str>
+                       -> MapResult<ActivePageTable>
 where A: FrameAllocator {
     // create a  temporary page for switching page tables
     // page number chosen fairly arbitrarily.
@@ -360,10 +380,15 @@ where A: FrameAllocator {
 
     let mut new_table = unsafe {
         InactivePageTable::new(
-             alloc.allocate().map_err(|_| { "Out of physical pages!" })?
+             alloc.allocate()
+                  .map_err(|err| MapErr::Alloc {
+                      message: "create the new page table"
+                     , page: *temp_page
+                     , cause: err
+                 })?
           , &mut current_table
           , &mut temp_page
-          )
+      )?
     };
     kinfoln!(dots: " . . ", "Created new {:?}", new_table);
 
@@ -389,14 +414,16 @@ where A: FrameAllocator {
             let end_frame = PhysicalPage::from(section.end_address());
 
             for frame in start_frame .. end_frame {
-                pml4.identity_map(frame, flags, alloc)
+                let _ = pml4.identity_map(frame, flags, alloc).unwrap();
+                    // .expect("couldn't identity map ELF section {:?}", frame);
             }
         }
 
         // remap VGA buffer
         kinfoln!( dots: " . . ", "Identity mapping VGA buffer" );
         let vga_buffer_frame = PhysicalPage::containing(PAddr::from(0xb8000));
-        pml4.identity_map(vga_buffer_frame, WRITABLE, alloc);
+        let _ = pml4.identity_map(vga_buffer_frame, WRITABLE, alloc).unwrap();
+            // .expect("couldn't identity map VGA {:?}", vga_buffer_frame);
 
         // remap Multiboot info
         kinfoln!( dots: " . . ", "Identity mapping multiboot info" );
@@ -404,7 +431,8 @@ where A: FrameAllocator {
         let multiboot_end = PhysicalPage::from(params.multiboot_end());
 
         for frame in multiboot_start .. multiboot_end {
-            pml4.identity_map(frame, PRESENT, alloc)
+            let _ = pml4.identity_map(frame, PRESENT, alloc).unwrap();
+                // .expect("couldn't identity map Multiboot {:?}", frame);
         }
 
     });

@@ -5,7 +5,7 @@ use core::ops;
 
 use super::ActivePageTable;
 use super::table::{Table, PTLevel};
-use ::Mapper;
+use ::{Mapper, MapResult, MapErr};
 
 #[derive(Debug)]
 pub struct TempPage { page: VirtualPage
@@ -49,30 +49,32 @@ impl TempPage {
     pub fn map_to( &mut self
                  , frame: PhysicalPage
                  , table: &mut ActivePageTable)
-                 -> VAddr {
+                 -> MapResult<VAddr> {
         //assert!( !table.is_mapped(self)
                 //, "Cannot map {:?}, as it is already mapped", self);
         use super::table::WRITABLE;
         trace!(" . . TempPage::map_to({:?})", frame);
-        table.map(self.page, frame, WRITABLE, &mut self.frames);
-        self.page.base()
+        table.map(self.page, frame, WRITABLE, &mut self.frames)
+             .map(|_| { self.page.base() })
     }
 
     pub fn map_to_table( &mut self
                        , frame: PhysicalPage
                        , table: &mut ActivePageTable)
-                       -> &mut Table<PTLevel> {
-       unsafe {
-           &mut *(self.map_to(frame, table).as_mut_ptr::<Table<PTLevel>>())
-       }
+                       -> MapResult<&mut Table<PTLevel>> {
+        self.map_to(frame, table)
+            .map(|addr| unsafe {
+                &mut *(addr.as_mut_ptr::<Table<PTLevel>>())
+            })
    }
 
-    pub fn unmap(&mut self, table: &mut ActivePageTable) {
+    pub fn unmap(&mut self, table: &mut ActivePageTable) -> MapResult<()> {
         trace!("unmapping temp page {:?}", self);
         // assert!( table.is_mapped(self)
         //         , "Cannot unmap {:?}, as it is not mapped", self);
-        table.unmap(self.page, &mut self.frames);
-        trace!("temp page unmapped");
+        table.unmap(self.page, &mut self.frames)
+             .map(|_| { trace!("temp page unmapped") })
+
     }
 }
 

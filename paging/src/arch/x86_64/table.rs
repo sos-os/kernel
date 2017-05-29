@@ -14,6 +14,8 @@ use core::marker::PhantomData;
 use core::ops::{Index, IndexMut};
 use core::{convert, fmt, intrinsics};
 
+use ::{ MapResult, MapErr};
+
 /// The number of entries in a page table.
 pub const N_ENTRIES: usize = 512;
 /// Size of a page table (in bytes)
@@ -168,11 +170,13 @@ where L: TableLevel
 impl<L: TableLevel> Table<L>  {
 
     /// Zeroes out the page table by setting all entries "unused"
-    pub fn zero(&mut self) {
+    pub fn zero(&mut self) -> &mut Self {
         trace!("zeroing {:?}", self);
         for entry in self.entries.iter_mut() {
             entry.set_unused();
         }
+        trace!("zeroed {:?} successfully", self);
+        self
     }
 
     /// Return the start physical address of this `Table`
@@ -225,28 +229,37 @@ impl<L: Sublevel> Table<L> {
 
     /// Returns the next table, creating it if it does not exist.
     pub fn create_next<A>(&mut self, i: VirtualPage, alloc: &mut A)
-                         -> &mut Table<L::Next>
+                         -> MapResult<&mut Table<L::Next>>
     where A: FrameAllocator {
         //println!("in create_next");
         if self.next_table(i).is_none() {
-            assert!( !self[i].is_huge()
-                   , "Couldn't create next table: huge pages not \
-                      currently supported.");
+            if self[i].is_huge() {
+                return Err(MapErr::Other {
+                    message: "create next table"
+                  , page: i
+                  , cause: "huge pages not supported"
+                })
+            }
             //print!("allocating...");
-            let frame = unsafe {
-                alloc.allocate()
-                     // TODO: would we rather rewrite this to return
-                     // a `Result`? I think so.
-                     .expect("Couldn't map page, out of frames!")
-            };
+            let frame = unsafe { alloc.allocate() }
+                .map_err(|err| MapErr::Alloc {
+                    message: "create next table"
+                  , page: i
+                  , cause: err
+              })?;
             //println!("done.");
 
             self[i].set(frame, PRESENT | WRITABLE);
             //println!("setted.");
-            self.next_table_mut(i).unwrap().zero();
-            trace!("zeroed");
-        }
-        self.next_table_mut(i).unwrap()
+            self.next_table_mut(i).map(Table::zero)
+        } else {
+            self.next_table_mut(i)
+        }.ok_or(MapErr::TableNotFound {
+            message: "create next table"
+          , page: i
+          , what: unsafe { intrinsics::type_name::<L::Next>() }
+        })
+
     }
 }
 
