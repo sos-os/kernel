@@ -68,32 +68,6 @@ pub mod logger;
 
 use params::InitParams;
 
-macro_rules! attempt {
-    ($task:expr => $msg:expr, dots: $dots:expr) => {
-        {
-            print!("{}{}", $dots, $msg);
-            match $task {
-               Ok(result) => {
-                    println!( "{:indent$}{res:}"
-                            , ""
-                            , indent = 70 - concat!($dots,$msg).len()
-                            , res = "[ OKAY ]");
-                    info!("{} [ OKAY ]", $msg);
-                    result
-                }
-              , Err(why) => {
-                    println!( "{:indent$}{res:}"
-                              , ""
-                              , indent = 70 - concat!($dots,$msg).len()
-                              , res = "[ FAIL ]");
-                    panic!("{:?}", why);
-              }
-            }
-        }
-
-    };
-}
-
 /// SOS version number
 pub const VERSION_STRING: &'static str
     = concat!("Stupid Operating System v", env!("CARGO_PKG_VERSION"));

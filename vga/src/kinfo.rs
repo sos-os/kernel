@@ -9,6 +9,33 @@
 //! Macros for kernel-level logging
 
 #[macro_export]
+macro_rules! attempt {
+    ($task:expr => $msg:expr, dots: $dots:expr) => {
+        {
+            print!("{}{}", $dots, $msg);
+            match $task {
+               Ok(result) => {
+                    println!( "{:indent$}{res:}"
+                            , ""
+                            , indent = 70 - concat!($dots,$msg).len()
+                            , res = "[ OKAY ]");
+                    info!("{} [ OKAY ]", $msg);
+                    result
+                }
+              , Err(why) => {
+                    println!( "{:indent$}{res:}"
+                              , ""
+                              , indent = 70 - concat!($dots,$msg).len()
+                              , res = "[ FAIL ]");
+                    panic!("{:?}", why);
+              }
+            }
+        }
+
+    };
+}
+
+#[macro_export]
 macro_rules! kinfo {
     ( dots: $dots:expr, target: $target:expr, $status:expr ) => {
         // {
