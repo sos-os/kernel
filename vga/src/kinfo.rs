@@ -10,29 +10,41 @@
 
 #[macro_export]
 macro_rules! attempt {
-    ($task:expr => $msg:expr, dots: $dots:expr) => {
-        {
-            print!("{}{}", $dots, $msg);
+    ($task:expr => dots: $dots:expr, $msg:expr ) => {
+            print!("{}{:<indent$}"
+                    , $dots
+                    , $msg
+                    , indent = 70 - $dots.len());
             match $task {
                Ok(result) => {
-                    println!( "{:indent$}{res:}"
-                            , ""
-                            , indent = 70 - concat!($dots,$msg).len()
-                            , res = "[ OKAY ]");
+                    println!("[ OKAY ]");
                     info!("{} [ OKAY ]", $msg);
                     result
                 }
               , Err(why) => {
-                    println!( "{:indent$}{res:}"
-                              , ""
-                              , indent = 70 - concat!($dots,$msg).len()
-                              , res = "[ FAIL ]");
+                    println!("[ FAIL ]");
                     panic!("{:?}", why);
               }
-            }
         }
-
     };
+    ($task:expr => dots: $dots:expr, $($msg:tt)* ) => {
+            print!("{}{:<indent$}"
+                    , $dots
+                    , format_args!($($msg)*)
+                    , indent = 70 - $dots.len());
+            match $task {
+               Ok(result) => {
+                    println!("[ OKAY ]");
+                    info!("{} [ OKAY ]", format_args!($($msg)*));
+                    result
+                }
+              , Err(why) => {
+                    println!("[ FAIL ]");
+                    panic!("{:?}", why);
+              }
+        }
+    };
+
 }
 
 #[macro_export]
