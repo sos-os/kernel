@@ -49,6 +49,7 @@ pub trait TableLevel {
     /// How much to shift an address by to find its index in this table.
     const SHIFT_AMOUNT: usize;
     const PAGE_SHIFT_AMOUNT: usize;
+    const PAGE_INDEX_MASK: usize = 0o777;
 
     /// Returns the index in this table for the given virtual address
     #[inline]
@@ -57,7 +58,9 @@ pub trait TableLevel {
     }
     /// Returns the index in this table for the given virtual address
     #[inline]
-    fn index_of_page(page: VirtualPage) -> usize;
+    fn index_of_page(page: VirtualPage) -> usize {
+        (page.number >> Self::PAGE_SHIFT_AMOUNT) & Self::PAGE_INDEX_MASK
+    }
 }
 
 pub enum PML4Level {}
@@ -68,38 +71,18 @@ pub enum PTLevel   {}
 impl TableLevel for PML4Level {
     const SHIFT_AMOUNT: usize = 39;
     const PAGE_SHIFT_AMOUNT: usize = 27;
-    /// Returns the index in this table for the given virtual address
-    #[inline]
-    fn index_of_page(page: VirtualPage) -> usize {
-        (page.number >> 27) & 0o777
-    }
 }
 impl TableLevel for PDPTLevel {
     const SHIFT_AMOUNT: usize = 30;
     const PAGE_SHIFT_AMOUNT: usize = 18;
-    /// Returns the index in this table for the given virtual address
-    #[inline]
-    fn index_of_page(page: VirtualPage) -> usize {
-        (page.number >> 18) & 0o777
-    }
 }
 impl TableLevel for PDLevel   {
     const SHIFT_AMOUNT: usize = 21;
     const PAGE_SHIFT_AMOUNT: usize = 9;
-    /// Returns the index in this table for the given virtual address
-    #[inline]
-    fn index_of_page(page: VirtualPage) -> usize {
-        (page.number >> 9) & 0o777
-    }
 }
 impl TableLevel for PTLevel   {
     const SHIFT_AMOUNT: usize = 12;
     const PAGE_SHIFT_AMOUNT: usize = 0;
-    /// Returns the index in this table for the given virtual address
-    #[inline]
-    fn index_of_page(page: VirtualPage) -> usize {
-        (page.number >> 0) & 0o777
-    }
 }
 
 pub trait Sublevel: TableLevel {
