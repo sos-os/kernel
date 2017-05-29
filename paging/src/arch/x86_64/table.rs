@@ -44,23 +44,51 @@ impl<L:TableLevel> fmt::Debug for Table<L> {
               , self)
     }
 }
-
+// TODO: this can be moved to x86_all; it's the number of level traits that is
+//       x86-64 specific.
+//          - eliza, 5/29/2017
 pub trait TableLevel {
     /// How much to shift an address by to find its index in this table.
-    const SHIFT_AMOUNT: usize;
+    const ADDR_SHIFT_AMOUNT: usize;
+    /// How much to shift a page number by to find its index in this level table
     const PAGE_SHIFT_AMOUNT: usize;
-    const PAGE_INDEX_MASK: usize = 0o777;
+    /// Mask for indices
+    const INDEX_MASK: usize = 0o777;
+
+}
+
+pub trait IndexOf<I> {
+    fn index_of(i: I) -> usize;
+}
+
+impl<T> IndexOf<VAddr> for T
+where T: TableLevel {
 
     /// Returns the index in this table for the given virtual address
     #[inline]
     fn index_of(addr: VAddr) -> usize {
-        (addr.as_usize() >> Self::SHIFT_AMOUNT) & 0b111111111
+        (addr.as_usize() >> Self::ADDR_SHIFT_AMOUNT) & Self::INDEX_MASK
     }
-    /// Returns the index in this table for the given virtual address
+
+}
+
+impl<T> IndexOf<VirtualPage> for T
+where T: TableLevel {
+    /// Returns the index in this table for the given virtual page
     #[inline]
-    fn index_of_page(page: VirtualPage) -> usize {
-        (page.number >> Self::PAGE_SHIFT_AMOUNT) & Self::PAGE_INDEX_MASK
+    fn index_of(page: VirtualPage) -> usize {
+        (page.number >> Self::PAGE_SHIFT_AMOUNT) & Self::INDEX_MASK
     }
+}
+
+impl<T> IndexOf<usize> for T
+where T: TableLevel {
+    // lol
+    // i really hope that the compiler understands that this function does
+    // absolutely nothing...
+    #[inline(always)]
+    fn index_of(i: usize) -> usize { i }
+
 }
 
 pub enum PML4Level {}
@@ -69,19 +97,21 @@ pub enum PDLevel   {}
 pub enum PTLevel   {}
 
 impl TableLevel for PML4Level {
-    const SHIFT_AMOUNT: usize = 39;
+    // TODO: make sure these values are correct!
+    //          - eliza, 5/29/2017
+    const ADDR_SHIFT_AMOUNT: usize = 39;
     const PAGE_SHIFT_AMOUNT: usize = 27;
 }
 impl TableLevel for PDPTLevel {
-    const SHIFT_AMOUNT: usize = 30;
+    const ADDR_SHIFT_AMOUNT: usize = 30;
     const PAGE_SHIFT_AMOUNT: usize = 18;
 }
 impl TableLevel for PDLevel   {
-    const SHIFT_AMOUNT: usize = 21;
+    const ADDR_SHIFT_AMOUNT: usize = 21;
     const PAGE_SHIFT_AMOUNT: usize = 9;
 }
 impl TableLevel for PTLevel   {
-    const SHIFT_AMOUNT: usize = 12;
+    const ADDR_SHIFT_AMOUNT: usize = 12;
     const PAGE_SHIFT_AMOUNT: usize = 0;
 }
 
@@ -116,44 +146,21 @@ impl Table<PML4Level> {
 }
 
 
-impl<L: TableLevel> Index<usize> for Table<L> {
+impl<L, I> Index<I> for Table<L>
+where L: TableLevel
+    , L: IndexOf<I> {
     type Output = Entry;
 
-    fn index(&self, index: usize) -> &Entry {
-        &self.entries[index]
+    #[inline] fn index(&self, i: I) -> &Entry {
+        &self.entries[L::index_of(i)]
     }
 }
 
-impl<L: TableLevel> IndexMut<usize> for Table<L> {
-    fn index_mut(&mut self, index: usize) -> &mut Entry {
-        &mut self.entries[index]
-    }
-}
-
-impl<L: TableLevel> Index<VAddr> for Table<L> {
-    type Output = Entry;
-
-    #[inline] fn index(&self, addr: VAddr) -> &Entry {
-        self.index(L::index_of(addr))
-    }
-}
-
-impl<L: TableLevel> IndexMut<VAddr> for Table<L> {
-    #[inline] fn index_mut(&mut self, addr: VAddr) -> &mut Entry {
-        self.index_mut(L::index_of(addr))
-    }
-}
-impl<L: TableLevel> Index<VirtualPage> for Table<L> {
-    type Output = Entry;
-
-    #[inline] fn index(&self, page: VirtualPage) -> &Entry {
-        self.index(L::index_of_page(page))
-    }
-}
-
-impl<L: TableLevel> IndexMut<VirtualPage> for Table<L> {
-    #[inline] fn index_mut(&mut self, page: VirtualPage) -> &mut Entry {
-        self.index_mut(L::index_of_page(page))
+impl<L, I> IndexMut<I> for Table<L>
+where L: TableLevel
+    , L: IndexOf<I> {
+    #[inline] fn index_mut(&mut self, i: I) -> &mut Entry {
+        &mut self.entries[L::index_of(i)]
     }
 }
 
@@ -198,17 +205,20 @@ impl<L: Sublevel> Table<L> {
     }
 
     /// Returns the next table, or `None` if none exists
-        #[inline]
-    pub fn next_table(&self, i: VirtualPage) -> Option<&Table<L::Next>> {
-        self.next_table_addr(L::index_of_page(i))
+    #[inline]
+    pub fn next_table<I>(&self, i: I) -> Option<&Table<L::Next>>
+    where L: IndexOf<I> {
+        self.next_table_addr(L::index_of(i))
             .map(|table_addr| unsafe { &*(table_addr.as_ptr()) })
     }
 
     /// Mutably borrows the next table.
     #[inline]
-    pub fn next_table_mut(&self, i: VirtualPage) -> Option<& mut Table<L::Next>> {
+    pub fn next_table_mut<I>(&self, i: I) -> Option<& mut Table<L::Next>>
+    where L: IndexOf<I>
+        , I: fmt::Debug {
         trace!("{:?}, {:?}", self, i);
-        self.next_table_addr(L::index_of_page(i))
+        self.next_table_addr(L::index_of(i))
             .map(|table_addr| unsafe { &mut *(table_addr.as_mut_ptr()) })
     }
 

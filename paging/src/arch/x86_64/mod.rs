@@ -144,10 +144,10 @@ impl Mapper for ActivePML4 {
         let huge_page = || {
             pdpt.and_then(|pdpt|
                 pdpt[page]
-                    .do_huge(PDLevel::index_of_page(page) + PTLevel::index_of_page(page))
+                    .do_huge(PDLevel::index_of(page) + PTLevel::index_of(page))
                     .or_else(|| {
                         pdpt.next_table(page).and_then(|pd|
-                            pd[page].do_huge(PTLevel::index_of_page(page))
+                            pd[page].do_huge(PTLevel::index_of(page))
                         )
                     })
                 )
@@ -187,7 +187,7 @@ impl Mapper for ActivePML4 {
         // cannot map a page which is currently in use.
         assert!(page_table[page].is_unused()
                , "Could not map frame {:?}, page table entry {} is already \
-                  in use!", frame, PTLevel::index_of_page(page));
+                  in use!", frame, PTLevel::index_of(page));
         // set the page table entry at that index
         page_table[page].set(frame, flags | table::PRESENT);
     }
