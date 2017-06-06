@@ -67,7 +67,6 @@ pub unsafe extern "C" fn long_mode_init() {
 #[no_mangle]
 pub extern "C" fn arch_init(multiboot_addr: PAddr) {
     use cpu::{control_regs, msr};
-    use elf;
     use params::{InitParams, mem};
 
     kinfoln!(dots: " . ", "Beginning `arch_init()` for x86_64");
@@ -79,7 +78,7 @@ pub extern "C" fn arch_init(multiboot_addr: PAddr) {
 
     // -- Unpack multiboot tag ------------------------------------------------
     kinfoln!( dots: " . "
-            , "trying to unpack multiboot info at {:#p}"
+            , "trying to unpack multiboot info at {:?}"
             , multiboot_addr);
 
     // try to interpret the structure at the multiboot address as a multiboot
