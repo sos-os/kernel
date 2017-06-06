@@ -55,7 +55,7 @@ pub trait Addr: ops::Add<Self> + ops::Sub<Self>
 
 macro_attr! {
     /// A virtual address is a machine-sized unsigned integer
-    #[derive(Copy, Clone, Eq, Ord, PartialEq, PartialOrd, Addr!(usize))]
+    #[derive(Copy, Clone, Eq, Ord, PartialEq, PartialOrd, Addr!(usize, 'V'))]
     pub struct VAddr(usize);
 }
 

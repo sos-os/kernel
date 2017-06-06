@@ -9,25 +9,25 @@
 //! Macros to make our custom address types require a lot less repetitive code.
 #[macro_export]
 macro_rules! Addr {
-    (($size:ty) $(pub)* enum $name:ident $($tail:tt)*) => {
-        Addr! { @impl $name, $size }
+    (($size:ty, $letter:expr) $(pub)* enum $name:ident $($tail:tt)*) => {
+        Addr! { @impl $name, $size, $letter }
     };
-    (($size:ty) $(pub)* struct $name:ident $($tail:tt)*) => {
-        Addr! { @impl $name, $size }
+    (($size:ty, $letter:expr) $(pub)* struct $name:ident $($tail:tt)*) => {
+        Addr! { @impl $name, $size, $letter }
     };
-    (@impl $ty:ident, $size:ty) => {
+    (@impl $ty:ident, $size:ty, $letter:expr) => {
 
         impl ::core::fmt::Debug for $ty {
             fn fmt(&self, f: &mut ::core::fmt::Formatter)
                   -> ::core::fmt::Result {
-                write!(f, "{}({:#x})", stringify!($ty), self.0)
+                write!(f, "{}x{:x}", $letter, self.0)
             }
         }
 
         impl ::core::fmt::Pointer for $ty {
-            fn fmt(&self, f: &mut ::core::fmt::Formatter)
+            #[inline] fn fmt(&self, f: &mut ::core::fmt::Formatter)
                   -> ::core::fmt::Result {
-                write!(f, "{:#x}", self.0)
+                write!(f, "{:?}", self)
             }
         }
 

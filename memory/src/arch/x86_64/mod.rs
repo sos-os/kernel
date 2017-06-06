@@ -22,7 +22,7 @@ pub const HUGE_PAGE_SIZE: u64 = 1024 * 1024 * 1024;
 
 macro_attr! {
     /// A physical (linear) memory address is a 64-bit unsigned integer
-    #[derive(Copy, Clone, Eq, Ord, PartialEq, PartialOrd, Addr!(u64))]
+    #[derive(Copy, Clone, Eq, Ord, PartialEq, PartialOrd, Addr!(u64, 'P'))]
     #[repr(C)]
     pub struct PAddr(u64);
 }
