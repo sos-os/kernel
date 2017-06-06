@@ -151,7 +151,7 @@ where Word: ElfWord
         //          - eliza, 03/05/2017
         if let Ok(ty) = self.get_type() {
             // the ELF section was valid
-            write!(f, "{:?} section at {:#08x} to {:#08x}"
+            write!(f, "{:?} section at {:?} ... {:?}"
                   , ty, self.address(), self.end_address())
         } else {
             // we couldn't successfully extract a type from the ELF section!
