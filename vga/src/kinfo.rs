@@ -15,12 +15,18 @@ macro_rules! attempt {
             print!("{}{}", $dots, $msg);
             match $task {
                Ok(result) => {
-                    $crate::CONSOLE.lock().okay();
+                    $crate::CONSOLE.lock()
+                        .okay()
+                        .expect("Could not write to VGA buffer! Something's \
+                                 really wrong!");
                     info!("{} [ OKAY ]", $msg);
                     result
                 }
               , Err(why) => {
-                    $crate::CONSOLE.lock().fail();
+                    $crate::CONSOLE.lock()
+                        .fail()
+                        .expect("Could not write to VGA buffer! Something's \
+                                 really wrong!");
                     panic!("{:?}", why);
               }
         }
@@ -44,7 +50,9 @@ macro_rules! kinfo {
             print!("{:<38}{:>40}", concat!($dots, $target));
             {
                 use $crate::status::Status;
-                $crate::CONSOLE.lock().okay();
+                $crate::CONSOLE.lock().okay()
+                    .expect("Could not write to VGA buffer! Something's \
+                             really wrong!");
             }
             info!(target: $target, $status);
         // }
@@ -61,7 +69,9 @@ macro_rules! kinfo {
             print!("{:<38}{:>40}", concat!($dots, $target));
             {
                 use $crate::status::Status;
-                $crate::CONSOLE.lock().fail();
+                $crate::CONSOLE.lock().fail()
+                    .expect("Could not write to VGA buffer! Something's \
+                             really wrong!");
             }
             info!(target: $target, $status);
         // }
