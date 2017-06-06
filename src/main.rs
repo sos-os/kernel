@@ -132,7 +132,8 @@ pub fn kernel_init(params: &InitParams) {
         }
     };
 
-    paging::test_paging(&mut frame_allocator);
+    attempt!(paging::test_paging(&mut frame_allocator) =>
+             dots: " . . ", "Testing paging...");
 
     // -- initialize the heap ------------------------------------------------
     attempt!( unsafe { heap::initialize(params) } =>
