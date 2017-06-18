@@ -16,44 +16,17 @@ pub mod system;
 pub use self::system::BuddyFrameAllocator;
 
 use super::{Allocator, Layout, Address, AllocErr};
+use ::free::{List as FreeList, Block as FreeBlock};
 use self::math::PowersOf2;
 
 use core::mem;
 use core::cmp::{max, min};
 use core::ptr::Unique;
 
-use intrusive::list::{List, Node};
-use intrusive::rawlink::RawLink;
 use memory::PAGE_SIZE;
 
 #[cfg(test)]
 mod test;
-
-/// A `FreeList` is a list of unique free blocks
-pub type FreeList = List<Unique<FreeBlock>, FreeBlock>;
-
-/// A free block header stores a pointer to the next and previous free blocks.
-pub struct FreeBlock { next: RawLink<FreeBlock>
-                     , prev: RawLink<FreeBlock>
-                     }
-impl FreeBlock {
-    #[inline] unsafe fn as_ptr(&self) -> *mut u8 { mem::transmute(self) }
-}
-
-impl Node for FreeBlock {
-    #[inline] fn prev(&self) -> &RawLink<FreeBlock> {
-        &self.prev
-    }
-    #[inline] fn next(&self) -> &RawLink<FreeBlock> {
-        &self.next
-    }
-    #[inline] fn prev_mut(&mut self) -> &mut RawLink<FreeBlock> {
-        &mut self.prev
-    }
-    #[inline] fn next_mut(&mut self) -> &mut RawLink<FreeBlock> {
-        &mut self.next
-    }
-}
 
 // Variadic macro for taking the maximum of n > 2 numbers.
 // because I'm lazy.
