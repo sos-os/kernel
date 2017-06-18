@@ -31,7 +31,7 @@
 //! [`Layout`]: struct.Layout.html
 //! [RFC 1398]: https://github.com/rust-lang/rfcs/blob/master/text/1398-kinds-of-allocators.md
 //! [tracking issue]: https://github.com/rust-lang/rust/issues/32838
-#![crate_name = "alloc"]
+#![crate_name = "sos_alloc"]
 #![crate_type = "lib"]
 
 // The compiler needs to be instructed that this crate is an allocator in order

@@ -23,7 +23,7 @@ extern crate spin;
 
 extern crate util;
 extern crate memory;
-extern crate alloc;
+extern crate sos_alloc as alloc;
 extern crate cpu;
 extern crate elf;
 extern crate params;

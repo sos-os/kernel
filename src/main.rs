@@ -30,7 +30,7 @@
           , associated_consts
           , type_ascription
           , custom_derive )]
-#![feature(collections)]
+#![feature(alloc)]
 
 #![cfg_attr(feature="clippy", feature(plugin))]
 #![cfg_attr(feature="clippy", plugin(clippy))]
@@ -45,14 +45,14 @@
 #[macro_use] extern crate bitflags;
 #[macro_use] extern crate log;
 
-extern crate collections;
+extern crate alloc;
 extern crate rlibc;
 extern crate spin;
 
 // -- SOS dependencies ------------------------------------------------------
 #[macro_use] extern crate vga;
 
-extern crate alloc;
+extern crate sos_alloc;
 extern crate cpu;
 extern crate elf;
 extern crate paging;
@@ -112,7 +112,7 @@ pub fn kernel_main() -> ! {
 /// +---------------------------------------------------------------+
 /// ```
 pub fn kernel_init(params: &InitParams) {
-    use alloc::frame::mem_map::MemMapAllocator;
+    use sos_alloc::frame::mem_map::MemMapAllocator;
     use ::paging::kernel_remap;
 
     kinfoln!("Hello from the kernel!");

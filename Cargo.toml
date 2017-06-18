@@ -61,8 +61,8 @@ features = ["spin_no_std"]
 path = "vga"
 features = ["kinfo", "system_term"]
 
-[dependencies.alloc]
-path = "alloc"
+[dependencies.sos_alloc]
+path = "sos_alloc"
 features = ["buddy", "system", "borrow", "buddy_as_system"]
 
 [dependencies.clippy]

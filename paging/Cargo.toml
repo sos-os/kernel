@@ -22,7 +22,7 @@ panic = "abort"
 [dependencies]
 util = { path = "../util" }
 memory = { path = "../memory" }
-alloc = { path = "../alloc" }
+sos_alloc = { path = "../sos_alloc" }
 elf = { path = "../elf" }
 cpu = { path = "../cpu" }
 params = { path = "../params" }
