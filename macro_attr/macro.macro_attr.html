@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `macro_attr` macro in crate `macro_attr`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, macro_attr">
+
+    <title>macro_attr::macro_attr - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc macro">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='index.html'>macro_attr</a></p><script>window.sidebarCurrent = {name: 'macro_attr', ty: 'macro', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Macro <a href='index.html'>macro_attr</a>::<wbr><a class="macro" href=''>macro_attr</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../src/macro_attr/lib.rs.html#243-247' title='goto source code'>[src]</a></span></h1>
+<pre class="rust macro">
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">macro_attr</span> {
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">item</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=&gt;</span> { ... };
+}</pre>
+<div class='docblock'><p>When given an item definition, including its attributes, this macro parses said attributes and dispatches any attributes or derivations suffixed with <code>!</code> to user-defined macros.  This allows multiple macros to process the same item.</p>
+
+<p>This is similar to, but distinct from, the function of &quot;procedural&quot; macros and compiler plugins.</p>
+
+<h1 id='supported-forms' class='section-header'><a href='#supported-forms'>Supported Forms</a></h1>
+<p>In particular, this macro looks for two kinds of syntax:</p>
+
+<ul>
+<li>Derivations such as the <code>Name</code> in <code>#[derive(Name!)]</code> or <code>#[derive(Name!(...))]</code>.</li>
+<li>Top-level attributes written as <code>#[name!]</code> or <code>#![name!(...)]</code>.</li>
+</ul>
+
+<p>Unlike &quot;real&quot; attributes, optional parenthesised arguments after the <code>!</code> are allowed to be entirely arbitrary token trees, meaning they can effectively contain any token sequence.  These are supported to allow custom attribute macros to easily take arguments.</p>
+
+<p>Derivations parse the item and emit whatever additional definitions needed.  They <em>cannot</em> change the item itself, and do not receive any other attributes attached to the item.</p>
+
+<p>Attributes receive <em>everything</em> lexically <em>after</em> themselves, and must re-emit the item.  This allows attributes to make changes to the item, drop or alter other attributes, <em>etc.</em>.  This power makes writing attribute macros more difficult, however.</p>
+
+<h1 id='macro-derivations' class='section-header'><a href='#macro-derivations'>Macro Derivations</a></h1>
+<p>Given the following input:</p>
+
+<pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="macro">Name</span><span class="macro">!</span>(<span class="ident">args</span>...), <span class="ident">Clone</span>, <span class="macro">Another</span><span class="macro">!</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">struct</span> <span class="ident">Foo</span>;</pre>
+
+<p><code>macro_attr!</code> will expand to the equivalent of:</p>
+
+<pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">struct</span> <span class="ident">Foo</span>;
+
+<span class="macro">Name</span><span class="macro">!</span>((<span class="ident">args</span>...) <span class="kw">struct</span> <span class="ident">Foo</span>;);
+<span class="macro">Another</span><span class="macro">!</span>(() <span class="kw">struct</span> <span class="ident">Foo</span>;);</pre>
+
+<p>Note that macro derives may be mixed with regular derives, or put in their own <code>#[derive(...)]</code> attribute.  Also note that macro derive invocations are <em>not</em> passed the other attributes on the item; input will consist of the arguments provided to the derivation (<em>i.e.</em> <code>(args...)</code> in this example), the item&#39;s visibility (if any), and the item definition itself.</p>
+
+<p>A macro derivation invoked <em>without</em> arguments will be treated as though it was invoked with empty parentheses.  <em>i.e.</em> <code>#[derive(Name!)]</code> is equivalent to <code>#[derive(Name!())]</code>.</p>
+
+<p>A derivation macro may expand to any number of new items derived from the provided input.  There is no way for a derivation macro to alter the item itself (for that, use a macro attribute).</p>
+
+<h1 id='macro-attributes' class='section-header'><a href='#macro-attributes'>Macro Attributes</a></h1>
+<p>When <code>macro_attr!</code> encounters an attribute suffixed with a <code>!</code> (<em>e.g.</em> <code>#[name!(args...)]</code>), it invokes the macro <code>name!</code> with everything lexically <em>after</em> that attribute.  A macro attribute is free to add to, remove from, or alter the provided input as it sees fit, before instructing <code>macro_attr!</code> to resume parsing.</p>
+
+<p>For example, given the following input:</p>
+
+<pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="macro">make_unitary</span><span class="macro">!</span>]</span>
+<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
+<span class="attribute">#[<span class="macro">rename_to</span><span class="macro">!</span>(<span class="ident">Quux</span>)]</span>
+<span class="attribute">#[<span class="ident">doc</span><span class="op">=</span><span class="string">&quot;Test.&quot;</span>]</span>
+<span class="kw">struct</span> <span class="ident">Bar</span> { <span class="ident">field</span>: <span class="ident">i32</span> }</pre>
+
+<p><code>macro_attr!</code> will expand to:</p>
+
+<pre class="rust rust-example-rendered">
+<span class="macro">make_unitary</span><span class="macro">!</span> {
+    (), <span class="ident">then</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">resume</span>,
+    <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
+    <span class="attribute">#[<span class="macro">rename_to</span><span class="macro">!</span>(<span class="ident">Quux</span>)]</span>
+    <span class="attribute">#[<span class="ident">doc</span><span class="op">=</span><span class="string">&quot;Test.&quot;</span>]</span>
+    <span class="kw">struct</span> <span class="ident">Bar</span> { <span class="ident">field</span>: <span class="ident">i32</span> };
+}</pre>
+
+<p>Note that <code>$resume</code> is <strong>not</strong> literal.  When implementing an attribute macro, you should accept this part as <code>$resume:tt</code>, and not attempt to inspect or deconstruct the contents.</p>
+
+<p>Assuming <code>make_unitary!</code> removes the body of the <code>struct</code> it is attached to, <code>macro_attr!</code> <em>requires</em> that it expand to:</p>
+
+<pre class="rust rust-example-rendered">
+<span class="macro">macro_attr_callback</span><span class="macro">!</span> {
+    <span class="macro-nonterminal">$</span><span class="macro-nonterminal">resume</span>,
+    <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
+    <span class="attribute">#[<span class="macro">rename_to</span><span class="macro">!</span>(<span class="ident">Quxx</span>)]</span>
+    <span class="attribute">#[<span class="ident">doc</span><span class="op">=</span><span class="string">&quot;Test.&quot;</span>]</span>
+    <span class="kw">struct</span> <span class="ident">Bar</span>;
+}</pre>
+
+<p><code>macro_attr!</code> will then resume parsing, and expand to:</p>
+
+<pre class="rust rust-example-rendered">
+<span class="macro">rename_to</span><span class="macro">!</span> {
+    (<span class="ident">Quxx</span>), <span class="ident">then</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">resume</span>,
+    <span class="attribute">#[<span class="ident">doc</span><span class="op">=</span><span class="string">&quot;Test.&quot;</span>]</span>
+    <span class="kw">struct</span> <span class="ident">Bar</span>;
+}</pre>
+
+<p>Assuming <code>rename_to!</code> does the obvious thing and changes the name of the item it is attached to, it should expand to:</p>
+
+<pre class="rust rust-example-rendered">
+<span class="macro">macro_attr_callback</span><span class="macro">!</span> {
+    <span class="macro-nonterminal">$</span><span class="macro-nonterminal">resume</span>,
+    <span class="attribute">#[<span class="ident">doc</span><span class="op">=</span><span class="string">&quot;Test.&quot;</span>]</span>
+    <span class="kw">struct</span> <span class="ident">Quxx</span>;
+}</pre>
+
+<p>Once more, <code>macro_attr!</code> will resume, and produce the final expansion of:</p>
+
+<pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
+<span class="attribute">#[<span class="ident">doc</span><span class="op">=</span><span class="string">&quot;Test.&quot;</span>]</span>
+<span class="kw">struct</span> <span class="ident">Quxx</span>;</pre>
+
+<p>Note that normal attributes are automatically carried through and re-attached to the item.</p>
+
+<p>Macro attributes should be used as sparingly as possible: due to the way Rust macros work, they must expand recursively in sequence, which can quickly consume the available macro recursion limit.  This limit can be raised, but it makes for a less-than-ideal user experience if you are authoring macros to be used by others.</p>
+</div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "macro_attr";
+    </script>
+    <script src="../main.js"></script>
+    <script defer src="../search-index.js"></script>
+</body>
+</html>

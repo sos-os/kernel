@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Header` trait in crate `elf`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Header">
+
+    <title>elf::section::Header - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc trait">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'>Trait Header</p><div class="block items"><ul><li><a href="#associated-types">Associated Types</a></li><li><a href="#required-methods">Required Methods</a></li><li><a href="#provided-methods">Provided Methods</a></li><li><a href="#implementations">Trait Implementations</a></li><li><a href="#implementors">Implementors</a></li></ul></div><p class='location'><a href='../index.html'>elf</a>::<wbr><a href='index.html'>section</a></p><script>window.sidebarCurrent = {name: 'Header', ty: 'trait', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Trait <a href='../index.html'>elf</a>::<wbr><a href='index.html'>section</a>::<wbr><a class="trait" href=''>Header</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../../src/elf/section.rs.html#46-105' title='goto source code'>[src]</a></span></h1>
+<pre class='rust trait'>pub trait Header: <a class="trait" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html" title="trait core::fmt::Debug">Debug</a> {
+    type <a href='#associatedtype.Word' class="type">Word</a>: <a class="trait" href="../../elf/trait.ElfWord.html" title="trait elf::ElfWord">ElfWord</a>;
+    fn <a href='#tymethod.name_offset' class='fnname'>name_offset</a>(&amp;self) -&gt; u32;
+    fn <a href='#tymethod.get_type' class='fnname'>get_type</a>(&amp;self) -&gt; <a class="type" href="../../elf/type.ElfResult.html" title="type elf::ElfResult">ElfResult</a>&lt;<a class="enum" href="../../elf/section/enum.Type.html" title="enum elf::section::Type">Type</a>&gt;;
+    fn <a href='#tymethod.flags' class='fnname'>flags</a>(&amp;self) -&gt; <a class="struct" href="../../elf/section/struct.Flags.html" title="struct elf::section::Flags">Flags</a>;
+    fn <a href='#tymethod.address' class='fnname'>address</a>(&amp;self) -&gt; <a class="struct" href="../../memory/arch/x86_64/struct.PAddr.html" title="struct memory::arch::x86_64::PAddr">PAddr</a>;
+    fn <a href='#tymethod.offset' class='fnname'>offset</a>(&amp;self) -&gt; usize;
+    fn <a href='#tymethod.length' class='fnname'>length</a>(&amp;self) -&gt; usize;
+    fn <a href='#tymethod.link' class='fnname'>link</a>(&amp;self) -&gt; u32;
+    fn <a href='#tymethod.info' class='fnname'>info</a>(&amp;self) -&gt; u32;
+    fn <a href='#tymethod.address_align' class='fnname'>address_align</a>(&amp;self) -&gt; Self::<a class="type" href="../../elf/section/trait.Header.html#associatedtype.Word" title="type elf::section::Header::Word">Word</a>;
+    fn <a href='#tymethod.entry_length' class='fnname'>entry_length</a>(&amp;self) -&gt; usize;
+
+    fn <a href='#method.end_address' class='fnname'>end_address</a>(&amp;self) -&gt; <a class="struct" href="../../memory/arch/x86_64/struct.PAddr.html" title="struct memory::arch::x86_64::PAddr">PAddr</a> { ... }
+    fn <a href='#method.is_writable' class='fnname'>is_writable</a>(&amp;self) -&gt; bool { ... }
+    fn <a href='#method.is_allocated' class='fnname'>is_allocated</a>(&amp;self) -&gt; bool { ... }
+    fn <a href='#method.is_executable' class='fnname'>is_executable</a>(&amp;self) -&gt; bool { ... }
+    fn <a href='#method.is_mergeable' class='fnname'>is_mergeable</a>(&amp;self) -&gt; bool { ... }
+    fn <a href='#method.is_uniform' class='fnname'>is_uniform</a>(&amp;self) -&gt; bool { ... }
+    fn <a href='#method.get_name' class='fnname'>get_name</a>&lt;'a&gt;(&amp;self, strtab: <a class="struct" href="../../elf/section/struct.StrTable.html" title="struct elf::section::StrTable">StrTable</a>&lt;'a&gt;) -&gt; &amp;'a str { ... }
+}</pre><div class='docblock'><p>Represents an ELF section header</p>
+
+<p>Refer to <a href="(http://www.sco.com/developers/gabi/latest/ch4.sheader.html#section_header)">Figure 4-8</a>, &quot;Section Header&quot;, from Chapter 4 of the ELF standard
+for more information.</p>
+</div>
+            <h2 id='associated-types'>Associated Types</h2>
+            <div class='methods'>
+        <h3 id='associatedtype.Word' class='method'><span id='Word.t' class='invisible'><code>type <a href='#associatedtype.Word' class="type">Word</a>: <a class="trait" href="../../elf/trait.ElfWord.html" title="trait elf::ElfWord">ElfWord</a></code></span></h3></div>
+            <h2 id='required-methods'>Required Methods</h2>
+            <div class='methods'>
+        <h3 id='tymethod.name_offset' class='method'><span id='name_offset.v' class='invisible'><code>fn <a href='#tymethod.name_offset' class='fnname'>name_offset</a>(&amp;self) -&gt; u32</code></span></h3><h3 id='tymethod.get_type' class='method'><span id='get_type.v' class='invisible'><code>fn <a href='#tymethod.get_type' class='fnname'>get_type</a>(&amp;self) -&gt; <a class="type" href="../../elf/type.ElfResult.html" title="type elf::ElfResult">ElfResult</a>&lt;<a class="enum" href="../../elf/section/enum.Type.html" title="enum elf::section::Type">Type</a>&gt;</code></span></h3><div class='docblock'><p>This member categorizes the section&#39;s contents and semantics.</p>
+</div><h3 id='tymethod.flags' class='method'><span id='flags.v' class='invisible'><code>fn <a href='#tymethod.flags' class='fnname'>flags</a>(&amp;self) -&gt; <a class="struct" href="../../elf/section/struct.Flags.html" title="struct elf::section::Flags">Flags</a></code></span></h3><h3 id='tymethod.address' class='method'><span id='address.v' class='invisible'><code>fn <a href='#tymethod.address' class='fnname'>address</a>(&amp;self) -&gt; <a class="struct" href="../../memory/arch/x86_64/struct.PAddr.html" title="struct memory::arch::x86_64::PAddr">PAddr</a></code></span></h3><h3 id='tymethod.offset' class='method'><span id='offset.v' class='invisible'><code>fn <a href='#tymethod.offset' class='fnname'>offset</a>(&amp;self) -&gt; usize</code></span></h3><h3 id='tymethod.length' class='method'><span id='length.v' class='invisible'><code>fn <a href='#tymethod.length' class='fnname'>length</a>(&amp;self) -&gt; usize</code></span></h3><div class='docblock'><p>TODO: should offset + length make a Range?</p>
+</div><h3 id='tymethod.link' class='method'><span id='link.v' class='invisible'><code>fn <a href='#tymethod.link' class='fnname'>link</a>(&amp;self) -&gt; u32</code></span></h3><h3 id='tymethod.info' class='method'><span id='info.v' class='invisible'><code>fn <a href='#tymethod.info' class='fnname'>info</a>(&amp;self) -&gt; u32</code></span></h3><h3 id='tymethod.address_align' class='method'><span id='address_align.v' class='invisible'><code>fn <a href='#tymethod.address_align' class='fnname'>address_align</a>(&amp;self) -&gt; Self::<a class="type" href="../../elf/section/trait.Header.html#associatedtype.Word" title="type elf::section::Header::Word">Word</a></code></span></h3><h3 id='tymethod.entry_length' class='method'><span id='entry_length.v' class='invisible'><code>fn <a href='#tymethod.entry_length' class='fnname'>entry_length</a>(&amp;self) -&gt; usize</code></span></h3></div>
+            <h2 id='provided-methods'>Provided Methods</h2>
+            <div class='methods'>
+        <h3 id='method.end_address' class='method'><span id='end_address.v' class='invisible'><code>fn <a href='#method.end_address' class='fnname'>end_address</a>(&amp;self) -&gt; <a class="struct" href="../../memory/arch/x86_64/struct.PAddr.html" title="struct memory::arch::x86_64::PAddr">PAddr</a></code></span></h3><div class='docblock'><p>Returns the end address of this section
+TODO: refactor this to return a Range instead?</p>
+</div><h3 id='method.is_writable' class='method'><span id='is_writable.v' class='invisible'><code>fn <a href='#method.is_writable' class='fnname'>is_writable</a>(&amp;self) -&gt; bool</code></span></h3><div class='docblock'><p>Returns true if this section is writable.</p>
+</div><h3 id='method.is_allocated' class='method'><span id='is_allocated.v' class='invisible'><code>fn <a href='#method.is_allocated' class='fnname'>is_allocated</a>(&amp;self) -&gt; bool</code></span></h3><div class='docblock'><p>Returns true if this section occupies memory during program execution.</p>
+</div><h3 id='method.is_executable' class='method'><span id='is_executable.v' class='invisible'><code>fn <a href='#method.is_executable' class='fnname'>is_executable</a>(&amp;self) -&gt; bool</code></span></h3><div class='docblock'><p>Returns true if this section contains executable instructions.</p>
+</div><h3 id='method.is_mergeable' class='method'><span id='is_mergeable.v' class='invisible'><code>fn <a href='#method.is_mergeable' class='fnname'>is_mergeable</a>(&amp;self) -&gt; bool</code></span></h3><div class='docblock'><p>Returns true if this section can be merged.</p>
+</div><h3 id='method.is_uniform' class='method'><span id='is_uniform.v' class='invisible'><code>fn <a href='#method.is_uniform' class='fnname'>is_uniform</a>(&amp;self) -&gt; bool</code></span></h3><div class='docblock'><p>Returns true if this section contains data that is of a uniform size.</p>
+</div><h3 id='method.get_name' class='method'><span id='get_name.v' class='invisible'><code>fn <a href='#method.get_name' class='fnname'>get_name</a>&lt;'a&gt;(&amp;self, strtab: <a class="struct" href="../../elf/section/struct.StrTable.html" title="struct elf::section::StrTable">StrTable</a>&lt;'a&gt;) -&gt; &amp;'a str</code></span></h3><div class='docblock'><p>Look up the name of this section in the passed string table.</p>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl&lt;Word&gt; <a class="trait" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html" title="trait core::fmt::Display">Display</a> for <a class="trait" href="../../elf/section/trait.Header.html" title="trait elf::section::Header">Header</a>&lt;Word = Word&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;Word: <a class="trait" href="../../elf/trait.ElfWord.html" title="trait elf::ElfWord">ElfWord</a>,<br>&nbsp;&nbsp;&nbsp;&nbsp;<a class="trait" href="../../elf/section/trait.Header.html" title="trait elf::section::Header">Header</a>&lt;Word = Word&gt;: <a class="trait" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html" title="trait core::fmt::Debug">Debug</a>,&nbsp;</span></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/elf/section.rs.html#142-161' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt' class="method"><span id='fmt.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class="struct" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html" title="struct core::fmt::Formatter">Formatter</a>) -&gt; <a class="type" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html" title="type core::fmt::Result">Result</a></code></span></h4>
+<div class='docblock'><p>Formats the value using the given formatter. <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html#tymethod.fmt">Read more</a></p>
+</div></div>
+        <h2 id='implementors'>Implementors</h2>
+        <ul class='item-list' id='implementors-list'>
+    <li><code>impl Header for <a class="struct" href="../../elf/section/struct.HeaderRepr.html" title="struct elf::section::HeaderRepr">HeaderRepr</a>&lt;u32&gt;</code></li>
+<li><code>impl Header for <a class="struct" href="../../elf/section/struct.HeaderRepr.html" title="struct elf::section::HeaderRepr">HeaderRepr</a>&lt;u64&gt;</code></li>
+</ul><script type="text/javascript" async
+                         src="../../implementors/elf/section/trait.Header.js">
+                 </script></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "elf";
+    </script>
+    <script src="../../main.js"></script>
+    <script defer src="../../search-index.js"></script>
+</body>
+</html>

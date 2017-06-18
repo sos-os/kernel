@@ -1,0 +1,1 @@
+initSidebarItems({"static":[["CONSOLE","The system's global VGA terminal TODO: should this live in the kernel instead?"],["__vga_buffer",""]]});

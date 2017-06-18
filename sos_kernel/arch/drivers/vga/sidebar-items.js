@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["clear",""]],"static":[["CONSOLE","The system's global VGA terminal"]]});

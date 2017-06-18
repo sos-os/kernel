@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Gate` struct in crate `cpu`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Gate">
+
+    <title>cpu::interrupts::idt::Gate - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc struct">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'>Struct Gate</p><div class="block items"><ul><li><a href="#fields">Fields</a></li><li><a href="#methods">Methods</a></li><li><a href="#deref-methods">Methods from Deref&lt;Target=GateFlags&gt;</a></li><li><a href="#implementations">Trait Implementations</a></li></ul></div><p class='location'><a href='../../index.html'>cpu</a>::<wbr><a href='../index.html'>interrupts</a>::<wbr><a href='index.html'>idt</a></p><script>window.sidebarCurrent = {name: 'Gate', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Struct <a href='../../index.html'>cpu</a>::<wbr><a href='../index.html'>interrupts</a>::<wbr><a href='index.html'>idt</a>::<wbr><a class="struct" href=''>Gate</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../../../src/cpu/x86_64/up/x86_all/interrupts/idt/gate64.rs.html#47-67' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'><div class="docblock attributes">#[repr(C, packed)]
+</div>pub struct Gate&lt;H&nbsp;=&nbsp;<a class="type" href="../../../cpu/interrupts/type.InterruptHandler.html" title="type cpu::interrupts::InterruptHandler">InterruptHandler</a>&gt; {
+    pub offset_lower: u16,
+    pub selector: <a class="struct" href="../../../cpu/segment/struct.Selector.html" title="struct cpu::segment::Selector">Selector</a>,
+    pub flags: <a class="struct" href="../../../cpu/interrupts/idt/struct.GateFlags.html" title="struct cpu::interrupts::idt::GateFlags">GateFlags</a>,
+    pub offset_mid: u16,
+    pub offset_upper: u32,
+    // some fields omitted
+}</pre><div class='docblock'><p>An IDT entry is called a gate.</p>
+
+<p>Based on <a href="http://wiki.osdev.org/Interrupt_Descriptor_Table#Structure">code</a>
+from the OS Dev Wiki.</p>
+
+<p>Refer also to &quot;6.14.1 64-Bit Mode IDT&quot;  and &quot;Table 3-2. System-Segment and
+Gate-Descriptor Types&quot; in the <em>Intel® 64 and IA-32 Architectures
+Software Developer’s Manual</em></p>
+</div><h2 id='fields' class='fields'>Fields</h2><span id='structfield.offset_lower' class="structfield">
+                           <span id='offset_lower.v' class='invisible'>
+                           <code>offset_lower: u16</code>
+                           </span></span><div class='docblock'><p>bits 0 - 15 of the offset</p>
+</div><span id='structfield.selector' class="structfield">
+                           <span id='selector.v' class='invisible'>
+                           <code>selector: <a class="struct" href="../../../cpu/segment/struct.Selector.html" title="struct cpu::segment::Selector">Selector</a></code>
+                           </span></span><div class='docblock'><p>code segment selector (GDT or LDT)</p>
+</div><span id='structfield.flags' class="structfield">
+                           <span id='flags.v' class='invisible'>
+                           <code>flags: <a class="struct" href="../../../cpu/interrupts/idt/struct.GateFlags.html" title="struct cpu::interrupts::idt::GateFlags">GateFlags</a></code>
+                           </span></span><div class='docblock'><p>indicates the gate&#39;s type and attributes.
+the second half indicates the type:
+  + <code>0b1100</code>: Call gate
+  + <code>0b1110</code>: Interrupt gate
+  + <code>0b1111</code>: Trap Gate</p>
+</div><span id='structfield.offset_mid' class="structfield">
+                           <span id='offset_mid.v' class='invisible'>
+                           <code>offset_mid: u16</code>
+                           </span></span><div class='docblock'><p>bits 16 - 31 of the offset</p>
+</div><span id='structfield.offset_upper' class="structfield">
+                           <span id='offset_upper.v' class='invisible'>
+                           <code>offset_upper: u32</code>
+                           </span></span><div class='docblock'><p>bits 32 - 63 of the offset</p>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl&lt;H&gt; <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>&lt;H&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../../src/cpu/x86_64/up/x86_all/interrupts/idt/gate64.rs.html#69-105' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.absent' class="method"><span id='absent.v' class='invisible'><code>const fn <a href='#method.absent' class='fnname'>absent</a>() -&gt; Self</code></span></h4>
+<div class='docblock'><p>Creates a new IDT gate marked as <code>absent</code>.</p>
+
+<p>This is basically just for filling the new IDT table
+with valid (but useless) gates upon init.</p>
+
+<p>Actually triggering an absent interrupt will send a General Protection
+fault (13).</p>
+</div><h4 id='method.set_handler' class="method"><span id='set_handler.v' class='invisible'><code>fn <a href='#method.set_handler' class='fnname'>set_handler</a>&lt;F&gt;(&amp;mut self, handler: F) -&gt; &amp;mut Self <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html" title="trait core::convert::From">From</a>&lt;F&gt;,&nbsp;</span></code></span></h4>
+<div class='docblock'><p>Set the handler function corresponding to this gate.</p>
+</div><h4 id='method.set_trap' class="method"><span id='set_trap.v' class='invisible'><code>fn <a href='#method.set_trap' class='fnname'>set_trap</a>(&amp;mut self) -&gt; &amp;mut Self</code></span></h4>
+<div class='docblock'><p>Sets the TRAP GATE flag to true</p>
+</div></div><h2 id='deref-methods'>Methods from <a class="trait" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html" title="trait core::ops::deref::Deref">Deref</a>&lt;Target = <a class="struct" href="../../../cpu/interrupts/idt/struct.GateFlags.html" title="struct cpu::interrupts::idt::GateFlags">GateFlags</a>&gt;</h2><div class='impl-items'></div><div class='impl-items'><h4 id='method.bits' class="method"><span id='bits.v' class='invisible'><code>fn <a href='#method.bits' class='fnname'>bits</a>(&amp;self) -&gt; u8</code></span></h4>
+<div class='docblock'><p>Returns the raw value of the flags currently stored.</p>
+</div><h4 id='method.is_empty' class="method"><span id='is_empty.v' class='invisible'><code>fn <a href='#method.is_empty' class='fnname'>is_empty</a>(&amp;self) -&gt; bool</code></span></h4>
+<div class='docblock'><p>Returns <code>true</code> if no flags are currently stored.</p>
+</div><h4 id='method.is_all' class="method"><span id='is_all.v' class='invisible'><code>fn <a href='#method.is_all' class='fnname'>is_all</a>(&amp;self) -&gt; bool</code></span></h4>
+<div class='docblock'><p>Returns <code>true</code> if all flags are currently set.</p>
+</div><h4 id='method.intersects' class="method"><span id='intersects.v' class='invisible'><code>fn <a href='#method.intersects' class='fnname'>intersects</a>(&amp;self, other: <a class="struct" href="../../../cpu/interrupts/idt/struct.GateFlags.html" title="struct cpu::interrupts::idt::GateFlags">GateFlags</a>) -&gt; bool</code></span></h4>
+<div class='docblock'><p>Returns <code>true</code> if there are flags common to both <code>self</code> and <code>other</code>.</p>
+</div><h4 id='method.contains' class="method"><span id='contains.v' class='invisible'><code>fn <a href='#method.contains' class='fnname'>contains</a>(&amp;self, other: <a class="struct" href="../../../cpu/interrupts/idt/struct.GateFlags.html" title="struct cpu::interrupts::idt::GateFlags">GateFlags</a>) -&gt; bool</code></span></h4>
+<div class='docblock'><p>Returns <code>true</code> all of the flags in <code>other</code> are contained within <code>self</code>.</p>
+</div><h4 id='method.insert' class="method"><span id='insert.v' class='invisible'><code>fn <a href='#method.insert' class='fnname'>insert</a>(&amp;mut self, other: <a class="struct" href="../../../cpu/interrupts/idt/struct.GateFlags.html" title="struct cpu::interrupts::idt::GateFlags">GateFlags</a>)</code></span></h4>
+<div class='docblock'><p>Inserts the specified flags in-place.</p>
+</div><h4 id='method.remove' class="method"><span id='remove.v' class='invisible'><code>fn <a href='#method.remove' class='fnname'>remove</a>(&amp;mut self, other: <a class="struct" href="../../../cpu/interrupts/idt/struct.GateFlags.html" title="struct cpu::interrupts::idt::GateFlags">GateFlags</a>)</code></span></h4>
+<div class='docblock'><p>Removes the specified flags in-place.</p>
+</div><h4 id='method.toggle' class="method"><span id='toggle.v' class='invisible'><code>fn <a href='#method.toggle' class='fnname'>toggle</a>(&amp;mut self, other: <a class="struct" href="../../../cpu/interrupts/idt/struct.GateFlags.html" title="struct cpu::interrupts::idt::GateFlags">GateFlags</a>)</code></span></h4>
+<div class='docblock'><p>Toggles the specified flags in-place.</p>
+</div></div><div class='impl-items'><h4 id='method.is_trap' class="method"><span id='is_trap.v' class='invisible'><code>fn <a href='#method.is_trap' class='fnname'>is_trap</a>(&amp;self) -&gt; bool</code></span></h4>
+<div class='docblock'><p>Returns true if this <code>Gate</code> is a trap gate</p>
+</div><h4 id='method.is_present' class="method"><span id='is_present.v' class='invisible'><code>fn <a href='#method.is_present' class='fnname'>is_present</a>(&amp;self) -&gt; bool</code></span></h4>
+<div class='docblock'><p>Returns true if this <code>Gate</code> points to a present ISR</p>
+</div><h4 id='method.set_present' class="method"><span id='set_present.v' class='invisible'><code>fn <a href='#method.set_present' class='fnname'>set_present</a>(&amp;mut self, present: bool) -&gt; &amp;mut Self</code></span></h4>
+<div class='docblock'><p>Sets the present bit for this gate</p>
+</div><h4 id='method.get_dpl' class="method"><span id='get_dpl.v' class='invisible'><code>fn <a href='#method.get_dpl' class='fnname'>get_dpl</a>(&amp;self) -&gt; <a class="enum" href="../../../cpu/enum.PrivilegeLevel.html" title="enum cpu::PrivilegeLevel">PrivilegeLevel</a></code></span></h4>
+<div class='docblock'><p>Checks the gate&#39;s privilege</p>
+</div><h4 id='method.set_dpl' class="method"><span id='set_dpl.v' class='invisible'><code>fn <a href='#method.set_dpl' class='fnname'>set_dpl</a>(&amp;mut self, dpl: <a class="enum" href="../../../cpu/enum.PrivilegeLevel.html" title="enum cpu::PrivilegeLevel">PrivilegeLevel</a>) -&gt; &amp;mut Self</code></span></h4>
+<div class='docblock'><p>Sets the privilege level of the gate</p>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl&lt;H:&nbsp;<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html" title="trait core::marker::Copy">Copy</a>&gt; <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html" title="trait core::marker::Copy">Copy</a> for <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>&lt;H&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../../src/cpu/x86_64/up/x86_all/interrupts/idt/gate64.rs.html#46' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'></div><h3 class='impl'><span class='in-band'><code>impl&lt;H:&nbsp;<a class="trait" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a>&gt; <a class="trait" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a> for <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>&lt;H&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../../src/cpu/x86_64/up/x86_all/interrupts/idt/gate64.rs.html#46' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.clone' class="method"><span id='clone.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone' class='fnname'>clone</a>(&amp;self) -&gt; <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>&lt;H&gt;</code></span></h4>
+<div class='docblock'><p>Returns a copy of the value. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone">Read more</a></p>
+</div><h4 id='method.clone_from' class="method"><span id='clone_from.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from' class='fnname'>clone_from</a>(&amp;mut self, source: &amp;Self)</code><div class='since' title='Stable since Rust version 1.0.0'>1.0.0</div></span></h4>
+<div class='docblock'><p>Performs copy-assignment from <code>source</code>. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from">Read more</a></p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;H&gt; <a class="trait" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html" title="trait core::default::Default">Default</a> for <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>&lt;H&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../../src/cpu/x86_64/up/x86_all/interrupts/idt/gate64.rs.html#108-120' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.default' class="method"><span id='default.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html#tymethod.default' class='fnname'>default</a>() -&gt; Self</code></span></h4>
+<div class='docblock'><p>Returns the &quot;default value&quot; for a type. <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html#tymethod.default">Read more</a></p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;H&gt; <a class="trait" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html" title="trait core::ops::deref::Deref">Deref</a> for <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>&lt;H&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../../src/cpu/x86_64/up/x86_all/interrupts/idt/gate64.rs.html#122-126' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='associatedtype.Target' class="type"><span id='Target.t' class='invisible'><code>type <a href='https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html#associatedtype.Target' class="type">Target</a> = <a class="struct" href="../../../cpu/interrupts/idt/struct.GateFlags.html" title="struct cpu::interrupts::idt::GateFlags">GateFlags</a></code></span></h4>
+<div class='docblock'><p>The resulting type after dereferencing</p>
+</div><h4 id='method.deref' class="method"><span id='deref.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html#tymethod.deref' class='fnname'>deref</a>(&amp;self) -&gt; &amp;Self::<a class="type" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html#associatedtype.Target" title="type core::ops::deref::Deref::Target">Target</a></code></span></h4>
+<div class='docblock'><p>The method called to dereference a value</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;H&gt; <a class="trait" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html" title="trait core::ops::deref::DerefMut">DerefMut</a> for <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>&lt;H&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../../src/cpu/x86_64/up/x86_all/interrupts/idt/gate64.rs.html#128-130' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.deref_mut' class="method"><span id='deref_mut.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html#tymethod.deref_mut' class='fnname'>deref_mut</a>(&amp;mut self) -&gt; &amp;mut Self::<a class="type" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html#associatedtype.Target" title="type core::ops::deref::Deref::Target">Target</a></code></span></h4>
+<div class='docblock'><p>The method called to mutably dereference a value</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html" title="trait core::convert::From">From</a>&lt;<a class="type" href="../../../cpu/interrupts/type.InterruptHandler.html" title="type cpu::interrupts::InterruptHandler">InterruptHandler</a>&gt; for <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>&lt;<a class="type" href="../../../cpu/interrupts/type.InterruptHandler.html" title="type cpu::interrupts::InterruptHandler">InterruptHandler</a>&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../../src/cpu/x86_64/up/x86_all/interrupts/idt/gate64.rs.html#132-151' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.from' class="method"><span id='from.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/convert/trait.From.html#tymethod.from' class='fnname'>from</a>(handler: <a class="type" href="../../../cpu/interrupts/type.InterruptHandler.html" title="type cpu::interrupts::InterruptHandler">InterruptHandler</a>) -&gt; Self</code></span></h4>
+<div class='docblock'><p>Creates a new IDT gate pointing at the given handler function.</p>
+
+<p>The <code>handler</code> function must have been created with valid interrupt
+calling conventions.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html" title="trait core::convert::From">From</a>&lt;<a class="type" href="../../../cpu/interrupts/type.ErrorCodeHandler.html" title="type cpu::interrupts::ErrorCodeHandler">ErrorCodeHandler</a>&gt; for <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>&lt;<a class="type" href="../../../cpu/interrupts/type.ErrorCodeHandler.html" title="type cpu::interrupts::ErrorCodeHandler">ErrorCodeHandler</a>&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../../src/cpu/x86_64/up/x86_all/interrupts/idt/gate64.rs.html#153-172' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.from-1' class="method"><span id='from.v-1' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/convert/trait.From.html#tymethod.from' class='fnname'>from</a>(handler: <a class="type" href="../../../cpu/interrupts/type.ErrorCodeHandler.html" title="type cpu::interrupts::ErrorCodeHandler">ErrorCodeHandler</a>) -&gt; Self</code></span></h4>
+<div class='docblock'><p>Creates a new IDT gate pointing at the given handler function.</p>
+
+<p>The <code>handler</code> function must have been created with valid interrupt
+calling conventions.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html" title="trait core::convert::From">From</a>&lt;*const u8&gt; for <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../../src/cpu/x86_64/up/x86_all/interrupts/idt/gate64.rs.html#174-198' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.from-2' class="method"><span id='from.v-2' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/convert/trait.From.html#tymethod.from' class='fnname'>from</a>(handler: *const u8) -&gt; Self</code></span></h4>
+<div class='docblock'><p>Creates a new IDT gate pointing at the given handler function.</p>
+
+<p>The <code>handler</code> function must have been created with valid interrupt
+calling conventions.</p>
+
+<p>This should probably not be used, if it can possibly be avoided.</p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../../";
+        window.currentCrate = "cpu";
+    </script>
+    <script src="../../../main.js"></script>
+    <script defer src="../../../search-index.js"></script>
+</body>
+</html>

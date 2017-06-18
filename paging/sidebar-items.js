@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["MapErr",""]],"fn":[["kernel_remap","Remaps the kernel using 4KiB pages."],["test_paging",""]],"mod":[["arch",""],["stack","Stack allocator"]],"trait":[["Mapper",""]],"type":[["MapResult",""]]});

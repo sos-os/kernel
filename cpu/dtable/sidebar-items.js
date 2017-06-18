@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Pointer","A pointer to a descriptor table. This is a format suitable"]],"trait":[["DTable","A descriptor table (IDT or GDT)."]]});

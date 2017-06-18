@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `macro_attr` crate.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, macro_attr">
+
+    <title>macro_attr - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc mod">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'>Crate macro_attr</p><div class="block items"><ul><li><a href="#macros">Macros</a></li></ul></div><p class='location'></p><script>window.sidebarCurrent = {name: 'macro_attr', ty: 'mod', relpath: '../'};</script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Crate <a class="mod" href=''>macro_attr</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../src/macro_attr/lib.rs.html#10-993' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p>This crate provides the <code>macro_attr!</code> macro that enables the use of custom, macro-based attributes and derivations.  Supercedes the <code>custom_derive</code> crate.</p>
+
+<style type="text/css">
+.link-block { font-family: "Fira Sans"; }
+.link-block > p { display: inline-block; }
+.link-block > p > strong { font-weight: 500; margin-right: 1em; }
+.link-block > ul { display: inline-block; padding: 0; list-style: none; }
+.link-block > ul > li {
+  font-size: 0.8em;
+  background-color: #eee;
+  border: 1px solid #ccc;
+  padding: 0.3em;
+  display: inline-block;
+}
+</style>
+
+<p><span></span><div class="link-block"></p>
+
+<p><strong>Links</strong></p>
+
+<ul>
+<li><a href="https://crates.io/crates/macro-attr/">Latest Release</a></li>
+<li><a href="https://docs.rs/crate/macro-attr/">Latest Docs</a></li>
+<li><a href="https://github.com/DanielKeep/rust-custom-derive">Repository</a></li>
+</ul>
+
+<p><span></span></div></p>
+
+<h2 id='compatibility' class='section-header'><a href='#compatibility'>Compatibility</a></h2>
+<p><code>macro-attr</code> is compatible with Rust 1.2 and higher.</p>
+
+<h2 id='quick-example' class='section-header'><a href='#quick-example'>Quick Example</a></h2>
+<p>To use it, make sure you link to the crate like so:</p>
+
+<pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">macro_attr</span>;</pre>
+
+<p>The <code>macro_attr!</code> macro should be used to wrap an entire <em>single</em> item (<code>enum</code>, <code>struct</code>, <em>etc.</em>) declaration, including its attributes (both <code>derive</code> and others).  All attributes and derivations which whose names end with <code>!</code> will be assumed to be implemented by macros, and treated accordingly.</p>
+
+<p>For example:</p>
+
+<pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">macro_attr</span>;
+
+<span class="comment">// Define some traits to be derived.</span>
+
+<span class="kw">trait</span> <span class="ident">TypeName</span> {
+    <span class="kw">fn</span> <span class="ident">type_name</span>() <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>;
+}
+
+<span class="kw">trait</span> <span class="ident">ReprType</span> {
+    <span class="kw">type</span> <span class="ident">Repr</span>;
+}
+
+<span class="comment">// Define macros which derive implementations of these macros.</span>
+
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">TypeName</span> {
+    <span class="comment">// We can support any kind of item we want.</span>
+    (() $(<span class="kw">pub</span>)<span class="op">*</span> <span class="kw">enum</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=&gt;</span> { <span class="macro">TypeName</span><span class="macro">!</span> { @<span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> } };
+    (() $(<span class="kw">pub</span>)<span class="op">*</span> <span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=&gt;</span> { <span class="macro">TypeName</span><span class="macro">!</span> { @<span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> } };
+
+    <span class="comment">// Inner rule to cut down on repetition.</span>
+    (@<span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>) <span class="op">=&gt;</span> {
+        <span class="kw">impl</span> <span class="ident">TypeName</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
+            <span class="kw">fn</span> <span class="ident">type_name</span>() <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> { <span class="macro">stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>) }
+        }
+    };
+}
+
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">ReprType</span> {
+    <span class="comment">// Note that we use a &quot;derivation argument&quot; here for the `$repr` type.</span>
+    ((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">repr</span>:<span class="ident">ty</span>) $(<span class="kw">pub</span>)<span class="op">*</span> <span class="kw">enum</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=&gt;</span> {
+        <span class="kw">impl</span> <span class="ident">ReprType</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {
+            <span class="kw">type</span> <span class="ident">Repr</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">repr</span>;
+        }
+    };
+}
+
+<span class="comment">// Here is a macro that *modifies* the item.</span>
+
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">rename_to</span> {
+    (
+        (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">new_name</span>:<span class="ident">ident</span>),
+        <span class="ident">then</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>:<span class="ident">tt</span>,
+        $(<span class="attribute">#[$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">attrs</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>]</span>)<span class="op">*</span>
+        <span class="kw">enum</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">_old_name</span>:<span class="ident">ident</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>:<span class="ident">tt</span>)<span class="op">*</span>
+    ) <span class="op">=&gt;</span> {
+        <span class="macro">macro_attr_callback</span><span class="macro">!</span> {
+            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">cb</span>,
+            $(<span class="attribute">#[$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">attrs</span>)<span class="kw-2">*</span>]</span>)<span class="op">*</span>
+            <span class="kw">enum</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">new_name</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">tail</span>)<span class="op">*</span>
+        }
+    };
+}
+
+<span class="macro">macro_attr</span><span class="macro">!</span> {
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
+    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="macro">ReprType</span><span class="macro">!</span>(<span class="ident">u8</span>), <span class="macro">TypeName</span><span class="macro">!</span>)]</span>
+    <span class="attribute">#[<span class="macro">rename_to</span><span class="macro">!</span>(<span class="ident">Bar</span>)]</span>
+    <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
+    <span class="kw">enum</span> <span class="ident">Foo</span> { <span class="ident">A</span>, <span class="ident">B</span> }
+}
+
+<span class="kw">fn</span> <span class="ident">main</span>() {
+    <span class="kw">let</span> <span class="ident">bar</span> <span class="op">=</span> <span class="ident">Bar</span>::<span class="ident">B</span>;
+    <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">bar</span> <span class="kw">as</span> <span class="op">&lt;</span><span class="ident">Bar</span> <span class="kw">as</span> <span class="ident">ReprType</span><span class="op">&gt;</span>::<span class="ident">Repr</span>;
+    <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}: {:?} ({:?})&quot;</span>, <span class="ident">Bar</span>::<span class="ident">type_name</span>(), <span class="ident">bar</span>, <span class="ident">v</span>);
+    <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">msg</span>, <span class="string">&quot;Bar: B (1)&quot;</span>);
+}</pre>
+</div><h2 id='macros' class='section-header'><a href="#macros">Macros</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.macro_attr.html"
+                                  title='macro macro_attr::macro_attr'>macro_attr</a></td>
+                           <td class='docblock-short'>
+                                <p>When given an item definition, including its attributes, this macro parses said attributes and dispatches any attributes or derivations suffixed with <code>!</code> to user-defined macros.  This allows multiple macros to process the same item.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.macro_attr_callback.html"
+                                  title='macro macro_attr::macro_attr_callback'>macro_attr_callback</a></td>
+                           <td class='docblock-short'>
+                                <p>This macro invokes a &quot;callback&quot; macro, merging arguments together.</p>
+                           </td>
+                       </tr></table></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "macro_attr";
+    </script>
+    <script src="../main.js"></script>
+    <script defer src="../search-index.js"></script>
+</body>
+</html>

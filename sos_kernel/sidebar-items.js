@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["VERSION_STRING","SOS version number"]],"fn":[["kernel_init","Kernel initialization function called into by architecture-specific init"],["kernel_main","Kernel main loop"]],"mod":[["arch","Architecture-specific implementation."],["heap",""],["io","Kernel IO."],["logger",""]]});

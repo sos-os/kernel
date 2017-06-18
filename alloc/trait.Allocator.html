@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Allocator` trait in crate `alloc`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Allocator">
+
+    <title>alloc::Allocator - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc trait">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'>Trait Allocator</p><div class="block items"><ul><li><a href="#required-methods">Required Methods</a></li><li><a href="#provided-methods">Provided Methods</a></li><li><a href="#implementors">Implementors</a></li></ul></div><p class='location'><a href='index.html'>alloc</a></p><script>window.sidebarCurrent = {name: 'Allocator', ty: 'trait', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Trait <a href='index.html'>alloc</a>::<wbr><a class="trait" href=''>Allocator</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../src/alloc/lib.rs.html#427-831' title='goto source code'>[src]</a></span></h1>
+<pre class='rust trait'>pub unsafe trait Allocator {
+    unsafe fn <a href='#tymethod.alloc' class='fnname'>alloc</a>(&amp;mut self, layout: <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="type" href="../alloc/type.Address.html" title="type alloc::Address">Address</a>, <a class="enum" href="../alloc/enum.AllocErr.html" title="enum alloc::AllocErr">AllocErr</a>&gt;;
+    unsafe fn <a href='#tymethod.dealloc' class='fnname'>dealloc</a>(&amp;mut self, ptr: <a class="type" href="../alloc/type.Address.html" title="type alloc::Address">Address</a>, layout: <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a>);
+
+    fn <a href='#method.oom' class='fnname'>oom</a>(&amp;mut self, _: <a class="enum" href="../alloc/enum.AllocErr.html" title="enum alloc::AllocErr">AllocErr</a>) -&gt; ! { ... }
+    unsafe fn <a href='#method.usable_size' class='fnname'>usable_size</a>(&amp;self, layout: &amp;<a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a>) -&gt; (<a class="type" href="../alloc/type.Capacity.html" title="type alloc::Capacity">Capacity</a>, <a class="type" href="../alloc/type.Capacity.html" title="type alloc::Capacity">Capacity</a>) { ... }
+    unsafe fn <a href='#method.realloc' class='fnname'>realloc</a>(<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ptr: <a class="type" href="../alloc/type.Address.html" title="type alloc::Address">Address</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;layout: <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;new_layout: <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a><br>&nbsp;&nbsp;&nbsp;&nbsp;) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="type" href="../alloc/type.Address.html" title="type alloc::Address">Address</a>, <a class="enum" href="../alloc/enum.AllocErr.html" title="enum alloc::AllocErr">AllocErr</a>&gt; { ... }
+    unsafe fn <a href='#method.alloc_excess' class='fnname'>alloc_excess</a>(<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;layout: <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a><br>&nbsp;&nbsp;&nbsp;&nbsp;) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="struct" href="../alloc/struct.Excess.html" title="struct alloc::Excess">Excess</a>, <a class="enum" href="../alloc/enum.AllocErr.html" title="enum alloc::AllocErr">AllocErr</a>&gt; { ... }
+    unsafe fn <a href='#method.realloc_excess' class='fnname'>realloc_excess</a>(<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ptr: <a class="type" href="../alloc/type.Address.html" title="type alloc::Address">Address</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;layout: <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;new_layout: <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a><br>&nbsp;&nbsp;&nbsp;&nbsp;) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="struct" href="../alloc/struct.Excess.html" title="struct alloc::Excess">Excess</a>, <a class="enum" href="../alloc/enum.AllocErr.html" title="enum alloc::AllocErr">AllocErr</a>&gt; { ... }
+    unsafe fn <a href='#method.realloc_in_place' class='fnname'>realloc_in_place</a>(<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ptr: <a class="type" href="../alloc/type.Address.html" title="type alloc::Address">Address</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;layout: <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;new_layout: <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a><br>&nbsp;&nbsp;&nbsp;&nbsp;) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;(), <a class="struct" href="../alloc/struct.CannotReallocInPlace.html" title="struct alloc::CannotReallocInPlace">CannotReallocInPlace</a>&gt; { ... }
+    unsafe fn <a href='#method.alloc_one' class='fnname'>alloc_one</a>&lt;T&gt;(&amp;mut self) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;T&gt;, <a class="enum" href="../alloc/enum.AllocErr.html" title="enum alloc::AllocErr">AllocErr</a>&gt;<br>&nbsp;&nbsp;&nbsp; <span class="where">where<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a></span>,
+    { ... }
+    unsafe fn <a href='#method.dealloc_one' class='fnname'>dealloc_one</a>&lt;T&gt;(&amp;mut self, ptr: <a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;T&gt;)<br>&nbsp;&nbsp;&nbsp; <span class="where">where<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a></span>,
+    { ... }
+    unsafe fn <a href='#method.alloc_array' class='fnname'>alloc_array</a>&lt;T&gt;(&amp;mut self, n: usize) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;T&gt;, <a class="enum" href="../alloc/enum.AllocErr.html" title="enum alloc::AllocErr">AllocErr</a>&gt;<br>&nbsp;&nbsp;&nbsp; <span class="where">where<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a></span>,
+    { ... }
+    unsafe fn <a href='#method.realloc_array' class='fnname'>realloc_array</a>&lt;T&gt;(<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ptr: <a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;T&gt;, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;n_old: usize, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;n_new: usize<br>&nbsp;&nbsp;&nbsp;&nbsp;) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;T&gt;, <a class="enum" href="../alloc/enum.AllocErr.html" title="enum alloc::AllocErr">AllocErr</a>&gt;<br>&nbsp;&nbsp;&nbsp; <span class="where">where<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a></span>,
+    { ... }
+    unsafe fn <a href='#method.dealloc_array' class='fnname'>dealloc_array</a>&lt;T&gt;(<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ptr: <a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;T&gt;, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;n: usize<br>&nbsp;&nbsp;&nbsp;&nbsp;) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;(), <a class="enum" href="../alloc/enum.AllocErr.html" title="enum alloc::AllocErr">AllocErr</a>&gt;<br>&nbsp;&nbsp;&nbsp; <span class="where">where<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a></span>,
+    { ... }
+    unsafe fn <a href='#method.alloc_unchecked' class='fnname'>alloc_unchecked</a>(&amp;mut self, layout: <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="type" href="../alloc/type.Address.html" title="type alloc::Address">Address</a>&gt; { ... }
+    unsafe fn <a href='#method.realloc_unchecked' class='fnname'>realloc_unchecked</a>(<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ptr: <a class="type" href="../alloc/type.Address.html" title="type alloc::Address">Address</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;layout: <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;new_layout: <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a><br>&nbsp;&nbsp;&nbsp;&nbsp;) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="type" href="../alloc/type.Address.html" title="type alloc::Address">Address</a>&gt; { ... }
+    unsafe fn <a href='#method.alloc_excess_unchecked' class='fnname'>alloc_excess_unchecked</a>(<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;layout: <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a><br>&nbsp;&nbsp;&nbsp;&nbsp;) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="../alloc/struct.Excess.html" title="struct alloc::Excess">Excess</a>&gt; { ... }
+    unsafe fn <a href='#method.realloc_excess_unchecked' class='fnname'>realloc_excess_unchecked</a>(<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ptr: <a class="type" href="../alloc/type.Address.html" title="type alloc::Address">Address</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;layout: <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;new_layout: <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a><br>&nbsp;&nbsp;&nbsp;&nbsp;) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="../alloc/struct.Excess.html" title="struct alloc::Excess">Excess</a>&gt; { ... }
+    unsafe fn <a href='#method.alloc_array_unchecked' class='fnname'>alloc_array_unchecked</a>&lt;T&gt;(&amp;mut self, n: usize) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;T&gt;&gt;<br>&nbsp;&nbsp;&nbsp; <span class="where">where<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a></span>,
+    { ... }
+    unsafe fn <a href='#method.realloc_array_unchecked' class='fnname'>realloc_array_unchecked</a>&lt;T&gt;(<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ptr: <a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;T&gt;, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;n_old: usize, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;n_new: usize<br>&nbsp;&nbsp;&nbsp;&nbsp;) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;T&gt;&gt;<br>&nbsp;&nbsp;&nbsp; <span class="where">where<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a></span>,
+    { ... }
+    unsafe fn <a href='#method.dealloc_array_unchecked' class='fnname'>dealloc_array_unchecked</a>&lt;T&gt;(&amp;mut self, ptr: <a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;T&gt;, n: usize)<br>&nbsp;&nbsp;&nbsp; <span class="where">where<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a></span>,
+    { ... }
+}</pre><div class='docblock'><p>An implementation of <code>Allocator</code> can allocate, reallocate, and
+deallocate arbitrary blocks of data described via <code>Layout</code>.</p>
+
+<p>Some of the methods require that a layout <em>fit</em> a memory block.
+What it means for a layout to &quot;fit&quot; a memory block means is that
+the following two conditions must hold:</p>
+
+<ol>
+<li><p>The block&#39;s starting address must be aligned to <code>layout.align()</code>.</p></li>
+<li><p>The block&#39;s size must fall in the range <code>[use_min, use_max]</code>, where:</p>
+
+<ul>
+<li><p><code>use_min</code> is <code>self.usable_size(layout).0</code>, and</p></li>
+<li><p><code>use_max</code> is the capacity that was (or would have been)
+returned when (if) the block was allocated via a call to
+<code>alloc_excess</code> or <code>realloc_excess</code>.</p></li>
+</ul></li>
+</ol>
+
+<p>Note that:</p>
+
+<ul>
+<li><p>the size of the layout most recently used to allocate the block
+is guaranteed to be in the range <code>[use_min, use_max]</code>, and</p></li>
+<li><p>a lower-bound on <code>use_max</code> can be safely approximated by a call to
+<code>usable_size</code>.</p></li>
+</ul>
+</div>
+            <h2 id='required-methods'>Required Methods</h2>
+            <div class='methods'>
+        <h3 id='tymethod.alloc' class='method'><span id='alloc.v' class='invisible'><code>unsafe fn <a href='#tymethod.alloc' class='fnname'>alloc</a>(&amp;mut self, layout: <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="type" href="../alloc/type.Address.html" title="type alloc::Address">Address</a>, <a class="enum" href="../alloc/enum.AllocErr.html" title="enum alloc::AllocErr">AllocErr</a>&gt;</code></span></h3><div class='docblock'><p>Returns a pointer suitable for holding data described by
+<code>layout</code>, meeting its size and alignment guarantees.</p>
+
+<p>The returned block of storage may or may not have its contents
+initialized. (Extension subtraits might restrict this
+behavior, e.g. to ensure initialization.)</p>
+
+<p>Returning <code>Err</code> indicates that either memory is exhausted or <code>layout</code>
+does not meet allocator&#39;s size or alignment constraints.</p>
+
+<p>Implementations are encouraged to return <code>Err</code> on memory
+exhaustion rather than panicking or aborting, but this is
+not a strict requirement. (Specifically: it is <em>legal</em> to use
+this trait to wrap an underlying native allocation library
+that aborts on memory exhaustion.)</p>
+</div><h3 id='tymethod.dealloc' class='method'><span id='dealloc.v' class='invisible'><code>unsafe fn <a href='#tymethod.dealloc' class='fnname'>dealloc</a>(&amp;mut self, ptr: <a class="type" href="../alloc/type.Address.html" title="type alloc::Address">Address</a>, layout: <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a>)</code></span></h3><div class='docblock'><p>Deallocate the memory referenced by <code>ptr</code>.</p>
+
+<p><code>ptr</code> must have previously been provided via this allocator,
+and <code>layout</code> must <em>fit</em> the provided block (see above);
+otherwise yields undefined behavior.</p>
+</div></div>
+            <h2 id='provided-methods'>Provided Methods</h2>
+            <div class='methods'>
+        <h3 id='method.oom' class='method'><span id='oom.v' class='invisible'><code>fn <a href='#method.oom' class='fnname'>oom</a>(&amp;mut self, _: <a class="enum" href="../alloc/enum.AllocErr.html" title="enum alloc::AllocErr">AllocErr</a>) -&gt; !</code></span></h3><div class='docblock'><p>Allocator-specific method for signalling an out-of-memory
+condition.</p>
+
+<p>Implementations of the <code>oom</code> method are discouraged from
+infinitely regressing in nested calls to <code>oom</code>. In
+practice this means implementors should eschew allocating,
+especially from <code>self</code> (directly or indirectly).</p>
+
+<p>Implementions of this trait&#39;s allocation methods are discouraged
+from panicking (or aborting) in the event of memory exhaustion;
+instead they should return an appropriate error from the
+invoked method, and let the client decide whether to invoke
+this <code>oom</code> method.</p>
+</div><h3 id='method.usable_size' class='method'><span id='usable_size.v' class='invisible'><code>unsafe fn <a href='#method.usable_size' class='fnname'>usable_size</a>(&amp;self, layout: &amp;<a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a>) -&gt; (<a class="type" href="../alloc/type.Capacity.html" title="type alloc::Capacity">Capacity</a>, <a class="type" href="../alloc/type.Capacity.html" title="type alloc::Capacity">Capacity</a>)</code></span></h3><div class='docblock'><p>Returns bounds on the guaranteed usable size of a successful
+allocation created with the specified <code>layout</code>.</p>
+
+<p>In particular, for a given layout <code>k</code>, if <code>usable_size(k)</code> returns
+<code>(l, m)</code>, then one can use a block of layout <code>k</code> as if it has any
+size in the range <code>[l, m]</code> (inclusive).</p>
+
+<p>(All implementors of <code>fn usable_size</code> must ensure that
+<code>l &lt;= k.size() &lt;= m</code>)</p>
+
+<p>Both the lower- and upper-bounds (<code>l</code> and <code>m</code> respectively) are
+provided: An allocator based on size classes could misbehave
+if one attempts to deallocate a block without providing a
+correct value for its size (i.e., one within the range <code>[l, m]</code>).</p>
+
+<p>Clients who wish to make use of excess capacity are encouraged
+to use the <code>alloc_excess</code> and <code>realloc_excess</code> instead, as
+this method is constrained to conservatively report a value
+less than or equal to the minimum capacity for <em>all possible</em>
+calls to those methods.</p>
+
+<p>However, for clients that do not wish to track the capacity
+returned by <code>alloc_excess</code> locally, this method is likely to
+produce useful results.</p>
+</div><h3 id='method.realloc' class='method'><span id='realloc.v' class='invisible'><code>unsafe fn <a href='#method.realloc' class='fnname'>realloc</a>(<br>&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;ptr: <a class="type" href="../alloc/type.Address.html" title="type alloc::Address">Address</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;layout: <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;new_layout: <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a><br>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="type" href="../alloc/type.Address.html" title="type alloc::Address">Address</a>, <a class="enum" href="../alloc/enum.AllocErr.html" title="enum alloc::AllocErr">AllocErr</a>&gt;</code></span></h3><div class='docblock'><p>Returns a pointer suitable for holding data described by
+<code>new_layout</code>, meeting its size and alignment guarantees. To
+accomplish this, this may extend or shrink the allocation
+referenced by <code>ptr</code> to fit <code>new_layout</code>.</p>
+
+<ul>
+<li><p><code>ptr</code> must have previously been provided via this allocator.</p></li>
+<li><p><code>layout</code> must <em>fit</em> the <code>ptr</code> (see above). (The <code>new_layout</code>
+argument need not fit it.)</p></li>
+</ul>
+
+<p>Behavior undefined if either of latter two constraints are unmet.</p>
+
+<p>In addition, <code>new_layout</code> should not impose a different alignment
+constraint than <code>layout</code>. (In other words, <code>new_layout.align()</code>
+should equal <code>layout.align()</code>.)
+However, behavior is well-defined (though underspecified) when
+this constraint is violated; further discussion below.</p>
+
+<p>If this returns <code>Ok</code>, then ownership of the memory block
+referenced by <code>ptr</code> has been transferred to this
+allocator. The memory may or may not have been freed, and
+should be considered unusable (unless of course it was
+transferred back to the caller again via the return value of
+this method).</p>
+
+<p>Returns <code>Err</code> only if <code>new_layout</code> does not meet the allocator&#39;s
+size and alignment constraints of the allocator or the
+alignment of <code>layout</code>, or if reallocation otherwise fails. (Note
+that did not say &quot;if and only if&quot; -- in particular, an
+implementation of this method <em>can</em> return <code>Ok</code> if
+<code>new_layout.align() != old_layout.align()</code>; or it can return <code>Err</code>
+in that scenario, depending on whether this allocator
+can dynamically adjust the alignment constraint for the block.)</p>
+
+<p>If this method returns <code>Err</code>, then ownership of the memory
+block has not been transferred to this allocator, and the
+contents of the memory block are unaltered.</p>
+</div><h3 id='method.alloc_excess' class='method'><span id='alloc_excess.v' class='invisible'><code>unsafe fn <a href='#method.alloc_excess' class='fnname'>alloc_excess</a>(&amp;mut self, layout: <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="struct" href="../alloc/struct.Excess.html" title="struct alloc::Excess">Excess</a>, <a class="enum" href="../alloc/enum.AllocErr.html" title="enum alloc::AllocErr">AllocErr</a>&gt;</code></span></h3><div class='docblock'><p>Behaves like <code>fn alloc</code>, but also returns the whole size of
+the returned block. For some <code>layout</code> inputs, like arrays, this
+may include extra storage usable for additional data.</p>
+</div><h3 id='method.realloc_excess' class='method'><span id='realloc_excess.v' class='invisible'><code>unsafe fn <a href='#method.realloc_excess' class='fnname'>realloc_excess</a>(<br>&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;ptr: <a class="type" href="../alloc/type.Address.html" title="type alloc::Address">Address</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;layout: <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;new_layout: <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a><br>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="struct" href="../alloc/struct.Excess.html" title="struct alloc::Excess">Excess</a>, <a class="enum" href="../alloc/enum.AllocErr.html" title="enum alloc::AllocErr">AllocErr</a>&gt;</code></span></h3><div class='docblock'><p>Behaves like <code>fn realloc</code>, but also returns the whole size of
+the returned block. For some <code>layout</code> inputs, like arrays, this
+may include extra storage usable for additional data.</p>
+</div><h3 id='method.realloc_in_place' class='method'><span id='realloc_in_place.v' class='invisible'><code>unsafe fn <a href='#method.realloc_in_place' class='fnname'>realloc_in_place</a>(<br>&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;ptr: <a class="type" href="../alloc/type.Address.html" title="type alloc::Address">Address</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;layout: <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;new_layout: <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a><br>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;(), <a class="struct" href="../alloc/struct.CannotReallocInPlace.html" title="struct alloc::CannotReallocInPlace">CannotReallocInPlace</a>&gt;</code></span></h3><div class='docblock'><p>Attempts to extend the allocation referenced by <code>ptr</code> to fit <code>new_layout</code>.</p>
+
+<ul>
+<li><p><code>ptr</code> must have previously been provided via this allocator.</p></li>
+<li><p><code>layout</code> must <em>fit</em> the <code>ptr</code> (see above). (The <code>new_layout</code>
+argument need not fit it.)</p></li>
+</ul>
+
+<p>Behavior undefined if either of latter two constraints are unmet.</p>
+
+<p>If this returns <code>Ok</code>, then the allocator has asserted that the
+memory block referenced by <code>ptr</code> now fits <code>new_layout</code>, and thus can
+be used to carry data of that layout. (The allocator is allowed to
+expend effort to accomplish this, such as extending the memory block to
+include successor blocks, or virtual memory tricks.)</p>
+
+<p>If this returns <code>Err</code>, then the allocator has made no assertion
+about whether the memory block referenced by <code>ptr</code> can or cannot
+fit <code>new_layout</code>.</p>
+
+<p>In either case, ownership of the memory block referenced by <code>ptr</code>
+has not been transferred, and the contents of the memory block
+are unaltered.</p>
+</div><h3 id='method.alloc_one' class='method'><span id='alloc_one.v' class='invisible'><code>unsafe fn <a href='#method.alloc_one' class='fnname'>alloc_one</a>&lt;T&gt;(&amp;mut self) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;T&gt;, <a class="enum" href="../alloc/enum.AllocErr.html" title="enum alloc::AllocErr">AllocErr</a>&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,&nbsp;</span></code></span></h3><div class='docblock'><p>Allocates a block suitable for holding an instance of <code>T</code>.</p>
+
+<p>Captures a common usage pattern for allocators.</p>
+
+<p>The returned block is suitable for passing to the
+<code>alloc</code>/<code>realloc</code> methods of this allocator.</p>
+
+<p>May return <code>Err</code> for zero-sized <code>T</code>.</p>
+</div><h3 id='method.dealloc_one' class='method'><span id='dealloc_one.v' class='invisible'><code>unsafe fn <a href='#method.dealloc_one' class='fnname'>dealloc_one</a>&lt;T&gt;(&amp;mut self, ptr: <a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;T&gt;) <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,&nbsp;</span></code></span></h3><div class='docblock'><p>Deallocates a block suitable for holding an instance of <code>T</code>.</p>
+
+<p>The given block must have been produced by this allocator,
+and must be suitable for storing a <code>T</code> (in terms of alignment
+as well as minimum and maximum size); otherwise yields
+undefined behavior.</p>
+
+<p>Captures a common usage pattern for allocators.</p>
+</div><h3 id='method.alloc_array' class='method'><span id='alloc_array.v' class='invisible'><code>unsafe fn <a href='#method.alloc_array' class='fnname'>alloc_array</a>&lt;T&gt;(&amp;mut self, n: usize) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;T&gt;, <a class="enum" href="../alloc/enum.AllocErr.html" title="enum alloc::AllocErr">AllocErr</a>&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,&nbsp;</span></code></span></h3><div class='docblock'><p>Allocates a block suitable for holding <code>n</code> instances of <code>T</code>.</p>
+
+<p>Captures a common usage pattern for allocators.</p>
+
+<p>The returned block is suitable for passing to the
+<code>alloc</code>/<code>realloc</code> methods of this allocator.</p>
+
+<p>May return <code>Err</code> for zero-sized <code>T</code> or <code>n == 0</code>.</p>
+
+<p>Always returns <code>Err</code> on arithmetic overflow.</p>
+</div><h3 id='method.realloc_array' class='method'><span id='realloc_array.v' class='invisible'><code>unsafe fn <a href='#method.realloc_array' class='fnname'>realloc_array</a>&lt;T&gt;(<br>&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;ptr: <a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;T&gt;, <br>&nbsp;&nbsp;&nbsp;&nbsp;n_old: usize, <br>&nbsp;&nbsp;&nbsp;&nbsp;n_new: usize<br>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;T&gt;, <a class="enum" href="../alloc/enum.AllocErr.html" title="enum alloc::AllocErr">AllocErr</a>&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,&nbsp;</span></code></span></h3><div class='docblock'><p>Reallocates a block previously suitable for holding <code>n_old</code>
+instances of <code>T</code>, returning a block suitable for holding
+<code>n_new</code> instances of <code>T</code>.</p>
+
+<p>Captures a common usage pattern for allocators.</p>
+
+<p>The returned block is suitable for passing to the
+<code>alloc</code>/<code>realloc</code> methods of this allocator.</p>
+
+<p>May return <code>Err</code> for zero-sized <code>T</code> or <code>n == 0</code>.</p>
+
+<p>Always returns <code>Err</code> on arithmetic overflow.</p>
+</div><h3 id='method.dealloc_array' class='method'><span id='dealloc_array.v' class='invisible'><code>unsafe fn <a href='#method.dealloc_array' class='fnname'>dealloc_array</a>&lt;T&gt;(<br>&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;ptr: <a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;T&gt;, <br>&nbsp;&nbsp;&nbsp;&nbsp;n: usize<br>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;(), <a class="enum" href="../alloc/enum.AllocErr.html" title="enum alloc::AllocErr">AllocErr</a>&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,&nbsp;</span></code></span></h3><div class='docblock'><p>Deallocates a block suitable for holding <code>n</code> instances of <code>T</code>.</p>
+
+<p>Captures a common usage pattern for allocators.</p>
+</div><h3 id='method.alloc_unchecked' class='method'><span id='alloc_unchecked.v' class='invisible'><code>unsafe fn <a href='#method.alloc_unchecked' class='fnname'>alloc_unchecked</a>(&amp;mut self, layout: <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="type" href="../alloc/type.Address.html" title="type alloc::Address">Address</a>&gt;</code></span></h3><div class='docblock'><p>Returns a pointer suitable for holding data described by
+<code>layout</code>, meeting its size and alignment guarantees.</p>
+
+<p>The returned block of storage may or may not have its contents
+initialized. (Extension subtraits might restrict this
+behavior, e.g. to ensure initialization.)</p>
+
+<p>Returns <code>None</code> if request unsatisfied.</p>
+
+<p>Behavior undefined if input does not meet size or alignment
+constraints of this allocator.</p>
+</div><h3 id='method.realloc_unchecked' class='method'><span id='realloc_unchecked.v' class='invisible'><code>unsafe fn <a href='#method.realloc_unchecked' class='fnname'>realloc_unchecked</a>(<br>&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;ptr: <a class="type" href="../alloc/type.Address.html" title="type alloc::Address">Address</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;layout: <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;new_layout: <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a><br>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="type" href="../alloc/type.Address.html" title="type alloc::Address">Address</a>&gt;</code></span></h3><div class='docblock'><p>Returns a pointer suitable for holding data described by
+<code>new_layout</code>, meeting its size and alignment guarantees. To
+accomplish this, may extend or shrink the allocation
+referenced by <code>ptr</code> to fit <code>new_layout</code>.
+(In other words, ownership of the memory block associated with
+<code>ptr</code> is first transferred back to this allocator, but the
+same block may or may not be transferred back as the result of
+this call.)</p>
+
+<ul>
+<li><p><code>ptr</code> must have previously been provided via this allocator.</p></li>
+<li><p><code>layout</code> must <em>fit</em> the <code>ptr</code> (see above). (The <code>new_layout</code>
+argument need not fit it.)</p></li>
+<li><p><code>new_layout</code> must meet the allocator&#39;s size and alignment
+constraints. In addition, <code>new_layout.align()</code> must equal
+<code>layout.align()</code>. (Note that this is a stronger constraint
+that that imposed by <code>fn realloc</code>.)</p></li>
+</ul>
+
+<p>Behavior undefined if any of latter three constraints are unmet.</p>
+
+<p>If this returns <code>Some</code>, then the memory block referenced by
+<code>ptr</code> may have been freed and should be considered unusable.</p>
+
+<p>Returns <code>None</code> if reallocation fails; in this scenario, the
+original memory block referenced by <code>ptr</code> is unaltered.</p>
+</div><h3 id='method.alloc_excess_unchecked' class='method'><span id='alloc_excess_unchecked.v' class='invisible'><code>unsafe fn <a href='#method.alloc_excess_unchecked' class='fnname'>alloc_excess_unchecked</a>(&amp;mut self, layout: <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="../alloc/struct.Excess.html" title="struct alloc::Excess">Excess</a>&gt;</code></span></h3><div class='docblock'><p>Behaves like <code>fn alloc_unchecked</code>, but also returns the whole
+size of the returned block.</p>
+</div><h3 id='method.realloc_excess_unchecked' class='method'><span id='realloc_excess_unchecked.v' class='invisible'><code>unsafe fn <a href='#method.realloc_excess_unchecked' class='fnname'>realloc_excess_unchecked</a>(<br>&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;ptr: <a class="type" href="../alloc/type.Address.html" title="type alloc::Address">Address</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;layout: <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;new_layout: <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a><br>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="../alloc/struct.Excess.html" title="struct alloc::Excess">Excess</a>&gt;</code></span></h3><div class='docblock'><p>Behaves like <code>fn realloc_unchecked</code>, but also returns the
+whole size of the returned block.</p>
+</div><h3 id='method.alloc_array_unchecked' class='method'><span id='alloc_array_unchecked.v' class='invisible'><code>unsafe fn <a href='#method.alloc_array_unchecked' class='fnname'>alloc_array_unchecked</a>&lt;T&gt;(&amp;mut self, n: usize) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;T&gt;&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,&nbsp;</span></code></span></h3><div class='docblock'><p>Allocates a block suitable for holding <code>n</code> instances of <code>T</code>.</p>
+
+<p>Captures a common usage pattern for allocators.</p>
+
+<p>Requires inputs are non-zero and do not cause arithmetic
+overflow, and <code>T</code> is not zero sized; otherwise yields
+undefined behavior.</p>
+</div><h3 id='method.realloc_array_unchecked' class='method'><span id='realloc_array_unchecked.v' class='invisible'><code>unsafe fn <a href='#method.realloc_array_unchecked' class='fnname'>realloc_array_unchecked</a>&lt;T&gt;(<br>&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;ptr: <a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;T&gt;, <br>&nbsp;&nbsp;&nbsp;&nbsp;n_old: usize, <br>&nbsp;&nbsp;&nbsp;&nbsp;n_new: usize<br>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;T&gt;&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,&nbsp;</span></code></span></h3><div class='docblock'><p>Reallocates a block suitable for holding <code>n_old</code> instances of <code>T</code>,
+returning a block suitable for holding <code>n_new</code> instances of <code>T</code>.</p>
+
+<p>Captures a common usage pattern for allocators.</p>
+
+<p>Requires inputs are non-zero and do not cause arithmetic
+overflow, and <code>T</code> is not zero sized; otherwise yields
+undefined behavior.</p>
+</div><h3 id='method.dealloc_array_unchecked' class='method'><span id='dealloc_array_unchecked.v' class='invisible'><code>unsafe fn <a href='#method.dealloc_array_unchecked' class='fnname'>dealloc_array_unchecked</a>&lt;T&gt;(&amp;mut self, ptr: <a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;T&gt;, n: usize) <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,&nbsp;</span></code></span></h3><div class='docblock'><p>Deallocates a block suitable for holding <code>n</code> instances of <code>T</code>.</p>
+
+<p>Captures a common usage pattern for allocators.</p>
+
+<p>Requires inputs are non-zero and do not cause arithmetic
+overflow, and <code>T</code> is not zero sized; otherwise yields
+undefined behavior.</p>
+</div></div>
+        <h2 id='implementors'>Implementors</h2>
+        <ul class='item-list' id='implementors-list'>
+    <li><code>impl&lt;'a&gt; Allocator for <a class="struct" href="../alloc/buddy/struct.Heap.html" title="struct alloc::buddy::Heap">Heap</a>&lt;'a&gt;</code></li>
+<li><code>impl Allocator for <a class="struct" href="../alloc/bump_ptr/struct.BumpPtr.html" title="struct alloc::bump_ptr::BumpPtr">BumpPtr</a></code></li>
+<li><code>impl&lt;'a&gt; Allocator for <a class="enum" href="../alloc/system/enum.Tier.html" title="enum alloc::system::Tier">Tier</a>&lt;'a&gt;</code></li>
+</ul><script type="text/javascript" async
+                         src="../implementors/alloc/trait.Allocator.js">
+                 </script></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "alloc";
+    </script>
+    <script src="../main.js"></script>
+    <script defer src="../search-index.js"></script>
+</body>
+</html>

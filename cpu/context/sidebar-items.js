@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Context","Thread execution context"],["InterruptFrame",""],["Registers","Registers pushed to the stack when handling an interrupt or context switch."]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["kernel_remap","Remaps the kernel using 4KiB pages."],["test_paging",""]],"mod":[["cr3",""],["table",""],["temp",""],["tlb",""]],"struct":[["ActivePML4","Struct representing the currently active PML4 instance."],["ActivePageTable",""],["InactivePageTable","An inactive page table that the CPU is not currently using"]]});

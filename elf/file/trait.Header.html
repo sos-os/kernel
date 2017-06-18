@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Header` trait in crate `elf`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Header">
+
+    <title>elf::file::Header - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc trait">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'>Trait Header</p><div class="block items"><ul><li><a href="#associated-types">Associated Types</a></li><li><a href="#required-methods">Required Methods</a></li><li><a href="#provided-methods">Provided Methods</a></li><li><a href="#implementors">Implementors</a></li></ul></div><p class='location'><a href='../index.html'>elf</a>::<wbr><a href='index.html'>file</a></p><script>window.sidebarCurrent = {name: 'Header', ty: 'trait', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Trait <a href='../index.html'>elf</a>::<wbr><a href='index.html'>file</a>::<wbr><a class="trait" href=''>Header</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../../src/elf/file.rs.html#33-107' title='goto source code'>[src]</a></span></h1>
+<pre class='rust trait'>pub trait Header: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a> {
+    type <a href='#associatedtype.Word' class="type">Word</a>: <a class="trait" href="../../elf/trait.ElfWord.html" title="trait elf::ElfWord">ElfWord</a>;
+    fn <a href='#tymethod.from_slice' class='fnname'>from_slice</a>&lt;'a&gt;(input: &amp;'a [u8]) -&gt; <a class="type" href="../../elf/type.ElfResult.html" title="type elf::ElfResult">ElfResult</a>&lt;&amp;'a Self&gt;;
+    fn <a href='#tymethod.parse_section' class='fnname'>parse_section</a>&lt;'a&gt;(<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;'a self, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;input: &amp;'a [u8], <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;idx: u16<br>&nbsp;&nbsp;&nbsp;&nbsp;) -&gt; <a class="type" href="../../elf/type.ElfResult.html" title="type elf::ElfResult">ElfResult</a>&lt;&amp;'a <a class="type" href="../../elf/type.Section.html" title="type elf::Section">Section</a>&lt;Self::<a class="type" href="../../elf/file/trait.Header.html#associatedtype.Word" title="type elf::file::Header::Word">Word</a>&gt;&gt;;
+    fn <a href='#tymethod.ident' class='fnname'>ident</a>(&amp;self) -&gt; <a class="struct" href="../../elf/file/struct.Ident.html" title="struct elf::file::Ident">Ident</a>;
+    fn <a href='#tymethod.get_type' class='fnname'>get_type</a>(&amp;self) -&gt; <a class="enum" href="../../elf/file/enum.Type.html" title="enum elf::file::Type">Type</a>;
+    fn <a href='#tymethod.machine' class='fnname'>machine</a>(&amp;self) -&gt; <a class="enum" href="../../elf/file/enum.Machine.html" title="enum elf::file::Machine">Machine</a>;
+    fn <a href='#tymethod.entry_point' class='fnname'>entry_point</a>(&amp;self) -&gt; usize;
+    fn <a href='#tymethod.ph_offset' class='fnname'>ph_offset</a>(&amp;self) -&gt; usize;
+    fn <a href='#tymethod.ph_count' class='fnname'>ph_count</a>(&amp;self) -&gt; usize;
+    fn <a href='#tymethod.ph_entry_size' class='fnname'>ph_entry_size</a>(&amp;self) -&gt; usize;
+    fn <a href='#tymethod.sh_offset' class='fnname'>sh_offset</a>(&amp;self) -&gt; usize;
+    fn <a href='#tymethod.sh_count' class='fnname'>sh_count</a>(&amp;self) -&gt; usize;
+    fn <a href='#tymethod.sh_entry_size' class='fnname'>sh_entry_size</a>(&amp;self) -&gt; usize;
+    fn <a href='#tymethod.flags' class='fnname'>flags</a>(&amp;self) -&gt; u32;
+    fn <a href='#tymethod.sh_str_idx' class='fnname'>sh_str_idx</a>(&amp;self) -&gt; usize;
+
+    fn <a href='#method.sh_range' class='fnname'>sh_range</a>(&amp;self) -&gt; <a class="struct" href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html" title="struct core::ops::range::Range">Range</a>&lt;usize&gt; { ... }
+    fn <a href='#method.ph_range' class='fnname'>ph_range</a>(&amp;self) -&gt; <a class="struct" href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html" title="struct core::ops::range::Range">Range</a>&lt;usize&gt; { ... }
+    fn <a href='#method.section_index' class='fnname'>section_index</a>(&amp;self, idx: usize) -&gt; <a class="struct" href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html" title="struct core::ops::range::Range">Range</a>&lt;usize&gt; { ... }
+    fn <a href='#method.program_header_index' class='fnname'>program_header_index</a>(&amp;self, idx: usize) -&gt; <a class="struct" href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html" title="struct core::ops::range::Range">Range</a>&lt;usize&gt; { ... }
+}</pre><div class='docblock'><p>Trait representing an ELF File Header.</p>
+
+<p>This trait allows <a href="struct.HeaderRepr.html">HeaderRepr</a> to provide a consistent API regardless
+of whether the header section uses 32- or 64-bit <a href="../type.ElfWord.html">ELF word</a>s. A number of
+field values in the header of various sizes are converted to <code>usize</code> by
+this API so that they can be used as indices, etc.</p>
+
+<p>For more information on ELF File Headers, refer to:
++ the ELF [specification]
++ the [OS Dev Wiki]</p>
+
+<p><a href="http://www.sco.com/developers/gabi/latest/ch4.eheader.html">specification</a>
+<a href="http://wiki.osdev.org/ELF#Header">OS Dev Wiki</a></p>
+</div>
+            <h2 id='associated-types'>Associated Types</h2>
+            <div class='methods'>
+        <h3 id='associatedtype.Word' class='method'><span id='Word.t' class='invisible'><code>type <a href='#associatedtype.Word' class="type">Word</a>: <a class="trait" href="../../elf/trait.ElfWord.html" title="trait elf::ElfWord">ElfWord</a></code></span></h3></div>
+            <h2 id='required-methods'>Required Methods</h2>
+            <div class='methods'>
+        <h3 id='tymethod.from_slice' class='method'><span id='from_slice.v' class='invisible'><code>fn <a href='#tymethod.from_slice' class='fnname'>from_slice</a>&lt;'a&gt;(input: &amp;'a [u8]) -&gt; <a class="type" href="../../elf/type.ElfResult.html" title="type elf::ElfResult">ElfResult</a>&lt;&amp;'a Self&gt;</code></span></h3><div class='docblock'><p>Attempt to extract an ELF file header from a slice of bytes.</p>
+</div><h3 id='tymethod.parse_section' class='method'><span id='parse_section.v' class='invisible'><code>fn <a href='#tymethod.parse_section' class='fnname'>parse_section</a>&lt;'a&gt;(<br>&nbsp;&nbsp;&nbsp;&nbsp;&amp;'a self, <br>&nbsp;&nbsp;&nbsp;&nbsp;input: &amp;'a [u8], <br>&nbsp;&nbsp;&nbsp;&nbsp;idx: u16<br>) -&gt; <a class="type" href="../../elf/type.ElfResult.html" title="type elf::ElfResult">ElfResult</a>&lt;&amp;'a <a class="type" href="../../elf/type.Section.html" title="type elf::Section">Section</a>&lt;Self::<a class="type" href="../../elf/file/trait.Header.html#associatedtype.Word" title="type elf::file::Header::Word">Word</a>&gt;&gt;</code></span></h3><div class='docblock'><p>Attempt to extract a section header from a slice of bytes.
+TODO: can/should the index be <code>usize</code>?</p>
+</div><h3 id='tymethod.ident' class='method'><span id='ident.v' class='invisible'><code>fn <a href='#tymethod.ident' class='fnname'>ident</a>(&amp;self) -&gt; <a class="struct" href="../../elf/file/struct.Ident.html" title="struct elf::file::Ident">Ident</a></code></span></h3><h3 id='tymethod.get_type' class='method'><span id='get_type.v' class='invisible'><code>fn <a href='#tymethod.get_type' class='fnname'>get_type</a>(&amp;self) -&gt; <a class="enum" href="../../elf/file/enum.Type.html" title="enum elf::file::Type">Type</a></code></span></h3><h3 id='tymethod.machine' class='method'><span id='machine.v' class='invisible'><code>fn <a href='#tymethod.machine' class='fnname'>machine</a>(&amp;self) -&gt; <a class="enum" href="../../elf/file/enum.Machine.html" title="enum elf::file::Machine">Machine</a></code></span></h3><h3 id='tymethod.entry_point' class='method'><span id='entry_point.v' class='invisible'><code>fn <a href='#tymethod.entry_point' class='fnname'>entry_point</a>(&amp;self) -&gt; usize</code></span></h3><div class='docblock'><p>Offset of the program entry point</p>
+</div><h3 id='tymethod.ph_offset' class='method'><span id='ph_offset.v' class='invisible'><code>fn <a href='#tymethod.ph_offset' class='fnname'>ph_offset</a>(&amp;self) -&gt; usize</code></span></h3><div class='docblock'><p>Offset of the start of program headers</p>
+</div><h3 id='tymethod.ph_count' class='method'><span id='ph_count.v' class='invisible'><code>fn <a href='#tymethod.ph_count' class='fnname'>ph_count</a>(&amp;self) -&gt; usize</code></span></h3><div class='docblock'><p>Number of program headers.</p>
+</div><h3 id='tymethod.ph_entry_size' class='method'><span id='ph_entry_size.v' class='invisible'><code>fn <a href='#tymethod.ph_entry_size' class='fnname'>ph_entry_size</a>(&amp;self) -&gt; usize</code></span></h3><div class='docblock'><p>Size of a program header.</p>
+</div><h3 id='tymethod.sh_offset' class='method'><span id='sh_offset.v' class='invisible'><code>fn <a href='#tymethod.sh_offset' class='fnname'>sh_offset</a>(&amp;self) -&gt; usize</code></span></h3><div class='docblock'><p>Offset of the start of <a href="../section/struct.Header.html">section header</a>s.</p>
+</div><h3 id='tymethod.sh_count' class='method'><span id='sh_count.v' class='invisible'><code>fn <a href='#tymethod.sh_count' class='fnname'>sh_count</a>(&amp;self) -&gt; usize</code></span></h3><div class='docblock'><p>Number of <a href="../section/struct.Header.html">section header</a>s.</p>
+</div><h3 id='tymethod.sh_entry_size' class='method'><span id='sh_entry_size.v' class='invisible'><code>fn <a href='#tymethod.sh_entry_size' class='fnname'>sh_entry_size</a>(&amp;self) -&gt; usize</code></span></h3><div class='docblock'><p>Size of a <a href="../section/struct.Header.html">section header</a>.</p>
+</div><h3 id='tymethod.flags' class='method'><span id='flags.v' class='invisible'><code>fn <a href='#tymethod.flags' class='fnname'>flags</a>(&amp;self) -&gt; u32</code></span></h3><div class='docblock'><p>TODO: can this return the flags type?</p>
+</div><h3 id='tymethod.sh_str_idx' class='method'><span id='sh_str_idx.v' class='invisible'><code>fn <a href='#tymethod.sh_str_idx' class='fnname'>sh_str_idx</a>(&amp;self) -&gt; usize</code></span></h3><div class='docblock'><p>Index of the section header <a href="../section/struct.StrTable.html%22%5D">string table</a>.</p>
+</div></div>
+            <h2 id='provided-methods'>Provided Methods</h2>
+            <div class='methods'>
+        <h3 id='method.sh_range' class='method'><span id='sh_range.v' class='invisible'><code>fn <a href='#method.sh_range' class='fnname'>sh_range</a>(&amp;self) -&gt; <a class="struct" href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html" title="struct core::ops::range::Range">Range</a>&lt;usize&gt;</code></span></h3><h3 id='method.ph_range' class='method'><span id='ph_range.v' class='invisible'><code>fn <a href='#method.ph_range' class='fnname'>ph_range</a>(&amp;self) -&gt; <a class="struct" href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html" title="struct core::ops::range::Range">Range</a>&lt;usize&gt;</code></span></h3><h3 id='method.section_index' class='method'><span id='section_index.v' class='invisible'><code>fn <a href='#method.section_index' class='fnname'>section_index</a>(&amp;self, idx: usize) -&gt; <a class="struct" href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html" title="struct core::ops::range::Range">Range</a>&lt;usize&gt;</code></span></h3><div class='docblock'><p>Calculate the index for a <a href="../section/struct.Header.html">section header</a></p>
+
+<p>TODO: should this check the index is reasonable &amp; return a <code>Result</code></p>
+</div><h3 id='method.program_header_index' class='method'><span id='program_header_index.v' class='invisible'><code>fn <a href='#method.program_header_index' class='fnname'>program_header_index</a>(&amp;self, idx: usize) -&gt; <a class="struct" href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html" title="struct core::ops::range::Range">Range</a>&lt;usize&gt;</code></span></h3><div class='docblock'><p>Calculate the index for a program header</p>
+
+<p>TODO: should this check the index is reasonable &amp; return a <code>Result</code></p>
+</div></div>
+        <h2 id='implementors'>Implementors</h2>
+        <ul class='item-list' id='implementors-list'>
+    <li><code>impl Header for <a class="struct" href="../../elf/file/struct.HeaderRepr.html" title="struct elf::file::HeaderRepr">HeaderRepr</a>&lt;u32&gt;</code></li>
+<li><code>impl Header for <a class="struct" href="../../elf/file/struct.HeaderRepr.html" title="struct elf::file::HeaderRepr">HeaderRepr</a>&lt;u64&gt;</code></li>
+</ul><script type="text/javascript" async
+                         src="../../implementors/elf/file/trait.Header.js">
+                 </script></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "elf";
+    </script>
+    <script src="../../main.js"></script>
+    <script defer src="../../search-index.js"></script>
+</body>
+</html>

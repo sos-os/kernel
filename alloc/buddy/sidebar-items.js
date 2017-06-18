@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["system","This module integrates the buddy heap allocator into the Rust runtime."]],"struct":[["FreeBlock","A free block header stores a pointer to the next and previous free blocks."],["Heap","Structure with data for implementing the buddy block allocation strategy."]],"type":[["FreeList","A `FreeList` is a list of unique free blocks"]]});

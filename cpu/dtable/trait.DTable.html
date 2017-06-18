@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `DTable` trait in crate `cpu`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, DTable">
+
+    <title>cpu::dtable::DTable - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc trait">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'>Trait DTable</p><div class="block items"><ul><li><a href="#associated-types">Associated Types</a></li><li><a href="#required-methods">Required Methods</a></li><li><a href="#provided-methods">Provided Methods</a></li><li><a href="#implementors">Implementors</a></li></ul></div><p class='location'><a href='../index.html'>cpu</a>::<wbr><a href='index.html'>dtable</a></p><script>window.sidebarCurrent = {name: 'DTable', ty: 'trait', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Trait <a href='../index.html'>cpu</a>::<wbr><a href='index.html'>dtable</a>::<wbr><a class="trait" href=''>DTable</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../../src/cpu/x86_64/up/x86_all/dtable.rs.html#42-92' title='goto source code'>[src]</a></span></h1>
+<pre class='rust trait'>pub trait DTable: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a> {
+    type <a href='#associatedtype.Entry' class="type">Entry</a>: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>;
+    fn <a href='#tymethod.entry_count' class='fnname'>entry_count</a>(&amp;self) -&gt; usize;
+    fn <a href='#tymethod.load' class='fnname'>load</a>(&amp;'static self);
+
+    fn <a href='#method.get_ptr' class='fnname'>get_ptr</a>(&amp;self) -&gt; <a class="struct" href="../../cpu/dtable/struct.Pointer.html" title="struct cpu::dtable::Pointer">Pointer</a>&lt;Self&gt; { ... }
+}</pre><div class='docblock'><p>A descriptor table (IDT or GDT).</p>
+
+<p>The IA32 architecture uses two descriptor table structures, the GDT
+(Global Descriptor Table), which is used for configuring segmentation,
+and the IDT (Interrupt Descriptor Table), which tells the CPU where
+interrupt service routines are located.</p>
+
+<p>As SOS relies on paging rather than segmentation for memory protection on
+both 32-bit and 64-bit systems, we use the GDT only minimally. However, the
+CPU still requires a correctly configured GDT to run in protected mode, even
+if it is not actually used.</p>
+
+<p>This trait specifies base functionality common to both types of descriptor
+table.</p>
+</div>
+            <h2 id='associated-types'>Associated Types</h2>
+            <div class='methods'>
+        <h3 id='associatedtype.Entry' class='method'><span id='Entry.t' class='invisible'><code>type <a href='#associatedtype.Entry' class="type">Entry</a>: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a></code></span></h3><div class='docblock'><p>The type of an entry in this descriptor table.</p>
+
+<p>For an IDT, these are
+interrupt <a href="../interrupts/idt/gate/struct.Gate.html"><code>Gate</code></a>s,
+while for a GDT or LDT, they are segment
+<a href="../segment/struct.Descriptor.html"><code>Descriptor</code></a>s.</p>
+</div></div>
+            <h2 id='required-methods'>Required Methods</h2>
+            <div class='methods'>
+        <h3 id='tymethod.entry_count' class='method'><span id='entry_count.v' class='invisible'><code>fn <a href='#tymethod.entry_count' class='fnname'>entry_count</a>(&amp;self) -&gt; usize</code></span></h3><div class='docblock'><p>Returns the number of Entries in the <code>DTable</code>.</p>
+
+<p>This is used for calculating the limit.</p>
+</div><h3 id='tymethod.load' class='method'><span id='load.v' class='invisible'><code>fn <a href='#tymethod.load' class='fnname'>load</a>(&amp;'static self)</code></span></h3><div class='docblock'><p>Load the descriptor table with the appropriate load instruction</p>
+</div></div>
+            <h2 id='provided-methods'>Provided Methods</h2>
+            <div class='methods'>
+        <h3 id='method.get_ptr' class='method'><span id='get_ptr.v' class='invisible'><code>fn <a href='#method.get_ptr' class='fnname'>get_ptr</a>(&amp;self) -&gt; <a class="struct" href="../../cpu/dtable/struct.Pointer.html" title="struct cpu::dtable::Pointer">Pointer</a>&lt;Self&gt;</code></span></h3><div class='docblock'><p>Get the IDT pointer struct to pass to <code>lidt</code> or <code>lgdt</code></p>
+
+<p>This expects that the object implementing <code>DTable</code> not contain
+additional data before or after the actual <code>DTable</code>, if you wish
+to attach information to a descriptor table besides the array of
+entries that it consists of, it will be necessary to encose the
+descriptor table in another <code>struct</code> or <code>enum</code> type.</p>
+</div></div>
+        <h2 id='implementors'>Implementors</h2>
+        <ul class='item-list' id='implementors-list'>
+    <li><code>impl DTable for <a class="struct" href="../../cpu/segment/struct.Gdt.html" title="struct cpu::segment::Gdt">Gdt</a></code></li>
+<li><code>impl DTable for <a class="struct" href="../../cpu/interrupts/idt/struct.Idt.html" title="struct cpu::interrupts::idt::Idt">Idt</a></code></li>
+</ul><script type="text/javascript" async
+                         src="../../implementors/cpu/dtable/trait.DTable.js">
+                 </script></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "cpu";
+    </script>
+    <script src="../../main.js"></script>
+    <script defer src="../../search-index.js"></script>
+</body>
+</html>

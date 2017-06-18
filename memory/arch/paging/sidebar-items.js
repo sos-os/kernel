@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["table","Page tables."]],"struct":[["ActivePML4","Struct representing the currently active PML4 instance."]]});

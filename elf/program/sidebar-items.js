@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["EXECUTABLE",""],["NONE",""],["READABLE",""],["WRITABLE",""]],"enum":[["Type","The type field of an ELF program header"]],"struct":[["Flags",""],["HeaderRepr32","A 32-bit ELF Program Header"],["HeaderRepr64","A 64-bit ELF Program Header"]],"trait":[["Header","Trait representing an ELF Program Header."]]});

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `BorrowedPtr` struct in crate `sos_alloc`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, BorrowedPtr">
+
+    <title>sos_alloc::borrow::BorrowedPtr - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc struct">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'>Struct BorrowedPtr</p><div class="block items"><ul><li><a href="#methods">Methods</a></li><li><a href="#deref-methods">Methods from Deref&lt;Target=Unique<u8>&gt;</a></li><li><a href="#implementations">Trait Implementations</a></li></ul></div><p class='location'><a href='../index.html'>sos_alloc</a>::<wbr><a href='index.html'>borrow</a></p><script>window.sidebarCurrent = {name: 'BorrowedPtr', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Struct <a href='../index.html'>sos_alloc</a>::<wbr><a href='index.html'>borrow</a>::<wbr><a class="struct" href=''>BorrowedPtr</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../../src/sos_alloc/borrow.rs.html#21-27' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct BorrowedPtr&lt;'alloc, A&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;A: <a class="trait" href="../../sos_alloc/trait.Allocator.html" title="trait sos_alloc::Allocator">Allocator</a>,<br>&nbsp;&nbsp;&nbsp;&nbsp;A: 'alloc,&nbsp;</span> { /* fields omitted */ }</pre><div class='docblock'><p>A borrowed handle on a heap allocation with a specified lifetime.</p>
+
+<p>This automatically deallocates the allocated object when the borrow&#39;s
+lifetime ends. It also ensures that the borrow only lives as long as the
+allocator that provided it, and that the borrow is dropped if the allocator
+is dropped.</p>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl&lt;'alloc, A&gt; <a class="struct" href="../../sos_alloc/borrow/struct.BorrowedPtr.html" title="struct sos_alloc::borrow::BorrowedPtr">BorrowedPtr</a>&lt;'alloc, A&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;A: <a class="trait" href="../../sos_alloc/trait.Allocator.html" title="trait sos_alloc::Allocator">Allocator</a>,<br>&nbsp;&nbsp;&nbsp;&nbsp;A: 'alloc,&nbsp;</span></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/sos_alloc/borrow.rs.html#29-44' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.new' class="method"><span id='new.v' class='invisible'><code>fn <a href='#method.new' class='fnname'>new</a>(ptr: <a class="type" href="../../sos_alloc/type.Address.html" title="type sos_alloc::Address">Address</a>, layout: <a class="struct" href="../../sos_alloc/struct.Layout.html" title="struct sos_alloc::Layout">Layout</a>, allocator: &amp;'alloc <a class="struct" href="../../spin/mutex/struct.Mutex.html" title="struct spin::mutex::Mutex">Mutex</a>&lt;A&gt;) -&gt; Self</code></span></h4>
+</div><h2 id='deref-methods'>Methods from <a class="trait" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html" title="trait core::ops::deref::Deref">Deref</a>&lt;Target = <a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;u8&gt;&gt;</h2><div class='impl-items'></div><div class='impl-items'><h4 id='method.as_ptr' class="method"><span id='as_ptr.v' class='invisible'><code>fn <a href='#method.as_ptr' class='fnname'>as_ptr</a>(self) -&gt; *mut T</code></span></h4>
+<div class='stability'><div class='stab unstable'><span class=microscope>🔬</span> This is a nightly-only experimental API.  (<code>unique</code>)</div></div><div class='docblock'><p>Acquires the underlying <code>*mut</code> pointer.</p>
+</div><h4 id='method.as_ref' class="method"><span id='as_ref.v' class='invisible'><code>unsafe fn <a href='#method.as_ref' class='fnname'>as_ref</a>(&amp;self) -&gt; &amp;T</code></span></h4>
+<div class='stability'><div class='stab unstable'><span class=microscope>🔬</span> This is a nightly-only experimental API.  (<code>unique</code>)</div></div><div class='docblock'><p>Dereferences the content.</p>
+
+<p>The resulting lifetime is bound to self so this behaves &quot;as if&quot;
+it were actually an instance of T that is getting borrowed. If a longer
+(unbound) lifetime is needed, use <code>&amp;*my_ptr.ptr()</code>.</p>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl&lt;'alloc, A&gt; <a class="trait" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html" title="trait core::ops::deref::Deref">Deref</a> for <a class="struct" href="../../sos_alloc/borrow/struct.BorrowedPtr.html" title="struct sos_alloc::borrow::BorrowedPtr">BorrowedPtr</a>&lt;'alloc, A&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;A: <a class="trait" href="../../sos_alloc/trait.Allocator.html" title="trait sos_alloc::Allocator">Allocator</a>,<br>&nbsp;&nbsp;&nbsp;&nbsp;A: 'alloc,&nbsp;</span></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/sos_alloc/borrow.rs.html#46-51' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='associatedtype.Target' class="type"><span id='Target.t' class='invisible'><code>type <a href='https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html#associatedtype.Target' class="type">Target</a> = <a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;u8&gt;</code></span></h4>
+<div class='docblock'><p>The resulting type after dereferencing</p>
+</div><h4 id='method.deref' class="method"><span id='deref.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html#tymethod.deref' class='fnname'>deref</a>(&amp;self) -&gt; &amp;Self::<a class="type" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html#associatedtype.Target" title="type core::ops::deref::Deref::Target">Target</a></code></span></h4>
+<div class='docblock'><p>The method called to dereference a value</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;'alloc, A&gt; <a class="trait" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html" title="trait core::ops::drop::Drop">Drop</a> for <a class="struct" href="../../sos_alloc/borrow/struct.BorrowedPtr.html" title="struct sos_alloc::borrow::BorrowedPtr">BorrowedPtr</a>&lt;'alloc, A&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;A: <a class="trait" href="../../sos_alloc/trait.Allocator.html" title="trait sos_alloc::Allocator">Allocator</a>,<br>&nbsp;&nbsp;&nbsp;&nbsp;A: 'alloc,&nbsp;</span></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/sos_alloc/borrow.rs.html#53-61' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.drop' class="method"><span id='drop.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html#tymethod.drop' class='fnname'>drop</a>(&amp;mut self)</code></span></h4>
+<div class='docblock'><p>A method called when the value goes out of scope. <a href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html#tymethod.drop">Read more</a></p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "sos_alloc";
+    </script>
+    <script src="../../main.js"></script>
+    <script defer src="../../search-index.js"></script>
+</body>
+</html>

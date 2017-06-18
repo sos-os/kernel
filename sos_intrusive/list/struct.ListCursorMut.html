@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `ListCursorMut` struct in crate `sos_intrusive`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, ListCursorMut">
+
+    <title>sos_intrusive::list::ListCursorMut - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc struct">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'>Struct ListCursorMut</p><div class="block items"><ul><li><a href="#methods">Methods</a></li></ul></div><p class='location'><a href='../index.html'>sos_intrusive</a>::<wbr><a href='index.html'>list</a></p><script>window.sidebarCurrent = {name: 'ListCursorMut', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Struct <a href='../index.html'>sos_intrusive</a>::<wbr><a href='index.html'>list</a>::<wbr><a class="struct" href=''>ListCursorMut</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../../src/sos_intrusive/list/mod.rs.html#287-294' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct ListCursorMut&lt;'a, T, N&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;T: <a class="trait" href="../../sos_intrusive/list/trait.OwnedRef.html" title="trait sos_intrusive::list::OwnedRef">OwnedRef</a>&lt;N&gt;,<br>&nbsp;&nbsp;&nbsp;&nbsp;T: 'a,<br>&nbsp;&nbsp;&nbsp;&nbsp;N: <a class="trait" href="../../sos_intrusive/list/trait.Node.html" title="trait sos_intrusive::list::Node">Node</a>,<br>&nbsp;&nbsp;&nbsp;&nbsp;N: 'a,&nbsp;</span> { /* fields omitted */ }</pre><div class='docblock'><p>A cursor for an intrusive linked list.</p>
+
+<p>A cursor functions similarly to an iterator, except that it can seek back
+and forth rather than just advancing through the list, and it can mutate
+the element &quot;under&quot; the cursor.</p>
+
+<p>A cursor begins before the first element in the list, and once it has been
+advanced past the last element of the list, it &quot;loops around&quot; back to the
+first element.</p>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl&lt;'a, T, N&gt; <a class="struct" href="../../sos_intrusive/list/struct.ListCursorMut.html" title="struct sos_intrusive::list::ListCursorMut">ListCursorMut</a>&lt;'a, T, N&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;T: <a class="trait" href="../../sos_intrusive/list/trait.OwnedRef.html" title="trait sos_intrusive::list::OwnedRef">OwnedRef</a>&lt;N&gt;,<br>&nbsp;&nbsp;&nbsp;&nbsp;T: 'a,<br>&nbsp;&nbsp;&nbsp;&nbsp;N: <a class="trait" href="../../sos_intrusive/list/trait.Node.html" title="trait sos_intrusive::list::Node">Node</a>,<br>&nbsp;&nbsp;&nbsp;&nbsp;N: 'a,&nbsp;</span></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/sos_intrusive/list/mod.rs.html#296-446' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.next' class="method"><span id='next.v' class='invisible'><code>fn <a href='#method.next' class='fnname'>next</a>(&amp;mut self) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;&amp;mut N&gt;</code></span></h4>
+<div class='docblock'><p>Advances the cursor to the next element and borrows it mutably.</p>
+
+<p>If the cursor is at the end of the list, this advances it back to the
+first element.</p>
+
+<h1 id='returns' class='section-header'><a href='#returns'>Returns</a></h1>
+<ul>
+<li><code>Some(&amp;mut N)</code> if the list is not empty</li>
+<li><code>None</code> if the list is empty</li>
+</ul>
+</div><h4 id='method.prev' class="method"><span id='prev.v' class='invisible'><code>fn <a href='#method.prev' class='fnname'>prev</a>(&amp;mut self) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;&amp;mut N&gt;</code></span></h4>
+<div class='docblock'><p>Steps back the cursor to the previous element and borrows it mutably.</p>
+
+<h1 id='returns-1' class='section-header'><a href='#returns-1'>Returns</a></h1>
+<ul>
+<li><code>Some(&amp;mut N)</code> if the list is not empty</li>
+<li><code>None</code> if the list is empty</li>
+</ul>
+</div><h4 id='method.peek_next' class="method"><span id='peek_next.v' class='invisible'><code>fn <a href='#method.peek_next' class='fnname'>peek_next</a>(&amp;self) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;&amp;N&gt;</code></span></h4>
+<div class='docblock'><p>Borrows the next element in the list without advancing the cursor.</p>
+
+<p>If the cursor is at the end of the list, this returns the first element
+instead.</p>
+
+<h1 id='returns-2' class='section-header'><a href='#returns-2'>Returns</a></h1>
+<ul>
+<li><code>Some(&amp;N)</code> if the list is not empty</li>
+<li><code>None</code> if the list is empty</li>
+</ul>
+</div><h4 id='method.peek_prev' class="method"><span id='peek_prev.v' class='invisible'><code>fn <a href='#method.peek_prev' class='fnname'>peek_prev</a>(&amp;self) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;&amp;N&gt;</code></span></h4>
+<div class='docblock'><p>Borrows the previous element without stepping back the cursor.</p>
+
+<p>If the cursor is at the head of the list, this returns <code>None</code>.</p>
+
+<h1 id='returns-3' class='section-header'><a href='#returns-3'>Returns</a></h1>
+<ul>
+<li><code>Some(&amp;N)</code> if the list is not empty</li>
+<li><code>None</code> if the list is empty or if the cursor is at the head
+of the list</li>
+</ul>
+</div><h4 id='method.remove' class="method"><span id='remove.v' class='invisible'><code>fn <a href='#method.remove' class='fnname'>remove</a>(&amp;mut self) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;T&gt;</code></span></h4>
+<div class='docblock'><p>Removes the element currently under the cursor and returns it.</p>
+
+<h1 id='returns-4' class='section-header'><a href='#returns-4'>Returns</a></h1>
+<ul>
+<li><code>Some(T)</code> if the there is an element currently under the cursor
+(i.e., the list is not empty)</li>
+<li><code>None</code> if the list is empty.</li>
+</ul>
+</div><h4 id='method.find_and_remove' class="method"><span id='find_and_remove.v' class='invisible'><code>fn <a href='#method.find_and_remove' class='fnname'>find_and_remove</a>&lt;P&gt;(&amp;mut self, predicate: P) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;T&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;P: <a class="trait" href="https://doc.rust-lang.org/nightly/core/ops/function/trait.Fn.html" title="trait core::ops::function::Fn">Fn</a>(&amp;N) -&gt; bool,&nbsp;</span></code></span></h4>
+<div class='docblock'><p>Searches for and removes the first element matching a predicate.</p>
+
+<h1 id='arguments' class='section-header'><a href='#arguments'>Arguments</a></h1>
+<ul>
+<li><code>p</code>: A predicate (function of the form <code>&amp;N -&gt; bool</code>) that returns
+true if the element should be removed and false if it should not.</li>
+</ul>
+
+<h1 id='returns-5' class='section-header'><a href='#returns-5'>Returns</a></h1>
+<ul>
+<li><code>Some(T)</code> if an element matching the predicate was found</li>
+<li><code>None</code> if no elements matched the predicate (or if the list is
+empty.)</li>
+</ul>
+</div><h4 id='method.seek_forward' class="method"><span id='seek_forward.v' class='invisible'><code>fn <a href='#method.seek_forward' class='fnname'>seek_forward</a>(&amp;mut self, n: usize) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;&amp;mut N&gt;</code></span></h4>
+<div class='docblock'><p>Advances the cursor <code>n</code> elements and mutably borrows the final element.</p>
+
+<p>This will wrap the cursor around the list if <code>n</code> &gt; the length of
+the list.</p>
+</div><h4 id='method.seek_backward' class="method"><span id='seek_backward.v' class='invisible'><code>fn <a href='#method.seek_backward' class='fnname'>seek_backward</a>(&amp;mut self, n: usize) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;&amp;mut N&gt;</code></span></h4>
+<div class='docblock'><p>Moves the cursor back <code>n</code> times and mutably borrows the final element.</p>
+
+<p>This will wrap the cursor around the list if <code>n</code> &gt; the length of
+the list.</p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "sos_intrusive";
+    </script>
+    <script src="../../main.js"></script>
+    <script defer src="../../search-index.js"></script>
+</body>
+</html>

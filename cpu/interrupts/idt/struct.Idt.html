@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Idt` struct in crate `cpu`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Idt">
+
+    <title>cpu::interrupts::idt::Idt - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc struct">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'>Struct Idt</p><div class="block items"><ul><li><a href="#fields">Fields</a></li><li><a href="#methods">Methods</a></li><li><a href="#implementations">Trait Implementations</a></li></ul></div><p class='location'><a href='../../index.html'>cpu</a>::<wbr><a href='../index.html'>interrupts</a>::<wbr><a href='index.html'>idt</a></p><script>window.sidebarCurrent = {name: 'Idt', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Struct <a href='../../index.html'>cpu</a>::<wbr><a href='../index.html'>interrupts</a>::<wbr><a href='index.html'>idt</a>::<wbr><a class="struct" href=''>Idt</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../../../src/cpu/x86_64/up/x86_all/interrupts/idt/mod.rs.html#143-171' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'><div class="docblock attributes">#[repr(C)]
+</div>pub struct Idt {
+    pub divide_by_zero: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>,
+    pub debug: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>,
+    pub nmi: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>,
+    pub breakpoint: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>,
+    pub overflow: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>,
+    pub bound_exceeded: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>,
+    pub undefined_opcode: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>,
+    pub device_not_available: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>,
+    pub double_fault: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>&lt;<a class="type" href="../../../cpu/interrupts/type.ErrorCodeHandler.html" title="type cpu::interrupts::ErrorCodeHandler">ErrorCodeHandler</a>&gt;,
+    pub invalid_tss: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>&lt;<a class="type" href="../../../cpu/interrupts/type.ErrorCodeHandler.html" title="type cpu::interrupts::ErrorCodeHandler">ErrorCodeHandler</a>&gt;,
+    pub segment_not_present: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>&lt;<a class="type" href="../../../cpu/interrupts/type.ErrorCodeHandler.html" title="type cpu::interrupts::ErrorCodeHandler">ErrorCodeHandler</a>&gt;,
+    pub stack_segment_fault: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>&lt;<a class="type" href="../../../cpu/interrupts/type.ErrorCodeHandler.html" title="type cpu::interrupts::ErrorCodeHandler">ErrorCodeHandler</a>&gt;,
+    pub general_protection_fault: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>&lt;<a class="type" href="../../../cpu/interrupts/type.ErrorCodeHandler.html" title="type cpu::interrupts::ErrorCodeHandler">ErrorCodeHandler</a>&gt;,
+    pub page_fault: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>&lt;<a class="type" href="../../../cpu/interrupts/type.ErrorCodeHandler.html" title="type cpu::interrupts::ErrorCodeHandler">ErrorCodeHandler</a>&gt;,
+    pub floating_point_error: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>,
+    pub alignment_check: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>&lt;<a class="type" href="../../../cpu/interrupts/type.ErrorCodeHandler.html" title="type cpu::interrupts::ErrorCodeHandler">ErrorCodeHandler</a>&gt;,
+    pub machine_check: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>,
+    pub simd_fp_exception: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>,
+    pub virtualization: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>,
+    pub security_exception: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>&lt;<a class="type" href="../../../cpu/interrupts/type.ErrorCodeHandler.html" title="type cpu::interrupts::ErrorCodeHandler">ErrorCodeHandler</a>&gt;,
+    pub interrupts: [<a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>; 224],
+    // some fields omitted
+}</pre><div class='docblock'><p>An Interrupt Descriptor Table</p>
+
+<p>The IDT is either 64-bit or 32-bit.</p>
+</div><h2 id='fields' class='fields'>Fields</h2><span id='structfield.divide_by_zero' class="structfield">
+                           <span id='divide_by_zero.v' class='invisible'>
+                           <code>divide_by_zero: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a></code>
+                           </span></span><span id='structfield.debug' class="structfield">
+                           <span id='debug.v' class='invisible'>
+                           <code>debug: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a></code>
+                           </span></span><div class='docblock'><p>debug interrupt handler - reserved</p>
+</div><span id='structfield.nmi' class="structfield">
+                           <span id='nmi.v' class='invisible'>
+                           <code>nmi: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a></code>
+                           </span></span><span id='structfield.breakpoint' class="structfield">
+                           <span id='breakpoint.v' class='invisible'>
+                           <code>breakpoint: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a></code>
+                           </span></span><span id='structfield.overflow' class="structfield">
+                           <span id='overflow.v' class='invisible'>
+                           <code>overflow: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a></code>
+                           </span></span><span id='structfield.bound_exceeded' class="structfield">
+                           <span id='bound_exceeded.v' class='invisible'>
+                           <code>bound_exceeded: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a></code>
+                           </span></span><span id='structfield.undefined_opcode' class="structfield">
+                           <span id='undefined_opcode.v' class='invisible'>
+                           <code>undefined_opcode: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a></code>
+                           </span></span><span id='structfield.device_not_available' class="structfield">
+                           <span id='device_not_available.v' class='invisible'>
+                           <code>device_not_available: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a></code>
+                           </span></span><span id='structfield.double_fault' class="structfield">
+                           <span id='double_fault.v' class='invisible'>
+                           <code>double_fault: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>&lt;<a class="type" href="../../../cpu/interrupts/type.ErrorCodeHandler.html" title="type cpu::interrupts::ErrorCodeHandler">ErrorCodeHandler</a>&gt;</code>
+                           </span></span><span id='structfield.invalid_tss' class="structfield">
+                           <span id='invalid_tss.v' class='invisible'>
+                           <code>invalid_tss: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>&lt;<a class="type" href="../../../cpu/interrupts/type.ErrorCodeHandler.html" title="type cpu::interrupts::ErrorCodeHandler">ErrorCodeHandler</a>&gt;</code>
+                           </span></span><span id='structfield.segment_not_present' class="structfield">
+                           <span id='segment_not_present.v' class='invisible'>
+                           <code>segment_not_present: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>&lt;<a class="type" href="../../../cpu/interrupts/type.ErrorCodeHandler.html" title="type cpu::interrupts::ErrorCodeHandler">ErrorCodeHandler</a>&gt;</code>
+                           </span></span><span id='structfield.stack_segment_fault' class="structfield">
+                           <span id='stack_segment_fault.v' class='invisible'>
+                           <code>stack_segment_fault: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>&lt;<a class="type" href="../../../cpu/interrupts/type.ErrorCodeHandler.html" title="type cpu::interrupts::ErrorCodeHandler">ErrorCodeHandler</a>&gt;</code>
+                           </span></span><span id='structfield.general_protection_fault' class="structfield">
+                           <span id='general_protection_fault.v' class='invisible'>
+                           <code>general_protection_fault: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>&lt;<a class="type" href="../../../cpu/interrupts/type.ErrorCodeHandler.html" title="type cpu::interrupts::ErrorCodeHandler">ErrorCodeHandler</a>&gt;</code>
+                           </span></span><span id='structfield.page_fault' class="structfield">
+                           <span id='page_fault.v' class='invisible'>
+                           <code>page_fault: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>&lt;<a class="type" href="../../../cpu/interrupts/type.ErrorCodeHandler.html" title="type cpu::interrupts::ErrorCodeHandler">ErrorCodeHandler</a>&gt;</code>
+                           </span></span><span id='structfield.floating_point_error' class="structfield">
+                           <span id='floating_point_error.v' class='invisible'>
+                           <code>floating_point_error: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a></code>
+                           </span></span><span id='structfield.alignment_check' class="structfield">
+                           <span id='alignment_check.v' class='invisible'>
+                           <code>alignment_check: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>&lt;<a class="type" href="../../../cpu/interrupts/type.ErrorCodeHandler.html" title="type cpu::interrupts::ErrorCodeHandler">ErrorCodeHandler</a>&gt;</code>
+                           </span></span><span id='structfield.machine_check' class="structfield">
+                           <span id='machine_check.v' class='invisible'>
+                           <code>machine_check: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a></code>
+                           </span></span><span id='structfield.simd_fp_exception' class="structfield">
+                           <span id='simd_fp_exception.v' class='invisible'>
+                           <code>simd_fp_exception: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a></code>
+                           </span></span><span id='structfield.virtualization' class="structfield">
+                           <span id='virtualization.v' class='invisible'>
+                           <code>virtualization: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a></code>
+                           </span></span><span id='structfield.security_exception' class="structfield">
+                           <span id='security_exception.v' class='invisible'>
+                           <code>security_exception: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>&lt;<a class="type" href="../../../cpu/interrupts/type.ErrorCodeHandler.html" title="type cpu::interrupts::ErrorCodeHandler">ErrorCodeHandler</a>&gt;</code>
+                           </span></span><span id='structfield.interrupts' class="structfield">
+                           <span id='interrupts.v' class='invisible'>
+                           <code>interrupts: [<a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>; 224]</code>
+                           </span></span><div class='docblock'><p>user-defined interrupts</p>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl <a class="struct" href="../../../cpu/interrupts/idt/struct.Idt.html" title="struct cpu::interrupts::idt::Idt">Idt</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../../src/cpu/x86_64/up/x86_all/interrupts/idt/mod.rs.html#204-260' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.new' class="method"><span id='new.v' class='invisible'><code>const fn <a href='#method.new' class='fnname'>new</a>() -&gt; Self</code></span></h4>
+<div class='docblock'><p>Construct a new IDT with all interrupt gates set to <a href="struct.Gate.absent.html"><code>absent</code></a>.</p>
+</div><h4 id='method.enable_interrupts' class="method"><span id='enable_interrupts.v' class='invisible'><code>unsafe fn <a href='#method.enable_interrupts' class='fnname'>enable_interrupts</a>()</code></span></h4>
+<div class='docblock'><p>Enable interrupts</p>
+</div><h4 id='method.disable_interrupts' class="method"><span id='disable_interrupts.v' class='invisible'><code>unsafe fn <a href='#method.disable_interrupts' class='fnname'>disable_interrupts</a>()</code></span></h4>
+<div class='docblock'><p>Disable interrupts</p>
+</div><h4 id='method.add_handler' class="method"><span id='add_handler.v' class='invisible'><code>fn <a href='#method.add_handler' class='fnname'>add_handler</a>&lt;Handler&gt;(&amp;mut self, idx: usize, handler: Handler) -&gt; &amp;mut Self <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;<a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>: <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html" title="trait core::convert::From">From</a>&lt;Handler&gt;,&nbsp;</span></code></span></h4>
+<div class='docblock'><p>Add a new interrupt gate pointing to the given handler</p>
+</div><h4 id='method.add_gate' class="method"><span id='add_gate.v' class='invisible'><code>fn <a href='#method.add_gate' class='fnname'>add_gate</a>(&amp;mut self, idx: usize, gate: <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a>) -&gt; &amp;mut Self</code></span></h4>
+<div class='docblock'><p>Add a <a href="struct.Gate.html"><code>Gate</code></a> to the IDT.</p>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html" title="trait core::default::Default">Default</a> for <a class="struct" href="../../../cpu/interrupts/idt/struct.Idt.html" title="struct cpu::interrupts::idt::Idt">Idt</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../../src/cpu/x86_64/up/x86_all/interrupts/idt/mod.rs.html#173-181' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.default' class="method"><span id='default.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/default/trait.Default.html#tymethod.default' class='fnname'>default</a>() -&gt; Self</code></span></h4>
+<div class='docblock'><p>Returns the &quot;default value&quot; for a type. <a href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html#tymethod.default">Read more</a></p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/ops/index/trait.Index.html" title="trait core::ops::index::Index">Index</a>&lt;usize&gt; for <a class="struct" href="../../../cpu/interrupts/idt/struct.Idt.html" title="struct cpu::interrupts::idt::Idt">Idt</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../../src/cpu/x86_64/up/x86_all/interrupts/idt/mod.rs.html#183-192' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='associatedtype.Output' class="type"><span id='Output.t' class='invisible'><code>type <a href='https://doc.rust-lang.org/nightly/core/ops/index/trait.Index.html#associatedtype.Output' class="type">Output</a> = <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a></code></span></h4>
+<div class='docblock'><p>The returned type after indexing</p>
+</div><h4 id='method.index' class="method"><span id='index.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/index/trait.Index.html#tymethod.index' class='fnname'>index</a>(&amp;self, index: usize) -&gt; &amp;<a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a></code></span></h4>
+<div class='docblock'><p>The method for the indexing (<code>container[index]</code>) operation</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/ops/index/trait.IndexMut.html" title="trait core::ops::index::IndexMut">IndexMut</a>&lt;usize&gt; for <a class="struct" href="../../../cpu/interrupts/idt/struct.Idt.html" title="struct cpu::interrupts::idt::Idt">Idt</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../../src/cpu/x86_64/up/x86_all/interrupts/idt/mod.rs.html#194-202' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.index_mut' class="method"><span id='index_mut.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/index/trait.IndexMut.html#tymethod.index_mut' class='fnname'>index_mut</a>(&amp;mut self, index: usize) -&gt; &amp;mut Self::<a class="type" href="https://doc.rust-lang.org/nightly/core/ops/index/trait.Index.html#associatedtype.Output" title="type core::ops::index::Index::Output">Output</a></code></span></h4>
+<div class='docblock'><p>The method for the mutable indexing (<code>container[index]</code>) operation</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class="trait" href="../../../cpu/dtable/trait.DTable.html" title="trait cpu::dtable::DTable">DTable</a> for <a class="struct" href="../../../cpu/interrupts/idt/struct.Idt.html" title="struct cpu::interrupts::idt::Idt">Idt</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../../src/cpu/x86_64/up/x86_all/interrupts/idt/mod.rs.html#262-275' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='associatedtype.Entry' class="type"><span id='Entry.t' class='invisible'><code>type <a href='../../../cpu/dtable/trait.DTable.html#associatedtype.Entry' class="type">Entry</a> = <a class="struct" href="../../../cpu/interrupts/idt/struct.Gate.html" title="struct cpu::interrupts::idt::Gate">Gate</a></code></span></h4>
+<div class='docblock'><p>The type of an entry in this descriptor table. <a href="../../../cpu/dtable/trait.DTable.html#associatedtype.Entry">Read more</a></p>
+</div><h4 id='method.entry_count' class="method"><span id='entry_count.v' class='invisible'><code>fn <a href='../../../cpu/dtable/trait.DTable.html#tymethod.entry_count' class='fnname'>entry_count</a>(&amp;self) -&gt; usize</code></span></h4>
+<div class='docblock'><p>Returns the number of Entries in the <code>DTable</code>. <a href="../../../cpu/dtable/trait.DTable.html#tymethod.entry_count">Read more</a></p>
+</div><h4 id='method.load' class="method"><span id='load.v' class='invisible'><code>fn <a href='../../../cpu/dtable/trait.DTable.html#tymethod.load' class='fnname'>load</a>(&amp;'static self)</code></span></h4>
+<div class='docblock'><p>Load the descriptor table with the appropriate load instruction</p>
+</div><h4 id='method.get_ptr' class="method"><span id='get_ptr.v' class='invisible'><code>fn <a href='../../../cpu/dtable/trait.DTable.html#method.get_ptr' class='fnname'>get_ptr</a>(&amp;self) -&gt; <a class="struct" href="../../../cpu/dtable/struct.Pointer.html" title="struct cpu::dtable::Pointer">Pointer</a>&lt;Self&gt;</code></span></h4>
+<div class='docblock'><p>Get the IDT pointer struct to pass to <code>lidt</code> or <code>lgdt</code> <a href="../../../cpu/dtable/trait.DTable.html#method.get_ptr">Read more</a></p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../../";
+        window.currentCrate = "cpu";
+    </script>
+    <script src="../../../main.js"></script>
+    <script defer src="../../../search-index.js"></script>
+</body>
+</html>

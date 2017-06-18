@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `segment` mod in crate `cpu`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, segment">
+
+    <title>cpu::segment - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc mod">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'>Module segment</p><div class="block items"><ul><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#constants">Constants</a></li><li><a href="#statics">Statics</a></li></ul></div><p class='location'><a href='../index.html'>cpu</a></p><script>window.sidebarCurrent = {name: 'segment', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Module <a href='../index.html'>cpu</a>::<wbr><a class="mod" href=''>segment</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../../src/cpu/x86_64/up/x86_all/segment.rs.html#9-528' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p>Code for using the <code>x86</code> and <code>x86_64</code> segmentation hardware.</p>
+
+<p>For more information, refer to the <em>Intel® 64 and IA-32 Architectures
+Software Developer’s Manual</em>, Vol. 3A, section 3.2, &quot;Using Segments&quot;.
+Some of the documentation present in this module was taken from the Intel
+manual.</p>
+</div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.CodeFlags.html"
+                                  title='struct cpu::segment::CodeFlags'>CodeFlags</a></td>
+                           <td class='docblock-short'>
+                                <p>The type-specific section of a code segment&#39;s flags</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.DataFlags.html"
+                                  title='struct cpu::segment::DataFlags'>DataFlags</a></td>
+                           <td class='docblock-short'>
+                                <p>The type-specific section of a data segment&#39;s flags</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.Descriptor.html"
+                                  title='struct cpu::segment::Descriptor'>Descriptor</a></td>
+                           <td class='docblock-short'>
+                                <p>A segment descriptor is an entry in an IDT or GDT.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.Flags.html"
+                                  title='struct cpu::segment::Flags'>Flags</a></td>
+                           <td class='docblock-short'>
+                                <p>Segment descriptor bitflags field.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.Gdt.html"
+                                  title='struct cpu::segment::Gdt'>Gdt</a></td>
+                           <td class='docblock-short'>
+                                <p>Structure representing a Global Descriptor Table</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.Selector.html"
+                                  title='struct cpu::segment::Selector'>Selector</a></td>
+                           <td class='docblock-short'>
+                                <p>A segment selector is a 16-bit identifier for a segment.</p>
+                           </td>
+                       </tr></table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="enum" href="enum.SysType.html"
+                                  title='enum cpu::segment::SysType'>SysType</a></td>
+                           <td class='docblock-short'>
+                                <p>Possible types of for a system segment.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="enum" href="enum.Type.html"
+                                  title='enum cpu::segment::Type'>Type</a></td>
+                           <td class='docblock-short'>
+                                <p>Possible ways to interpret the type bits of a segment selector.</p>
+                           </td>
+                       </tr></table><h2 id='constants' class='section-header'><a href="#constants">Constants</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.ACCESSED.html"
+                                  title='constant cpu::segment::ACCESSED'>ACCESSED</a></td>
+                           <td class='docblock-short'>
+                                <p>If this is a code or data segment and the accessed bit is set,
+it has been accessed.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.AVAILABLE.html"
+                                  title='constant cpu::segment::AVAILABLE'>AVAILABLE</a></td>
+                           <td class='docblock-short'>
+                                <p>1 if this segment is available for use by system software</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.CODE_ACCESSED.html"
+                                  title='constant cpu::segment::CODE_ACCESSED'>CODE_ACCESSED</a></td>
+                           <td class='docblock-short'>
+                                <p>0 if this segment hasn&#39;t been accessed, 1 if it has</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.CODE_DATA_ACC.html"
+                                  title='constant cpu::segment::CODE_DATA_ACC'>CODE_DATA_ACC</a></td>
+                           <td class='docblock-short'>
+                                <p>1 if this is a code or data segment that has been accessed</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.CONFORMING.html"
+                                  title='constant cpu::segment::CONFORMING'>CONFORMING</a></td>
+                           <td class='docblock-short'>
+                                <p>0 if this segment is non-conforming, 1 if it is conforming</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.DATA_ACCESSED.html"
+                                  title='constant cpu::segment::DATA_ACCESSED'>DATA_ACCESSED</a></td>
+                           <td class='docblock-short'>
+                                <p>0 if this segment hasn&#39;t been accessed, 1 if it has</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.DEFAULT_SIZE.html"
+                                  title='constant cpu::segment::DEFAULT_SIZE'>DEFAULT_SIZE</a></td>
+                           <td class='docblock-short'>
+                                <p>0 if this is a 16-bit segment, 1 if it is a 32-bit segment</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.DESCR_TYPE.html"
+                                  title='constant cpu::segment::DESCR_TYPE'>DESCR_TYPE</a></td>
+                           <td class='docblock-short'>
+                                <p>1 if this is a data/code segment, 0 if this is a system segment</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.DPL.html"
+                                  title='constant cpu::segment::DPL'>DPL</a></td>
+                           <td class='docblock-short'>
+                                <p>Two bits indicating the descriptor priveliege level</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.EXECUTE.html"
+                                  title='constant cpu::segment::EXECUTE'>EXECUTE</a></td>
+                           <td class='docblock-short'>
+                                <p>0 if this segment is not executable, 1 if it is executable</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.EXEC_ONLY.html"
+                                  title='constant cpu::segment::EXEC_ONLY'>EXEC_ONLY</a></td>
+                           <td class='docblock-short'>
+                                <p>Whether this segment is execute-only</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.EXPAND_DOWN.html"
+                                  title='constant cpu::segment::EXPAND_DOWN'>EXPAND_DOWN</a></td>
+                           <td class='docblock-short'>
+                                <p>1 if this segment expands down</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.GDT_SIZE.html"
+                                  title='constant cpu::segment::GDT_SIZE'>GDT_SIZE</a></td>
+                           <td class='docblock-short'>
+                                <p>The number of entries in the GDT</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.GRANULARITY.html"
+                                  title='constant cpu::segment::GRANULARITY'>GRANULARITY</a></td>
+                           <td class='docblock-short'>
+                                <p>0 if the limit of this segment is given in bytes, 1 if it is given
+in 4092-byte pages</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.LENGTH.html"
+                                  title='constant cpu::segment::LENGTH'>LENGTH</a></td>
+                           <td class='docblock-short'>
+                                <p>0 if this is a 16- or 32-bit segment, 1 if it is a 64-bit segment</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.LIMIT.html"
+                                  title='constant cpu::segment::LIMIT'>LIMIT</a></td>
+                           <td class='docblock-short'>
+                                <p>bits 16...19 of the limit</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.PRESENT.html"
+                                  title='constant cpu::segment::PRESENT'>PRESENT</a></td>
+                           <td class='docblock-short'>
+                                <p>1 if this segment is present.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.READ.html"
+                                  title='constant cpu::segment::READ'>READ</a></td>
+                           <td class='docblock-short'>
+                                <p>0 if this segment is read-only, 1 if it is read-write</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.RPL.html"
+                                  title='constant cpu::segment::RPL'>RPL</a></td>
+                           <td class='docblock-short'>
+                                <p>Requested Privelege Level (RPL) bits</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.RPL_RING_0.html"
+                                  title='constant cpu::segment::RPL_RING_0'>RPL_RING_0</a></td>
+                           <td class='docblock-short'>
+                                <p>Set if the RPL is in Ring 0</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.RPL_RING_1.html"
+                                  title='constant cpu::segment::RPL_RING_1'>RPL_RING_1</a></td>
+                           <td class='docblock-short'>
+                                <p>Set if the RPL is in Ring 1</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.RPL_RING_2.html"
+                                  title='constant cpu::segment::RPL_RING_2'>RPL_RING_2</a></td>
+                           <td class='docblock-short'>
+                                <p>Set if the RPL is in Ring 2</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.RPL_RING_3.html"
+                                  title='constant cpu::segment::RPL_RING_3'>RPL_RING_3</a></td>
+                           <td class='docblock-short'>
+                                <p>Set if the RPL is in Ring 3</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.SEGMENT_TYPE.html"
+                                  title='constant cpu::segment::SEGMENT_TYPE'>SEGMENT_TYPE</a></td>
+                           <td class='docblock-short'>
+                                <p>Four bits that indcate the type of the segment</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.TI_GDT.html"
+                                  title='constant cpu::segment::TI_GDT'>TI_GDT</a></td>
+                           <td class='docblock-short'>
+                                <p>If the Table Indicator (TI) is 0, use the GDT</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.TI_LDT.html"
+                                  title='constant cpu::segment::TI_LDT'>TI_LDT</a></td>
+                           <td class='docblock-short'>
+                                <p>If the TI is 1, use the LDT</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.WRITE.html"
+                                  title='constant cpu::segment::WRITE'>WRITE</a></td>
+                           <td class='docblock-short'>
+                                <p>0 if this segment is read-only, 1 if it is read-write</p>
+                           </td>
+                       </tr></table><h2 id='statics' class='section-header'><a href="#statics">Statics</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="static" href="static.GDT.html"
+                                  title='static cpu::segment::GDT'>GDT</a></td>
+                           <td class='docblock-short'>
+                                <p>A Global Descriptor Table (GDT)</p>
+                           </td>
+                       </tr></table></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "cpu";
+    </script>
+    <script src="../../main.js"></script>
+    <script defer src="../../search-index.js"></script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["current_pagetable_frame","Returns the current Page Directory base frame."],["read","Read the current value from `$cr3`."],["set_pagetable_frame","Returns the current Page Directory base frame."],["write","Write a value to `$cr3`."]]});

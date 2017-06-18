@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["RawLink","A `RawLink` provides an `Option`-like interface to a raw pointer."]]});

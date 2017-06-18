@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["rust_begin_unwind","Called to handle a panic."]]});

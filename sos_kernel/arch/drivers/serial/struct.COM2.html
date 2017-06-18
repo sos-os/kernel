@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `COM2` struct in crate `sos_kernel`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, COM2">
+
+    <title>sos_kernel::arch::drivers::serial::COM2 - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../../../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../../../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc struct">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'>Struct COM2</p><div class="block items"><ul><li><a href="#deref-methods">Methods from __Deref&lt;Target=Mutex<Serial>&gt;</a></li><li><a href="#implementations">Trait Implementations</a></li></ul></div><p class='location'><a href='../../../index.html'>sos_kernel</a>::<wbr><a href='../../index.html'>arch</a>::<wbr><a href='../index.html'>drivers</a>::<wbr><a href='index.html'>serial</a></p><script>window.sidebarCurrent = {name: 'COM2', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Struct <a href='../../../index.html'>sos_kernel</a>::<wbr><a href='../../index.html'>arch</a>::<wbr><a href='../index.html'>drivers</a>::<wbr><a href='index.html'>serial</a>::<wbr><a class="struct" href=''>COM2</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span></span></h1>
+<pre class='rust struct'>pub struct COM2 { /* fields omitted */ }</pre><h2 id='deref-methods'>Methods from <a class="trait" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html" title="trait core::ops::deref::Deref">__Deref</a>&lt;Target = <a class="struct" href="../../../../spin/mutex/struct.Mutex.html" title="struct spin::mutex::Mutex">Mutex</a>&lt;<a class="struct" href="../../../../sos_kernel/arch/drivers/serial/struct.Serial.html" title="struct sos_kernel::arch::drivers::serial::Serial">Serial</a>&gt;&gt;</h2><div class='impl-items'><h4 id='method.into_inner' class="method"><span id='into_inner.v' class='invisible'><code>fn <a href='#method.into_inner' class='fnname'>into_inner</a>(self) -&gt; T</code></span></h4>
+<div class='docblock'><p>Consumes this mutex, returning the underlying data.</p>
+</div></div><div class='impl-items'><h4 id='method.lock' class="method"><span id='lock.v' class='invisible'><code>fn <a href='#method.lock' class='fnname'>lock</a>(&amp;self) -&gt; <a class="struct" href="../../../../spin/mutex/struct.MutexGuard.html" title="struct spin::mutex::MutexGuard">MutexGuard</a>&lt;T&gt;</code></span></h4>
+<div class='docblock'><p>Locks the spinlock and returns a guard.</p>
+
+<p>The returned value may be dereferenced for data access
+and the lock will be dropped when the guard falls out of scope.</p>
+
+<pre class="rust rust-example-rendered">
+<span class="kw">let</span> <span class="ident">mylock</span> <span class="op">=</span> <span class="ident">spin</span>::<span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="number">0</span>);
+{
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">mylock</span>.<span class="ident">lock</span>();
+    <span class="comment">// The lock is now locked and the data can be accessed</span>
+    <span class="kw-2">*</span><span class="ident">data</span> <span class="op">+=</span> <span class="number">1</span>;
+    <span class="comment">// The lock is implicitly dropped</span>
+}
+</pre>
+</div><h4 id='method.force_unlock' class="method"><span id='force_unlock.v' class='invisible'><code>unsafe fn <a href='#method.force_unlock' class='fnname'>force_unlock</a>(&amp;self)</code></span></h4>
+<div class='docblock'><p>Force unlock the spinlock.</p>
+
+<p>This is <em>extremely</em> unsafe if the lock is not held by the current
+thread. However, this can be useful in some instances for exposing the
+lock to FFI that doesn&#39;t know how to deal with RAII.</p>
+
+<p>If the lock isn&#39;t held, this is a no-op.</p>
+</div><h4 id='method.try_lock' class="method"><span id='try_lock.v' class='invisible'><code>fn <a href='#method.try_lock' class='fnname'>try_lock</a>(&amp;self) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="../../../../spin/mutex/struct.MutexGuard.html" title="struct spin::mutex::MutexGuard">MutexGuard</a>&lt;T&gt;&gt;</code></span></h4>
+<div class='docblock'><p>Tries to lock the mutex. If it is already locked, it will return None. Otherwise it returns
+a guard within Some.</p>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html" title="trait core::ops::deref::Deref">__Deref</a> for <a class="struct" href="../../../../sos_kernel/arch/drivers/serial/struct.COM2.html" title="struct sos_kernel::arch::drivers::serial::COM2">COM2</a></code></span><span class='out-of-band'></span></h3>
+<div class='impl-items'><h4 id='associatedtype.Target' class="type"><span id='Target.t' class='invisible'><code>type <a href='https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html#associatedtype.Target' class="type">Target</a> = <a class="struct" href="../../../../spin/mutex/struct.Mutex.html" title="struct spin::mutex::Mutex">Mutex</a>&lt;<a class="struct" href="../../../../sos_kernel/arch/drivers/serial/struct.Serial.html" title="struct sos_kernel::arch::drivers::serial::Serial">Serial</a>&gt;</code></span></h4>
+<div class='docblock'><p>The resulting type after dereferencing</p>
+</div><h4 id='method.deref' class="method"><span id='deref.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html#tymethod.deref' class='fnname'>deref</a>(&amp;self) -&gt; &amp;<a class="struct" href="../../../../spin/mutex/struct.Mutex.html" title="struct spin::mutex::Mutex">Mutex</a>&lt;<a class="struct" href="../../../../sos_kernel/arch/drivers/serial/struct.Serial.html" title="struct sos_kernel::arch::drivers::serial::Serial">Serial</a>&gt;</code></span></h4>
+<div class='docblock'><p>The method called to dereference a value</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class="trait" href="../../../../lazy_static/trait.LazyStatic.html" title="trait lazy_static::LazyStatic">LazyStatic</a> for <a class="struct" href="../../../../sos_kernel/arch/drivers/serial/struct.COM2.html" title="struct sos_kernel::arch::drivers::serial::COM2">COM2</a></code></span><span class='out-of-band'></span></h3>
+<div class='impl-items'><h4 id='method.initialize' class="method"><span id='initialize.v' class='invisible'><code>fn <a href='../../../../lazy_static/trait.LazyStatic.html#tymethod.initialize' class='fnname'>initialize</a>(lazy: &amp;Self)</code></span></h4>
+</div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../../../";
+        window.currentCrate = "sos_kernel";
+    </script>
+    <script src="../../../../main.js"></script>
+    <script defer src="../../../../search-index.js"></script>
+</body>
+</html>

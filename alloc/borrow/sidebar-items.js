@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Borrowed","A borrowed handle on a heap allocation with a specified lifetime."],["BorrowedPtr","A borrowed handle on a heap allocation with a specified lifetime."]],"trait":[["Lender",""]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["MemMapAllocator","A simple area allocator."]]});

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `interrupts` mod in crate `cpu`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, interrupts">
+
+    <title>cpu::interrupts - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc mod">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'>Module interrupts</p><div class="block items"><ul><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#constants">Constants</a></li><li><a href="#functions">Functions</a></li><li><a href="#types">Type Definitions</a></li></ul></div><p class='location'><a href='../index.html'>cpu</a></p><script>window.sidebarCurrent = {name: 'interrupts', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Module <a href='../index.html'>cpu</a>::<wbr><a class="mod" href=''>interrupts</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../../src/cpu/x86_64/up/x86_all/interrupts/mod.rs.html#9-124' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p>Intterupt handling on x86 machines.</p>
+
+<p>This module provides support for interrupt handling on both <code>x86</code> and
+<code>x86_64</code> as a black box. Code that depends on this can use the same API
+regardless of system word size.</p>
+</div><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="idt/index.html"
+                                  title='mod cpu::interrupts::idt'>idt</a></td>
+                           <td class='docblock-short'>
+                                <p>Common functionality for the <code>x86</code> and <code>x86_64</code> Interrupt Descriptor Table.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="pics/index.html"
+                                  title='mod cpu::interrupts::pics'>pics</a></td>
+                           <td class='docblock-short'>
+                                <p>Support for the 8259 Programmable Interrupt Controller.</p>
+                           </td>
+                       </tr></table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.ExceptionInfo.html"
+                                  title='struct cpu::interrupts::ExceptionInfo'>ExceptionInfo</a></td>
+                           <td class='docblock-short'>
+                                <p>A description of a CPU exception</p>
+                           </td>
+                       </tr></table><h2 id='constants' class='section-header'><a href="#constants">Constants</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.NUM_EXCEPTIONS.html"
+                                  title='constant cpu::interrupts::NUM_EXCEPTIONS'>NUM_EXCEPTIONS</a></td>
+                           <td class='docblock-short'>
+                                <p>Number of interrupt vectors corresponding to CPU exceptions.</p>
+                           </td>
+                       </tr></table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="fn" href="fn.page_fault.html"
+                                  title='fn cpu::interrupts::page_fault'>page_fault</a></td>
+                           <td class='docblock-short'>
+                                <p>Handles page fault exceptions</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="fn" href="fn.test.html"
+                                  title='fn cpu::interrupts::test'>test</a></td>
+                           <td class='docblock-short'>
+                                <p>Test interrupt handler for ensuring that the IDT is configured correctly.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="fn" href="fn.timer.html"
+                                  title='fn cpu::interrupts::timer'>timer</a></td>
+                           <td class='docblock-short'>
+                                <p>Handler for the system timer interrupt</p>
+                           </td>
+                       </tr></table><h2 id='types' class='section-header'><a href="#types">Type Definitions</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="type" href="type.ErrorCodeHandler.html"
+                                  title='type cpu::interrupts::ErrorCodeHandler'>ErrorCodeHandler</a></td>
+                           <td class='docblock-short'>
+                                <p>An ISR that handles an error with an error code</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="type" href="type.InterruptHandler.html"
+                                  title='type cpu::interrupts::InterruptHandler'>InterruptHandler</a></td>
+                           <td class='docblock-short'>
+                                <p>An ISR that handles a regular interrupt</p>
+                           </td>
+                       </tr></table></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "cpu";
+    </script>
+    <script src="../../main.js"></script>
+    <script defer src="../../search-index.js"></script>
+</body>
+</html>

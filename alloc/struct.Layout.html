@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Layout` struct in crate `alloc`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Layout">
+
+    <title>alloc::Layout - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc struct">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'>Struct Layout</p><div class="block items"><ul><li><a href="#methods">Methods</a></li><li><a href="#implementations">Trait Implementations</a></li></ul></div><p class='location'><a href='index.html'>alloc</a></p><script>window.sidebarCurrent = {name: 'Layout', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Struct <a href='index.html'>alloc</a>::<wbr><a class="struct" href=''>Layout</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../src/alloc/lib.rs.html#110-121' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct Layout { /* fields omitted */ }</pre><div class='docblock'><p>Category for a memory record.</p>
+
+<p>An instance of <code>Layout</code> describes a particular layout of memory.
+You build a <code>Layout</code> up as an input to give to an allocator.</p>
+
+<p>All layouts have an associated non-negative size and positive alignment.</p>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/alloc/lib.rs.html#128-360' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.from_size_align' class="method"><span id='from_size_align.v' class='invisible'><code>fn <a href='#method.from_size_align' class='fnname'>from_size_align</a>(size: usize, align: usize) -&gt; <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a></code></span></h4>
+<h4 id='method.size' class="method"><span id='size.v' class='invisible'><code>fn <a href='#method.size' class='fnname'>size</a>(&amp;self) -&gt; usize</code></span></h4>
+<div class='docblock'><p>The minimum size in bytes for a memory block of this layout.</p>
+</div><h4 id='method.align' class="method"><span id='align.v' class='invisible'><code>fn <a href='#method.align' class='fnname'>align</a>(&amp;self) -&gt; usize</code></span></h4>
+<div class='docblock'><p>The minimum byte alignment for a memory block of this layout.</p>
+</div><h4 id='method.new' class="method"><span id='new.v' class='invisible'><code>fn <a href='#method.new' class='fnname'>new</a>&lt;T&gt;() -&gt; Self</code></span></h4>
+<div class='docblock'><p>Constructs a <code>Layout</code> suitable for holding a value of type <code>T</code>.</p>
+</div><h4 id='method.for_value' class="method"><span id='for_value.v' class='invisible'><code>fn <a href='#method.for_value' class='fnname'>for_value</a>&lt;T:&nbsp;?<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt;(t: &amp;T) -&gt; Self</code></span></h4>
+<div class='docblock'><p>Produces layout describing a record that could be used to
+allocate backing structure for <code>T</code> (which could be a trait
+or other unsized type like a slice).</p>
+</div><h4 id='method.align_to' class="method"><span id='align_to.v' class='invisible'><code>fn <a href='#method.align_to' class='fnname'>align_to</a>(&amp;self, align: <a class="type" href="../alloc/type.Alignment.html" title="type alloc::Alignment">Alignment</a>) -&gt; Self</code></span></h4>
+<div class='docblock'><p>Creates a layout describing the record that can hold a value
+of the same layout as <code>self</code>, but that also is aligned to
+alignment <code>align</code> (measured in bytes).</p>
+
+<p>If <code>self</code> already meets the prescribed alignment, then returns
+<code>self</code>.</p>
+
+<p>Note that this method does not add any padding to the overall
+size, regardless of whether the returned layout has a different
+alignment. In other words, if <code>K</code> has size 16, <code>K.align_to(32)</code>
+will <em>still</em> have size 16.</p>
+</div><h4 id='method.padding_needed_for' class="method"><span id='padding_needed_for.v' class='invisible'><code>fn <a href='#method.padding_needed_for' class='fnname'>padding_needed_for</a>(&amp;self, align: <a class="type" href="../alloc/type.Alignment.html" title="type alloc::Alignment">Alignment</a>) -&gt; usize</code></span></h4>
+<div class='docblock'><p>Returns the amount of padding we must insert after <code>self</code>
+to ensure that the following address will satisfy <code>align</code>
+(measured in bytes).</p>
+
+<p>Behavior undefined if <code>align</code> is not a power-of-two.</p>
+
+<p>Note that in practice, this is only useable if <code>align &lt;= self.align</code> otherwise, the amount of inserted padding would
+need to depend on the particular starting address for the
+whole record, because <code>self.align</code> would not provide
+sufficient constraint.</p>
+</div><h4 id='method.repeat' class="method"><span id='repeat.v' class='invisible'><code>fn <a href='#method.repeat' class='fnname'>repeat</a>(&amp;self, n: usize) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;(Self, usize)&gt;</code></span></h4>
+<div class='docblock'><p>Creates a layout describing the record for <code>n</code> instances of
+<code>self</code>, with a suitable amount of padding between each to
+ensure that each instance is given its requested size and
+alignment. On success, returns <code>(k, offs)</code> where <code>k</code> is the
+layout of the array and <code>offs</code> is the distance between the start
+of each element in the array.</p>
+
+<p>On arithmetic overflow, returns <code>None</code>.</p>
+</div><h4 id='method.extend' class="method"><span id='extend.v' class='invisible'><code>fn <a href='#method.extend' class='fnname'>extend</a>(&amp;self, next: Self) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;(Self, usize)&gt;</code></span></h4>
+<div class='docblock'><p>Creates a layout describing the record for <code>self</code> followed by
+<code>next</code>, including any necessary padding to ensure that <code>next</code>
+will be properly aligned. Note that the result layout will
+satisfy the alignment properties of both <code>self</code> and <code>next</code>.</p>
+
+<p>Returns <code>Some((k, offset))</code>, where <code>k</code> is layout of the concatenated
+record and <code>offset</code> is the relative location, in bytes, of the
+start of the <code>next</code> embedded witnin the concatenated record
+(assuming that the record itself starts at offset 0).</p>
+
+<p>On arithmetic overflow, returns <code>None</code>.</p>
+</div><h4 id='method.repeat_packed' class="method"><span id='repeat_packed.v' class='invisible'><code>fn <a href='#method.repeat_packed' class='fnname'>repeat_packed</a>(&amp;self, n: usize) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;Self&gt;</code></span></h4>
+<div class='docblock'><p>Creates a layout describing the record for <code>n</code> instances of
+<code>self</code>, with no padding between each instance.</p>
+
+<p>On arithmetic overflow, returns <code>None</code>.</p>
+</div><h4 id='method.extend_packed' class="method"><span id='extend_packed.v' class='invisible'><code>fn <a href='#method.extend_packed' class='fnname'>extend_packed</a>(&amp;self, next: Self) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;(Self, usize)&gt;</code></span></h4>
+<div class='docblock'><p>Creates a layout describing the record for <code>self</code> followed by
+<code>next</code> with no additional padding between the two. Since no
+padding is inserted, the alignment of <code>next</code> is irrelevant,
+and is not incoporated <em>at all</em> into the resulting layout.</p>
+
+<p>Returns <code>(k, offset)</code>, where <code>k</code> is layout of the concatenated
+record and <code>offset</code> is the relative location, in bytes, of the
+start of the <code>next</code> embedded witnin the concatenated record
+(assuming that the record itself starts at offset 0).</p>
+
+<p>(The <code>offset</code> is always the same as <code>self.size()</code>; we use this
+ signature out of convenience in matching the signature of
+ <code>fn extend</code>.)</p>
+
+<p>On arithmetic overflow, returns <code>None</code>.</p>
+</div><h4 id='method.new_unchecked' class="method"><span id='new_unchecked.v' class='invisible'><code>unsafe fn <a href='#method.new_unchecked' class='fnname'>new_unchecked</a>&lt;T&gt;() -&gt; Self</code></span></h4>
+<div class='docblock'><p>do indirectly validate, but that is not part of their
+specification.)
+Creates layout describing the record for a single instance of <code>T</code>.</p>
+</div><h4 id='method.extend_unchecked' class="method"><span id='extend_unchecked.v' class='invisible'><code>unsafe fn <a href='#method.extend_unchecked' class='fnname'>extend_unchecked</a>(&amp;self, next: Self) -&gt; (Self, usize)</code></span></h4>
+<div class='docblock'><p>Creates a layout describing the record for <code>self</code> followed by
+<code>next</code>, including any necessary padding to ensure that <code>next</code>
+will be properly aligned. Note that the result layout will
+satisfy the alignment properties of both <code>self</code> and <code>next</code>.</p>
+
+<p>Returns <code>(k, offset)</code>, where <code>k</code> is layout of the concatenated
+record and <code>offset</code> is the relative location, in bytes, of the
+start of the <code>next</code> embedded witnin the concatenated record
+(assuming that the record itself starts at offset 0).</p>
+
+<p>Requires no arithmetic overflow from inputs.</p>
+</div><h4 id='method.repeat_unchecked' class="method"><span id='repeat_unchecked.v' class='invisible'><code>unsafe fn <a href='#method.repeat_unchecked' class='fnname'>repeat_unchecked</a>(&amp;self, n: usize) -&gt; (Self, usize)</code></span></h4>
+<div class='docblock'><p>Creates a layout describing the record for <code>n</code> instances of
+<code>self</code>, with a suitable amount of padding between each.</p>
+
+<p>Requires non-zero <code>n</code> and no arithmetic overflow from inputs.
+(See also the <code>fn array</code> checked variant.)</p>
+</div><h4 id='method.repeat_packed_unchecked' class="method"><span id='repeat_packed_unchecked.v' class='invisible'><code>unsafe fn <a href='#method.repeat_packed_unchecked' class='fnname'>repeat_packed_unchecked</a>(&amp;self, n: usize) -&gt; Self</code></span></h4>
+<div class='docblock'><p>Creates a layout describing the record for <code>n</code> instances of
+<code>self</code>, with no padding between each instance.</p>
+
+<p>Requires non-zero <code>n</code> and no arithmetic overflow from inputs.
+(See also the <code>fn array_packed</code> checked variant.)</p>
+</div><h4 id='method.extend_packed_unchecked' class="method"><span id='extend_packed_unchecked.v' class='invisible'><code>unsafe fn <a href='#method.extend_packed_unchecked' class='fnname'>extend_packed_unchecked</a>(&amp;self, next: Self) -&gt; (Self, usize)</code></span></h4>
+<div class='docblock'><p>Creates a layout describing the record for <code>self</code> followed by
+<code>next</code> with no additional padding between the two. Since no
+padding is inserted, the alignment of <code>next</code> is irrelevant,
+and is not incoporated <em>at all</em> into the resulting layout.</p>
+
+<p>Returns <code>(k, offset)</code>, where <code>k</code> is layout of the concatenated
+record and <code>offset</code> is the relative location, in bytes, of the
+start of the <code>next</code> embedded witnin the concatenated record
+(assuming that the record itself starts at offset 0).</p>
+
+<p>(The <code>offset</code> is always the same as <code>self.size()</code>; we use this
+ signature out of convenience in matching the signature of
+ <code>fn extend</code>.)</p>
+
+<p>Requires no arithmetic overflow from inputs.
+(See also the <code>fn extend_packed</code> checked variant.)</p>
+</div><h4 id='method.array' class="method"><span id='array.v' class='invisible'><code>fn <a href='#method.array' class='fnname'>array</a>&lt;T&gt;(n: usize) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;Self&gt;</code></span></h4>
+<div class='docblock'><p>Creates a layout describing the record for a <code>[T; n]</code>.</p>
+
+<p>On zero <code>n</code>, zero-sized <code>T</code>, or arithmetic overflow, returns <code>None</code>.</p>
+</div><h4 id='method.array_unchecked' class="method"><span id='array_unchecked.v' class='invisible'><code>fn <a href='#method.array_unchecked' class='fnname'>array_unchecked</a>&lt;T&gt;(n: usize) -&gt; Self</code></span></h4>
+<div class='docblock'><p>Creates a layout describing the record for a <code>[T; n]</code>.</p>
+
+<p>Requires nonzero <code>n</code>, nonzero-sized <code>T</code>, and no arithmetic
+overflow; otherwise behavior undefined.</p>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a> for <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/alloc/lib.rs.html#109' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.clone' class="method"><span id='clone.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone' class='fnname'>clone</a>(&amp;self) -&gt; <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a></code></span></h4>
+<div class='docblock'><p>Returns a copy of the value. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone">Read more</a></p>
+</div><h4 id='method.clone_from' class="method"><span id='clone_from.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from' class='fnname'>clone_from</a>(&amp;mut self, source: &amp;Self)</code><div class='since' title='Stable since Rust version 1.0.0'>1.0.0</div></span></h4>
+<div class='docblock'><p>Performs copy-assignment from <code>source</code>. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from">Read more</a></p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html" title="trait core::fmt::Debug">Debug</a> for <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/alloc/lib.rs.html#109' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt' class="method"><span id='fmt.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, __arg_0: &amp;mut <a class="struct" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html" title="struct core::fmt::Formatter">Formatter</a>) -&gt; <a class="type" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html" title="type core::fmt::Result">Result</a></code></span></h4>
+<div class='docblock'><p>Formats the value using the given formatter.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html" title="trait core::cmp::PartialEq">PartialEq</a> for <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/alloc/lib.rs.html#109' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.eq' class="method"><span id='eq.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html#tymethod.eq' class='fnname'>eq</a>(&amp;self, __arg_0: &amp;<a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a>) -&gt; bool</code></span></h4>
+<div class='docblock'><p>This method tests for <code>self</code> and <code>other</code> values to be equal, and is used by <code>==</code>. <a href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html#tymethod.eq">Read more</a></p>
+</div><h4 id='method.ne' class="method"><span id='ne.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html#method.ne' class='fnname'>ne</a>(&amp;self, __arg_0: &amp;<a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a>) -&gt; bool</code></span></h4>
+<div class='docblock'><p>This method tests for <code>!=</code>.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html" title="trait core::cmp::Eq">Eq</a> for <a class="struct" href="../alloc/struct.Layout.html" title="struct alloc::Layout">Layout</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/alloc/lib.rs.html#109' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "alloc";
+    </script>
+    <script src="../main.js"></script>
+    <script defer src="../search-index.js"></script>
+</body>
+</html>

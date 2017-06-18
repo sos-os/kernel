@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Table` struct in crate `memory`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Table">
+
+    <title>memory::arch::paging::table::Table - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../../../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../../../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc struct">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'>Struct Table</p><div class="block items"><ul><li><a href="#fields">Fields</a></li><li><a href="#methods">Methods</a></li><li><a href="#implementations">Trait Implementations</a></li></ul></div><p class='location'><a href='../../../index.html'>memory</a>::<wbr><a href='../../index.html'>arch</a>::<wbr><a href='../index.html'>paging</a>::<wbr><a href='index.html'>table</a></p><script>window.sidebarCurrent = {name: 'Table', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Struct <a href='../../../index.html'>memory</a>::<wbr><a href='../../index.html'>arch</a>::<wbr><a href='../index.html'>paging</a>::<wbr><a href='index.html'>table</a>::<wbr><a class="struct" href=''>Table</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../../../../src/memory/arch/x86_64/paging/table.rs.html#36-40' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'><div class="docblock attributes">#[repr(C)]
+</div>pub struct Table&lt;L&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;L: <a class="trait" href="../../../../memory/arch/paging/table/trait.TableLevel.html" title="trait memory::arch::paging::table::TableLevel">TableLevel</a>,&nbsp;</span> {
+    pub entries: [<a class="struct" href="../../../../memory/arch/paging/table/struct.Entry.html" title="struct memory::arch::paging::table::Entry">Entry</a>; 512],
+    // some fields omitted
+}</pre><div class='docblock'><p>A page table</p>
+</div><h2 id='fields' class='fields'>Fields</h2><span id='structfield.entries' class="structfield">
+                           <span id='entries.v' class='invisible'>
+                           <code>entries: [<a class="struct" href="../../../../memory/arch/paging/table/struct.Entry.html" title="struct memory::arch::paging::table::Entry">Entry</a>; 512]</code>
+                           </span></span><div class='docblock'><p>The entries in the page table.</p>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl&lt;L:&nbsp;<a class="trait" href="../../../../memory/arch/paging/table/trait.TableLevel.html" title="trait memory::arch::paging::table::TableLevel">TableLevel</a>&gt; <a class="struct" href="../../../../memory/arch/paging/table/struct.Table.html" title="struct memory::arch::paging::table::Table">Table</a>&lt;L&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../../../src/memory/arch/x86_64/paging/table.rs.html#80-89' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.zero' class="method"><span id='zero.v' class='invisible'><code>fn <a href='#method.zero' class='fnname'>zero</a>(&amp;mut self)</code></span></h4>
+<div class='docblock'><p>Zeroes out the page table by setting all entries &quot;unused&quot;</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;L:&nbsp;<a class="trait" href="../../../../memory/arch/paging/table/trait.Sublevel.html" title="trait memory::arch::paging::table::Sublevel">Sublevel</a>&gt; <a class="struct" href="../../../../memory/arch/paging/table/struct.Table.html" title="struct memory::arch::paging::table::Table">Table</a>&lt;L&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../../../src/memory/arch/x86_64/paging/table.rs.html#91-135' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.next_table' class="method"><span id='next_table.v' class='invisible'><code>fn <a href='#method.next_table' class='fnname'>next_table</a>(&amp;self, index: usize) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;&amp;<a class="struct" href="../../../../memory/arch/paging/table/struct.Table.html" title="struct memory::arch::paging::table::Table">Table</a>&lt;L::<a class="trait" href="../../../../memory/arch/paging/table/trait.Sublevel.html" title="trait memory::arch::paging::table::Sublevel">Next</a>&gt;&gt;</code></span></h4>
+<div class='docblock'><p>Returns the next table, or <code>None</code> if none exists</p>
+</div><h4 id='method.next_table_mut' class="method"><span id='next_table_mut.v' class='invisible'><code>fn <a href='#method.next_table_mut' class='fnname'>next_table_mut</a>(&amp;self, index: usize) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;&amp;mut <a class="struct" href="../../../../memory/arch/paging/table/struct.Table.html" title="struct memory::arch::paging::table::Table">Table</a>&lt;L::<a class="trait" href="../../../../memory/arch/paging/table/trait.Sublevel.html" title="trait memory::arch::paging::table::Sublevel">Next</a>&gt;&gt;</code></span></h4>
+<div class='docblock'><p>Mutably borrows the next table.</p>
+</div><h4 id='method.create_next' class="method"><span id='create_next.v' class='invisible'><code>fn <a href='#method.create_next' class='fnname'>create_next</a>&lt;A&gt;(&amp;mut self, index: usize, alloc: &amp;mut A) -&gt; &amp;mut <a class="struct" href="../../../../memory/arch/paging/table/struct.Table.html" title="struct memory::arch::paging::table::Table">Table</a>&lt;L::<a class="trait" href="../../../../memory/arch/paging/table/trait.Sublevel.html" title="trait memory::arch::paging::table::Sublevel">Next</a>&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;A: <a class="trait" href="../../../../memory/paging/trait.FrameAllocator.html" title="trait memory::paging::FrameAllocator">FrameAllocator</a>&lt;<a class="struct" href="../../../../memory/arch/struct.Frame.html" title="struct memory::arch::Frame">Frame</a>&gt;,&nbsp;</span></code></span></h4>
+<div class='docblock'><p>Returns the next table, creating it if it does not exist.</p>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl&lt;L:&nbsp;<a class="trait" href="../../../../memory/arch/paging/table/trait.TableLevel.html" title="trait memory::arch::paging::table::TableLevel">TableLevel</a>&gt; <a class="trait" href="https://doc.rust-lang.org/nightly/core/ops/trait.Index.html" title="trait core::ops::Index">Index</a>&lt;usize&gt; for <a class="struct" href="../../../../memory/arch/paging/table/struct.Table.html" title="struct memory::arch::paging::table::Table">Table</a>&lt;L&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../../../src/memory/arch/x86_64/paging/table.rs.html#66-72' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='associatedtype.Output' class="type"><span id='Output.t' class='invisible'><code>type <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Index.html#associatedtype.Output' class="type">Output</a> = <a class="struct" href="../../../../memory/arch/paging/table/struct.Entry.html" title="struct memory::arch::paging::table::Entry">Entry</a></code></span></h4>
+<div class='docblock'><p>The returned type after indexing</p>
+</div><h4 id='method.index' class="method"><span id='index.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.Index.html#tymethod.index' class='fnname'>index</a>(&amp;self, index: usize) -&gt; &amp;<a class="struct" href="../../../../memory/arch/paging/table/struct.Entry.html" title="struct memory::arch::paging::table::Entry">Entry</a></code></span></h4>
+<div class='docblock'><p>The method for the indexing (<code>container[index]</code>) operation</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;L:&nbsp;<a class="trait" href="../../../../memory/arch/paging/table/trait.TableLevel.html" title="trait memory::arch::paging::table::TableLevel">TableLevel</a>&gt; <a class="trait" href="https://doc.rust-lang.org/nightly/core/ops/trait.IndexMut.html" title="trait core::ops::IndexMut">IndexMut</a>&lt;usize&gt; for <a class="struct" href="../../../../memory/arch/paging/table/struct.Table.html" title="struct memory::arch::paging::table::Table">Table</a>&lt;L&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../../../src/memory/arch/x86_64/paging/table.rs.html#74-78' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.index_mut' class="method"><span id='index_mut.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/ops/trait.IndexMut.html#tymethod.index_mut' class='fnname'>index_mut</a>(&amp;mut self, index: usize) -&gt; &amp;mut <a class="struct" href="../../../../memory/arch/paging/table/struct.Entry.html" title="struct memory::arch::paging::table::Entry">Entry</a></code></span></h4>
+<div class='docblock'><p>The method for the mutable indexing (<code>container[index]</code>) operation</p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../../../";
+        window.currentCrate = "memory";
+    </script>
+    <script src="../../../../main.js"></script>
+    <script defer src="../../../../search-index.js"></script>
+</body>
+</html>

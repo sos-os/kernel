@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `HeaderRepr` struct in crate `elf`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, HeaderRepr">
+
+    <title>elf::file::HeaderRepr - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc struct">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'>Struct HeaderRepr</p><div class="block items"><ul><li><a href="#fields">Fields</a></li><li><a href="#implementations">Trait Implementations</a></li></ul></div><p class='location'><a href='../index.html'>elf</a>::<wbr><a href='index.html'>file</a></p><script>window.sidebarCurrent = {name: 'HeaderRepr', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Struct <a href='../index.html'>elf</a>::<wbr><a href='index.html'>file</a>::<wbr><a class="struct" href=''>HeaderRepr</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span></span></h1>
+<pre class='rust struct'><div class="docblock attributes">#[repr(C, packed)]
+</div>pub struct HeaderRepr&lt;W:&nbsp;<a class="trait" href="../../elf/trait.ElfWord.html" title="trait elf::ElfWord">ElfWord</a>&gt; {
+    pub ident: <a class="struct" href="../../elf/file/struct.Ident.html" title="struct elf::file::Ident">Ident</a>,
+    pub machine: <a class="enum" href="../../elf/file/enum.Machine.html" title="enum elf::file::Machine">Machine</a>,
+    pub flags: u32,
+    pub header_size: u16,
+    pub ph_entry_size: u16,
+    pub ph_count: u16,
+    pub sh_entry_size: u16,
+    pub sh_count: u16,
+    // some fields omitted
+}</pre><div class='docblock'><p>Raw representation of an ELF file header.</p>
+</div><h2 id='fields' class='fields'>Fields</h2><span id='structfield.ident' class="structfield">
+                           <span id='ident.v' class='invisible'>
+                           <code>ident: <a class="struct" href="../../elf/file/struct.Ident.html" title="struct elf::file::Ident">Ident</a></code>
+                           </span></span><div class='docblock'><p>the ELF <a href="struct.Ident.html">file identifier</a></p>
+</div><span id='structfield.machine' class="structfield">
+                           <span id='machine.v' class='invisible'>
+                           <code>machine: <a class="enum" href="../../elf/file/enum.Machine.html" title="enum elf::file::Machine">Machine</a></code>
+                           </span></span><span id='structfield.flags' class="structfield">
+                           <span id='flags.v' class='invisible'>
+                           <code>flags: u32</code>
+                           </span></span><span id='structfield.header_size' class="structfield">
+                           <span id='header_size.v' class='invisible'>
+                           <code>header_size: u16</code>
+                           </span></span><span id='structfield.ph_entry_size' class="structfield">
+                           <span id='ph_entry_size.v' class='invisible'>
+                           <code>ph_entry_size: u16</code>
+                           </span></span><span id='structfield.ph_count' class="structfield">
+                           <span id='ph_count.v' class='invisible'>
+                           <code>ph_count: u16</code>
+                           </span></span><span id='structfield.sh_entry_size' class="structfield">
+                           <span id='sh_entry_size.v' class='invisible'>
+                           <code>sh_entry_size: u16</code>
+                           </span></span><span id='structfield.sh_count' class="structfield">
+                           <span id='sh_count.v' class='invisible'>
+                           <code>sh_count: u16</code>
+                           </span></span><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl&lt;W:&nbsp;<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html" title="trait core::marker::Copy">Copy</a> + <a class="trait" href="../../elf/trait.ElfWord.html" title="trait elf::ElfWord">ElfWord</a>&gt; <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html" title="trait core::marker::Copy">Copy</a> for <a class="struct" href="../../elf/file/struct.HeaderRepr.html" title="struct elf::file::HeaderRepr">HeaderRepr</a>&lt;W&gt;</code></span><span class='out-of-band'></span></h3>
+<div class='impl-items'></div><h3 class='impl'><span class='in-band'><code>impl&lt;W:&nbsp;<a class="trait" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a> + <a class="trait" href="../../elf/trait.ElfWord.html" title="trait elf::ElfWord">ElfWord</a>&gt; <a class="trait" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a> for <a class="struct" href="../../elf/file/struct.HeaderRepr.html" title="struct elf::file::HeaderRepr">HeaderRepr</a>&lt;W&gt;</code></span><span class='out-of-band'></span></h3>
+<div class='impl-items'><h4 id='method.clone' class="method"><span id='clone.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone' class='fnname'>clone</a>(&amp;self) -&gt; <a class="struct" href="../../elf/file/struct.HeaderRepr.html" title="struct elf::file::HeaderRepr">HeaderRepr</a>&lt;W&gt;</code></span></h4>
+<div class='docblock'><p>Returns a copy of the value. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone">Read more</a></p>
+</div><h4 id='method.clone_from' class="method"><span id='clone_from.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from' class='fnname'>clone_from</a>(&amp;mut self, source: &amp;Self)</code><div class='since' title='Stable since Rust version 1.0.0'>1.0.0</div></span></h4>
+<div class='docblock'><p>Performs copy-assignment from <code>source</code>. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from">Read more</a></p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;W:&nbsp;<a class="trait" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html" title="trait core::fmt::Debug">Debug</a> + <a class="trait" href="../../elf/trait.ElfWord.html" title="trait elf::ElfWord">ElfWord</a>&gt; <a class="trait" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html" title="trait core::fmt::Debug">Debug</a> for <a class="struct" href="../../elf/file/struct.HeaderRepr.html" title="struct elf::file::HeaderRepr">HeaderRepr</a>&lt;W&gt;</code></span><span class='out-of-band'></span></h3>
+<div class='impl-items'><h4 id='method.fmt' class="method"><span id='fmt.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, __arg_0: &amp;mut <a class="struct" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html" title="struct core::fmt::Formatter">Formatter</a>) -&gt; <a class="type" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html" title="type core::fmt::Result">Result</a></code></span></h4>
+<div class='docblock'><p>Formats the value using the given formatter.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class="trait" href="../../elf/file/trait.Header.html" title="trait elf::file::Header">Header</a> for <a class="struct" href="../../elf/file/struct.HeaderRepr.html" title="struct elf::file::HeaderRepr">HeaderRepr</a>&lt;u32&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/elf/file.rs.html#117-185' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='associatedtype.Word' class="type"><span id='Word.t' class='invisible'><code>type <a href='../../elf/file/trait.Header.html#associatedtype.Word' class="type">Word</a> = u32</code></span></h4>
+<h4 id='method.from_slice' class="method"><span id='from_slice.v' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#tymethod.from_slice' class='fnname'>from_slice</a>&lt;'a&gt;(input: &amp;'a [u8]) -&gt; <a class="type" href="../../elf/type.ElfResult.html" title="type elf::ElfResult">ElfResult</a>&lt;&amp;'a Self&gt;</code></span></h4>
+<div class='docblock'><p>Attempt to extract an ELF file header from a slice of bytes.</p>
+</div><h4 id='method.parse_section' class="method"><span id='parse_section.v' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#tymethod.parse_section' class='fnname'>parse_section</a>&lt;'a&gt;(<br>&nbsp;&nbsp;&nbsp;&nbsp;&amp;'a self, <br>&nbsp;&nbsp;&nbsp;&nbsp;input: &amp;'a [u8], <br>&nbsp;&nbsp;&nbsp;&nbsp;idx: u16<br>) -&gt; <a class="type" href="../../elf/type.ElfResult.html" title="type elf::ElfResult">ElfResult</a>&lt;&amp;'a <a class="type" href="../../elf/type.Section.html" title="type elf::Section">Section</a>&lt;Self::<a class="type" href="../../elf/file/trait.Header.html#associatedtype.Word" title="type elf::file::Header::Word">Word</a>&gt;&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;<a class="struct" href="../../elf/section/struct.HeaderRepr.html" title="struct elf::section::HeaderRepr">HeaderRepr</a>&lt;Self::<a class="type" href="../../elf/file/trait.Header.html#associatedtype.Word" title="type elf::file::Header::Word">Word</a>&gt;: <a class="trait" href="../../elf/section/trait.Header.html" title="trait elf::section::Header">SectionHeader</a>&lt;Word = Self::<a class="type" href="../../elf/file/trait.Header.html#associatedtype.Word" title="type elf::file::Header::Word">Word</a>&gt;,&nbsp;</span></code></span></h4>
+<div class='docblock'><p>Attempt to extract a <a href="../section/struct.Header.html">section header</a> from a slice of bytes.</p>
+
+<p>TODO: should this move to the <code>File</code> type since it owns the
+      byte slice (which then wouldn&#39;t have to be passed as an
+      argument)?</p>
+</div><h4 id='method.get_type' class="method"><span id='get_type.v' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#tymethod.get_type' class='fnname'>get_type</a>(&amp;self) -&gt; <a class="enum" href="../../elf/file/enum.Type.html" title="enum elf::file::Type">Type</a></code></span></h4>
+<h4 id='method.sh_offset' class="method"><span id='sh_offset.v' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#tymethod.sh_offset' class='fnname'>sh_offset</a>(&amp;self) -&gt; usize</code></span></h4>
+<div class='docblock'><p>Index for the start of [section header]s. [section header]: ../section/struct.Header.html</p>
+</div><h4 id='method.sh_entry_size' class="method"><span id='sh_entry_size.v-1' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#tymethod.sh_entry_size' class='fnname'>sh_entry_size</a>(&amp;self) -&gt; usize</code></span></h4>
+<div class='docblock'><p>Size of a [section header]. <a href="../../elf/file/trait.Header.html#tymethod.sh_entry_size">Read more</a></p>
+</div><h4 id='method.sh_count' class="method"><span id='sh_count.v-1' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#tymethod.sh_count' class='fnname'>sh_count</a>(&amp;self) -&gt; usize</code></span></h4>
+<div class='docblock'><p>Number of [section header]s. <a href="../../elf/file/trait.Header.html#tymethod.sh_count">Read more</a></p>
+</div><h4 id='method.ph_offset' class="method"><span id='ph_offset.v' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#tymethod.ph_offset' class='fnname'>ph_offset</a>(&amp;self) -&gt; usize</code></span></h4>
+<div class='docblock'><p>Index for the start of program headers</p>
+</div><h4 id='method.ph_entry_size' class="method"><span id='ph_entry_size.v-1' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#tymethod.ph_entry_size' class='fnname'>ph_entry_size</a>(&amp;self) -&gt; usize</code></span></h4>
+<div class='docblock'><p>Size of a program header.</p>
+</div><h4 id='method.ph_count' class="method"><span id='ph_count.v-1' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#tymethod.ph_count' class='fnname'>ph_count</a>(&amp;self) -&gt; usize</code></span></h4>
+<div class='docblock'><p>Number of program headers.</p>
+</div><h4 id='method.entry_point' class="method"><span id='entry_point.v' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#tymethod.entry_point' class='fnname'>entry_point</a>(&amp;self) -&gt; usize</code></span></h4>
+<div class='docblock'><p>Index for the program entry point</p>
+</div><h4 id='method.sh_str_idx' class="method"><span id='sh_str_idx.v' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#tymethod.sh_str_idx' class='fnname'>sh_str_idx</a>(&amp;self) -&gt; usize</code></span></h4>
+<div class='docblock'><p>Index of the section header [string table] [string table]: ../section/struct.StrTable.html</p>
+</div><h4 id='method.flags' class="method"><span id='flags.v-1' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#tymethod.flags' class='fnname'>flags</a>(&amp;self) -&gt; u32</code></span></h4>
+<div class='docblock'><p>TODO: can this return the flags type?</p>
+</div><h4 id='method.ident' class="method"><span id='ident.v-1' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#tymethod.ident' class='fnname'>ident</a>(&amp;self) -&gt; <a class="struct" href="../../elf/file/struct.Ident.html" title="struct elf::file::Ident">Ident</a></code></span></h4>
+<h4 id='method.machine' class="method"><span id='machine.v-1' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#tymethod.machine' class='fnname'>machine</a>(&amp;self) -&gt; <a class="enum" href="../../elf/file/enum.Machine.html" title="enum elf::file::Machine">Machine</a></code></span></h4>
+<h4 id='method.sh_range' class="method"><span id='sh_range.v' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#method.sh_range' class='fnname'>sh_range</a>(&amp;self) -&gt; <a class="struct" href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html" title="struct core::ops::range::Range">Range</a>&lt;usize&gt;</code></span></h4>
+<h4 id='method.ph_range' class="method"><span id='ph_range.v' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#method.ph_range' class='fnname'>ph_range</a>(&amp;self) -&gt; <a class="struct" href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html" title="struct core::ops::range::Range">Range</a>&lt;usize&gt;</code></span></h4>
+<h4 id='method.section_index' class="method"><span id='section_index.v' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#method.section_index' class='fnname'>section_index</a>(&amp;self, idx: usize) -&gt; <a class="struct" href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html" title="struct core::ops::range::Range">Range</a>&lt;usize&gt;</code></span></h4>
+<div class='docblock'><p>Calculate the index for a [section header] <a href="../../elf/file/trait.Header.html#method.section_index">Read more</a></p>
+</div><h4 id='method.program_header_index' class="method"><span id='program_header_index.v' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#method.program_header_index' class='fnname'>program_header_index</a>(&amp;self, idx: usize) -&gt; <a class="struct" href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html" title="struct core::ops::range::Range">Range</a>&lt;usize&gt;</code></span></h4>
+<div class='docblock'><p>Calculate the index for a program header <a href="../../elf/file/trait.Header.html#method.program_header_index">Read more</a></p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;'a&gt; <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html" title="trait core::convert::TryFrom">TryFrom</a>&lt;&amp;'a [u8]&gt; for &amp;'a <a class="struct" href="../../elf/file/struct.HeaderRepr.html" title="struct elf::file::HeaderRepr">HeaderRepr</a>&lt;u32&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/elf/file.rs.html#187-193' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='associatedtype.Error' class="type"><span id='Error.t' class='invisible'><code>type <a href='https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#associatedtype.Error' class="type">Error</a> = &amp;'static str</code></span></h4>
+<div class='stability'><div class='stab unstable'><span class=microscope>🔬</span> This is a nightly-only experimental API.  (<code>try_from</code>)</div></div><div class='docblock'><p>The type returned in the event of a conversion error.</p>
+</div><h4 id='method.try_from' class="method"><span id='try_from.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from' class='fnname'>try_from</a>(slice: &amp;'a [u8]) -&gt; <a class="type" href="../../elf/type.ElfResult.html" title="type elf::ElfResult">ElfResult</a>&lt;Self&gt;</code></span></h4>
+<div class='stability'><div class='stab unstable'><span class=microscope>🔬</span> This is a nightly-only experimental API.  (<code>try_from</code>)</div></div><div class='docblock'><p>Performs the conversion.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class="trait" href="../../elf/file/trait.Header.html" title="trait elf::file::Header">Header</a> for <a class="struct" href="../../elf/file/struct.HeaderRepr.html" title="struct elf::file::HeaderRepr">HeaderRepr</a>&lt;u64&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/elf/file.rs.html#117-185' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='associatedtype.Word-1' class="type"><span id='Word.t-1' class='invisible'><code>type <a href='../../elf/file/trait.Header.html#associatedtype.Word' class="type">Word</a> = u64</code></span></h4>
+<h4 id='method.from_slice-1' class="method"><span id='from_slice.v-1' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#tymethod.from_slice' class='fnname'>from_slice</a>&lt;'a&gt;(input: &amp;'a [u8]) -&gt; <a class="type" href="../../elf/type.ElfResult.html" title="type elf::ElfResult">ElfResult</a>&lt;&amp;'a Self&gt;</code></span></h4>
+<div class='docblock'><p>Attempt to extract an ELF file header from a slice of bytes.</p>
+</div><h4 id='method.parse_section-1' class="method"><span id='parse_section.v-1' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#tymethod.parse_section' class='fnname'>parse_section</a>&lt;'a&gt;(<br>&nbsp;&nbsp;&nbsp;&nbsp;&amp;'a self, <br>&nbsp;&nbsp;&nbsp;&nbsp;input: &amp;'a [u8], <br>&nbsp;&nbsp;&nbsp;&nbsp;idx: u16<br>) -&gt; <a class="type" href="../../elf/type.ElfResult.html" title="type elf::ElfResult">ElfResult</a>&lt;&amp;'a <a class="type" href="../../elf/type.Section.html" title="type elf::Section">Section</a>&lt;Self::<a class="type" href="../../elf/file/trait.Header.html#associatedtype.Word" title="type elf::file::Header::Word">Word</a>&gt;&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;<a class="struct" href="../../elf/section/struct.HeaderRepr.html" title="struct elf::section::HeaderRepr">HeaderRepr</a>&lt;Self::<a class="type" href="../../elf/file/trait.Header.html#associatedtype.Word" title="type elf::file::Header::Word">Word</a>&gt;: <a class="trait" href="../../elf/section/trait.Header.html" title="trait elf::section::Header">SectionHeader</a>&lt;Word = Self::<a class="type" href="../../elf/file/trait.Header.html#associatedtype.Word" title="type elf::file::Header::Word">Word</a>&gt;,&nbsp;</span></code></span></h4>
+<div class='docblock'><p>Attempt to extract a <a href="../section/struct.Header.html">section header</a> from a slice of bytes.</p>
+
+<p>TODO: should this move to the <code>File</code> type since it owns the
+      byte slice (which then wouldn&#39;t have to be passed as an
+      argument)?</p>
+</div><h4 id='method.get_type-1' class="method"><span id='get_type.v-1' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#tymethod.get_type' class='fnname'>get_type</a>(&amp;self) -&gt; <a class="enum" href="../../elf/file/enum.Type.html" title="enum elf::file::Type">Type</a></code></span></h4>
+<h4 id='method.sh_offset-1' class="method"><span id='sh_offset.v-1' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#tymethod.sh_offset' class='fnname'>sh_offset</a>(&amp;self) -&gt; usize</code></span></h4>
+<div class='docblock'><p>Index for the start of [section header]s. [section header]: ../section/struct.Header.html</p>
+</div><h4 id='method.sh_entry_size-1' class="method"><span id='sh_entry_size.v-2' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#tymethod.sh_entry_size' class='fnname'>sh_entry_size</a>(&amp;self) -&gt; usize</code></span></h4>
+<div class='docblock'><p>Size of a [section header]. <a href="../../elf/file/trait.Header.html#tymethod.sh_entry_size">Read more</a></p>
+</div><h4 id='method.sh_count-1' class="method"><span id='sh_count.v-2' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#tymethod.sh_count' class='fnname'>sh_count</a>(&amp;self) -&gt; usize</code></span></h4>
+<div class='docblock'><p>Number of [section header]s. <a href="../../elf/file/trait.Header.html#tymethod.sh_count">Read more</a></p>
+</div><h4 id='method.ph_offset-1' class="method"><span id='ph_offset.v-1' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#tymethod.ph_offset' class='fnname'>ph_offset</a>(&amp;self) -&gt; usize</code></span></h4>
+<div class='docblock'><p>Index for the start of program headers</p>
+</div><h4 id='method.ph_entry_size-1' class="method"><span id='ph_entry_size.v-2' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#tymethod.ph_entry_size' class='fnname'>ph_entry_size</a>(&amp;self) -&gt; usize</code></span></h4>
+<div class='docblock'><p>Size of a program header.</p>
+</div><h4 id='method.ph_count-1' class="method"><span id='ph_count.v-2' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#tymethod.ph_count' class='fnname'>ph_count</a>(&amp;self) -&gt; usize</code></span></h4>
+<div class='docblock'><p>Number of program headers.</p>
+</div><h4 id='method.entry_point-1' class="method"><span id='entry_point.v-1' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#tymethod.entry_point' class='fnname'>entry_point</a>(&amp;self) -&gt; usize</code></span></h4>
+<div class='docblock'><p>Index for the program entry point</p>
+</div><h4 id='method.sh_str_idx-1' class="method"><span id='sh_str_idx.v-1' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#tymethod.sh_str_idx' class='fnname'>sh_str_idx</a>(&amp;self) -&gt; usize</code></span></h4>
+<div class='docblock'><p>Index of the section header [string table] [string table]: ../section/struct.StrTable.html</p>
+</div><h4 id='method.flags-1' class="method"><span id='flags.v-2' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#tymethod.flags' class='fnname'>flags</a>(&amp;self) -&gt; u32</code></span></h4>
+<div class='docblock'><p>TODO: can this return the flags type?</p>
+</div><h4 id='method.ident-1' class="method"><span id='ident.v-2' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#tymethod.ident' class='fnname'>ident</a>(&amp;self) -&gt; <a class="struct" href="../../elf/file/struct.Ident.html" title="struct elf::file::Ident">Ident</a></code></span></h4>
+<h4 id='method.machine-1' class="method"><span id='machine.v-2' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#tymethod.machine' class='fnname'>machine</a>(&amp;self) -&gt; <a class="enum" href="../../elf/file/enum.Machine.html" title="enum elf::file::Machine">Machine</a></code></span></h4>
+<h4 id='method.sh_range-1' class="method"><span id='sh_range.v-1' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#method.sh_range' class='fnname'>sh_range</a>(&amp;self) -&gt; <a class="struct" href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html" title="struct core::ops::range::Range">Range</a>&lt;usize&gt;</code></span></h4>
+<h4 id='method.ph_range-1' class="method"><span id='ph_range.v-1' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#method.ph_range' class='fnname'>ph_range</a>(&amp;self) -&gt; <a class="struct" href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html" title="struct core::ops::range::Range">Range</a>&lt;usize&gt;</code></span></h4>
+<h4 id='method.section_index-1' class="method"><span id='section_index.v-1' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#method.section_index' class='fnname'>section_index</a>(&amp;self, idx: usize) -&gt; <a class="struct" href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html" title="struct core::ops::range::Range">Range</a>&lt;usize&gt;</code></span></h4>
+<div class='docblock'><p>Calculate the index for a [section header] <a href="../../elf/file/trait.Header.html#method.section_index">Read more</a></p>
+</div><h4 id='method.program_header_index-1' class="method"><span id='program_header_index.v-1' class='invisible'><code>fn <a href='../../elf/file/trait.Header.html#method.program_header_index' class='fnname'>program_header_index</a>(&amp;self, idx: usize) -&gt; <a class="struct" href="https://doc.rust-lang.org/nightly/core/ops/range/struct.Range.html" title="struct core::ops::range::Range">Range</a>&lt;usize&gt;</code></span></h4>
+<div class='docblock'><p>Calculate the index for a program header <a href="../../elf/file/trait.Header.html#method.program_header_index">Read more</a></p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;'a&gt; <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html" title="trait core::convert::TryFrom">TryFrom</a>&lt;&amp;'a [u8]&gt; for &amp;'a <a class="struct" href="../../elf/file/struct.HeaderRepr.html" title="struct elf::file::HeaderRepr">HeaderRepr</a>&lt;u64&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/elf/file.rs.html#187-193' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='associatedtype.Error-1' class="type"><span id='Error.t-1' class='invisible'><code>type <a href='https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#associatedtype.Error' class="type">Error</a> = &amp;'static str</code></span></h4>
+<div class='stability'><div class='stab unstable'><span class=microscope>🔬</span> This is a nightly-only experimental API.  (<code>try_from</code>)</div></div><div class='docblock'><p>The type returned in the event of a conversion error.</p>
+</div><h4 id='method.try_from-1' class="method"><span id='try_from.v-1' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from' class='fnname'>try_from</a>(slice: &amp;'a [u8]) -&gt; <a class="type" href="../../elf/type.ElfResult.html" title="type elf::ElfResult">ElfResult</a>&lt;Self&gt;</code></span></h4>
+<div class='stability'><div class='stab unstable'><span class=microscope>🔬</span> This is a nightly-only experimental API.  (<code>try_from</code>)</div></div><div class='docblock'><p>Performs the conversion.</p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "elf";
+    </script>
+    <script src="../../main.js"></script>
+    <script defer src="../../search-index.js"></script>
+</body>
+</html>

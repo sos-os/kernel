@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `BuddyHeapAllocator` struct in crate `alloc`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, BuddyHeapAllocator">
+
+    <title>alloc::buddy::BuddyHeapAllocator - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc struct">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'>Struct BuddyHeapAllocator</p><div class="block items"><ul><li><a href="#fields">Fields</a></li><li><a href="#methods">Methods</a></li><li><a href="#implementations">Trait Implementations</a></li></ul></div><p class='location'><a href='../index.html'>alloc</a>::<wbr><a href='index.html'>buddy</a></p><script>window.sidebarCurrent = {name: 'BuddyHeapAllocator', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Struct <a href='../index.html'>alloc</a>::<wbr><a href='index.html'>buddy</a>::<wbr><a class="struct" href=''>BuddyHeapAllocator</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../../src/alloc/buddy/mod.rs.html#69-79' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct BuddyHeapAllocator&lt;'a&gt; {
+    pub start_addr: *mut u8,
+    pub heap_size: usize,
+    pub min_block_size: usize,
+    // some fields omitted
+}</pre><div class='docblock'><p>Structure with data for implementing the buddy block allocation strategy.</p>
+</div><h2 id='fields' class='fields'>Fields</h2><span id='structfield.start_addr' class="structfield">
+                           <span id='start_addr.v' class='invisible'>
+                           <code>start_addr: *mut u8</code>
+                           </span></span><div class='docblock'><p>Address of the base of the heap. This must be aligned
+on a <code>MIN_ALIGN</code> boundary.</p>
+</div><span id='structfield.heap_size' class="structfield">
+                           <span id='heap_size.v' class='invisible'>
+                           <code>heap_size: usize</code>
+                           </span></span><div class='docblock'><p>Number of blocks in the heap (must be a power of 2)</p>
+</div><span id='structfield.min_block_size' class="structfield">
+                           <span id='min_block_size.v' class='invisible'>
+                           <code>min_block_size: usize</code>
+                           </span></span><div class='docblock'><p>Minimum block size</p>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl&lt;'a&gt; <a class="struct" href="../../alloc/buddy/struct.BuddyHeapAllocator.html" title="struct alloc::buddy::BuddyHeapAllocator">BuddyHeapAllocator</a>&lt;'a&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/alloc/buddy/mod.rs.html#81-295' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.new' class="method"><span id='new.v' class='invisible'><code>unsafe fn <a href='#method.new' class='fnname'>new</a>(<br>&nbsp;&nbsp;&nbsp;&nbsp;start_addr: *mut u8, <br>&nbsp;&nbsp;&nbsp;&nbsp;free_lists: &amp;'a mut [<a class="type" href="../../alloc/buddy/type.FreeList.html" title="type alloc::buddy::FreeList">FreeList</a>], <br>&nbsp;&nbsp;&nbsp;&nbsp;heap_size: usize<br>) -&gt; <a class="struct" href="../../alloc/buddy/struct.BuddyHeapAllocator.html" title="struct alloc::buddy::BuddyHeapAllocator">BuddyHeapAllocator</a>&lt;'a&gt;</code></span></h4>
+<div class='docblock'><p>Construct a new <code>BuddyHeapAllocator</code>.</p>
+
+<h1 id='arguments' class='section-header'><a href='#arguments'>Arguments:</a></h1>
+<ul>
+<li><code>start_addr</code>: a pointer to the start location of the heap</li>
+<li><code>free_lists</code>: an array of <code>FreeList</code>s. The cardinality
+of the <code>free_lists</code> array should be equal to the maximum
+allocateable order.</li>
+<li><code>heap_size</code>: the size of the heap (in bytes)</li>
+</ul>
+
+<h1 id='returns' class='section-header'><a href='#returns'>Returns:</a></h1>
+<ul>
+<li>A new <code>BuddyHeapAllocator</code>, obviously.</li>
+</ul>
+</div><h4 id='method.add_block' class="method"><span id='add_block.v' class='invisible'><code>unsafe fn <a href='#method.add_block' class='fnname'>add_block</a>(&amp;mut self, block: *mut u8)</code></span></h4>
+<div class='docblock'><p>Add a block of max order</p>
+</div><h4 id='method.alloc_size' class="method"><span id='alloc_size.v' class='invisible'><code>fn <a href='#method.alloc_size' class='fnname'>alloc_size</a>(&amp;self, size: usize, align: usize) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;usize&gt;</code></span></h4>
+<div class='docblock'><p>Computes the size of an allocation request.</p>
+
+<h1 id='arguments-1' class='section-header'><a href='#arguments-1'>Arguments</a></h1>
+<ul>
+<li><code>size</code>: A <code>usize</code> containing the size of the request</li>
+<li><code>align</code>: A <code>usize</code> containing the alignment of the request</li>
+</ul>
+
+<h1 id='returns-1' class='section-header'><a href='#returns-1'>Returns</a></h1>
+<ul>
+<li><code>None</code> if the request is invalid</li>
+<li><code>Some(usize)</code> containing the size needed if the request is valid</li>
+</ul>
+</div><h4 id='method.alloc_order' class="method"><span id='alloc_order.v' class='invisible'><code>fn <a href='#method.alloc_order' class='fnname'>alloc_order</a>(&amp;self, size: usize, align: usize) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;usize&gt;</code></span></h4>
+<div class='docblock'><p>Computes the order of an allocation request.</p>
+
+<p>The &quot;order&quot; of an allocation refers to the number of times we need to
+double the minimum block size to get a large enough block for that
+allocation.</p>
+</div><h4 id='method.get_buddy' class="method"><span id='get_buddy.v' class='invisible'><code>unsafe fn <a href='#method.get_buddy' class='fnname'>get_buddy</a>(&amp;self, order: usize, block: *mut u8) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;*mut u8&gt;</code></span></h4>
+<div class='docblock'><p>Finds the buddy block for a given block.</p>
+
+<h1 id='arguments-2' class='section-header'><a href='#arguments-2'>Arguments</a></h1>
+<ul>
+<li><code>order</code>: the order of the block to find a buddy for</li>
+<li><code>block</code>: a pointer to the block to find a buddy for</li>
+</ul>
+
+<h1 id='returns-2' class='section-header'><a href='#returns-2'>Returns</a></h1>
+<ul>
+<li><code>Some(*mut u8)</code> pointing to the buddy block if a buddy was found</li>
+<li><code>None</code> if the block was the size of the entire heap</li>
+</ul>
+</div><h4 id='method.remove_block' class="method"><span id='remove_block.v' class='invisible'><code>fn <a href='#method.remove_block' class='fnname'>remove_block</a>(&amp;mut self, order: usize, block: *mut u8) -&gt; bool</code></span></h4>
+<div class='docblock'><p>Finds and removes the target block from the free list.</p>
+
+<h1 id='arguments-3' class='section-header'><a href='#arguments-3'>Arguments</a></h1>
+<ul>
+<li><code>order</code>: the order of the free list to remove the block from_raw</li>
+<li><code>block</code>: a pointer to the block to remove</li>
+</ul>
+
+<h1 id='returns-3' class='section-header'><a href='#returns-3'>Returns</a></h1>
+<ul>
+<li><code>true</code> if the block was found and removed from the free List</li>
+<li><code>false</code> if the block was not found</li>
+</ul>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl&lt;'a&gt; <a class="trait" href="../../memory/alloc/trait.Allocator.html" title="trait memory::alloc::Allocator">Allocator</a> for <a class="struct" href="../../alloc/buddy/struct.BuddyHeapAllocator.html" title="struct alloc::buddy::BuddyHeapAllocator">BuddyHeapAllocator</a>&lt;'a&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/alloc/buddy/mod.rs.html#298-383' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.allocate' class="method"><span id='allocate.v' class='invisible'><code>unsafe fn <a href='../../memory/alloc/trait.Allocator.html#tymethod.allocate' class='fnname'>allocate</a>(&amp;mut self, size: usize, align: usize) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;*mut u8&gt;</code></span></h4>
+<div class='docblock'><p>Allocate a new block of size <code>size</code> on alignment <code>align</code>.</p>
+
+<h1 id='arguments-4' class='section-header'><a href='#arguments-4'>Arguments:</a></h1>
+<ul>
+<li><code>size</code>: the amount of memory to allocate (in bytes)</li>
+<li><code>align</code>: the alignment for the allocation request</li>
+</ul>
+
+<h1 id='returns-4' class='section-header'><a href='#returns-4'>Returns:</a></h1>
+<ul>
+<li><code>Some(*mut u8)</code> if the request was allocated successfully</li>
+<li><code>None</code> if the allocator is out of memory or if the request was
+invalid.</li>
+</ul>
+</div><h4 id='method.deallocate' class="method"><span id='deallocate.v' class='invisible'><code>unsafe fn <a href='../../memory/alloc/trait.Allocator.html#tymethod.deallocate' class='fnname'>deallocate</a>(&amp;mut self, block: *mut u8, old_size: usize, align: usize)</code></span></h4>
+<div class='docblock'><p>Release an allocated block of memory.</p>
+
+<p>The <code>size</code> and <code>align</code> parameters <em>must</em> be the same as the original
+size and alignment of the frame being deallocated, otherwise our
+heap will become corrupted.</p>
+
+<h1 id='arguments-5' class='section-header'><a href='#arguments-5'>Arguments:</a></h1>
+<ul>
+<li><code>frame</code>: a pointer to the block of memory to deallocate</li>
+<li><code>size</code>: the size of the block being deallocated</li>
+<li><code>align</code>: the alignment of the block being deallocated</li>
+</ul>
+</div><h4 id='method.reallocate' class="method"><span id='reallocate.v' class='invisible'><code>unsafe fn <a href='../../memory/alloc/trait.Allocator.html#method.reallocate' class='fnname'>reallocate</a>(<br>&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;old_frame: *mut u8, <br>&nbsp;&nbsp;&nbsp;&nbsp;old_size: usize, <br>&nbsp;&nbsp;&nbsp;&nbsp;new_size: usize, <br>&nbsp;&nbsp;&nbsp;&nbsp;align: usize<br>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;*mut u8&gt;</code></span></h4>
+<div class='docblock'><p>Reallocate <code>old_frame</code> from <code>old_size</code> bytes to <code>new_size</code> bytes <a href="../../memory/alloc/trait.Allocator.html#method.reallocate">Read more</a></p>
+</div><h4 id='method.zero_alloc' class="method"><span id='zero_alloc.v' class='invisible'><code>unsafe fn <a href='../../memory/alloc/trait.Allocator.html#method.zero_alloc' class='fnname'>zero_alloc</a>(&amp;mut self, _size: usize, _align: usize) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;*mut u8&gt;</code></span></h4>
+</div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "alloc";
+    </script>
+    <script src="../../main.js"></script>
+    <script defer src="../../search-index.js"></script>
+</body>
+</html>

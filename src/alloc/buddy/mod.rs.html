@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="Source to the Rust file `alloc/src/buddy/mod.rs`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang">
+
+    <title>mod.rs.html -- source</title>
+
+    <link rel="stylesheet" type="text/css" href="../../../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc source">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content"><pre class="line-numbers"><span id="1">  1</span>
+<span id="2">  2</span>
+<span id="3">  3</span>
+<span id="4">  4</span>
+<span id="5">  5</span>
+<span id="6">  6</span>
+<span id="7">  7</span>
+<span id="8">  8</span>
+<span id="9">  9</span>
+<span id="10"> 10</span>
+<span id="11"> 11</span>
+<span id="12"> 12</span>
+<span id="13"> 13</span>
+<span id="14"> 14</span>
+<span id="15"> 15</span>
+<span id="16"> 16</span>
+<span id="17"> 17</span>
+<span id="18"> 18</span>
+<span id="19"> 19</span>
+<span id="20"> 20</span>
+<span id="21"> 21</span>
+<span id="22"> 22</span>
+<span id="23"> 23</span>
+<span id="24"> 24</span>
+<span id="25"> 25</span>
+<span id="26"> 26</span>
+<span id="27"> 27</span>
+<span id="28"> 28</span>
+<span id="29"> 29</span>
+<span id="30"> 30</span>
+<span id="31"> 31</span>
+<span id="32"> 32</span>
+<span id="33"> 33</span>
+<span id="34"> 34</span>
+<span id="35"> 35</span>
+<span id="36"> 36</span>
+<span id="37"> 37</span>
+<span id="38"> 38</span>
+<span id="39"> 39</span>
+<span id="40"> 40</span>
+<span id="41"> 41</span>
+<span id="42"> 42</span>
+<span id="43"> 43</span>
+<span id="44"> 44</span>
+<span id="45"> 45</span>
+<span id="46"> 46</span>
+<span id="47"> 47</span>
+<span id="48"> 48</span>
+<span id="49"> 49</span>
+<span id="50"> 50</span>
+<span id="51"> 51</span>
+<span id="52"> 52</span>
+<span id="53"> 53</span>
+<span id="54"> 54</span>
+<span id="55"> 55</span>
+<span id="56"> 56</span>
+<span id="57"> 57</span>
+<span id="58"> 58</span>
+<span id="59"> 59</span>
+<span id="60"> 60</span>
+<span id="61"> 61</span>
+<span id="62"> 62</span>
+<span id="63"> 63</span>
+<span id="64"> 64</span>
+<span id="65"> 65</span>
+<span id="66"> 66</span>
+<span id="67"> 67</span>
+<span id="68"> 68</span>
+<span id="69"> 69</span>
+<span id="70"> 70</span>
+<span id="71"> 71</span>
+<span id="72"> 72</span>
+<span id="73"> 73</span>
+<span id="74"> 74</span>
+<span id="75"> 75</span>
+<span id="76"> 76</span>
+<span id="77"> 77</span>
+<span id="78"> 78</span>
+<span id="79"> 79</span>
+<span id="80"> 80</span>
+<span id="81"> 81</span>
+<span id="82"> 82</span>
+<span id="83"> 83</span>
+<span id="84"> 84</span>
+<span id="85"> 85</span>
+<span id="86"> 86</span>
+<span id="87"> 87</span>
+<span id="88"> 88</span>
+<span id="89"> 89</span>
+<span id="90"> 90</span>
+<span id="91"> 91</span>
+<span id="92"> 92</span>
+<span id="93"> 93</span>
+<span id="94"> 94</span>
+<span id="95"> 95</span>
+<span id="96"> 96</span>
+<span id="97"> 97</span>
+<span id="98"> 98</span>
+<span id="99"> 99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+</pre><pre class="rust ">
+<span class="comment">//</span>
+<span class="comment">//  SOS: the Stupid Operating System</span>
+<span class="comment">//  by Eliza Weisman (eliza@elizas.website)</span>
+<span class="comment">//</span>
+<span class="comment">//  Copyright (c) 2015-2017 Eliza Weisman</span>
+<span class="comment">//  Released under the terms of the MIT license. See `LICENSE` in the root</span>
+<span class="comment">//  directory of this repository for more information.</span>
+<span class="comment">//</span>
+<span class="doccomment">//! Simple buddy-block allocator</span>
+
+<span class="attribute">#<span class="op">!</span>[<span class="ident">warn</span>(<span class="ident">missing_docs</span>)]</span>
+<span class="kw">mod</span> <span class="ident">math</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;buddy_as_system&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">system</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;buddy_as_system&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">system</span>::<span class="ident">BuddyFrameAllocator</span>;
+
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Allocator</span>, <span class="ident">Layout</span>, <span class="ident">Address</span>, <span class="ident">AllocErr</span>};
+<span class="kw">use</span> <span class="self">self</span>::<span class="ident">math</span>::<span class="ident">PowersOf2</span>;
+
+<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">mem</span>;
+<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">cmp</span>::{<span class="ident">max</span>, <span class="ident">min</span>};
+<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ptr</span>::<span class="ident">Unique</span>;
+
+<span class="kw">use</span> <span class="ident">intrusive</span>::<span class="ident">list</span>::{<span class="ident">List</span>, <span class="ident">Node</span>};
+<span class="kw">use</span> <span class="ident">intrusive</span>::<span class="ident">rawlink</span>::<span class="ident">RawLink</span>;
+<span class="kw">use</span> <span class="ident">memory</span>::<span class="ident">PAGE_SIZE</span>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">mod</span> <span class="ident">test</span>;
+
+<span class="doccomment">/// A `FreeList` is a list of unique free blocks</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">FreeList</span> <span class="op">=</span> <span class="ident">List</span><span class="op">&lt;</span><span class="ident">Unique</span><span class="op">&lt;</span><span class="ident">FreeBlock</span><span class="op">&gt;</span>, <span class="ident">FreeBlock</span><span class="op">&gt;</span>;
+
+<span class="doccomment">/// A free block header stores a pointer to the next and previous free blocks.</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FreeBlock</span> { <span class="ident">next</span>: <span class="ident">RawLink</span><span class="op">&lt;</span><span class="ident">FreeBlock</span><span class="op">&gt;</span>
+                     , <span class="ident">prev</span>: <span class="ident">RawLink</span><span class="op">&lt;</span><span class="ident">FreeBlock</span><span class="op">&gt;</span>
+                     }
+<span class="kw">impl</span> <span class="ident">FreeBlock</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">as_ptr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span> { <span class="ident">mem</span>::<span class="ident">transmute</span>(<span class="self">self</span>) }
+}
+
+<span class="kw">impl</span> <span class="ident">Node</span> <span class="kw">for</span> <span class="ident">FreeBlock</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span> <span class="kw">fn</span> <span class="ident">prev</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">RawLink</span><span class="op">&lt;</span><span class="ident">FreeBlock</span><span class="op">&gt;</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">prev</span>
+    }
+    <span class="attribute">#[<span class="ident">inline</span>]</span> <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">RawLink</span><span class="op">&lt;</span><span class="ident">FreeBlock</span><span class="op">&gt;</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">next</span>
+    }
+    <span class="attribute">#[<span class="ident">inline</span>]</span> <span class="kw">fn</span> <span class="ident">prev_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RawLink</span><span class="op">&lt;</span><span class="ident">FreeBlock</span><span class="op">&gt;</span> {
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">prev</span>
+    }
+    <span class="attribute">#[<span class="ident">inline</span>]</span> <span class="kw">fn</span> <span class="ident">next_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RawLink</span><span class="op">&lt;</span><span class="ident">FreeBlock</span><span class="op">&gt;</span> {
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">next</span>
+    }
+}
+
+<span class="comment">// Variadic macro for taking the maximum of n &gt; 2 numbers.</span>
+<span class="comment">// because I&#39;m lazy.</span>
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">max</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">expr</span>) <span class="op">=&gt;</span> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>);
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">expr</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>:<span class="ident">expr</span>),<span class="op">+</span>) <span class="op">=&gt;</span> (<span class="ident">max</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>, <span class="macro">max</span><span class="macro">!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>),<span class="op">+</span>)));
+}
+
+<span class="doccomment">/// Structure with data for implementing the buddy block allocation strategy.</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Heap</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Address of the base of the heap. This must be aligned</span>
+    <span class="doccomment">/// on a `MIN_ALIGN` boundary.</span>
+    <span class="kw">pub</span> <span class="ident">start_addr</span>: <span class="ident">Unique</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>
+  , <span class="doccomment">/// The allocator&#39;s free list</span>
+    <span class="ident">free_lists</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">FreeList</span>]
+  , <span class="doccomment">/// Number of blocks in the heap (must be a power of 2)</span>
+    <span class="kw">pub</span> <span class="ident">heap_size</span>: <span class="ident">usize</span>
+  , <span class="doccomment">/// Minimum block size</span>
+    <span class="kw">pub</span> <span class="ident">min_block_size</span>: <span class="ident">usize</span>
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Heap</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Construct a new `Heap`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Arguments</span>
+    <span class="doccomment">/// + `start_addr`: a pointer to the start location of the heap</span>
+    <span class="doccomment">/// + `free_lists`: an array of [`FreeList`]s. The cardinality</span>
+    <span class="doccomment">///    of the `free_lists` array should be equal to the maximum</span>
+    <span class="doccomment">///    allocateable order.</span>
+    <span class="doccomment">/// + `heap_size`: the size of the heap (in bytes)</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Returns</span>
+    <span class="doccomment">/// + A new `Heap`, obviously.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Panics</span>
+    <span class="doccomment">/// + If `start_addr` is a null pointer or is not page-aligned</span>
+    <span class="doccomment">/// + If the array of `free_lists` is empty</span>
+    <span class="doccomment">/// + If the `heap_size` is too small to contain at least one block, or is</span>
+    <span class="doccomment">///   not a power of two.</span>
+    <span class="doccomment">/// + If the calculated minimum block size is to small to contain a</span>
+    <span class="doccomment">///   [`FreeBlock`] header</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Safety</span>
+    <span class="doccomment">/// + If `start_addr` is not valid, you will have a bad time</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`FreeList`]: type.FreeList.html</span>
+    <span class="doccomment">/// [`FreeBlock`]: struct.FreeBlock.html</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>( <span class="ident">start_addr</span>: <span class="ident">Address</span>
+                     , <span class="ident">free_lists</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">FreeList</span>]
+                     , <span class="ident">heap_size</span>: <span class="ident">usize</span>)
+                     <span class="op">-&gt;</span> <span class="ident">Heap</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+        <span class="comment">// Cache the number of free lists hopefully saving performance.</span>
+        <span class="kw">let</span> <span class="ident">n_free_lists</span> <span class="op">=</span> <span class="ident">free_lists</span>.<span class="ident">len</span>();
+
+        <span class="macro">assert</span><span class="macro">!</span>( <span class="op">!</span><span class="ident">start_addr</span>.<span class="ident">is_null</span>()
+                , <span class="string">&quot;Heap start address cannot be null.&quot;</span> );
+        <span class="macro">assert</span><span class="macro">!</span>( <span class="ident">n_free_lists</span> <span class="op">&gt;</span> <span class="number">0</span>
+               , <span class="string">&quot;Allocator must have at least one free list.&quot;</span>);
+        <span class="comment">// assert!( start_addr as usize &amp; (PAGE_SIZE-1) as usize == 0</span>
+        <span class="comment">//        , &quot;Heap start address must be aligned on a 4k boundary.&quot;);</span>
+
+        <span class="kw">let</span> <span class="ident">min_block_size</span> <span class="op">=</span> <span class="ident">heap_size</span> <span class="op">&gt;&gt;</span> (<span class="ident">n_free_lists</span> <span class="op">-</span> <span class="number">1</span>);
+
+        <span class="macro">assert</span><span class="macro">!</span>( <span class="ident">heap_size</span> <span class="op">&gt;=</span> <span class="ident">min_block_size</span>
+               , <span class="string">&quot;Heap must be large enough to contain at least one block.&quot;</span>);
+        <span class="macro">assert</span><span class="macro">!</span>( <span class="ident">min_block_size</span> <span class="op">&gt;=</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">FreeBlock</span><span class="op">&gt;</span>()
+               , <span class="string">&quot;Minimum block size must be large enough to contain \
+                  the free block header.&quot;</span>);
+        <span class="macro">assert</span><span class="macro">!</span>( <span class="ident">heap_size</span>.<span class="ident">is_pow2</span>()
+               , <span class="string">&quot;Heap size must be a power of 2.&quot;</span>);
+
+    <span class="comment">//    // We must have one free list per possible heap block size.</span>
+    <span class="comment">//    assert_eq!(min_block_size *</span>
+    <span class="comment">//               (2u32.pow(free_lists.len() as u32 - 1)) as usize,</span>
+    <span class="comment">//               heap_size);</span>
+
+        <span class="comment">// Zero out the free lists in case we were passed existing data.</span>
+        <span class="kw">for</span> <span class="ident">list</span> <span class="kw">in</span> <span class="ident">free_lists</span>.<span class="ident">iter_mut</span>() {
+            <span class="kw-2">*</span><span class="ident">list</span> <span class="op">=</span> <span class="ident">FreeList</span>::<span class="ident">new</span>();
+        }
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">heap</span>
+            <span class="op">=</span> <span class="ident">Heap</span> { <span class="ident">start_addr</span>: <span class="ident">Unique</span>::<span class="ident">new</span>(<span class="ident">start_addr</span>)
+                   , <span class="ident">free_lists</span>: <span class="ident">free_lists</span>
+                   , <span class="ident">heap_size</span>: <span class="ident">heap_size</span>
+                   , <span class="ident">min_block_size</span>: <span class="ident">min_block_size</span>
+                   };
+
+        <span class="comment">// the order needed to allocate the entire heap as a single block</span>
+        <span class="kw">let</span> <span class="ident">root_order</span>
+            <span class="op">=</span> <span class="ident">heap</span>.<span class="ident">alloc_order</span>(<span class="kw-2">&amp;</span><span class="ident">Layout</span>::<span class="ident">from_size_align</span>(<span class="ident">heap_size</span>, <span class="number">1</span>))
+                  .<span class="ident">expect</span>(<span class="string">&quot;Couldn&#39;t determine heap root allocation order!\
+                           This should be (as far as I know) impossible.\
+                           Something is seriously amiss.&quot;</span>);
+
+        <span class="comment">// Push the entire heap onto the free lists as the first block.</span>
+        <span class="ident">heap</span>.<span class="ident">push_block</span>(<span class="ident">start_addr</span>, <span class="ident">root_order</span>);
+        <span class="ident">heap</span>
+    }
+
+    <span class="doccomment">/// Add a block of max order</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Safety</span>
+    <span class="doccomment">/// + This function has no way to guarantee that the given `block` of</span>
+    <span class="doccomment">///   uninitialized memory is not already in use.</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">add_block</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">block</span>: <span class="ident">Address</span>) {
+        <span class="comment">// TODO: assert the passed block is not a null pointer?</span>
+        <span class="comment">//       - eliza, 1/23/2017</span>
+        <span class="kw">let</span> <span class="ident">order</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">free_lists</span>.<span class="ident">len</span>() <span class="op">-</span><span class="number">1</span>;
+        <span class="self">self</span>.<span class="ident">push_block</span>(<span class="ident">block</span>, <span class="ident">order</span>);
+    }
+
+    <span class="doccomment">/// Computes the size of an allocation request.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Arguments</span>
+    <span class="doccomment">/// + `size`: A `usize` containing the size of the request</span>
+    <span class="doccomment">/// + `align`: A `usize` containing the alignment of the request</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Returns</span>
+    <span class="doccomment">/// + `None` if the request is invalid</span>
+    <span class="doccomment">/// + `Some(usize)` containing the size needed if the request is valid</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">alloc_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">layout</span>: <span class="kw-2">&amp;</span><span class="ident">Layout</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">AllocErr</span><span class="op">&gt;</span> {
+        <span class="comment">// Pre-check if this is a valid allocation request:</span>
+        <span class="comment">//  - allocations must be aligned on power of 2 boundaries</span>
+        <span class="comment">//  - we cannot allocate requests with alignments greater than the</span>
+        <span class="comment">//    base alignment of the heap without jumping through a bunch of</span>
+        <span class="comment">//    hoops.</span>
+        <span class="kw">let</span> <span class="ident">align</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">align</span>();
+        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">align</span>.<span class="ident">is_power_of_two</span>());
+        <span class="kw">if</span> <span class="ident">align</span> <span class="op">&gt;</span> <span class="ident">PAGE_SIZE</span> <span class="kw">as</span> <span class="ident">usize</span> {
+            <span class="prelude-val">Err</span>(<span class="ident">AllocErr</span>::<span class="ident">Unsupported</span> {
+                <span class="ident">details</span>: <span class="string">&quot;Cannot allocate requests with alignments greater \
+                          than the base alignment of the heap!&quot;</span>
+                })
+        <span class="comment">// If the request is valid, compute the size we need to allocate</span>
+        } <span class="kw">else</span> {
+            <span class="comment">// the allocation size for the request is the next power of 2</span>
+            <span class="comment">// after the size of the request, the alignment of the request,</span>
+            <span class="comment">// or the minimum block size (whichever is greatest).</span>
+            <span class="kw">let</span> <span class="ident">alloc_size</span>
+                <span class="op">=</span> <span class="macro">max</span><span class="macro">!</span>( <span class="ident">layout</span>.<span class="ident">size</span>(), <span class="self">self</span>.<span class="ident">min_block_size</span>, <span class="ident">align</span>)
+                    .<span class="ident">next_power_of_two</span>();
+
+            <span class="kw">if</span> <span class="ident">alloc_size</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">heap_size</span> {
+                <span class="comment">// if the calculated size is greater than the size of the heap,</span>
+                <span class="comment">// we (obviously) cannot allocate this request.</span>
+                <span class="prelude-val">Err</span>(<span class="ident">AllocErr</span>::<span class="ident">Unsupported</span> {
+                    <span class="ident">details</span>: <span class="string">&quot;Cannot allocate requests larger than the heap!&quot;</span>
+                })
+            } <span class="kw">else</span> {
+                <span class="comment">// otherwise, return the calculated size.</span>
+                <span class="prelude-val">Ok</span>(<span class="ident">alloc_size</span>)
+            }
+        }
+    }
+
+    <span class="doccomment">/// Computes the order of an allocation request.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The &quot;order&quot; of an allocation refers to the number of times we need to</span>
+    <span class="doccomment">/// double the minimum block size to get a large enough block for that</span>
+    <span class="doccomment">/// allocation.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">alloc_order</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">layout</span>: <span class="kw-2">&amp;</span><span class="ident">Layout</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">AllocErr</span><span class="op">&gt;</span> {
+        <span class="macro">trace</span><span class="macro">!</span>(<span class="ident">target</span>: <span class="string">&quot;alloc&quot;</span>, <span class="string">&quot;TRACE: alloc_order() called&quot;</span>);
+        <span class="self">self</span>.<span class="ident">alloc_size</span>(<span class="ident">layout</span>)
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> {
+                <span class="macro">trace</span><span class="macro">!</span>( <span class="ident">target</span>: <span class="string">&quot;alloc&quot;</span>
+                      , <span class="string">&quot;in alloc_order(): alloc_size() returned {}&quot;</span>, <span class="ident">s</span>);
+                <span class="ident">s</span>.<span class="ident">log2</span>() <span class="op">-</span> <span class="self">self</span>.<span class="ident">min_block_size</span>.<span class="ident">log2</span>()
+            })
+    }
+
+    <span class="doccomment">/// Computes the size  allocated for a request of the given order.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">order_alloc_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">order</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+        <span class="number">1</span> <span class="op">&lt;&lt;</span> (<span class="self">self</span>.<span class="ident">min_block_size</span>.<span class="ident">log2</span>() <span class="op">+</span> <span class="ident">order</span>)
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">push_block</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>, <span class="ident">order</span>: <span class="ident">usize</span>) {
+        <span class="self">self</span>.<span class="ident">free_lists</span>[<span class="ident">order</span>]
+            .<span class="ident">push_front</span>(<span class="ident">Unique</span>::<span class="ident">new</span>(<span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">FreeBlock</span>))
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">pop_block</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">order</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span><span class="op">&gt;</span>{
+        <span class="self">self</span>.<span class="ident">free_lists</span>[<span class="ident">order</span>]
+            .<span class="ident">pop_front</span>()
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">block</span><span class="op">|</span> <span class="ident">block</span>.<span class="ident">as_ref</span>().<span class="ident">as_ptr</span>())
+    }
+
+
+    <span class="doccomment">/// Splits a block</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Arguments</span>
+    <span class="doccomment">/// + `block`: a pointer to the block to split</span>
+    <span class="doccomment">/// + `old_order`: the current order of `block`</span>
+    <span class="doccomment">/// + `new_order`: the requested order for the split block</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Safety</span>
+    <span class="doccomment">/// + This function has no guarantee that `block` is not a null pointer.</span>
+    <span class="doccomment">/// + This function has no guarantee that `block` is not already in use --</span>
+    <span class="doccomment">///   if it is invoked on an already allocated block, that block may be</span>
+    <span class="doccomment">///   clobbered without warning.</span>
+    <span class="doccomment">/// + This function has no guarantee that `old_order` is the correct order</span>
+    <span class="doccomment">///   for `block`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Panics</span>
+    <span class="doccomment">/// + If `new_order` is less than `old_order`: we make a block _larger_ by</span>
+    <span class="doccomment">///   splitting it.</span>
+    <span class="doccomment">/// + If `old_order` is larger than the maximum order of this allocator</span>
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">split_block</span>( <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>
+                         , <span class="ident">block</span>: <span class="ident">Address</span>
+                         , <span class="ident">old_order</span>: <span class="ident">usize</span>
+                         , <span class="ident">new_order</span>: <span class="ident">usize</span> ) {
+        <span class="comment">// TODO: assert the passed block is not a null pointer?</span>
+        <span class="comment">//       - eliza, 1/23/2017</span>
+        <span class="macro">trace</span><span class="macro">!</span>( <span class="ident">target</span>: <span class="string">&quot;alloc&quot;</span>
+              , <span class="string">&quot;split_block() was called, target order: {}.&quot;</span>, <span class="ident">new_order</span>);
+
+        <span class="macro">assert</span><span class="macro">!</span>( <span class="ident">new_order</span> <span class="op">&lt;</span> <span class="ident">old_order</span>
+               , <span class="string">&quot;Cannot split a block larger than its current order!&quot;</span>);
+        <span class="macro">assert</span><span class="macro">!</span>( <span class="ident">old_order</span> <span class="op">&lt;=</span> <span class="self">self</span>.<span class="ident">free_lists</span>.<span class="ident">len</span>()
+               , <span class="string">&quot;Order is too large for this allocator!&quot;</span>);
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">split_size</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">order_alloc_size</span>(<span class="ident">old_order</span>);
+        <span class="comment">// let mut curr_order = order;</span>
+        <span class="kw">for</span> <span class="ident">order</span> <span class="kw">in</span> (<span class="ident">new_order</span>..<span class="ident">old_order</span>).<span class="ident">rev</span>() {
+            <span class="ident">split_size</span> <span class="op">&gt;&gt;=</span> <span class="number">1</span>;
+
+            <span class="comment">// let split_size = self.order_alloc_size(order);</span>
+            <span class="self">self</span>.<span class="ident">push_block</span>(<span class="ident">block</span>.<span class="ident">offset</span>(<span class="ident">split_size</span> <span class="kw">as</span> <span class="ident">isize</span>), <span class="ident">order</span>);
+
+            <span class="macro">trace</span><span class="macro">!</span>( <span class="ident">target</span>: <span class="string">&quot;alloc&quot;</span>
+                  , <span class="string">&quot;split block successfully, order: {}, split size: {}&quot;</span>
+                  , <span class="ident">order</span>, <span class="ident">split_size</span> );
+
+        }
+    }
+
+    <span class="doccomment">/// Finds the buddy block for a given block.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Arguments</span>
+    <span class="doccomment">/// + `order`: the order of the block to find a buddy for</span>
+    <span class="doccomment">/// + `block`: a pointer to the block to find a buddy for</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Returns</span>
+    <span class="doccomment">/// + `Some(*mut u8)` pointing to the buddy block if a buddy was found</span>
+    <span class="doccomment">/// + `None` if the block was the size of the entire heap</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_buddy</span>( <span class="kw-2">&amp;</span><span class="self">self</span>
+                           , <span class="ident">order</span>: <span class="ident">usize</span>
+                           , <span class="ident">block</span>: <span class="ident">Address</span>)
+                            <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span> {
+        <span class="comment">// Determine the size of the block allocated for the given order</span>
+        <span class="kw">let</span> <span class="ident">block_size</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">order_alloc_size</span>(<span class="ident">order</span>);
+        <span class="kw">if</span> <span class="ident">block_size</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">heap_size</span> {
+
+            <span class="kw">let</span> <span class="ident">start_addr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">start_addr</span>.<span class="ident">as_ptr</span>();
+            <span class="macro">debug_assert</span><span class="macro">!</span>( <span class="op">!</span><span class="ident">start_addr</span>.<span class="ident">is_null</span>(),
+                <span class="string">&quot;Start address of a (supposedly) valid heap was null. Something\
+                 has gone horribly, horribly wrong!&quot;</span>);
+
+            <span class="comment">// Determine the block&#39;s position in the heap.</span>
+            <span class="kw">let</span> <span class="ident">block_pos</span> <span class="op">=</span> (<span class="ident">block</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">-</span> (<span class="ident">start_addr</span> <span class="kw">as</span> <span class="ident">usize</span>);
+
+            <span class="comment">// Calculate the block&#39;s buddy by XORing the block&#39;s position</span>
+            <span class="comment">// in the heap with its size.</span>
+            <span class="kw">let</span> <span class="ident">block_offset</span> <span class="op">=</span> (<span class="ident">block_pos</span> <span class="op">^</span> <span class="ident">block_size</span>) <span class="kw">as</span> <span class="ident">isize</span>;
+            <span class="prelude-val">Some</span>(<span class="ident">start_addr</span>.<span class="ident">offset</span>(<span class="ident">block_offset</span>))
+        } <span class="kw">else</span> {
+            <span class="comment">// If the block is the size of the entire heap, it (obviously)</span>
+            <span class="comment">// cannot have a buddy block.</span>
+            <span class="prelude-val">None</span>
+        }
+    }
+
+    <span class="doccomment">/// Finds and removes the target block from the free list.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Arguments</span>
+    <span class="doccomment">/// + `order`: the order of the free list to remove the block from_raw</span>
+    <span class="doccomment">/// + `block`: a pointer to the block to remove</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Returns</span>
+    <span class="doccomment">/// + `true` if the block was found and removed from the free List</span>
+    <span class="doccomment">/// + `false` if the block was not found</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_block</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">order</span>: <span class="ident">usize</span>, <span class="ident">block</span>: <span class="ident">Address</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">free_lists</span>[<span class="ident">order</span>]
+            .<span class="ident">cursor_mut</span>()
+            .<span class="ident">find_and_remove</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> <span class="ident">b</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">FreeBlock</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span> <span class="op">==</span> <span class="ident">block</span>)
+            .<span class="ident">is_some</span>()
+    }
+}
+
+
+<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Allocator</span> <span class="kw">for</span> <span class="ident">Heap</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+
+    <span class="doccomment">/// Returns a pointer suitable for holding data described by</span>
+    <span class="doccomment">/// `layout`, meeting its size and alignment guarantees.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The returned block of storage may or may not have its contents</span>
+    <span class="doccomment">/// initialized. (Extension subtraits might restrict this</span>
+    <span class="doccomment">/// behavior, e.g. to ensure initialization.)</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Returning `Err` indicates that either memory is exhausted or `layout`</span>
+    <span class="doccomment">/// does not meet allocator&#39;s size or alignment constraints.</span>
+    <span class="doccomment">///</span>
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">alloc</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">layout</span>: <span class="ident">Layout</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Address</span>, <span class="ident">AllocErr</span><span class="op">&gt;</span> {
+        <span class="macro">trace</span><span class="macro">!</span>(<span class="ident">target</span>: <span class="string">&quot;alloc&quot;</span>, <span class="string">&quot;allocate() was called!&quot;</span>);
+        <span class="comment">// First, compute the allocation order for this request</span>
+        <span class="self">self</span>.<span class="ident">alloc_order</span>(<span class="kw-2">&amp;</span><span class="ident">layout</span>)
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">order</span><span class="op">|</span>
+                <span class="kw">if</span> <span class="ident">order</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">free_lists</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span> {
+                    <span class="prelude-val">Err</span>(<span class="ident">AllocErr</span>::<span class="ident">Exhausted</span> { <span class="ident">request</span>: <span class="ident">layout</span>.<span class="ident">clone</span>() })
+                } <span class="kw">else</span> { <span class="prelude-val">Ok</span>(<span class="ident">order</span>) } )
+            <span class="comment">// If the allocation order is defined, then we try to allocate</span>
+            <span class="comment">// a block of that order. Otherwise, the request is invalid.</span>
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">min_order</span><span class="op">|</span> {
+                <span class="macro">trace</span><span class="macro">!</span>( <span class="ident">target</span>: <span class="string">&quot;alloc&quot;</span>
+                      , <span class="string">&quot;in allocate(): min alloc order is {}&quot;</span>, <span class="ident">min_order</span>);
+                <span class="comment">// Starting at the minimum possible order...</span>
+                <span class="comment">// TODO: this is ugly and not FP, rewrite.</span>
+                <span class="kw">for</span> <span class="ident">order</span> <span class="kw">in</span> <span class="ident">min_order</span>..<span class="self">self</span>.<span class="ident">free_lists</span>.<span class="ident">len</span>() {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">block</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">pop_block</span>(<span class="ident">order</span>) {
+                        <span class="macro">trace</span><span class="macro">!</span>(<span class="ident">target</span>: <span class="string">&quot;alloc&quot;</span>, <span class="string">&quot;in allocate(): found block&quot;</span>);
+                        <span class="kw">if</span> <span class="ident">order</span> <span class="op">&gt;</span> <span class="ident">min_order</span> {
+                            <span class="macro">trace</span><span class="macro">!</span>( <span class="ident">target</span>: <span class="string">&quot;alloc&quot;</span>
+                                  , <span class="string">&quot;in allocate(): order {} is less than \
+                                     minimum ({}), splitting.&quot;</span>
+                                  , <span class="ident">order</span>, <span class="ident">min_order</span>);
+                            <span class="self">self</span>.<span class="ident">split_block</span>(<span class="ident">block</span>, <span class="ident">order</span>, <span class="ident">min_order</span>);
+                            <span class="macro">trace</span><span class="macro">!</span>( <span class="ident">target</span>: <span class="string">&quot;alloc&quot;</span>
+                                  , <span class="string">&quot;in allocate(): split_block() done&quot;</span>);
+
+                        }
+                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">block</span>)
+                    }
+                }
+                <span class="prelude-val">Err</span>(<span class="ident">AllocErr</span>::<span class="ident">Exhausted</span> { <span class="ident">request</span>: <span class="ident">layout</span> })
+            })
+    }
+
+    <span class="doccomment">/// Release an allocated block of memory.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The `size` and `align` parameters _must_ be the same as the original</span>
+    <span class="doccomment">/// size and alignment of the frame being deallocated, otherwise our</span>
+    <span class="doccomment">/// heap will become corrupted.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Arguments</span>
+    <span class="doccomment">/// + `frame`: a pointer to the block of memory to deallocate</span>
+    <span class="doccomment">/// + `size`: the size of the block being deallocated</span>
+    <span class="doccomment">/// + `align`: the alignment of the block being deallocated</span>
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">dealloc</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ptr</span>: <span class="ident">Address</span>, <span class="ident">layout</span>: <span class="ident">Layout</span>) {
+        <span class="kw">let</span> <span class="ident">min_order</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">alloc_order</span>(<span class="kw-2">&amp;</span><span class="ident">layout</span>).<span class="ident">unwrap</span>();
+
+        <span class="comment">// Check if the deallocated block&#39;s buddy block is also free.</span>
+        <span class="comment">// If it is, merge the two blocks.</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_block</span> <span class="op">=</span> <span class="ident">ptr</span>;
+        <span class="kw">for</span> <span class="ident">order</span> <span class="kw">in</span> <span class="ident">min_order</span>..<span class="self">self</span>.<span class="ident">free_lists</span>.<span class="ident">len</span>() {
+            <span class="comment">// If there is a buddy for this block of the given order...</span>
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">buddy</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_buddy</span>(<span class="ident">order</span>, <span class="ident">ptr</span>) {
+                <span class="comment">// ...and if the buddy was free...</span>
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">remove_block</span>(<span class="ident">order</span>, <span class="ident">buddy</span>) {
+                    <span class="comment">// ...merge the buddy with the new block (just use</span>
+                    <span class="comment">// the lower address), and keep going.</span>
+                    <span class="ident">new_block</span> <span class="op">=</span> <span class="ident">min</span>(<span class="ident">new_block</span>, <span class="ident">buddy</span>);
+                    <span class="kw">continue</span>;
+                }
+            }
+            <span class="comment">// Otherwise, if we&#39;ve run out of free buddies, push the new</span>
+            <span class="comment">// merged block onto the free lsit and return.</span>
+            <span class="self">self</span>.<span class="ident">push_block</span>(<span class="ident">new_block</span>, <span class="ident">order</span>);
+            <span class="kw">return</span>;
+        }
+    }
+}
+</pre>
+</section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../../";
+        window.currentCrate = "alloc";
+    </script>
+    <script src="../../../main.js"></script>
+    <script defer src="../../../search-index.js"></script>
+</body>
+</html>

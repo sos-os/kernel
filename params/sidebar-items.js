@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["mem","Memory parameters"]],"struct":[["InitParams","Parameters used during the init process"]],"type":[["ElfSections","If we are on x86_64 or armv7 this uses the 64-bit ELF word"]]});

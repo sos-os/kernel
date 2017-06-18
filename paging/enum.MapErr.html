@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `MapErr` enum in crate `paging`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, MapErr">
+
+    <title>paging::MapErr - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc enum">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'>Enum MapErr</p><div class="block items"><ul><li><a href="#variants">Variants</a></li><li><a href="#implementations">Trait Implementations</a></li></ul></div><p class='location'><a href='index.html'>paging</a></p><script>window.sidebarCurrent = {name: 'MapErr', ty: 'enum', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Enum <a href='index.html'>paging</a>::<wbr><a class="enum" href=''>MapErr</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../src/paging/lib.rs.html#42-48' title='goto source code'>[src]</a></span></h1>
+<pre class='rust enum'>pub enum MapErr&lt;P:&nbsp;<a class="trait" href="../memory/trait.Page.html" title="trait memory::Page">Page</a> + <a class="trait" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html" title="trait core::fmt::Debug">Debug</a>&nbsp;=&nbsp;<a class="struct" href="../memory/struct.VirtualPage.html" title="struct memory::VirtualPage">VirtualPage</a>&gt; {
+    Alloc {
+        message: &amp;'static str,
+        page: P,
+        cause: <a class="enum" href="../sos_alloc/enum.AllocErr.html" title="enum sos_alloc::AllocErr">AllocErr</a>,
+    },
+    Other {
+        message: &amp;'static str,
+        page: P,
+        cause: &amp;'static str,
+    },
+    TableNotFound {
+        message: &amp;'static str,
+        page: <a class="struct" href="../memory/struct.VirtualPage.html" title="struct memory::VirtualPage">VirtualPage</a>,
+        what: &amp;'static str,
+    },
+    AlreadyInUse {
+        message: &amp;'static str,
+        page: <a class="struct" href="../memory/struct.VirtualPage.html" title="struct memory::VirtualPage">VirtualPage</a>,
+        frame: <a class="struct" href="../memory/arch/x86_64/struct.PhysicalPage.html" title="struct memory::arch::x86_64::PhysicalPage">PhysicalPage</a>,
+    },
+    NoPage {
+        message: &amp;'static str,
+        cause: &amp;'static str,
+    },
+}</pre><h2 id='variants' class='variants'>Variants</h2>
+<span id='variant.Alloc' class='variant'><span id='Alloc.v' class='invisible'><code>Alloc</code></span></span><span class='docblock autohide sub-variant' id='variant.Alloc.fields'><h3 class='fields'>Fields of <code>Alloc</code></h3>
+
+                           <table><tr><td id='variant.Alloc.field.message'><span id='Alloc.v.message.v' class='invisible'><code>message:&nbsp;&amp;'static str</code></span></td><td></td></tr><tr><td id='variant.Alloc.field.page'><span id='Alloc.v.page.v' class='invisible'><code>page:&nbsp;P</code></span></td><td></td></tr><tr><td id='variant.Alloc.field.cause'><span id='Alloc.v.cause.v' class='invisible'><code>cause:&nbsp;<a class="enum" href="../sos_alloc/enum.AllocErr.html" title="enum sos_alloc::AllocErr">AllocErr</a></code></span></td><td></td></tr></table></span><span id='variant.Other' class='variant'><span id='Other.v' class='invisible'><code>Other</code></span></span><span class='docblock autohide sub-variant' id='variant.Other.fields'><h3 class='fields'>Fields of <code>Other</code></h3>
+
+                           <table><tr><td id='variant.Other.field.message'><span id='Other.v.message.v' class='invisible'><code>message:&nbsp;&amp;'static str</code></span></td><td></td></tr><tr><td id='variant.Other.field.page'><span id='Other.v.page.v' class='invisible'><code>page:&nbsp;P</code></span></td><td></td></tr><tr><td id='variant.Other.field.cause'><span id='Other.v.cause.v' class='invisible'><code>cause:&nbsp;&amp;'static str</code></span></td><td></td></tr></table></span><span id='variant.TableNotFound' class='variant'><span id='TableNotFound.v' class='invisible'><code>TableNotFound</code></span></span><span class='docblock autohide sub-variant' id='variant.TableNotFound.fields'><h3 class='fields'>Fields of <code>TableNotFound</code></h3>
+
+                           <table><tr><td id='variant.TableNotFound.field.message'><span id='TableNotFound.v.message.v' class='invisible'><code>message:&nbsp;&amp;'static str</code></span></td><td></td></tr><tr><td id='variant.TableNotFound.field.page'><span id='TableNotFound.v.page.v' class='invisible'><code>page:&nbsp;<a class="struct" href="../memory/struct.VirtualPage.html" title="struct memory::VirtualPage">VirtualPage</a></code></span></td><td></td></tr><tr><td id='variant.TableNotFound.field.what'><span id='TableNotFound.v.what.v' class='invisible'><code>what:&nbsp;&amp;'static str</code></span></td><td></td></tr></table></span><span id='variant.AlreadyInUse' class='variant'><span id='AlreadyInUse.v' class='invisible'><code>AlreadyInUse</code></span></span><span class='docblock autohide sub-variant' id='variant.AlreadyInUse.fields'><h3 class='fields'>Fields of <code>AlreadyInUse</code></h3>
+
+                           <table><tr><td id='variant.AlreadyInUse.field.message'><span id='AlreadyInUse.v.message.v' class='invisible'><code>message:&nbsp;&amp;'static str</code></span></td><td></td></tr><tr><td id='variant.AlreadyInUse.field.page'><span id='AlreadyInUse.v.page.v' class='invisible'><code>page:&nbsp;<a class="struct" href="../memory/struct.VirtualPage.html" title="struct memory::VirtualPage">VirtualPage</a></code></span></td><td></td></tr><tr><td id='variant.AlreadyInUse.field.frame'><span id='AlreadyInUse.v.frame.v' class='invisible'><code>frame:&nbsp;<a class="struct" href="../memory/arch/x86_64/struct.PhysicalPage.html" title="struct memory::arch::x86_64::PhysicalPage">PhysicalPage</a></code></span></td><td></td></tr></table></span><span id='variant.NoPage' class='variant'><span id='NoPage.v' class='invisible'><code>NoPage</code></span></span><span class='docblock autohide sub-variant' id='variant.NoPage.fields'><h3 class='fields'>Fields of <code>NoPage</code></h3>
+
+                           <table><tr><td id='variant.NoPage.field.message'><span id='NoPage.v.message.v' class='invisible'><code>message:&nbsp;&amp;'static str</code></span></td><td></td></tr><tr><td id='variant.NoPage.field.cause'><span id='NoPage.v.cause.v' class='invisible'><code>cause:&nbsp;&amp;'static str</code></span></td><td></td></tr></table></span><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl&lt;P:&nbsp;<a class="trait" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a> + <a class="trait" href="../memory/trait.Page.html" title="trait memory::Page">Page</a> + <a class="trait" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html" title="trait core::fmt::Debug">Debug</a>&gt; <a class="trait" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html" title="trait core::clone::Clone">Clone</a> for <a class="enum" href="../paging/enum.MapErr.html" title="enum paging::MapErr">MapErr</a>&lt;P&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/paging/lib.rs.html#41' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.clone' class="method"><span id='clone.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone' class='fnname'>clone</a>(&amp;self) -&gt; <a class="enum" href="../paging/enum.MapErr.html" title="enum paging::MapErr">MapErr</a>&lt;P&gt;</code></span></h4>
+<div class='docblock'><p>Returns a copy of the value. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone">Read more</a></p>
+</div><h4 id='method.clone_from' class="method"><span id='clone_from.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from' class='fnname'>clone_from</a>(&amp;mut self, source: &amp;Self)</code><div class='since' title='Stable since Rust version 1.0.0'>1.0.0</div></span></h4>
+<div class='docblock'><p>Performs copy-assignment from <code>source</code>. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from">Read more</a></p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl&lt;P&gt; <a class="trait" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html" title="trait core::fmt::Debug">Debug</a> for <a class="enum" href="../paging/enum.MapErr.html" title="enum paging::MapErr">MapErr</a>&lt;P&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;P: <a class="trait" href="../memory/trait.Page.html" title="trait memory::Page">Page</a> + <a class="trait" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html" title="trait core::fmt::Debug">Debug</a>,&nbsp;</span></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/paging/lib.rs.html#50-55' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt' class="method"><span id='fmt.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class="struct" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html" title="struct core::fmt::Formatter">Formatter</a>) -&gt; <a class="type" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html" title="type core::fmt::Result">Result</a></code></span></h4>
+<div class='docblock'><p>Formats the value using the given formatter.</p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "paging";
+    </script>
+    <script src="../main.js"></script>
+    <script defer src="../search-index.js"></script>
+</body>
+</html>

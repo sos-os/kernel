@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `cr0` mod in crate `cpu`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, cr0">
+
+    <title>cpu::control_regs::cr0 - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc mod">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'>Module cr0</p><div class="block items"><ul><li><a href="#structs">Structs</a></li><li><a href="#constants">Constants</a></li><li><a href="#functions">Functions</a></li></ul></div><p class='location'><a href='../../index.html'>cpu</a>::<wbr><a href='../index.html'>control_regs</a></p><script>window.sidebarCurrent = {name: 'cr0', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Module <a href='../../index.html'>cpu</a>::<wbr><a href='../index.html'>control_regs</a>::<wbr><a class="mod" href=''>cr0</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../../../src/cpu/x86_64/up/x86_all/control_regs/cr0.rs.html#1-139' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'><p><code>%cr0</code> contains flags that modify basic processor operation.</p>
+</div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.Flags.html"
+                                  title='struct cpu::control_regs::cr0::Flags'>Flags</a></td>
+                           <td class='docblock-short'>
+                                <p>Flag present in <code>%cr0</code>.</p>
+                           </td>
+                       </tr></table><h2 id='constants' class='section-header'><a href="#constants">Constants</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.AM.html"
+                                  title='constant cpu::control_regs::cr0::AM'>AM</a></td>
+                           <td class='docblock-short'>
+                                <p>Alignment Mask</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.CD.html"
+                                  title='constant cpu::control_regs::cr0::CD'>CD</a></td>
+                           <td class='docblock-short'>
+                                <p>Cache Disable</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.EM.html"
+                                  title='constant cpu::control_regs::cr0::EM'>EM</a></td>
+                           <td class='docblock-short'>
+                                <p>FPU Emulation</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.ET.html"
+                                  title='constant cpu::control_regs::cr0::ET'>ET</a></td>
+                           <td class='docblock-short'>
+                                <p>Extension Type</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.MP.html"
+                                  title='constant cpu::control_regs::cr0::MP'>MP</a></td>
+                           <td class='docblock-short'>
+                                <p>Monitor co-processor</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.NE.html"
+                                  title='constant cpu::control_regs::cr0::NE'>NE</a></td>
+                           <td class='docblock-short'>
+                                <p>Numeric Error</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.NW.html"
+                                  title='constant cpu::control_regs::cr0::NW'>NW</a></td>
+                           <td class='docblock-short'>
+                                <p>Not Write-Through</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.PE.html"
+                                  title='constant cpu::control_regs::cr0::PE'>PE</a></td>
+                           <td class='docblock-short'>
+                                <p>Protected Mode Enable</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.PG.html"
+                                  title='constant cpu::control_regs::cr0::PG'>PG</a></td>
+                           <td class='docblock-short'>
+                                <p>Paging</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.TS.html"
+                                  title='constant cpu::control_regs::cr0::TS'>TS</a></td>
+                           <td class='docblock-short'>
+                                <p>Task Switched</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="constant" href="constant.WP.html"
+                                  title='constant cpu::control_regs::cr0::WP'>WP</a></td>
+                           <td class='docblock-short'>
+                                <p>Write Protect</p>
+                           </td>
+                       </tr></table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="fn" href="fn.enable_paging.html"
+                                  title='fn cpu::control_regs::cr0::enable_paging'>enable_paging</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td>
+                           <td class='docblock-short'>
+                                <p>If set, enable paging; if unset, disable paging.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="fn" href="fn.enable_write_protect.html"
+                                  title='fn cpu::control_regs::cr0::enable_write_protect'>enable_write_protect</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td>
+                           <td class='docblock-short'>
+                                <p>If set, enable the write protect bit; if unset, disable write protect.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="fn" href="fn.is_paging_enabled.html"
+                                  title='fn cpu::control_regs::cr0::is_paging_enabled'>is_paging_enabled</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td>
+                           <td class='docblock-short'>
+                                <p>If set, enable paging; if unset, disable paging.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="fn" href="fn.is_write_protected.html"
+                                  title='fn cpu::control_regs::cr0::is_write_protected'>is_write_protected</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td>
+                           <td class='docblock-short'>
+                                <p>If set, enable the write protect bit; if unset, disable write protect.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="fn" href="fn.read.html"
+                                  title='fn cpu::control_regs::cr0::read'>read</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td>
+                           <td class='docblock-short'>
+                                <p>Read the current value from <code>%cr0</code>.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="fn" href="fn.write.html"
+                                  title='fn cpu::control_regs::cr0::write'>write</a><a title='unsafe function' href='#'><sup>⚠</sup></a></td>
+                           <td class='docblock-short'>
+                                <p>Write a value to <code>%cr0</code>.</p>
+                           </td>
+                       </tr></table></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../../";
+        window.currentCrate = "cpu";
+    </script>
+    <script src="../../../main.js"></script>
+    <script defer src="../../../search-index.js"></script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["COM1",""],["COM2",""],["COM3",""],["COM4",""],["Serial",""],["SerialPort","A serial port"]]});

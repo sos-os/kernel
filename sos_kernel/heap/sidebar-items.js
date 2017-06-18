@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["initialize","Initialise the kernel heap."]]});

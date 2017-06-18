@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["BumpPtr","A simple bump pointer allocator."]]});

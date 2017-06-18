@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Allocator` trait in crate `memory`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Allocator">
+
+    <title>memory::alloc::Allocator - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc trait">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'>Trait Allocator</p><div class="block items"><ul><li><a href="#required-methods">Required Methods</a></li><li><a href="#provided-methods">Provided Methods</a></li><li><a href="#implementors">Implementors</a></li></ul></div><p class='location'><a href='../index.html'>memory</a>::<wbr><a href='index.html'>alloc</a></p><script>window.sidebarCurrent = {name: 'Allocator', ty: 'trait', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Trait <a href='../index.html'>memory</a>::<wbr><a href='index.html'>alloc</a>::<wbr><a class="trait" href=''>Allocator</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../../src/memory/alloc/mod.rs.html#14-95' title='goto source code'>[src]</a></span></h1>
+<pre class='rust trait'>pub trait Allocator {
+    unsafe fn <a href='#tymethod.allocate' class='fnname'>allocate</a>(&amp;mut self, size: usize, align: usize) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;*mut u8&gt;;
+    unsafe fn <a href='#tymethod.deallocate' class='fnname'>deallocate</a>(&amp;mut self, frame: *mut u8, size: usize, align: usize);
+
+    unsafe fn <a href='#method.reallocate' class='fnname'>reallocate</a>(<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;old_frame: *mut u8, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;old_size: usize, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;new_size: usize, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;align: usize<br>&nbsp;&nbsp;&nbsp;&nbsp;) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;*mut u8&gt; { ... }
+    unsafe fn <a href='#method.zero_alloc' class='fnname'>zero_alloc</a>(<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_size: usize, <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_align: usize<br>&nbsp;&nbsp;&nbsp;&nbsp;) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;*mut u8&gt; { ... }
+}</pre><div class='docblock'><p>An <code>Allocator</code> implements a particular memory allocation strategy.</p>
+</div>
+            <h2 id='required-methods'>Required Methods</h2>
+            <div class='methods'>
+        <h3 id='tymethod.allocate' class='method'><span id='allocate.v' class='invisible'><code>unsafe fn <a href='#tymethod.allocate' class='fnname'>allocate</a>(&amp;mut self, size: usize, align: usize) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;*mut u8&gt;</code></span></h3><div class='docblock'><p>Allocate a new block of size <code>size</code> on alignment <code>align</code>.</p>
+
+<h1 id='arguments' class='section-header'><a href='#arguments'>Arguments:</a></h1>
+<ul>
+<li><code>size</code>: the amount of memory to allocate (in bytes)</li>
+<li><code>align</code>: the alignment for the allocation request</li>
+</ul>
+
+<h1 id='returns' class='section-header'><a href='#returns'>Returns:</a></h1>
+<ul>
+<li><code>Some(*mut u8)</code> if the request was allocated successfully</li>
+<li><code>None</code> if the allocator is out of memory or if the request was
+     invalid.</li>
+</ul>
+
+<h1 id='unsafe-because' class='section-header'><a href='#unsafe-because'>Unsafe Because:</a></h1>
+<ul>
+<li>The allocated block must be deallocated manually.</li>
+</ul>
+</div><h3 id='tymethod.deallocate' class='method'><span id='deallocate.v' class='invisible'><code>unsafe fn <a href='#tymethod.deallocate' class='fnname'>deallocate</a>(&amp;mut self, frame: *mut u8, size: usize, align: usize)</code></span></h3><div class='docblock'><p>Release an allocated block of memory.</p>
+
+<p>The <code>size</code> and <code>align</code> parameters <em>must</em> be the same as the original
+size and alignment of the frame being deallocated, otherwise our
+heap will become corrupted.</p>
+
+<h1 id='arguments-1' class='section-header'><a href='#arguments-1'>Arguments:</a></h1>
+<ul>
+<li><code>frame</code>: a pointer to the block of memory to deallocate</li>
+<li><code>size</code>: the size of the block being deallocated</li>
+<li><code>align</code>: the alignment of the block being deallocated</li>
+</ul>
+
+<h1 id='unsafe-because-1' class='section-header'><a href='#unsafe-because-1'>Unsafe Because:</a></h1>
+<ul>
+<li>Manually deallocates a block.</li>
+<li>If the <code>size</code> and <code>align</code> parameters do not match the original
+layout of the requested block, the heap will become corrupted.</li>
+</ul>
+</div></div>
+            <h2 id='provided-methods'>Provided Methods</h2>
+            <div class='methods'>
+        <h3 id='method.reallocate' class='method'><span id='reallocate.v' class='invisible'><code>unsafe fn <a href='#method.reallocate' class='fnname'>reallocate</a>(<br>&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;old_frame: *mut u8, <br>&nbsp;&nbsp;&nbsp;&nbsp;old_size: usize, <br>&nbsp;&nbsp;&nbsp;&nbsp;new_size: usize, <br>&nbsp;&nbsp;&nbsp;&nbsp;align: usize<br>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;*mut u8&gt;</code></span></h3><div class='docblock'><p>Reallocate <code>old_frame</code> from <code>old_size</code> bytes to <code>new_size</code> bytes</p>
+
+<p>The <code>old_size</code> and <code>align</code> parameters <em>must</em> be the same as the
+original size and alignment of the frame being reallocated, otherwise
+our heap will become corrupted.</p>
+
+<h1 id='arguments-2' class='section-header'><a href='#arguments-2'>Arguments:</a></h1>
+<ul>
+<li><code>old_frame</code>: a pointer to the frame to be reallocated</li>
+<li><code>old_size</code>: the size (in bytes) of the frame being reallocated</li>
+<li><code>new_size</code>: the size to reallocate the frame to.</li>
+<li><code>align</code>: the alignment for the allocation request</li>
+</ul>
+
+<h1 id='returns-1' class='section-header'><a href='#returns-1'>Returns:</a></h1>
+<ul>
+<li><code>Some(*mut u8)</code> if the frame was reallocated successfully</li>
+<li><code>None</code> if the allocator is out of memory or if the request was
+invalid.</li>
+</ul>
+</div><h3 id='method.zero_alloc' class='method'><span id='zero_alloc.v' class='invisible'><code>unsafe fn <a href='#method.zero_alloc' class='fnname'>zero_alloc</a>(&amp;mut self, _size: usize, _align: usize) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;*mut u8&gt;</code></span></h3></div>
+        <h2 id='implementors'>Implementors</h2>
+        <ul class='item-list' id='implementors-list'>
+    </ul><script type="text/javascript" async
+                         src="../../implementors/memory/alloc/trait.Allocator.js">
+                 </script></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "memory";
+    </script>
+    <script src="../../main.js"></script>
+    <script defer src="../../search-index.js"></script>
+</body>
+</html>

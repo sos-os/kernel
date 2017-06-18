@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Heap` struct in crate `sos_alloc`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Heap">
+
+    <title>sos_alloc::buddy::Heap - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc struct">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'>Struct Heap</p><div class="block items"><ul><li><a href="#fields">Fields</a></li><li><a href="#methods">Methods</a></li><li><a href="#implementations">Trait Implementations</a></li></ul></div><p class='location'><a href='../index.html'>sos_alloc</a>::<wbr><a href='index.html'>buddy</a></p><script>window.sidebarCurrent = {name: 'Heap', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Struct <a href='../index.html'>sos_alloc</a>::<wbr><a href='index.html'>buddy</a>::<wbr><a class="struct" href=''>Heap</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../../src/sos_alloc/buddy/mod.rs.html#66-76' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct Heap&lt;'a&gt; {
+    pub start_addr: <a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;u8&gt;,
+    pub heap_size: usize,
+    pub min_block_size: usize,
+    // some fields omitted
+}</pre><div class='docblock'><p>Structure with data for implementing the buddy block allocation strategy.</p>
+</div><h2 id='fields' class='fields'>Fields</h2><span id='structfield.start_addr' class="structfield">
+                           <span id='start_addr.v' class='invisible'>
+                           <code>start_addr: <a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;u8&gt;</code>
+                           </span></span><div class='docblock'><p>Address of the base of the heap. This must be aligned
+on a <code>MIN_ALIGN</code> boundary.</p>
+</div><span id='structfield.heap_size' class="structfield">
+                           <span id='heap_size.v' class='invisible'>
+                           <code>heap_size: usize</code>
+                           </span></span><div class='docblock'><p>Number of blocks in the heap (must be a power of 2)</p>
+</div><span id='structfield.min_block_size' class="structfield">
+                           <span id='min_block_size.v' class='invisible'>
+                           <code>min_block_size: usize</code>
+                           </span></span><div class='docblock'><p>Minimum block size</p>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl&lt;'a&gt; <a class="struct" href="../../sos_alloc/buddy/struct.Heap.html" title="struct sos_alloc::buddy::Heap">Heap</a>&lt;'a&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/sos_alloc/buddy/mod.rs.html#78-349' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.new' class="method"><span id='new.v' class='invisible'><code>unsafe fn <a href='#method.new' class='fnname'>new</a>(<br>&nbsp;&nbsp;&nbsp;&nbsp;start_addr: <a class="type" href="../../sos_alloc/type.Address.html" title="type sos_alloc::Address">Address</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;free_lists: &amp;'a mut [<a class="type" href="../../sos_alloc/buddy/type.FreeList.html" title="type sos_alloc::buddy::FreeList">FreeList</a>], <br>&nbsp;&nbsp;&nbsp;&nbsp;heap_size: usize<br>) -&gt; <a class="struct" href="../../sos_alloc/buddy/struct.Heap.html" title="struct sos_alloc::buddy::Heap">Heap</a>&lt;'a&gt;</code></span></h4>
+<div class='docblock'><p>Construct a new <code>Heap</code>.</p>
+
+<h1 id='arguments' class='section-header'><a href='#arguments'>Arguments</a></h1>
+<ul>
+<li><code>start_addr</code>: a pointer to the start location of the heap</li>
+<li><code>free_lists</code>: an array of <a href="type.FreeList.html"><code>FreeList</code></a>s. The cardinality
+of the <code>free_lists</code> array should be equal to the maximum
+allocateable order.</li>
+<li><code>heap_size</code>: the size of the heap (in bytes)</li>
+</ul>
+
+<h1 id='returns' class='section-header'><a href='#returns'>Returns</a></h1>
+<ul>
+<li>A new <code>Heap</code>, obviously.</li>
+</ul>
+
+<h1 id='panics' class='section-header'><a href='#panics'>Panics</a></h1>
+<ul>
+<li>If <code>start_addr</code> is a null pointer or is not page-aligned</li>
+<li>If the array of <code>free_lists</code> is empty</li>
+<li>If the <code>heap_size</code> is too small to contain at least one block, or is
+not a power of two.</li>
+<li>If the calculated minimum block size is to small to contain a
+<a href="struct.FreeBlock.html"><code>FreeBlock</code></a> header</li>
+</ul>
+
+<h1 id='safety' class='section-header'><a href='#safety'>Safety</a></h1>
+<ul>
+<li>If <code>start_addr</code> is not valid, you will have a bad time</li>
+</ul>
+</div><h4 id='method.add_block' class="method"><span id='add_block.v' class='invisible'><code>unsafe fn <a href='#method.add_block' class='fnname'>add_block</a>(&amp;mut self, block: <a class="type" href="../../sos_alloc/type.Address.html" title="type sos_alloc::Address">Address</a>)</code></span></h4>
+<div class='docblock'><p>Add a block of max order</p>
+
+<h1 id='safety-1' class='section-header'><a href='#safety-1'>Safety</a></h1>
+<ul>
+<li>This function has no way to guarantee that the given <code>block</code> of
+uninitialized memory is not already in use.</li>
+</ul>
+</div><h4 id='method.alloc_size' class="method"><span id='alloc_size.v' class='invisible'><code>fn <a href='#method.alloc_size' class='fnname'>alloc_size</a>(&amp;self, layout: &amp;<a class="struct" href="../../sos_alloc/struct.Layout.html" title="struct sos_alloc::Layout">Layout</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;usize, <a class="enum" href="../../sos_alloc/enum.AllocErr.html" title="enum sos_alloc::AllocErr">AllocErr</a>&gt;</code></span></h4>
+<div class='docblock'><p>Computes the size of an allocation request.</p>
+
+<h1 id='arguments-1' class='section-header'><a href='#arguments-1'>Arguments</a></h1>
+<ul>
+<li><code>size</code>: A <code>usize</code> containing the size of the request</li>
+<li><code>align</code>: A <code>usize</code> containing the alignment of the request</li>
+</ul>
+
+<h1 id='returns-1' class='section-header'><a href='#returns-1'>Returns</a></h1>
+<ul>
+<li><code>None</code> if the request is invalid</li>
+<li><code>Some(usize)</code> containing the size needed if the request is valid</li>
+</ul>
+</div><h4 id='method.alloc_order' class="method"><span id='alloc_order.v' class='invisible'><code>fn <a href='#method.alloc_order' class='fnname'>alloc_order</a>(&amp;self, layout: &amp;<a class="struct" href="../../sos_alloc/struct.Layout.html" title="struct sos_alloc::Layout">Layout</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;usize, <a class="enum" href="../../sos_alloc/enum.AllocErr.html" title="enum sos_alloc::AllocErr">AllocErr</a>&gt;</code></span></h4>
+<div class='docblock'><p>Computes the order of an allocation request.</p>
+
+<p>The &quot;order&quot; of an allocation refers to the number of times we need to
+double the minimum block size to get a large enough block for that
+allocation.</p>
+</div><h4 id='method.get_buddy' class="method"><span id='get_buddy.v' class='invisible'><code>unsafe fn <a href='#method.get_buddy' class='fnname'>get_buddy</a>(&amp;self, order: usize, block: <a class="type" href="../../sos_alloc/type.Address.html" title="type sos_alloc::Address">Address</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="type" href="../../sos_alloc/type.Address.html" title="type sos_alloc::Address">Address</a>&gt;</code></span></h4>
+<div class='docblock'><p>Finds the buddy block for a given block.</p>
+
+<h1 id='arguments-2' class='section-header'><a href='#arguments-2'>Arguments</a></h1>
+<ul>
+<li><code>order</code>: the order of the block to find a buddy for</li>
+<li><code>block</code>: a pointer to the block to find a buddy for</li>
+</ul>
+
+<h1 id='returns-2' class='section-header'><a href='#returns-2'>Returns</a></h1>
+<ul>
+<li><code>Some(*mut u8)</code> pointing to the buddy block if a buddy was found</li>
+<li><code>None</code> if the block was the size of the entire heap</li>
+</ul>
+</div><h4 id='method.remove_block' class="method"><span id='remove_block.v' class='invisible'><code>fn <a href='#method.remove_block' class='fnname'>remove_block</a>(&amp;mut self, order: usize, block: <a class="type" href="../../sos_alloc/type.Address.html" title="type sos_alloc::Address">Address</a>) -&gt; bool</code></span></h4>
+<div class='docblock'><p>Finds and removes the target block from the free list.</p>
+
+<h1 id='arguments-3' class='section-header'><a href='#arguments-3'>Arguments</a></h1>
+<ul>
+<li><code>order</code>: the order of the free list to remove the block from_raw</li>
+<li><code>block</code>: a pointer to the block to remove</li>
+</ul>
+
+<h1 id='returns-3' class='section-header'><a href='#returns-3'>Returns</a></h1>
+<ul>
+<li><code>true</code> if the block was found and removed from the free List</li>
+<li><code>false</code> if the block was not found</li>
+</ul>
+</div></div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl&lt;'a&gt; <a class="trait" href="../../sos_alloc/trait.Allocator.html" title="trait sos_alloc::Allocator">Allocator</a> for <a class="struct" href="../../sos_alloc/buddy/struct.Heap.html" title="struct sos_alloc::buddy::Heap">Heap</a>&lt;'a&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/sos_alloc/buddy/mod.rs.html#352-432' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.alloc' class="method"><span id='alloc.v' class='invisible'><code>unsafe fn <a href='../../sos_alloc/trait.Allocator.html#tymethod.alloc' class='fnname'>alloc</a>(&amp;mut self, layout: <a class="struct" href="../../sos_alloc/struct.Layout.html" title="struct sos_alloc::Layout">Layout</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="type" href="../../sos_alloc/type.Address.html" title="type sos_alloc::Address">Address</a>, <a class="enum" href="../../sos_alloc/enum.AllocErr.html" title="enum sos_alloc::AllocErr">AllocErr</a>&gt;</code></span></h4>
+<div class='docblock'><p>Returns a pointer suitable for holding data described by
+<code>layout</code>, meeting its size and alignment guarantees.</p>
+
+<p>The returned block of storage may or may not have its contents
+initialized. (Extension subtraits might restrict this
+behavior, e.g. to ensure initialization.)</p>
+
+<p>Returning <code>Err</code> indicates that either memory is exhausted or <code>layout</code>
+does not meet allocator&#39;s size or alignment constraints.</p>
+</div><h4 id='method.dealloc' class="method"><span id='dealloc.v' class='invisible'><code>unsafe fn <a href='../../sos_alloc/trait.Allocator.html#tymethod.dealloc' class='fnname'>dealloc</a>(&amp;mut self, ptr: <a class="type" href="../../sos_alloc/type.Address.html" title="type sos_alloc::Address">Address</a>, layout: <a class="struct" href="../../sos_alloc/struct.Layout.html" title="struct sos_alloc::Layout">Layout</a>)</code></span></h4>
+<div class='docblock'><p>Release an allocated block of memory.</p>
+
+<p>The <code>size</code> and <code>align</code> parameters <em>must</em> be the same as the original
+size and alignment of the frame being deallocated, otherwise our
+heap will become corrupted.</p>
+
+<h1 id='arguments-4' class='section-header'><a href='#arguments-4'>Arguments</a></h1>
+<ul>
+<li><code>frame</code>: a pointer to the block of memory to deallocate</li>
+<li><code>size</code>: the size of the block being deallocated</li>
+<li><code>align</code>: the alignment of the block being deallocated</li>
+</ul>
+</div><h4 id='method.oom' class="method"><span id='oom.v' class='invisible'><code>fn <a href='../../sos_alloc/trait.Allocator.html#method.oom' class='fnname'>oom</a>(&amp;mut self, _: <a class="enum" href="../../sos_alloc/enum.AllocErr.html" title="enum sos_alloc::AllocErr">AllocErr</a>) -&gt; !</code></span></h4>
+<div class='docblock'><p>Allocator-specific method for signalling an out-of-memory condition. <a href="../../sos_alloc/trait.Allocator.html#method.oom">Read more</a></p>
+</div><h4 id='method.usable_size' class="method"><span id='usable_size.v' class='invisible'><code>unsafe fn <a href='../../sos_alloc/trait.Allocator.html#method.usable_size' class='fnname'>usable_size</a>(&amp;self, layout: &amp;<a class="struct" href="../../sos_alloc/struct.Layout.html" title="struct sos_alloc::Layout">Layout</a>) -&gt; (<a class="type" href="../../sos_alloc/type.Capacity.html" title="type sos_alloc::Capacity">Capacity</a>, <a class="type" href="../../sos_alloc/type.Capacity.html" title="type sos_alloc::Capacity">Capacity</a>)</code></span></h4>
+<div class='docblock'><p>Returns bounds on the guaranteed usable size of a successful allocation created with the specified <code>layout</code>. <a href="../../sos_alloc/trait.Allocator.html#method.usable_size">Read more</a></p>
+</div><h4 id='method.realloc' class="method"><span id='realloc.v' class='invisible'><code>unsafe fn <a href='../../sos_alloc/trait.Allocator.html#method.realloc' class='fnname'>realloc</a>(<br>&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;ptr: <a class="type" href="../../sos_alloc/type.Address.html" title="type sos_alloc::Address">Address</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;layout: <a class="struct" href="../../sos_alloc/struct.Layout.html" title="struct sos_alloc::Layout">Layout</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;new_layout: <a class="struct" href="../../sos_alloc/struct.Layout.html" title="struct sos_alloc::Layout">Layout</a><br>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="type" href="../../sos_alloc/type.Address.html" title="type sos_alloc::Address">Address</a>, <a class="enum" href="../../sos_alloc/enum.AllocErr.html" title="enum sos_alloc::AllocErr">AllocErr</a>&gt;</code></span></h4>
+<div class='docblock'><p>Returns a pointer suitable for holding data described by <code>new_layout</code>, meeting its size and alignment guarantees. To accomplish this, this may extend or shrink the allocation referenced by <code>ptr</code> to fit <code>new_layout</code>. <a href="../../sos_alloc/trait.Allocator.html#method.realloc">Read more</a></p>
+</div><h4 id='method.alloc_excess' class="method"><span id='alloc_excess.v' class='invisible'><code>unsafe fn <a href='../../sos_alloc/trait.Allocator.html#method.alloc_excess' class='fnname'>alloc_excess</a>(&amp;mut self, layout: <a class="struct" href="../../sos_alloc/struct.Layout.html" title="struct sos_alloc::Layout">Layout</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="struct" href="../../sos_alloc/struct.Excess.html" title="struct sos_alloc::Excess">Excess</a>, <a class="enum" href="../../sos_alloc/enum.AllocErr.html" title="enum sos_alloc::AllocErr">AllocErr</a>&gt;</code></span></h4>
+<div class='docblock'><p>Behaves like <code>fn alloc</code>, but also returns the whole size of the returned block. For some <code>layout</code> inputs, like arrays, this may include extra storage usable for additional data. <a href="../../sos_alloc/trait.Allocator.html#method.alloc_excess">Read more</a></p>
+</div><h4 id='method.realloc_excess' class="method"><span id='realloc_excess.v' class='invisible'><code>unsafe fn <a href='../../sos_alloc/trait.Allocator.html#method.realloc_excess' class='fnname'>realloc_excess</a>(<br>&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;ptr: <a class="type" href="../../sos_alloc/type.Address.html" title="type sos_alloc::Address">Address</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;layout: <a class="struct" href="../../sos_alloc/struct.Layout.html" title="struct sos_alloc::Layout">Layout</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;new_layout: <a class="struct" href="../../sos_alloc/struct.Layout.html" title="struct sos_alloc::Layout">Layout</a><br>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="struct" href="../../sos_alloc/struct.Excess.html" title="struct sos_alloc::Excess">Excess</a>, <a class="enum" href="../../sos_alloc/enum.AllocErr.html" title="enum sos_alloc::AllocErr">AllocErr</a>&gt;</code></span></h4>
+<div class='docblock'><p>Behaves like <code>fn realloc</code>, but also returns the whole size of the returned block. For some <code>layout</code> inputs, like arrays, this may include extra storage usable for additional data. <a href="../../sos_alloc/trait.Allocator.html#method.realloc_excess">Read more</a></p>
+</div><h4 id='method.realloc_in_place' class="method"><span id='realloc_in_place.v' class='invisible'><code>unsafe fn <a href='../../sos_alloc/trait.Allocator.html#method.realloc_in_place' class='fnname'>realloc_in_place</a>(<br>&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;ptr: <a class="type" href="../../sos_alloc/type.Address.html" title="type sos_alloc::Address">Address</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;layout: <a class="struct" href="../../sos_alloc/struct.Layout.html" title="struct sos_alloc::Layout">Layout</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;new_layout: <a class="struct" href="../../sos_alloc/struct.Layout.html" title="struct sos_alloc::Layout">Layout</a><br>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;(), <a class="struct" href="../../sos_alloc/struct.CannotReallocInPlace.html" title="struct sos_alloc::CannotReallocInPlace">CannotReallocInPlace</a>&gt;</code></span></h4>
+<div class='docblock'><p>Attempts to extend the allocation referenced by <code>ptr</code> to fit <code>new_layout</code>. <a href="../../sos_alloc/trait.Allocator.html#method.realloc_in_place">Read more</a></p>
+</div><h4 id='method.alloc_one' class="method"><span id='alloc_one.v' class='invisible'><code>unsafe fn <a href='../../sos_alloc/trait.Allocator.html#method.alloc_one' class='fnname'>alloc_one</a>&lt;T&gt;(&amp;mut self) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;T&gt;, <a class="enum" href="../../sos_alloc/enum.AllocErr.html" title="enum sos_alloc::AllocErr">AllocErr</a>&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,&nbsp;</span></code></span></h4>
+<div class='docblock'><p>Allocates a block suitable for holding an instance of <code>T</code>. <a href="../../sos_alloc/trait.Allocator.html#method.alloc_one">Read more</a></p>
+</div><h4 id='method.dealloc_one' class="method"><span id='dealloc_one.v' class='invisible'><code>unsafe fn <a href='../../sos_alloc/trait.Allocator.html#method.dealloc_one' class='fnname'>dealloc_one</a>&lt;T&gt;(&amp;mut self, ptr: <a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;T&gt;) <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,&nbsp;</span></code></span></h4>
+<div class='docblock'><p>Deallocates a block suitable for holding an instance of <code>T</code>. <a href="../../sos_alloc/trait.Allocator.html#method.dealloc_one">Read more</a></p>
+</div><h4 id='method.alloc_array' class="method"><span id='alloc_array.v' class='invisible'><code>unsafe fn <a href='../../sos_alloc/trait.Allocator.html#method.alloc_array' class='fnname'>alloc_array</a>&lt;T&gt;(&amp;mut self, n: usize) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;T&gt;, <a class="enum" href="../../sos_alloc/enum.AllocErr.html" title="enum sos_alloc::AllocErr">AllocErr</a>&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,&nbsp;</span></code></span></h4>
+<div class='docblock'><p>Allocates a block suitable for holding <code>n</code> instances of <code>T</code>. <a href="../../sos_alloc/trait.Allocator.html#method.alloc_array">Read more</a></p>
+</div><h4 id='method.realloc_array' class="method"><span id='realloc_array.v' class='invisible'><code>unsafe fn <a href='../../sos_alloc/trait.Allocator.html#method.realloc_array' class='fnname'>realloc_array</a>&lt;T&gt;(<br>&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;ptr: <a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;T&gt;, <br>&nbsp;&nbsp;&nbsp;&nbsp;n_old: usize, <br>&nbsp;&nbsp;&nbsp;&nbsp;n_new: usize<br>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;T&gt;, <a class="enum" href="../../sos_alloc/enum.AllocErr.html" title="enum sos_alloc::AllocErr">AllocErr</a>&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,&nbsp;</span></code></span></h4>
+<div class='docblock'><p>Reallocates a block previously suitable for holding <code>n_old</code> instances of <code>T</code>, returning a block suitable for holding <code>n_new</code> instances of <code>T</code>. <a href="../../sos_alloc/trait.Allocator.html#method.realloc_array">Read more</a></p>
+</div><h4 id='method.dealloc_array' class="method"><span id='dealloc_array.v' class='invisible'><code>unsafe fn <a href='../../sos_alloc/trait.Allocator.html#method.dealloc_array' class='fnname'>dealloc_array</a>&lt;T&gt;(<br>&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;ptr: <a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;T&gt;, <br>&nbsp;&nbsp;&nbsp;&nbsp;n: usize<br>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;(), <a class="enum" href="../../sos_alloc/enum.AllocErr.html" title="enum sos_alloc::AllocErr">AllocErr</a>&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,&nbsp;</span></code></span></h4>
+<div class='docblock'><p>Deallocates a block suitable for holding <code>n</code> instances of <code>T</code>. <a href="../../sos_alloc/trait.Allocator.html#method.dealloc_array">Read more</a></p>
+</div><h4 id='method.alloc_unchecked' class="method"><span id='alloc_unchecked.v' class='invisible'><code>unsafe fn <a href='../../sos_alloc/trait.Allocator.html#method.alloc_unchecked' class='fnname'>alloc_unchecked</a>(&amp;mut self, layout: <a class="struct" href="../../sos_alloc/struct.Layout.html" title="struct sos_alloc::Layout">Layout</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="type" href="../../sos_alloc/type.Address.html" title="type sos_alloc::Address">Address</a>&gt;</code></span></h4>
+<div class='docblock'><p>Returns a pointer suitable for holding data described by <code>layout</code>, meeting its size and alignment guarantees. <a href="../../sos_alloc/trait.Allocator.html#method.alloc_unchecked">Read more</a></p>
+</div><h4 id='method.realloc_unchecked' class="method"><span id='realloc_unchecked.v' class='invisible'><code>unsafe fn <a href='../../sos_alloc/trait.Allocator.html#method.realloc_unchecked' class='fnname'>realloc_unchecked</a>(<br>&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;ptr: <a class="type" href="../../sos_alloc/type.Address.html" title="type sos_alloc::Address">Address</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;layout: <a class="struct" href="../../sos_alloc/struct.Layout.html" title="struct sos_alloc::Layout">Layout</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;new_layout: <a class="struct" href="../../sos_alloc/struct.Layout.html" title="struct sos_alloc::Layout">Layout</a><br>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="type" href="../../sos_alloc/type.Address.html" title="type sos_alloc::Address">Address</a>&gt;</code></span></h4>
+<div class='docblock'><p>Returns a pointer suitable for holding data described by <code>new_layout</code>, meeting its size and alignment guarantees. To accomplish this, may extend or shrink the allocation referenced by <code>ptr</code> to fit <code>new_layout</code>. (In other words, ownership of the memory block associated with <code>ptr</code> is first transferred back to this allocator, but the same block may or may not be transferred back as the result of this call.) <a href="../../sos_alloc/trait.Allocator.html#method.realloc_unchecked">Read more</a></p>
+</div><h4 id='method.alloc_excess_unchecked' class="method"><span id='alloc_excess_unchecked.v' class='invisible'><code>unsafe fn <a href='../../sos_alloc/trait.Allocator.html#method.alloc_excess_unchecked' class='fnname'>alloc_excess_unchecked</a>(&amp;mut self, layout: <a class="struct" href="../../sos_alloc/struct.Layout.html" title="struct sos_alloc::Layout">Layout</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="../../sos_alloc/struct.Excess.html" title="struct sos_alloc::Excess">Excess</a>&gt;</code></span></h4>
+<div class='docblock'><p>Behaves like <code>fn alloc_unchecked</code>, but also returns the whole size of the returned block. <a href="../../sos_alloc/trait.Allocator.html#method.alloc_excess_unchecked">Read more</a></p>
+</div><h4 id='method.realloc_excess_unchecked' class="method"><span id='realloc_excess_unchecked.v' class='invisible'><code>unsafe fn <a href='../../sos_alloc/trait.Allocator.html#method.realloc_excess_unchecked' class='fnname'>realloc_excess_unchecked</a>(<br>&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;ptr: <a class="type" href="../../sos_alloc/type.Address.html" title="type sos_alloc::Address">Address</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;layout: <a class="struct" href="../../sos_alloc/struct.Layout.html" title="struct sos_alloc::Layout">Layout</a>, <br>&nbsp;&nbsp;&nbsp;&nbsp;new_layout: <a class="struct" href="../../sos_alloc/struct.Layout.html" title="struct sos_alloc::Layout">Layout</a><br>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="../../sos_alloc/struct.Excess.html" title="struct sos_alloc::Excess">Excess</a>&gt;</code></span></h4>
+<div class='docblock'><p>Behaves like <code>fn realloc_unchecked</code>, but also returns the whole size of the returned block. <a href="../../sos_alloc/trait.Allocator.html#method.realloc_excess_unchecked">Read more</a></p>
+</div><h4 id='method.alloc_array_unchecked' class="method"><span id='alloc_array_unchecked.v' class='invisible'><code>unsafe fn <a href='../../sos_alloc/trait.Allocator.html#method.alloc_array_unchecked' class='fnname'>alloc_array_unchecked</a>&lt;T&gt;(&amp;mut self, n: usize) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;T&gt;&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,&nbsp;</span></code></span></h4>
+<div class='docblock'><p>Allocates a block suitable for holding <code>n</code> instances of <code>T</code>. <a href="../../sos_alloc/trait.Allocator.html#method.alloc_array_unchecked">Read more</a></p>
+</div><h4 id='method.realloc_array_unchecked' class="method"><span id='realloc_array_unchecked.v' class='invisible'><code>unsafe fn <a href='../../sos_alloc/trait.Allocator.html#method.realloc_array_unchecked' class='fnname'>realloc_array_unchecked</a>&lt;T&gt;(<br>&nbsp;&nbsp;&nbsp;&nbsp;&amp;mut self, <br>&nbsp;&nbsp;&nbsp;&nbsp;ptr: <a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;T&gt;, <br>&nbsp;&nbsp;&nbsp;&nbsp;n_old: usize, <br>&nbsp;&nbsp;&nbsp;&nbsp;n_new: usize<br>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;T&gt;&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,&nbsp;</span></code></span></h4>
+<div class='docblock'><p>Reallocates a block suitable for holding <code>n_old</code> instances of <code>T</code>, returning a block suitable for holding <code>n_new</code> instances of <code>T</code>. <a href="../../sos_alloc/trait.Allocator.html#method.realloc_array_unchecked">Read more</a></p>
+</div><h4 id='method.dealloc_array_unchecked' class="method"><span id='dealloc_array_unchecked.v' class='invisible'><code>unsafe fn <a href='../../sos_alloc/trait.Allocator.html#method.dealloc_array_unchecked' class='fnname'>dealloc_array_unchecked</a>&lt;T&gt;(&amp;mut self, ptr: <a class="struct" href="https://doc.rust-lang.org/nightly/core/ptr/struct.Unique.html" title="struct core::ptr::Unique">Unique</a>&lt;T&gt;, n: usize) <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;Self: <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,&nbsp;</span></code></span></h4>
+<div class='docblock'><p>Deallocates a block suitable for holding <code>n</code> instances of <code>T</code>. <a href="../../sos_alloc/trait.Allocator.html#method.dealloc_array_unchecked">Read more</a></p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "sos_alloc";
+    </script>
+    <script src="../../main.js"></script>
+    <script defer src="../../search-index.js"></script>
+</body>
+</html>

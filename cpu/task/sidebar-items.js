@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["StateDescriptor","A 64-bit Task State Descriptor"],["StateSegment","A 64-bit Task State Segment"]]});

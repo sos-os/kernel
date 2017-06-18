@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Page","A virtual page"],["PageRange","A range of pages"],["PageRangeIter","An iterator over a range of pages"]],"trait":[["FrameAllocator","Trait for a memory allocator which can allocate memory in terms of frames."],["Mapper",""]]});

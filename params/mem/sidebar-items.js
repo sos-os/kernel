@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Area","A memory area"]],"type":[["Map","A memory map is an iterator over memory areas"]]});
