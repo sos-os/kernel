@@ -37,6 +37,49 @@ pub mod rawlink;
 pub use rawlink::RawLink;
 pub mod list;
 pub use list::List;
+pub mod stack;
+pub use stack::Stack;
 
 #[cfg(test)]
 extern crate std;
+
+use core::ptr::Unique;
+pub unsafe trait OwnedRef<T> {
+    unsafe fn from_raw(ptr: *mut T) -> Self;
+    unsafe fn take(self);
+    fn get(&self) -> &T;
+    fn get_mut(&mut self) -> &mut T;
+}
+
+unsafe impl<T> OwnedRef<T> for Unique<T>  {
+    #[inline]
+    fn get(&self) -> &T {
+        unsafe { self.as_ref() }
+    }
+
+    #[inline] fn get_mut(&mut self) -> &mut T {
+        unsafe { self.as_mut() }
+    }
+
+    #[inline]
+    unsafe fn take(self) {}
+
+    unsafe fn from_raw(ptr: *mut T) -> Self {
+        Unique::new(ptr)
+    }
+}
+
+#[cfg(any(test, feature = "use-std"))]
+unsafe impl<T> OwnedRef<T> for ::std::boxed::Box<T> {
+
+    fn get(&self) -> &T { &**self }
+    fn get_mut(&mut self) -> &mut T { &mut **self }
+
+    #[inline] unsafe fn take(self) {
+        ::std::boxed::Box::into_raw(self);
+    }
+
+    unsafe fn from_raw(ptr: *mut T) -> Self {
+        ::std::boxed::Box::from_raw(ptr)
+    }
+}
