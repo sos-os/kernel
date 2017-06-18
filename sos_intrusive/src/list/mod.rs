@@ -6,7 +6,7 @@
 //  Released under the terms of the MIT license. See `LICENSE` in the root
 //  directory of this repository for more information.
 //
-//! An intrusive linked list implementation using `RawLink`s.
+//! An intrusive doubly-linked list implementation using `RawLink`s.
 //!
 //! An _intrusive_ list is a list structure wherein the type of element stored
 //! in the list holds references to other nodes. This means that we don't have
@@ -15,19 +15,12 @@
 //! use intrusive lists in code that runs without the kernel memory allocator,
 //! like the allocator implementation itself, since each list element manages
 //! its own memory.
-use super::rawlink::RawLink;
+use ::{RawLink, OwnedRef};
 
 use core::marker::PhantomData;
-use core::ptr::Unique;
 use core::iter;
 #[cfg(test)] mod test;
 
-pub unsafe trait OwnedRef<T> {
-    unsafe fn from_raw(ptr: *mut T) -> Self;
-    unsafe fn take(self);
-    fn get(&self) -> &T;
-    fn get_mut(&mut self) -> &mut T;
-}
 
 /// This trait defines a node in an intrusive list.
 ///
@@ -479,36 +472,3 @@ where T: OwnedRef<N>
 //     }
 // }
 //
-
-unsafe impl<T> OwnedRef<T> for Unique<T>  {
-    #[inline]
-    fn get(&self) -> &T {
-        unsafe { self.as_ref() }
-    }
-
-    #[inline] fn get_mut(&mut self) -> &mut T {
-        unsafe { self.as_mut() }
-    }
-
-    #[inline]
-    unsafe fn take(self) {}
-
-    unsafe fn from_raw(ptr: *mut T) -> Self {
-        Unique::new(ptr)
-    }
-}
-
-#[cfg(any(test, feature = "use-std"))]
-unsafe impl<T> OwnedRef<T> for ::std::boxed::Box<T> {
-
-    fn get(&self) -> &T { &**self }
-    fn get_mut(&mut self) -> &mut T { &mut **self }
-
-    #[inline] unsafe fn take(self) {
-        ::std::boxed::Box::into_raw(self);
-    }
-
-    unsafe fn from_raw(ptr: *mut T) -> Self {
-        ::std::boxed::Box::from_raw(ptr)
-    }
-}
