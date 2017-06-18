@@ -92,6 +92,8 @@ pub type Address = *mut u8;
 pub mod frame;
 pub use frame::{Allocator as FrameAllocator, Lender as FrameLender};
 
+pub mod free;
+
 /// Represents the combination of a starting address and
 /// a total capacity of the returned block.
 pub struct Excess(Address, Capacity);
