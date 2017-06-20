@@ -209,13 +209,13 @@ impl<'a> Heap<'a> {
     #[inline]
     unsafe fn push_block(&mut self, ptr: *mut u8, order: usize) {
         self.free_lists[order]
-            .push_front(Unique::new(ptr as *mut FreeBlock))
+            .push(Unique::new(ptr as *mut FreeBlock))
     }
 
     #[inline]
     unsafe fn pop_block(&mut self, order: usize) -> Option<*mut u8>{
         self.free_lists[order]
-            .pop_front()
+            .pop()
             .map(|block| block.as_ref().as_ptr())
     }
 
@@ -315,8 +315,7 @@ impl<'a> Heap<'a> {
     /// + `false` if the block was not found
     pub fn remove_block(&mut self, order: usize, block: Address) -> bool {
         self.free_lists[order]
-            .cursor_mut()
-            .find_and_remove(|b| b as *const FreeBlock as *const u8 == block)
+            .find_and_remove(|b| b as *const _ as *const u8 == block)
             .is_some()
     }
 }
