@@ -57,9 +57,9 @@
 #![feature(step_trait)]
 
 #![cfg_attr(all(test, feature = "bench"), feature(test))]
-#![cfg_attr(test, feature(collections))]
+#![cfg_attr(test, feature(alloc))]
 #[cfg(all(test, feature = "bench"))] extern crate test;
-#[cfg(test)] extern crate collections;
+#[cfg(test)] extern crate alloc;
 
 extern crate memory;
 
