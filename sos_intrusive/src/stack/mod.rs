@@ -113,6 +113,22 @@ where T: OwnedRef<N>
         }
     }
 
+    /// Searches for and removes the first element matching a predicate.
+    ///
+    /// # Arguments
+    ///   - `p`: A predicate (function of the form `&N -> bool`) that returns
+    ///     true if the element should be removed and false if it should not.
+    ///
+    /// # Returns
+    ///   - `Some(T)` if an element matching the predicate was found
+    ///   - `None` if no elements matched the predicate (or if the list is
+    ///     empty.)
+    #[inline]
+    pub fn find_and_remove<P>(&mut self, predicate: P) -> Option<T>
+    where P: Fn(&N) -> bool {
+        self.into_iter().find_and_remove(predicate)
+    }
+
 }
 
 impl<T, N> iter::FromIterator<T> for Stack<T, N>
@@ -166,15 +182,76 @@ where T: OwnedRef<N> + 'a
 }
 
 pub struct IterMut<'a, T, N>
-where T: OwnedRef<N> + 'a
-    , N: Node + 'a {
-        stack: &'a mut Stack<T, N>
-      , current: RawLink<N>
+where N: Node + 'a
+    , T: OwnedRef<N> + 'a {
+    current: RawLink<N>
+  , _lifetime: PhantomData<&'a T>
 }
 
-impl<'a, T, N> Iterator for IterMut <'a, T, N>
-where T: OwnedRef<N> + 'a
-    , N: Node + 'a {
+impl<'a, T, N> IterMut<'a, T, N>
+where N: Node + 'a
+    , T: OwnedRef<N> + 'a {
+    /// Removes the element currently under the iterator and returns it.
+    ///
+    /// # Returns
+    ///   - `Some(T)` if the there is an element currently under the cursor
+    ///     (i.e., the list is not empty)
+    ///   - `None` if the list is empty.
+    pub fn remove(&mut self) -> Option<T> {
+        unsafe {
+            self.current.resolve_mut()
+                .and_then(|curr| {
+                    curr.next_mut().take().resolve_mut()
+                        .map(|result| {
+                            *curr.next_mut() =
+                                result.next_mut().resolve_mut()
+                                      .map(RawLink::some)
+                                      .unwrap_or_else(RawLink::none);
+                            T::from_raw(result)
+                        })
+                })
+        }
+    }
+
+    fn peek_next(&self) -> Option<&N> {
+        unsafe {
+            self.current.resolve()
+                .and_then(|curr| curr.next().resolve())
+        }
+    }
+
+    /// Searches for and removes the first element matching a predicate.
+    ///
+    /// # Arguments
+    ///   - `p`: A predicate (function of the form `&N -> bool`) that returns
+    ///     true if the element should be removed and false if it should not.
+    ///
+    /// # Returns
+    ///   - `Some(T)` if an element matching the predicate was found
+    ///   - `None` if no elements matched the predicate (or if the list is
+    ///     empty.)
+    pub fn find_and_remove<P>(&mut self, predicate: P) -> Option<T>
+    where P: Fn(&N) -> bool {
+        // TODO: the implementation of this is somewhat ugly, it would
+        //       be nice if it was a little bit less imperative...
+        let mut found = false;
+        while let Some(next) = self.peek_next() {
+            if predicate(next) {
+                found = true;
+                break;
+            }
+        }
+        if found {
+            self.remove()
+        } else {
+            None
+        }
+    }
+}
+
+impl<'a, T, N> Iterator for IterMut<'a, T, N>
+where N: Node + 'a
+    , T: OwnedRef<N> + 'a {
 
     type Item = &'a mut N;
 
@@ -205,7 +282,7 @@ where T: OwnedRef<N> + 'a
             None => RawLink::none()
           , Some(other_thing) => RawLink::some(other_thing)
         };
-        IterMut { stack: self
-                , current: curr }
-    }
+        IterMut { current: curr
+                , _lifetime: PhantomData }
+     }
 }
