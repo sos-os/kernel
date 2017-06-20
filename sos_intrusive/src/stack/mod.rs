@@ -133,3 +133,50 @@ where T: OwnedRef<N>
         for item in iterator { self.push(item) }
     }
 }
+
+pub struct Iter<'a, N>
+where N: Node + 'a {
+    current: Option<&'a N>
+}
+
+impl<'a, N> Iterator for Iter <'a, N>
+where N: Node + 'a {
+
+    type Item = &'a N;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.current
+            .map(|curr| {
+                self.current = unsafe { curr.next().resolve() };
+                curr
+            })
+    }
+}
+
+pub struct IterMut<'a, T, N>
+where T: OwnedRef<N> + 'a
+    , N: Node + 'a {
+        stack: &'a mut Stack<T, N>
+      , current: RawLink<N>
+}
+
+impl<'a, T, N> Iterator for IterMut <'a, T, N>
+where T: OwnedRef<N> + 'a
+    , N: Node + 'a {
+
+    type Item = &'a mut N;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        unsafe {
+            self.current.take().resolve_mut()
+                .map(|curr| {
+                    self.current = match curr.next_mut().resolve_mut() {
+                        None => RawLink::none()
+                      , Some(other_thing) => RawLink::some(other_thing)
+                    };
+                    curr
+                })
+            }
+
+    }
+}
