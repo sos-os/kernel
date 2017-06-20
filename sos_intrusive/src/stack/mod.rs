@@ -153,6 +153,18 @@ where N: Node + 'a {
     }
 }
 
+impl <'a, T, N> IntoIterator for &'a Stack<T, N>
+where T: OwnedRef<N> + 'a
+    , N: Node + 'a {
+
+    type IntoIter = Iter<'a, N>;
+    type Item = &'a N;
+
+    fn into_iter(self) -> Self::IntoIter {
+        Iter { current: self.peek() }
+    }
+}
+
 pub struct IterMut<'a, T, N>
 where T: OwnedRef<N> + 'a
     , N: Node + 'a {
@@ -178,5 +190,22 @@ where T: OwnedRef<N> + 'a
                 })
             }
 
+    }
+}
+
+impl <'a, T, N> IntoIterator for &'a mut Stack<T, N>
+where T: OwnedRef<N> + 'a
+    , N: Node + 'a {
+
+    type IntoIter = IterMut<'a, T, N>;
+    type Item = &'a mut N;
+
+    fn into_iter(self) -> Self::IntoIter {
+        let curr = match self.peek_mut() {
+            None => RawLink::none()
+          , Some(other_thing) => RawLink::some(other_thing)
+        };
+        IterMut { stack: self
+                , current: curr }
     }
 }
