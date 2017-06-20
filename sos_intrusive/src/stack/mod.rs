@@ -124,3 +124,12 @@ where T: OwnedRef<N>
         list
     }
 }
+
+impl<T, N> iter::Extend<T> for Stack<T, N>
+where T: OwnedRef<N>
+    , N: Node {
+
+    fn extend<I: IntoIterator<Item=T>>(&mut self, iterator: I) {
+        for item in iterator { self.push(item) }
+    }
+}
