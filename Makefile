@@ -17,7 +17,7 @@ release_boot := $(boot_outdir)/release/libboot.a
 
 grub_cfg := src/arch/$(arch)/grub.cfg
 
-TIMESTAMP := $(shell /bin/date "+%Y-%m-%d-%H:%M:%S")
+TIMESTAMP := $(shell date "+%Y-%m-%d-%H:%M:%S")
 
 # wildcard paths
 wild_iso := target/$(target)/%/sos-$(arch).iso
@@ -101,7 +101,7 @@ $(boot):
 	@cd boot && xargo rustc --target $(boot_target) -- \
 		--emit=obj=target/$(boot_target)/debug/boot32.o
 	# # Place 32-bit bootstrap code into a 64-bit ELF
-	@x86_64-elf-objcopy -O elf64-x86-64 $(boot_outdir)/debug/boot32.o \
+	@objcopy -O elf64-x86-64 $(boot_outdir)/debug/boot32.o \
 	 	$(boot_outdir)/debug/boot.o
 	# @x86_64-elf-objcopy --strip-debug -G _start boot/target/boot.o
 	@cd $(boot_outdir)/debug && ar -crus libboot.a boot.o
@@ -110,8 +110,8 @@ $(release_boot):
 	@cd boot && xargo rustc --target $(boot_target) -- --release \
 	 	--emit=obj=target/$(boot_target)release/boot32.o
 	# # Place 32-bit bootstrap code into a 64-bit ELF
-	@x86_64-elf-objcopy -O elf64-x86-64 $(boot_outdir)/release/boot32.o $(boot_outdir)/release/boot.o
-	@x86_64-elf-objcopy --strip-debug -G _start $(boot_outdir)/release/boot.o
+	@objcopy -O elf64-x86-64 $(boot_outdir)/release/boot32.o $(boot_outdir)/release/boot.o
+	@objcopy -O elf64-x86-64 --strip-debug -G _start $(boot_outdir)/release/boot.o
 	@cd $(boot_outdir)/release && ar -crus libboot.a boot.o
 
 $(release_kernel): $(release_boot)
@@ -131,11 +131,11 @@ $(kernel): $(boot)
 	@xargo build --target $(target)
 
 $(kernel).debug: $(kernel)
-	@x86_64-elf-objcopy --only-keep-debug $(kernel) $(kernel).debug
+	@objcopy -O elf64-x86-64 --only-keep-debug $(kernel) $(kernel).debug
 
 $(kernel).bin: $(kernel) $(kernel).debug
-	@x86_64-elf-strip -g -o $(kernel).bin $(kernel)
-	@x86_64-elf-objcopy --add-gnu-debuglink=$(kernel).debug $(kernel)
+	@strip -O elf64-x86-64 -g -o $(kernel).bin $(kernel)
+	@objcopy -O elf64-x86-64 --add-gnu-debuglink=$(kernel).debug $(kernel)
 
 gdb: $(kernel).bin $(kernel).debug ##@utilities Connect to a running QEMU instance with gdb.
 	@rust-os-gdb -ex "target remote tcp:127.0.0.1:1234" $(kernel)
