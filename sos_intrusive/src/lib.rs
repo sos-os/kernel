@@ -26,7 +26,9 @@
 //! + `use-std`: use the Rust standard library (`std`), rather than `core`.
 #![crate_name = "sos_intrusive"]
 #![crate_type = "lib"]
-#![feature( const_fn, unique )]
+#![feature( const_fn
+          , const_ptr_null_mut )]
+#![feature(unique )]
 #![cfg_attr(not(feature = "use-std"), no_std )]
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]

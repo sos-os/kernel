@@ -16,9 +16,10 @@
 //! + `log`: provides a `log!` macro for kernel log messages.
 #![crate_name = "vga"]
 #![crate_type = "lib"]
-#![feature( const_fn
-          , slice_patterns
+#![feature( slice_patterns
           , unique )]
+#![feature( const_fn
+          , const_unique_new )]
 #![cfg_attr(feature = "system_term", feature(lang_items))]
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
@@ -193,12 +194,15 @@ impl Terminal {
     ///
     /// # Unsafe due to:
     /// + Casting a raw address to an array
+    /// + Constructing a `ptr::Unique` from an unchecked mut pointer.
     pub const unsafe fn new( colors: Palette
                            , buffer_start: usize)
-                           -> Terminal {
+                            -> Terminal {
         Terminal { x: 0, y: 0
-                 , colors: colors
-                 , buffer: ptr::Unique::new(buffer_start as *mut _)
+                 , colors
+                    // TODO: this probably shouldn't be unchecked, but this
+                    //  can't be a const fn otherwise...
+                 , buffer: ptr::Unique::new_unchecked(buffer_start as *mut _)
                  }
     }
 
