@@ -22,7 +22,7 @@ panic = "abort"
 [dependencies]
 util = { path = "../util" }
 bitflags = "0.7"
-spin = "0.4.5"
+spin = "0.4.6"
 
 [dependencies.vga]
 path = "../vga"
@@ -37,5 +37,5 @@ default-features = false
 features = ["release_max_level_info"]
 
 [dependencies.lazy_static]
-version = "0.2.*"
+version = "0.2.11"
 features = ["spin_no_std"]

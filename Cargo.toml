@@ -38,7 +38,7 @@ trace = []
 
 [dependencies]
 rlibc = "0.1.4"
-spin = "0.4.5"
+spin = "0.4.6"
 once = "0.3.2"
 bitflags = "0.7"
 cpu = { path = "cpu" }
@@ -54,7 +54,7 @@ default-features = false
 features = ["release_max_level_info"]
 
 [dependencies.lazy_static]
-version = "0.2.*"
+version = "0.2.11"
 features = ["spin_no_std"]
 
 [dependencies.vga]
