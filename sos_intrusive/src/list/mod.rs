@@ -495,6 +495,8 @@ unsafe impl<T> OwnedRef<T> for Unique<T>  {
 
     unsafe fn from_raw(ptr: *mut T) -> Self {
         Unique::new(ptr)
+            // TODO: probably don't panic here.
+            .expect("null pointer passed to OwnedRef::from_raw!")
     }
 }
 
