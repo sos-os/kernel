@@ -28,6 +28,7 @@
 #![crate_type = "lib"]
 #![feature( const_fn
           , const_ptr_null_mut )]
+#![feature(ptr_internals)]
 #![feature(unique )]
 #![cfg_attr(not(feature = "use-std"), no_std )]
 #![cfg_attr(feature = "clippy", feature(plugin))]
