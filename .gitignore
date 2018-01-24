@@ -169,3 +169,11 @@ tags
 
 # Linux trash folder which might appear on any partition or disk
 .Trash-*
+.idea/markdown-navigator.xml
+.idea/markdown-navigator/profiles_settings.xml
+.idea/modules.xml
+.idea/misc.xml
+.idea/sos-kernel.iml
+.idea/vcs.xml
+.idea/workspace.xml
+.vscode/tasks.json
