@@ -98,8 +98,9 @@ $(wild_isofiles):
 	@mkdir -p $@/boot/grub
 
 $(boot):
-	@cd boot && xargo rustc --target $(boot_target) -- \
-		--emit=obj=target/$(boot_target)/debug/boot32.o
+	@cd boot && RUST_TARGET_PATH="$(shell pwd)/boot" xargo rustc \
+		--target $(boot_target) \
+		-- --emit=obj=target/$(boot_target)/debug/boot32.o
 	# # Place 32-bit bootstrap code into a 64-bit ELF
 	@x86_64-elf-objcopy -O elf64-x86-64 $(boot_outdir)/debug/boot32.o \
 	 	$(boot_outdir)/debug/boot.o
@@ -107,7 +108,9 @@ $(boot):
 	@cd $(boot_outdir)/debug && ar -crus libboot.a boot.o
 
 $(release_boot):
-	@cd boot && xargo rustc --target $(boot_target) -- --release \
+	@cd boot && RUST_TARGET_PATH="$(shell pwd)/boot" xargo rustc \
+		--target $(boot_target) \
+		-- --release \
 	 	--emit=obj=target/$(boot_target)release/boot32.o
 	# # Place 32-bit bootstrap code into a 64-bit ELF
 	@x86_64-elf-objcopy -O elf64-x86-64 $(boot_outdir)/release/boot32.o $(boot_outdir)/release/boot.o
