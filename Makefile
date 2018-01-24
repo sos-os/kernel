@@ -50,6 +50,8 @@ HELP_FUN = \
 exception: $(iso) ##@build Run the kernel, dumping the state from QEMU if an exception occurs
 	@qemu-system-x86_64 -s -hda $(iso) -d int -no-reboot -serial file:$(CURDIR)/target/$(target)/serial-$(TIMESTAMP).log
 
+cargo:
+
 doc: ##@utilities Make RustDoc documentation
 	@xargo doc
 
@@ -98,29 +100,31 @@ $(wild_isofiles):
 	@mkdir -p $@/boot/grub
 
 $(boot):
-	@cd boot && RUST_TARGET_PATH="$(shell pwd)/boot" xargo rustc \
+	@cd boot && RUST_TARGET_PATH="$(PWD)/targets" xargo rustc \
 		--target $(boot_target) \
 		-- --crate-type=staticlib
- 	# Place 32-bit bootstrap code into a 64-bit ELF
-	@x86_64-pc-elf-objcopy -O elf64-x86-64 $(boot_outdir)/debug/libboot32.a \
-	 	$(boot_outdir)/debug/libboot.a
+	# Place 32-bit bootstrap code into a 64-bit ELF
+	@x86_64-pc-elf-objcopy -O elf64-x86-64 \
+		$(boot_outdir)/debug/libboot32.a \
+		$(boot_outdir)/debug/libboot.a
 	@x86_64-pc-elf-objcopy --strip-debug -G _start \
 		$(boot_outdir)/debug/libboot.a
 	# @cd $(boot_outdir)/debug && ar -crus libboot.a boot.o
 
 $(release_boot):
-	@cd boot && RUST_TARGET_PATH="$(shell pwd)/boot" xargo rustc \
+	@cd boot && RUST_TARGET_PATH="$(PWD)/targets" xargo rustc \
 		--target $(boot_target) \
 		-- --release \
-		 --crate-type=staticlib
- 	# Place 32-bit bootstrap code into a 64-bit ELF
-	@x86_64-pc-elf-objcopy -O elf64-x86-64 $(boot_outdir)/release/libboot32.a \
-	 	$(boot_outdir)/release/libboot.a
+		--crate-type=staticlib
+	# Place 32-bit bootstrap code into a 64-bit ELF
+	@x86_64-pc-elf-objcopy -O elf64-x86-64 \
+		$(boot_outdir)/release/libboot32.a \
+		$(boot_outdir)/release/libboot.a
 	@x86_64-pc-elf-objcopy --strip-debug -G _start \
 		$(boot_outdir)/release/libboot.a
 
 $(release_kernel): $(release_boot)
-	@xargo build --target $(target) --release
+	@RUST_TARGET_PATH="$(PWD)/targets" xargo build --target $(target) --release
 
 $(release_kernel).bin: $(release_kernel)
 	@cp $(release_kernel) $(release_kernel).bin
@@ -133,7 +137,7 @@ $(release_iso): $(release_kernel).bin $(grub_cfg)
 	@rm -r $(release_isofiles)
 
 $(kernel): $(boot)
-	@xargo build --target $(target)
+	@RUST_TARGET_PATH="$(PWD)/targets" xargo build --target $(target)
 
 $(kernel).debug: $(kernel)
 	@x86_64-elf-objcopy --only-keep-debug $(kernel) $(kernel).debug
