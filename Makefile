@@ -100,22 +100,24 @@ $(wild_isofiles):
 $(boot):
 	@cd boot && RUST_TARGET_PATH="$(shell pwd)/boot" xargo rustc \
 		--target $(boot_target) \
-		-- --emit=obj=target/$(boot_target)/debug/boot32.o
-	# # Place 32-bit bootstrap code into a 64-bit ELF
-	@x86_64-elf-objcopy -O elf64-x86-64 $(boot_outdir)/debug/boot32.o \
-	 	$(boot_outdir)/debug/boot.o
-	# @x86_64-elf-objcopy --strip-debug -G _start boot/target/boot.o
-	@cd $(boot_outdir)/debug && ar -crus libboot.a boot.o
+		-- --crate-type=staticlib
+ 	# Place 32-bit bootstrap code into a 64-bit ELF
+	@x86_64-pc-elf-objcopy -O elf64-x86-64 $(boot_outdir)/debug/libboot32.a \
+	 	$(boot_outdir)/debug/libboot.a
+	@x86_64-pc-elf-objcopy --strip-debug -G _start \
+		$(boot_outdir)/debug/libboot.a
+	# @cd $(boot_outdir)/debug && ar -crus libboot.a boot.o
 
 $(release_boot):
 	@cd boot && RUST_TARGET_PATH="$(shell pwd)/boot" xargo rustc \
 		--target $(boot_target) \
 		-- --release \
-	 	--emit=obj=target/$(boot_target)release/boot32.o
-	# # Place 32-bit bootstrap code into a 64-bit ELF
-	@x86_64-elf-objcopy -O elf64-x86-64 $(boot_outdir)/release/boot32.o $(boot_outdir)/release/boot.o
-	@x86_64-elf-objcopy --strip-debug -G _start $(boot_outdir)/release/boot.o
-	@cd $(boot_outdir)/release && ar -crus libboot.a boot.o
+		 --crate-type=staticlib
+ 	# Place 32-bit bootstrap code into a 64-bit ELF
+	@x86_64-pc-elf-objcopy -O elf64-x86-64 $(boot_outdir)/release/libboot32.a \
+	 	$(boot_outdir)/release/libboot.a
+	@x86_64-pc-elf-objcopy --strip-debug -G _start \
+		$(boot_outdir)/release/libboot.a
 
 $(release_kernel): $(release_boot)
 	@xargo build --target $(target) --release
