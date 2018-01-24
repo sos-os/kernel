@@ -18,6 +18,7 @@
 #![crate_type = "lib"]
 #![feature( slice_patterns
           , unique )]
+#![feature(ptr_internals)]
 #![feature( const_fn
           , const_unique_new )]
 #![cfg_attr(feature = "system_term", feature(lang_items))]
