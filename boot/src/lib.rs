@@ -31,7 +31,7 @@
 //! [OSDev Wiki]: http://wiki.osdev.org/Long_Mode#Long_Mode
 //! [blog post]: http://os.phil-opp.com/entering-longmode.html
 
-#![crate_name = "boot"]
+#![crate_name = "boot32"]
 #![feature(asm)]
 #![feature(lang_items)]
 #![feature(naked_functions)]
@@ -256,4 +256,12 @@ pub unsafe extern "C" fn _start() {
     // 6. jump to the 64-bit boot subroutine.
     asm!("ljmpl $$8, $$long_mode_init");
 
+}
+
+#[cold]
+#[lang = "panic_fmt"]
+fn panic_fmt() -> ! {
+    loop {
+        boot_write(b"panic! panic! panic!");
+    }
 }
