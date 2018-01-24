@@ -226,29 +226,18 @@ macro_rules! Page {
 
         impl ::core::iter::Step for $ty {
             #[inline]
-            fn step(&self, by: &Self) -> Option<Self> {
+            fn add_usize(&self, n: usize) -> Option<Self> {
                 self.number
-                    .step(&by.number)
+                    .add_usize(n)
                     .map(|s| $ty { number: s})
             }
 
             #[inline]
             #[allow(trivial_numeric_casts)]
-            fn steps_between(start: &$ty, end: &$ty, by: &$ty)
-                            -> Option<usize> {
+            fn steps_between(start: &$ty, end: &$ty) -> Option<usize> {
                 use ::core::iter::Step;
                 <<$addr as Addr>::Repr as Step>::steps_between( &start.number
                                                               , &end.number
-                                                              , &by.number
-                                                              )
-            }
-
-            #[inline]
-            fn steps_between_by_one(start: &$ty, end: &$ty) -> Option<usize> {
-                use ::core::iter::Step;
-                <<$addr as Addr>::Repr as Step>::steps_between( &start.number
-                                                              , &end.number
-                                                              , &1
                                                               )
             }
 
@@ -259,8 +248,6 @@ macro_rules! Page {
             #[inline] fn replace_one(&mut self) -> Self { unimplemented!() }
 
             #[inline] fn replace_zero(&mut self) -> Self { unimplemented!() }
-
-            #[inline] fn is_negative(&self) -> bool { unimplemented!(); }
 
         }
 
