@@ -40,6 +40,8 @@ if ! $CONTINUE; then
     exit
 fi
 
+set +e
+
 echo "${bold}install-env:${normal} Checking if Rust is installed..."
 command -v rustc >/dev/null 2>&1
 if [[ $? -eq 0 ]]; then
@@ -54,6 +56,7 @@ if [[ $? -eq 0 ]]; then
         echo "${bold}install-env:${normal} Rust is already installed."
     fi
 else
+    set -e
     echo ""
     echo "${bold}install-env:${normal} installing Rust"
     echo ""
@@ -88,7 +91,17 @@ case $platform in
         ;;
 esac
 
-echo ""
-echo "${bold}install-env:${normal} Installing \`xargo\`."
-echo ""
-cargo install xargo
+set +e
+
+echo "${bold}install-env:${normal} Checking if xargo is installed..."
+command -v xargo >/dev/null 2>&1
+if [[ $? -eq 1 ]]; then
+    echo "${bold}install-env:${normal} xargo is already installed."
+    exit 0
+else
+    set -e
+    echo "" 
+    echo "${bold}install-env:${normal} Installing \`xargo\`."
+    echo ""
+    cargo install xargo
+fi
