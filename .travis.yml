@@ -13,6 +13,12 @@ cache:
     - /usr/local/bin/grub*
 
 notifications:
+  webhooks:
+    urls:
+    - https://webhooks.gitter.im/e/59a4cbad9f4177de9a91
+    on_success: change
+    on_failure: always
+    on_start: never
   email:
     on_success: never
     on_failure: change
