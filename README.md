@@ -3,6 +3,8 @@
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://github.com/sos-os/kernel/LICENSE-MIT) [![Latest RustDoc](https://img.shields.io/badge/rustdoc-latest-orange.svg)](http://www.elizas.website/sos-kernel/sos_kernel/index.html) 
 [![Gitter](https://img.shields.io/gitter/room/sos-os/kernel.svg)](https://gitter.im/sos-os)
 
+[![Join the chat at https://gitter.im/sos-os/kernel](https://badges.gitter.im/sos-os/kernel.svg)](https://gitter.im/sos-os/kernel?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 SOS is a simple, tiny toy OS implemented in Rust.
 
 I'm writing this mostly for fun, to learn more about OS design and kernel hacking, so don't expect anything new or exciting out of this project.
