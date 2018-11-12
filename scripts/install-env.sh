@@ -95,7 +95,7 @@ set +e
 
 echo "${bold}install-env:${normal} Checking if xargo is installed..."
 command -v xargo >/dev/null 2>&1
-if [[ $? -eq 1 ]]; then
+if [[ $? -eq 0 ]]; then
     echo "${bold}install-env:${normal} xargo is already installed."
     exit 0
 else
